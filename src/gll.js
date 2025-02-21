@@ -9,11 +9,10 @@ let inputErrors = [];
 const HIDE_SLIDERS_WITH_SAME_MIN_MAX_VALUES = true;
 const FILTER_STEP_SIZE_INTEGER = 1;
 const FILTER_STEP_SIZE_FLOAT = 0.000001;
-const FILTER_FLOAT_PRECISION = 3;  // used in slider thumbs
-const TOOLTIP_FLOAT_PRECISION = 2;  // used in tooltip
+const FILTER_VISUAL_FLOAT_PRECISION = 3;  // used in slider thumbs and tooltips; in the back, full float is used
+const FILTERS_ACTIVE_PER_DEFAULT = false;
 const TOOLTIP_LINE_BREAK = 20;
 const TOOLTIP_HIDE_NULL_VALUES = false;
-const FILTERS_ACTIVE_PER_DEFAULT = false;
 
 const DEFAULTS = {
   GRAPH: {
@@ -149,11 +148,11 @@ function decodePropHashId(propId) {
   return propId.split("::");
 }
 
-async function loadFile(event) {
+function loadFile(event) {
   const file = event.target.files[0];
   if (!file) {
     alert("No file selected.");
-    return;
+    return Promise.resolve(null);
   }
 
   const fileType = file.name.split(".").pop().toLowerCase();
@@ -161,13 +160,18 @@ async function loadFile(event) {
   try {
     switch (fileType) {
       case 'json':
-        const text = await file.text();
-        return JSON.parse(text);
+        return parseJSON(file);
 
       case 'xls':
       case 'xlsx':
       case 'ods':
-        return parseExcelToJson(await file.arrayBuffer());
+        return file.arrayBuffer().then((buffer) => {
+          return parseExcelToJson(buffer);
+        }).catch((error) => {
+          alert(`Error reading Excel file: ${error.message}`);
+          return null;
+        });
+
 
       default:
         alert(`Unsupported file type: ${fileType}`);
@@ -180,6 +184,32 @@ async function loadFile(event) {
   event.target.value = '';
 }
 
+function parseJSON(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const jsonContent = JSON.parse(reader.result);
+        if (!jsonContent.edges || !jsonContent.nodes) {
+          alert("File does not contain edges or nodes.");
+          resolve(null);
+        } else {
+          resolve(jsonContent);
+        }
+      } catch (error) {
+        alert(`Failed to parse file as JSON: ${error}`);
+        resolve(null);
+      }
+    };
+    reader.onerror = () => {
+      alert(`Failed to load file: ${reader.error}`);
+      resolve(null);
+    };
+    reader.readAsText(file);
+  });
+
+}
+
 /**
  * Parses an Excel file into the required JSON structure.
  *
@@ -187,7 +217,6 @@ async function loadFile(event) {
  * @returns {Object} - Parsed JSON structure compatible with the existing system.
  */
 function parseExcelToJson(file) {
-  // Load the workbook
   const workbook = XLSX.read(file, {type: 'array'});
 
   // Reserved column mappings
@@ -201,7 +230,6 @@ function parseExcelToJson(file) {
     target: 'target', // Edge target node ID
   };
 
-  // Parse nodes and edges from respective sheets
   const nodesSheet = workbook.Sheets['nodes'];
   const edgesSheet = workbook.Sheets['edges'];
 
@@ -209,11 +237,9 @@ function parseExcelToJson(file) {
     throw new Error('The Excel file must have two sheets: "nodes" and "edges".');
   }
 
-  // Convert the data to JSON arrays
   const nodesData = XLSX.utils.sheet_to_json(nodesSheet, {defval: null});
   const edgesData = XLSX.utils.sheet_to_json(edgesSheet, {defval: null});
 
-  // Parse nodes
   const parsedNodes = nodesData.map(row => {
     const node = {};
     if (row.id == null) {
@@ -238,7 +264,6 @@ function parseExcelToJson(file) {
     return node;
   });
 
-  // Parse edges
   const parsedEdges = edgesData.map(row => {
     const edge = {};
     if (row[RESERVED_COLUMNS.source] == null || row[RESERVED_COLUMNS.target] == null) {
@@ -256,6 +281,11 @@ function parseExcelToJson(file) {
 
     return edge;
   });
+
+  // return {
+  //   nodes: [{"id": "MF_0", "color": "#572cd2", "label": "MF 0", "description": "optional description for node id 0", "type": "hexagon", "size": 25, "D4Data": {"cells": {}, "tissues": {"vasculature": {"Endothelium": "category_1"}, "heart": {"Myocardium": 20}}, "phenotypes": {"NO_GROUPS_YET": {"Collagenous Sprue": "category_3"}}}},{"id": "MF_1", "color": "#1495f8", "label": "MF 1", "description": "optional description for node id 1", "type": "hexagon", "size": 25, "D4Data": {"cells": {}, "tissues": {"vasculature": {"Endothelium": "category_2"}}, "phenotypes": {"NO_GROUPS_YET": {"Atrial Remodeling": 215}}}},{"id": "MF_15", "color": "#61752d", "label": "MF 15", "description": "optional description for node id 15", "type": "hexagon", "size": 25, "D4Data": {"cells": {"adipose tissue": {"ADIPOCYTE": 1.137999}, "ECM": {"CARDIOFIBROBLAST": "category_2"}}, "tissues": {}, "phenotypes": {"NO_GROUPS_YET": {"Rhinitis, Allergic": 533}}}}],
+  //   edges: [{"color": "#E4E3EA", "source": "MF_0", "target": "MF_15", "D4Data": {"properties": {"NO_GROUPS_YET": {"GWAS": 422}}}, "id": "MF_0::MF_15", "label": "Edge 0"}]
+  // }
 
   return {
     nodes: parsedNodes,
@@ -1299,10 +1329,10 @@ class InvertibleRangeSlider {
           <span id="${this.thumbStartId}" thumb style="left:${this.calcPercentage(this.currentMin)}%;"></span>
           <span id="${this.thumbEndId}" thumb style="left:${this.calcPercentage(this.currentMax)}%;"></span>
           <div sign class="left" style="left:0%;">
-            <span id="${this.labelStartId}">${formatNumber(this.currentMin, FILTER_FLOAT_PRECISION)}</span>
+            <span id="${this.labelStartId}">${formatNumber(this.currentMin, FILTER_VISUAL_FLOAT_PRECISION)}</span>
           </div>
           <div sign class="right" style="left:100%; margin-left: 24px;">
-            <span id="${this.labelEndId}">${formatNumber(this.currentMax, FILTER_FLOAT_PRECISION)}</span>
+            <span id="${this.labelEndId}">${formatNumber(this.currentMax, FILTER_VISUAL_FLOAT_PRECISION)}</span>
           </div>
         </div>
         <input type="range" tabindex="0" value="${this.currentMin}" max="${this.sliderMax}" min="${this.sliderMin}" 
@@ -1358,11 +1388,11 @@ class InvertibleRangeSlider {
       this.inverseLeft.style.backgroundColor = '#C33D35';
       this.inverseRight.style.backgroundColor = '#C33D35';
       if (isLower) {
-        this.labelEnd.innerHTML = formatNumber(primaryValue, FILTER_FLOAT_PRECISION);
-        this.labelStart.innerHTML = formatNumber(secondaryValue, FILTER_FLOAT_PRECISION);
+        this.labelEnd.innerHTML = formatNumber(primaryValue, FILTER_VISUAL_FLOAT_PRECISION);
+        this.labelStart.innerHTML = formatNumber(secondaryValue, FILTER_VISUAL_FLOAT_PRECISION);
       } else {
-        this.labelStart.innerHTML = formatNumber(primaryValue, FILTER_FLOAT_PRECISION);
-        this.labelEnd.innerHTML = formatNumber(secondaryValue, FILTER_FLOAT_PRECISION);
+        this.labelStart.innerHTML = formatNumber(primaryValue, FILTER_VISUAL_FLOAT_PRECISION);
+        this.labelEnd.innerHTML = formatNumber(secondaryValue, FILTER_VISUAL_FLOAT_PRECISION);
       }
 
       this.labelStart.parentElement.classList.add("flipped");
@@ -1377,11 +1407,11 @@ class InvertibleRangeSlider {
       this.inverseLeft.style.backgroundColor = 'grey';
       this.inverseRight.style.backgroundColor = 'grey';
       if (isLower) {
-        this.labelStart.innerHTML = formatNumber(primaryValue, FILTER_FLOAT_PRECISION);
-        this.labelEnd.innerHTML = formatNumber(secondaryValue, FILTER_FLOAT_PRECISION);
+        this.labelStart.innerHTML = formatNumber(primaryValue, FILTER_VISUAL_FLOAT_PRECISION);
+        this.labelEnd.innerHTML = formatNumber(secondaryValue, FILTER_VISUAL_FLOAT_PRECISION);
       } else {
-        this.labelStart.innerHTML = formatNumber(secondaryValue, FILTER_FLOAT_PRECISION);
-        this.labelEnd.innerHTML = formatNumber(primaryValue, FILTER_FLOAT_PRECISION);
+        this.labelStart.innerHTML = formatNumber(secondaryValue, FILTER_VISUAL_FLOAT_PRECISION);
+        this.labelEnd.innerHTML = formatNumber(primaryValue, FILTER_VISUAL_FLOAT_PRECISION);
       }
 
       this.labelStart.parentElement.classList.remove("flipped");
@@ -1812,7 +1842,7 @@ function buildToolTipText(nodeOrEdgeID, isEdge) {
     const value = item.D4Data[section][subSection][property];
     if (TOOLTIP_HIDE_NULL_VALUES && value === 0) continue;
 
-    const formattedValue = isNaN(value) ? value : formatNumber(value, FILTER_FLOAT_PRECISION);
+    const formattedValue = isNaN(value) ? value : formatNumber(value, FILTER_VISUAL_FLOAT_PRECISION);
     tooltip += `<li>${property}: <span class="red"><b>${formattedValue}</b></span></li>`;
     currentLineCount++;
   }
@@ -1823,7 +1853,7 @@ function buildToolTipText(nodeOrEdgeID, isEdge) {
   return tooltip;
 }
 
-function loadGraph(event) {
+function loadFileWrapper(event) {
   showLoading("Loading", "Loading data");
   setTimeout(() => {
     loadFile(event)
