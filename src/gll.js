@@ -22,7 +22,9 @@ const DEFAULTS = {
   GRAPH: {
     NODE: {COLOR: "#C33D35", SIZE: 20, TYPE: "hexagon"},
     EDGE: {COLOR: "#403C5390", LINE_WIDTH: 0.75, TYPE: "line", ARROWS: {START: false, END: false}},
-  }, LAYOUT: "force", LAYOUT_INTERNALS: {
+  },
+  LAYOUT: "force",
+  LAYOUT_INTERNALS: {
     "force": {gravity: 10},
     "fruchterman": {
       gravity: 5,
@@ -36,7 +38,8 @@ const DEFAULTS = {
     "concentric": {nodeSize: 32, maxLevelDiff: 0.5, sortBy: 'degree', preventOverlap: true},
     "grid": {sortBy: "id", nodeSize: 32},
     "mds": {nodeSize: 32, linkDistance: 100},
-  }, BUBBLE_SET_STYLE: {
+  },
+  BUBBLE_SET_STYLE: {
     "groupOne": {
       fill: '#403C53', fillOpacity: 0.25, stroke: '#C33D35', strokeOpacity: 1, virtualEdges: true,
     }, "groupTwo": {
@@ -47,6 +50,16 @@ const DEFAULTS = {
       fill: '#8CA6D9', fillOpacity: 0.4, stroke: '#EFB0AA', strokeOpacity: 1, virtualEdges: true,
     },
   },
+  STYLES: {
+    NODE_FORM: ["circle", "diamond", "ellipse", "hexagon", "rect", "triangle", "donut"],
+    NODE_COLORS: ["#ff0000", "#800080", "#0000ff", "#ffc0cb"],
+    NODE_SIZES: {sm: 5, md: 15, lg: 30, xlg: 50},
+    NODE_BORDER_COLORS: ["#ff0000", "#800080", "#0000ff", "#ffc0cb"],
+    NODE_BORDER_SIZES: {sm: 0.5, md: 1, lg: 2, xlg: 4},
+    EDGE_TYPES: ["line", "polyline", "dashed"],
+    EDGE_COLORS: ["#ff0000", "#800080", "#0000ff", "#ffc0cb"],
+    EDGE_WIDTHS: {sm: 0.5, md: 0.75, lg: 1, xlg: 2},
+  }
 };
 
 function createDefaultLayout(key) {
@@ -103,26 +116,24 @@ function parseLayouts(jsonLayouts) {
   return parsedLayouts;
 }
 
-function buildStyleDiv(propID) {
+function createStyleDiv(propID) {
   const container = document.createElement("div");
   container.style.display = "grid";
   container.style.gridTemplateColumns = "1fr 3fr";
   container.style.gap = "10px";
-  container.style.padding = "10px";
 
   const getTargetNodes = (propID) => {
     if (!propID) return cache.selectedNodes;
-    return [...cache.propToNodeIDs.get(propID)]
-      .filter(nodeID => cache.nodeIDsToBeShown.has(nodeID));
+    return [...cache.propToNodeIDs.get(propID)].filter((nodeID) =>
+      cache.nodeIDsToBeShown.has(nodeID)
+    );
   };
 
   // Helper to create a labeled section with heading and controls
   function createSection(title, controls) {
     const heading = document.createElement("div");
     heading.textContent = title;
-    heading.style.fontWeight = "bold";
-    heading.style.marginBottom = "10px";
-    heading.style.textAlign = "start";
+    heading.classList.add("style-heading");
     controls.style.display = "flex";
     controls.style.flexWrap = "wrap";
     controls.style.gap = "5px";
@@ -131,67 +142,59 @@ function buildStyleDiv(propID) {
     container.appendChild(controls);
   }
 
-  // Create buttons for "Form"
-  function createFormControls() {
-    const formControls = document.createElement("div");
-
-    const shapes = [
-      { label: "◯", name: "circle" },
-      { label: "⬥", name: "diamond" },
-      { label: "⬭", name: "ellipse" },
-      { label: "⬣", name: "hexagon" },
-      { label: "⬛", name: "rect" },
-      { label: "△", name: "triangle" },
-      { label: "⭓", name: "donut" },
-    ];
-
-    shapes.forEach(shape => {
-      const button = document.createElement("button");
-      button.textContent = shape.label;
-      button.style.padding = "5px";
-      button.title = shape.name;
-      button.onclick = () => {
-        // Handle button click with targetNodes
-        console.log(`${shape.name} clicked`, getTargetNodes(propID));
-      };
-      formControls.appendChild(button);
-    });
-
-    return formControls;
-  }
-
-  // Create controls for "Color" and "Border Color"
-  function createColorControls() {
+  // Create controls for Node Form (Shapes)
+  function createNodeFormControls() {
     const controls = document.createElement("div");
 
-    const colors = ["#ff0000", "#800080", "#0000ff", "#ffc0cb"]; // red, purple, blue, pink
-    colors.forEach(color => {
+    DEFAULTS.STYLES.NODE_FORM.forEach((shape) => {
+      const button = document.createElement("button");
+      button.textContent = shape;
+      button.classList.add("style-inner-button");
+      button.onclick = () => {
+        console.log(`Node form selected: ${shape}`, getTargetNodes(propID));
+      };
+      controls.appendChild(button);
+    });
+
+    return controls;
+  }
+
+  // Create generalized color controls
+  function createColorControls(property, defaultColor, colors) {
+    const controls = document.createElement("div");
+
+    // Create color selection buttons
+    colors.forEach((color) => {
       const colorButton = document.createElement("button");
       colorButton.style.backgroundColor = color;
       colorButton.style.color = "#fff";
       colorButton.style.border = "none";
-      colorButton.style.padding = "5px 10px";
       colorButton.textContent = color;
       colorButton.onclick = () => {
-        colorInput.value = color; // Update input value
-        console.log("Color selected:", color, getTargetNodes(propID));
+        colorInput.value = color;
+        console.log(`${property} color selected: ${color}`, getTargetNodes(propID));
       };
       controls.appendChild(colorButton);
     });
 
-    // Add color picker button and input
+    // Create color picker and input
     const colorPicker = document.createElement("input");
     colorPicker.type = "color";
+    colorPicker.value = defaultColor; // Default color
     colorPicker.oninput = () => {
       colorInput.value = colorPicker.value;
-      console.log("Color picker's value:", colorPicker.value, getTargetNodes(propID));
+      console.log(`${property} color picker value: ${colorPicker.value}`, getTargetNodes(propID));
     };
 
     const colorInput = document.createElement("input");
     colorInput.type = "text";
-    colorInput.value = "#000000";
-    colorInput.style.width = "80px";
-    colorInput.disabled = true; // Disable manual editing
+    colorInput.value = defaultColor; // Default color
+    colorInput.classList.add("style-input");
+    colorInput.onkeypress = (e) => {
+      if (e.key === "Enter") {
+        console.log(`${property} custom color entered: ${colorInput.value}`);
+      }
+    };
 
     controls.appendChild(colorPicker);
     controls.appendChild(colorInput);
@@ -199,40 +202,74 @@ function buildStyleDiv(propID) {
     return controls;
   }
 
-  // Create controls for "Size" and "Border Size"
-  function createSizeControls() {
+  // Create generalized size controls
+  function createSizeControls(property, defaultValue, sizeMap) {
     const controls = document.createElement("div");
-    const sizes = ["Small", "Medium", "Large", "X-Large"];
+
     const sizeInput = document.createElement("input");
     sizeInput.type = "text";
-    sizeInput.placeholder = "Custom size";
-    sizeInput.style.width = "80px";
+    sizeInput.placeholder = `Custom ${property.toLowerCase()} size`;
+    sizeInput.classList.add("style-input");
+    sizeInput.value = defaultValue;
 
-    sizes.forEach(size => {
+    // Create buttons
+    for (const [label, value] of Object.entries(sizeMap)) {
       const button = document.createElement("button");
-      button.textContent = size;
-      button.style.padding = "5px 10px";
+      button.textContent = label;
+      button.classList.add("style-inner-button");
       button.onclick = () => {
-        sizeInput.value = size.toLowerCase();
-        console.log("Size selected:", size.toLowerCase(), getTargetNodes(propID));
+        sizeInput.value = value; // Update input
+        console.log(`${property} size selected: ${value}`, getTargetNodes(propID));
       };
       controls.appendChild(button);
-    });
+    }
+
+    // Allow custom input via text field
+    sizeInput.onkeypress = (e) => {
+      if (e.key === "Enter") {
+        const customValue = parseFloat(sizeInput.value);
+        if (!isNaN(customValue)) {
+          console.log(`${property} custom size entered: ${customValue}`, getTargetNodes(propID));
+        } else {
+          console.error("Invalid size entered");
+        }
+      }
+    };
 
     controls.appendChild(sizeInput);
 
     return controls;
   }
 
-  createSection("Form", createFormControls());
-  createSection("Color", createColorControls());
-  createSection("Size", createSizeControls());
-  createSection("Border Color", createColorControls());
-  createSection("Border Size", createSizeControls());
+  // Create controls for Edge Type
+  function createEdgeTypeControls(defaultType, edgeTypes) {
+    const controls = document.createElement("div");
+
+    edgeTypes.forEach((type) => {
+      const button = document.createElement("button");
+      button.textContent = type;
+      button.style.margin = "5px";
+      button.onclick = () => {
+        console.log(`Edge type selected: ${type}`, getTargetNodes(propID));
+      };
+      controls.appendChild(button);
+    });
+
+    return controls;
+  }
+
+  // Add all sections using DEFAULTS
+  createSection("Node Form", createNodeFormControls());
+  createSection("Node Color", createColorControls("Node", DEFAULTS.GRAPH.NODE.COLOR, DEFAULTS.STYLES.NODE_COLORS));
+  createSection("Node Size", createSizeControls("Node", DEFAULTS.GRAPH.NODE.SIZE, DEFAULTS.STYLES.NODE_SIZES));
+  createSection("Node Border Color", createColorControls("Node Border", DEFAULTS.GRAPH.NODE.COLOR, DEFAULTS.STYLES.NODE_BORDER_COLORS));
+  createSection("Node Border Size", createSizeControls("Node Border", DEFAULTS.STYLES.NODE_BORDER_SIZES.md, DEFAULTS.STYLES.NODE_BORDER_SIZES));
+  createSection("Edge Type", createEdgeTypeControls(DEFAULTS.GRAPH.EDGE.TYPE, DEFAULTS.STYLES.EDGE_TYPES));
+  createSection("Edge Color", createColorControls("Edge", DEFAULTS.GRAPH.EDGE.COLOR, DEFAULTS.STYLES.EDGE_COLORS));
+  createSection("Edge Width", createSizeControls("Edge Width", DEFAULTS.GRAPH.EDGE.LINE_WIDTH, DEFAULTS.STYLES.EDGE_WIDTHS));
 
   return container;
 }
-
 function persistPositionsUpdateDataAndReDrawGraph() {
   // the timeout is necessary since otherwise, when calling this directly after rendering, the layout is not fully
   // finished and the recorded nodes are misplaced slightly
@@ -1026,7 +1063,6 @@ function buildFilterUI() {
 
     const col2 = document.createElement('div');
     col2.className = "filter-row-col2";
-    // col2.classList.add("slider-col");
     row.appendChild(col2);
 
     const sliderOrDropdown = isCategoricalProperty
@@ -1036,17 +1072,22 @@ function buildFilterUI() {
 
     const col3 = document.createElement('div');
     col3.className = "filter-row-col3";
-    // col3.style.display = "flex";
-    // col3.style.alignItems = "center";
     col3.appendChild(createCircleGroupButtonWithQuadrants(propID));
+    col3.appendChild(createStyleToggleButton(propID));
     row.appendChild(col3);
 
     div.append(row);
-
     sliderOrDropdown.appendListeners();
+
+    const hiddenRow = document.createElement("div");
+    hiddenRow.id = `style-row-${propID}`;
+    hiddenRow.className = "style-row";
+    hiddenRow.appendChild(createStyleDiv(propID));
+
+    div.append(hiddenRow);
   }
 
-  document.getElementById("staticStyleDiv").appendChild(buildStyleDiv())
+  document.getElementById("staticStyleDiv").appendChild(createStyleDiv())
 
   manageDynamicWidgets();
   handleEditModeUIChanges();
@@ -1618,6 +1659,18 @@ function createCircleGroupButtonWithQuadrants(propID) {
   }
 
   return circleButton;
+}
+
+function createStyleToggleButton(propID) {
+  const btn = document.createElement("button");
+  btn.classList.add("ml-2", "style-button", "show-on-edit");
+  btn.textContent = "🎨";
+
+  btn.addEventListener("click", () => {
+    document.getElementById(`style-row-${propID}`).classList.toggle("show");
+  });
+
+  return btn;
 }
 
 function handleFilterEvent(header, text, propID = null) {
