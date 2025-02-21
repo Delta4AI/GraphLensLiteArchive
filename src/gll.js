@@ -103,6 +103,136 @@ function parseLayouts(jsonLayouts) {
   return parsedLayouts;
 }
 
+function buildStyleDiv(propID) {
+  const container = document.createElement("div");
+  container.style.display = "grid";
+  container.style.gridTemplateColumns = "1fr 3fr";
+  container.style.gap = "10px";
+  container.style.padding = "10px";
+
+  const getTargetNodes = (propID) => {
+    if (!propID) return cache.selectedNodes;
+    return [...cache.propToNodeIDs.get(propID)]
+      .filter(nodeID => cache.nodeIDsToBeShown.has(nodeID));
+  };
+
+  // Helper to create a labeled section with heading and controls
+  function createSection(title, controls) {
+    const heading = document.createElement("div");
+    heading.textContent = title;
+    heading.style.fontWeight = "bold";
+    heading.style.marginBottom = "10px";
+    heading.style.textAlign = "start";
+    controls.style.display = "flex";
+    controls.style.flexWrap = "wrap";
+    controls.style.gap = "5px";
+
+    container.appendChild(heading);
+    container.appendChild(controls);
+  }
+
+  // Create buttons for "Form"
+  function createFormControls() {
+    const formControls = document.createElement("div");
+
+    const shapes = [
+      { label: "◯", name: "circle" },
+      { label: "⬥", name: "diamond" },
+      { label: "⬭", name: "ellipse" },
+      { label: "⬣", name: "hexagon" },
+      { label: "⬛", name: "rect" },
+      { label: "△", name: "triangle" },
+      { label: "⭓", name: "donut" },
+    ];
+
+    shapes.forEach(shape => {
+      const button = document.createElement("button");
+      button.textContent = shape.label;
+      button.style.padding = "5px";
+      button.title = shape.name;
+      button.onclick = () => {
+        // Handle button click with targetNodes
+        console.log(`${shape.name} clicked`, getTargetNodes(propID));
+      };
+      formControls.appendChild(button);
+    });
+
+    return formControls;
+  }
+
+  // Create controls for "Color" and "Border Color"
+  function createColorControls() {
+    const controls = document.createElement("div");
+
+    const colors = ["#ff0000", "#800080", "#0000ff", "#ffc0cb"]; // red, purple, blue, pink
+    colors.forEach(color => {
+      const colorButton = document.createElement("button");
+      colorButton.style.backgroundColor = color;
+      colorButton.style.color = "#fff";
+      colorButton.style.border = "none";
+      colorButton.style.padding = "5px 10px";
+      colorButton.textContent = color;
+      colorButton.onclick = () => {
+        colorInput.value = color; // Update input value
+        console.log("Color selected:", color, getTargetNodes(propID));
+      };
+      controls.appendChild(colorButton);
+    });
+
+    // Add color picker button and input
+    const colorPicker = document.createElement("input");
+    colorPicker.type = "color";
+    colorPicker.oninput = () => {
+      colorInput.value = colorPicker.value;
+      console.log("Color picker's value:", colorPicker.value, getTargetNodes(propID));
+    };
+
+    const colorInput = document.createElement("input");
+    colorInput.type = "text";
+    colorInput.value = "#000000";
+    colorInput.style.width = "80px";
+    colorInput.disabled = true; // Disable manual editing
+
+    controls.appendChild(colorPicker);
+    controls.appendChild(colorInput);
+
+    return controls;
+  }
+
+  // Create controls for "Size" and "Border Size"
+  function createSizeControls() {
+    const controls = document.createElement("div");
+    const sizes = ["Small", "Medium", "Large", "X-Large"];
+    const sizeInput = document.createElement("input");
+    sizeInput.type = "text";
+    sizeInput.placeholder = "Custom size";
+    sizeInput.style.width = "80px";
+
+    sizes.forEach(size => {
+      const button = document.createElement("button");
+      button.textContent = size;
+      button.style.padding = "5px 10px";
+      button.onclick = () => {
+        sizeInput.value = size.toLowerCase();
+        console.log("Size selected:", size.toLowerCase(), getTargetNodes(propID));
+      };
+      controls.appendChild(button);
+    });
+
+    controls.appendChild(sizeInput);
+
+    return controls;
+  }
+
+  createSection("Form", createFormControls());
+  createSection("Color", createColorControls());
+  createSection("Size", createSizeControls());
+  createSection("Border Color", createColorControls());
+  createSection("Border Size", createSizeControls());
+
+  return container;
+}
+
 function persistPositionsUpdateDataAndReDrawGraph() {
   // the timeout is necessary since otherwise, when calling this directly after rendering, the layout is not fully
   // finished and the recorded nodes are misplaced slightly
@@ -915,6 +1045,8 @@ function buildFilterUI() {
 
     sliderOrDropdown.appendListeners();
   }
+
+  document.getElementById("staticStyleDiv").appendChild(buildStyleDiv())
 
   manageDynamicWidgets();
   handleEditModeUIChanges();
