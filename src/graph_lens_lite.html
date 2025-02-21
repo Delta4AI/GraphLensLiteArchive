@@ -885,7 +885,7 @@
     <div class="showOnLoad">
       <hr>
       <h3>Network Options</h3>
-      <label for="layout">Choose View:</label>
+      <label for="layout">Network View:</label>
       <select name="layout" id="layout" onchange="changeLayout()" style="margin-bottom:10px;"></select>
       <button class="small-btn" id="resetLayoutButton" onclick="resetLayout()" title="Reset View Arrangement (R)">⭯
       </button>
@@ -900,7 +900,8 @@
       </button>
       <br>
       <div class="edit-container show-on-edit">
-        <p id="selectedNodesStatus">Selected nodes: 0</p>
+        <div id="selectedNodesStatus">Selected nodes: 0</div>
+        <div id="staticStyleDiv"></div>
       </div>
       <h5 class="purple">
         <span id="visibleNodes" class="red">0</span>/<span id="totalNodes">0</span> nodes |
