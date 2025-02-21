@@ -16,6 +16,8 @@ const SORT_TOOLTIPS = true;
 const TOOLTIP_LINE_BREAK = 20;
 const TOOLTIP_HIDE_NULL_VALUES = false;
 
+const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
+
 const DEFAULTS = {
   GRAPH: {
     NODE: {COLOR: "#C33D35", SIZE: 20, TYPE: "hexagon"},
@@ -68,20 +70,20 @@ function createDefaultLayout(key) {
   return defLayout
 }
 
-function parseLayouts(jsonLayouts) {
-  function parseGroups(filterValue) {
-    const groupData = {
-      categories: new Set(filterValue?.categories || []),
-    };
-    for (let group of traverseBubbleSets()) {
-      groupData[`${group}Members`] = new Set(filterValue[`${group}Members`] || []);
-      groupData[`${group}IDs`] = new Set(filterValue[`${group}IDs`] || []);
-      groupData[`${group}MembersHidden`] = new Set(filterValue[`${group}MembersHidden`] || []);
-      groupData[`${group}IDsHidden`] = new Set(filterValue[`${group}IDsHidden`] || []);
-    }
-    return groupData;
+function parseGroups(filterValue) {
+  const groupData = {
+    categories: new Set(filterValue?.categories || []),
+  };
+  for (let group of traverseBubbleSets()) {
+    groupData[`${group}Members`] = new Set(filterValue[`${group}Members`] || []);
+    groupData[`${group}IDs`] = new Set(filterValue[`${group}IDs`] || []);
+    groupData[`${group}MembersHidden`] = new Set(filterValue[`${group}MembersHidden`] || []);
+    groupData[`${group}IDsHidden`] = new Set(filterValue[`${group}IDsHidden`] || []);
   }
+  return groupData;
+}
 
+function parseLayouts(jsonLayouts) {
   const parsedLayouts = {};
   Object.entries(jsonLayouts).forEach(([key, layout]) => {
     parsedLayouts[key] = {
@@ -448,42 +450,41 @@ function toggleEditMode(ev) {
   // control tooltip plugin
   graph.updatePlugin({key: 'tooltip', enable: editModeActive});
 
+  handleEditModeUIChanges();
+}
+
+function handleEditModeUIChanges() {
+  const editModeActive = document.getElementById("editBtn").classList.contains("active");
   const editElements = document.querySelectorAll('.show-on-edit');
   editElements.forEach(el => {
-    editModeActive ? el.classList.remove("show") : el.classList.add("show");
-    editModeActive ? el.style.height = "0" : el.style.height = `${el.scrollHeight}px`;
+    editModeActive ? el.classList.add("show") : el.classList.remove("show");
+    editModeActive ? el.style.height = `${el.scrollHeight}px` : el.style.height = "0";
   });
 
   const filterRows = document.querySelectorAll('.filter-row');
   filterRows.forEach(row => {
     const checkboxCol = row.children[0];
-    checkboxCol.style.width = editModeActive ? "66%" : "35%";
+    checkboxCol.style.width = editModeActive ? "35%" : "66%";
 
     const sliderCol = row.querySelector(".filter-row-col2");
-    sliderCol.style.width = editModeActive ? "33%" : "65%";
-    sliderCol.style.display = editModeActive ? "" : "flex";
-    sliderCol.style.alignItems = editModeActive ? "" : "center";
+    sliderCol.style.width = editModeActive ? "65%" : "33%";
+    sliderCol.style.display = editModeActive ? "flex" : "";
+    sliderCol.style.alignItems = editModeActive ? "center" : "";
 
     if (sliderCol.children[2]?.id.endsWith("slider")) {
       const sliderElem = sliderCol.children[2];
-      if (sliderElem) sliderElem.style.width = editModeActive ? "" : "200%";
+      if (sliderElem) sliderElem.style.width = editModeActive ? "200%" : "";
     } else if (sliderCol.children[0]?.id.endsWith("dropdown")) {
       const dropdownElem = sliderCol.children[0];
       if (dropdownElem) {
-        dropdownElem.style.width = editModeActive ? "" : "96.5%";
-        dropdownElem.children[0].style.width = editModeActive ? "90%" : "100%";
-        dropdownElem.children[0].style.margin = editModeActive ? "0 0 0 4px" : "0";
+        dropdownElem.style.width = editModeActive ? "96.5%" : "";
+        dropdownElem.children[0].style.width = editModeActive ? "100%" : "90%";
+        dropdownElem.children[0].style.margin = editModeActive ? "0" : "0 0 0 4px";
       }
     }
-  })
+  });
 
-  document.getElementById("sidebar").style.minWidth = editModeActive ? "360px" : "600px";
-}
-
-function updateBubbleSets() {
-  for (let group of traverseBubbleSets()) {
-    updateBubbleSet(group, cache.bubbleSets.get(group));
-  }
+  document.getElementById("sidebar").style.minWidth = editModeActive ? "600px" : "360px";
 }
 
 function* traverseBubbleSets() {
@@ -495,9 +496,12 @@ function* traverseBubbleSets() {
 function updateBubbleSet(group, members) {
   const plugin = graph.getPluginInstance("bubbleSetPlugin-" + group);
   let empty = !members || members.size === 0;
+  const membersAsArray = [...members];
   plugin.update({
-    members: empty ? [] : [...members],
-    avoidMembers: [],
+    members: empty ? [] : membersAsArray,
+    avoidMembers: empty ?
+      [] : AVOID_NON_BUBBLE_GROUP_MEMBERS ?
+        [...cache.nodeRef.keys()].filter(nodeID => !membersAsArray.includes(nodeID)) : [],
     fillOpacity: empty ? 0 : DEFAULTS.BUBBLE_SET_STYLE[group].fillOpacity,
     strokeOpacity: empty ? 0 : DEFAULTS.BUBBLE_SET_STYLE[group].strokeOpacity,
   });
@@ -913,6 +917,22 @@ function buildFilterUI() {
   }
 
   manageDynamicWidgets();
+  handleEditModeUIChanges();
+}
+
+function saveFiltersToStash() {
+  data.stash = {
+    filters: structuredClone(data.layouts[data.selectedLayout].filters),
+    filterStrategy: structuredClone(data.layouts[data.selectedLayout].filterStrategy),
+  };
+  showLoading("Saving filter", "Saving filter settings to stash", false, true);
+}
+
+function loadFiltersFromStash() {
+  data.layouts[data.selectedLayout].filters = structuredClone(data.stash.filters);
+  data.layouts[data.selectedLayout].filterStrategy = structuredClone(data.stash.filterStrategy);
+  buildFilterUI();
+  handleFilterEvent("Restoring filter", "Restoring filter settings from stash");
 }
 
 function createFilterStrategyToggleSwitch() {
@@ -964,8 +984,9 @@ function manageDynamicWidgets() {
 
 function createSectionToggleButton(enable, section, subSection = null) {
   const btn = document.createElement("button");
-  btn.classList.add("small-btn", "red", "purple-border", "ml-1");
+  btn.classList.add("small-btn", "no-border", "no-background", "red");
   if (subSection) btn.classList.add("extra-small");
+  if (enable) btn.classList.add("ml-1");
   btn.textContent = enable ? "✔" : "✗";
   btn.title = `${enable ? 'Enable' : 'Disable'} all filters for the ${subSection ? 'sub-section: ' + subSection : 'section: ' + section}`;
   btn.onclick = () => {
@@ -1717,6 +1738,18 @@ function preProcessData(fileData) {
     }, {});
   }
 
+  if (fileData.stash) {
+    data.stash = new Map(
+      Object.entries(fileData.stash || {}).map(([key, value]) => [
+        key,
+        {
+          ...value,
+          ...parseGroups(value),
+        },
+      ])
+    );
+  }
+
   console.log("Done pre-processing data");
 }
 
@@ -1872,6 +1905,7 @@ function loadFileWrapper(event) {
         graph.render().then(r => {
           console.log("Initial graph rendered");
           persistPositionsUpdateDataAndReDrawGraph();
+          saveFiltersToStash();
           hideLoading();
         });
 
@@ -1945,7 +1979,7 @@ function exportPNG() {
   hideLoading();
 }
 
-function showLoading(header, text = "", invisible = false) {
+function showLoading(header, text = "", invisible = false, autoFade = false) {
   const overlay = document.getElementById('loadingOverlay');
   overlay.style.display = 'flex';
 
@@ -1960,6 +1994,12 @@ function showLoading(header, text = "", invisible = false) {
   setTimeout(() => {
     console.log(header);
   }, 25);
+
+  if (autoFade) {
+    setTimeout(() => {
+      hideLoading();
+    }, 1000);
+  }
 }
 
 function hideLoading() {

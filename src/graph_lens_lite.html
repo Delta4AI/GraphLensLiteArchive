@@ -262,8 +262,21 @@
           color: #403C53;
       }
 
+      .purple-border {
+          border: 1px solid #403C53 !important;
+          border-radius: 3px;
+      }
+
       .round-border {
           border-radius: 3px;
+      }
+
+      .no-border {
+          border: none !important;
+      }
+
+      .no-background {
+          background: none;
       }
 
       .small-btn {
@@ -276,6 +289,10 @@
           border-radius: 3px;
           cursor: pointer;
           padding: 0;
+      }
+
+      .small-btn.red:hover {
+          border: 1px solid #403C53 !important;
       }
 
       .extra-small {
@@ -816,7 +833,7 @@
           border-bottom: 1px solid #ccc;
       }
 
-      .dropdown-buttons button {
+      .dropdown-buttons.button {
           font-size: 12px;
           padding: 4px 8px;
           border: 1px solid #ccc;
@@ -838,15 +855,15 @@
       }
 
       .show-on-edit {
-          width: 0;
-          height: 0;
-          overflow: hidden;
-          transition: width 0.2s ease-in-out, height 0.2s ease-in-out;
+          display: none;
       }
 
       .show-on-edit.show {
-          width: 100%;
+          display: inline-block;
+          /*width: 100%;*/
+          width: auto;
           height: auto;
+          transition: width 0.2s ease-in-out, height 0.2s ease-in-out;
       }
 
   </style>
@@ -863,7 +880,7 @@
   <div id="sidebar">
     <h3>Load Model</h3>
     <input type="file" id="fileInput" name="fileInput" onchange="loadFileWrapper(event);" accept=".json, .xls, .xlsx, .csv, .tab"/>
-    <button id="exportModel" class="showOnLoad" onclick="exportGraphAsJSON()" title="Save Model (S)">📥</button>
+    <button id="exportModel" class="showOnLoad" onclick="exportGraphAsJSON()" title="Save Model (S)">💾</button>
     <button id="exportImage" class="showOnLoad" onclick="exportPNG()" title="Save Image (P)">📷️</button>
     <div class="showOnLoad">
       <hr>
@@ -877,15 +894,15 @@
       <button class="small-btn red disabled" onclick="removeSelectedLayout()" id="removeSelectedLayoutButton"
               title="Remove Layout">✗
       </button>
-<!--      <button class="small-btn" title="Save settings to stash (to be reapplied for different view)">📥</button>-->
-<!--      <button class="small-btn" title="Load settings from stash">📤</button>-->
+      <button class="small-btn show-on-edit" title="Save filter settings to stash (to be reapplied in different view)" onclick="saveFiltersToStash()">📥</button>
+      <button class="small-btn show-on-edit" title="Load filter settings from stash" onclick="loadFiltersFromStash()">📤</button>
       <button class="small-btn edit-btn" id="editBtn" onclick="toggleEditMode(this)" title="Enter Edit mode (E)">⚙
       </button>
       <br>
       <div class="edit-container show-on-edit">
         <p id="selectedNodesStatus">Selected nodes: 0</p>
       </div>
-      <h5 class="inline purple">
+      <h5 class="purple">
         <span id="visibleNodes" class="red">0</span>/<span id="totalNodes">0</span> nodes |
         <span id="visibleEdges" class="red">0</span>/<span id="totalEdges">0</span> edges active
       </h5>
