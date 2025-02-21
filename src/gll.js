@@ -11,6 +11,8 @@ const FILTER_STEP_SIZE_INTEGER = 1;
 const FILTER_STEP_SIZE_FLOAT = 0.000001;
 const FILTER_VISUAL_FLOAT_PRECISION = 3;  // used in slider thumbs and tooltips; in the back, full float is used
 const FILTERS_ACTIVE_PER_DEFAULT = false;
+const SORT_FILTERS = false;
+const SORT_TOOLTIPS = true;
 const TOOLTIP_LINE_BREAK = 20;
 const TOOLTIP_HIDE_NULL_VALUES = false;
 
@@ -322,49 +324,50 @@ function createGraphInstance() {
           },
         },
       },
-      behaviors: [{
-        type: 'drag-canvas', key: 'drag-canvas',
-      }, {
-        type: 'zoom-canvas', key: 'zoom-canvas',
-      }, {
-        type: 'drag-element', cursor: {default: 'default', grab: 'default', grabbing: 'default'},
-      }, {
-        type: 'hover-activate',
-        enable: (event) => {
-          // console.log(event.target.config.id);
-          return event.targetType === 'node' || event.targetType === 'edge';
+      behaviors: [
+        {type: 'drag-canvas', key: 'drag-canvas',},
+        {type: 'zoom-canvas', key: 'zoom-canvas',},
+        {type: 'drag-element', cursor: {default: 'default', grab: 'default', grabbing: 'default'},},
+        {
+          type: 'hover-activate',
+          enable: (event) => {
+            // console.log(event.target.config.id);
+            return event.targetType === 'node' || event.targetType === 'edge';
+          },
+          degree: 1,
+          // degree: (event) => {
+          //   if (event.targetType === 'node') {
+          //     let relatedEdges = graph.getRelatedEdgesData(event.target.config.id).map(e => e.id);
+          //     let relatedNodes = graph.getNeighborNodesData(event.target.config.id).map(n => n.id);
+          //     if (!relatedEdges.every(edgeId => !cache.edgeIDsToBeShown.has(edgeId))) {
+          //       return 0;
+          //     }
+          //     // return visibleNeighbors.length > 0 ? 1 : 0;
+          //   }
+          //   return 1;
+          // },
+          state: 'highlight',
+          inactiveState: 'dim',
         },
-        degree: 1,
-        // degree: (event) => {
-        //   if (event.targetType === 'node') {
-        //     let relatedEdges = graph.getRelatedEdgesData(event.target.config.id).map(e => e.id);
-        //     let relatedNodes = graph.getNeighborNodesData(event.target.config.id).map(n => n.id);
-        //     if (!relatedEdges.every(edgeId => !cache.edgeIDsToBeShown.has(edgeId))) {
-        //       return 0;
-        //     }
-        //     // return visibleNeighbors.length > 0 ? 1 : 0;
-        //   }
-        //   return 1;
-        // },
-        state: 'highlight',
-        inactiveState: 'dim',
-      },],
-      plugins: [{
-        key: "tooltip",
-        type: "tooltip",
-        trigger: "click",
-        enterable: true,
-        getContent: (e, items) => cache.toolTips.get(items[0].id),
-      }, {
-        key: "minimap", type: "minimap",
-      }, ...[...traverseBubbleSets()].map(group => ({
-        key: `bubbleSetPlugin-${group}`,
-        type: "bubble-sets",
-        members: [],
-        avoidMembers: [...cache.nodeRef.keys()], ...DEFAULTS.BUBBLE_SET_STYLE[group],
-        strokeOpacity: 0,  // hide bubble groups initially (1 node persists due to bug)
-        fillOpacity: 0,
-      })),],
+      ],
+      plugins: [
+        {
+          key: "tooltip",
+          type: "tooltip",
+          trigger: "click",
+          enterable: true,
+          getContent: (e, items) => cache.toolTips.get(items[0].id),
+        },
+        {key: "minimap", type: "minimap",},
+        ...[...traverseBubbleSets()].map(group => ({
+          key: `bubbleSetPlugin-${group}`,
+          type: "bubble-sets",
+          members: [],
+          avoidMembers: [...cache.nodeRef.keys()], ...DEFAULTS.BUBBLE_SET_STYLE[group],
+          strokeOpacity: 0,  // hide bubble groups initially (1 node persists due to bug)
+          fillOpacity: 0,
+        })),
+      ],
     });
 
     graph.on(NodeEvent.DRAG_END, (event) => {
@@ -418,26 +421,22 @@ function toggleEditMode(ev) {
   let editModeActive = ev.classList.contains("active");
   editModeActive ? ev.classList.remove("active") : ev.classList.add("active");
 
-  const nonEditBehaviors = [{type: 'drag-canvas', key: 'drag-canvas'}, {
-    type: 'drag-element',
-    cursor: {default: 'default', grab: 'default', grabbing: 'default'}
-  }, {
-    type: 'hover-activate',
-    enable: (event) => {
-      console.log(event.targetType);
-      return event.targetType === 'node' || event.targetType === 'edge';
+  const nonEditBehaviors = [
+    {type: 'drag-canvas', key: 'drag-canvas'},
+    {type: 'drag-element', cursor: {default: 'default', grab: 'default', grabbing: 'default'}},
+    {
+      type: 'hover-activate', degree: 1, state: 'highlight', inactiveState: 'dim',
+      enable: (event) => {
+        // console.log(event.targetType);
+        return event.targetType === 'node' || event.targetType === 'edge';
+      },
     },
-    degree: 1,
-    state: 'highlight',
-    inactiveState: 'dim'
-  },];
+  ];
 
-  const editBehaviors = [{type: "lasso-select", key: "lasso-select", trigger: "drag"}, {
-    type: "click-select",
-    key: "click-select",
-    multiple: true,
-    trigger: ["shift"]
-  },];
+  const editBehaviors = [
+    {type: "lasso-select", key: "lasso-select", trigger: "drag"},
+    {type: "click-select", key: "click-select", multiple: true, trigger: ["shift"]},
+  ];
 
   // reduce behaviors to clean up existing edit/non-edit behaviors
   let behaviors = graph.getBehaviors()
@@ -839,7 +838,9 @@ function buildFilterUI() {
   let sectionsCreated = new Set();
   let subSectionsCreated = new Set();
 
-  const sortedPropIDs = [...data.layouts[data.selectedLayout].filters.keys()].sort();
+  const sortedPropIDs = SORT_FILTERS
+    ? [...data.layouts[data.selectedLayout].filters.keys()].sort()
+    : [...data.layouts[data.selectedLayout].filters.keys()];
 
   for (let propID of sortedPropIDs) {
     let [section, subSection, prop] = decodePropHashId(propID);
@@ -1802,7 +1803,7 @@ function buildToolTipText(nodeOrEdgeID, isEdge) {
 
   if (!item.D4Data) return tooltip;
 
-  const sortedPropIDs = [...data.filterDefaults.keys()].sort();
+  const sortedPropIDs = SORT_TOOLTIPS ? [...data.filterDefaults.keys()].sort() : [...data.filterDefaults.keys()];
 
   let currentLineCount = 0;
   tooltip += `<hr><div class="tooltip-columns"><div class="tooltip-column">`;
