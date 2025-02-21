@@ -1034,7 +1034,7 @@ function createCheckbox(propID, prop) {
     data.layouts[data.selectedLayout].filters.get(propID).active = input.checked;
     input.checked ? cache.activeProps.add(propID) : cache.activeProps.delete(propID);
     let status = input.checked ? "Showing" : "Hiding";
-    handleFilterEvent(`${status} Elements`, `Nodes and related edges for ${propID}`, propID);
+    handleFilterEvent(`${status} Elements`, `Nodes and related edges for ${propID}`);
   });
 
   input.checked ? cache.activeProps.add(propID) : cache.activeProps.delete(propID);
