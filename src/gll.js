@@ -563,12 +563,7 @@ function createGraphInstance() {
       afterRenderEvent();
 
       // TODO: Without this update and redraw after 200ms, positions are not restored
-      setTimeout(() => {
-        graph.updateData(createSimplifiedDataForGraphObject());
-        graph.draw();
-        hideLoading();
-      }, 200);
-
+      restorePositions();
       console.log("AFTER RENDER EVENT DONE");
     });
 
@@ -661,6 +656,7 @@ function* traverseBubbleSets() {
 }
 
 function updateBubbleSet(group, members) {
+  console.log(`Updating bubble set ${group} ..`);
   const plugin = graph.getPluginInstance("bubbleSetPlugin-" + group);
   let empty = !members || members.size === 0;
   const membersAsArray = [...members];
@@ -972,9 +968,24 @@ function afterRenderEvent() {
 
 function restorePositions() {
   setTimeout(() => {
-    graph.updateData(createSimplifiedDataForGraphObject());
-    graph.draw();
-  }, 50);
+    let redrawNecessary = false;
+    for (let node of graph.getNodeData()) {
+      const persistedPosition = data.layouts[data.selectedLayout].positions.get(node.id);
+      if (node.style.x !== persistedPosition?.x || node.style.y !== persistedPosition?.y) {
+        redrawNecessary = true;
+        break;
+      }
+    }
+
+    if (redrawNecessary) {
+      graph.updateData(createSimplifiedDataForGraphObject());
+      graph.draw();
+    } else {
+      console.log("No positions to restore, no redraw necessary");
+    }
+
+    hideLoading();
+  }, 200);
 }
 
 function isInteger(value) {
