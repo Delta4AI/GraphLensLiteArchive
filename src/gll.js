@@ -1,6 +1,6 @@
 const {Graph, NodeEvent, GraphEvent, CanvasEvent, CommonEvent, WindowEvent} = G6;
 
-/** @type {import('@antv/g6').Graph | null} */
+/** @type {import('@antv/g6').Graph","null} */
 let graph = null;
 let data = {};  // Stores data that can be serialized as json file
 let cache = {};  // Stores references to map IDs to node/edge objects that cannot be serialized to a json file
@@ -63,6 +63,9 @@ const DEFAULTS = {
       transparent: "#00000000"
     },
     NODE_BORDER_SIZES: {sm: 0.5, md: 1, lg: 2, xlg: 4},
+    NODE_LABEL_SIZES: {sm: 10, md: 12, lg: 14, xlg: 20},
+    NODE_BADGE_PLACEMENTS: ["left", "right", "top", "bottom", "left-top", "left-bottom", "right-top", "right-bottom", "top-left", "top-right", "bottom-left", "bottom-right"],
+    NODE_BADGE_DEFAULT_COLOR: "#C33D35",
     EDGE_COLORS: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD"},
     EDGE_WIDTHS: {sm: 0.5, md: 0.75, lg: 1, xlg: 3},
     EDGE_DASHS: {none: 0, dashed: 10},
@@ -197,7 +200,8 @@ function createStyleDiv(propID) {
     type = null,
     color = null,
     size = null,
-    label = null
+    label = null,
+    badge = null
   ) {
     for (const nodeID of propID ? getTargetNodes(propID) : cache.selectedNodes) {
       const node = cache.nodeRef.get(nodeID);
@@ -212,10 +216,24 @@ function createStyleDiv(propID) {
       if (size !== null) {
         if (property === "Node") node.style.size = size;
         else if (property === "Node Border") node.style.lineWidth = size;
+        else if (property === "Node Label") node.style.labelFontSize = size;
       }
       if (label !== null) {
         if (label === "::SET_TO_ID::") node.style.labelText = nodeID;
         else node.style.labelText = label;
+      }
+      if (badge !== null) {
+        if (badge === "::CLEAR::") {
+          node.style.badge = false;
+          node.style.badges = [];
+          node.style.badgePalette = [];
+        } else {
+          node.style.badge = true;
+          if (!node.style.badges) node.style.badges = [];
+          if (!node.style.badgePalette) node.style.badgePalette = [];
+          node.style.badges.push({text: badge.text, placement: badge.placement});
+          node.style.badgePalette.push(badge.color);
+        }
       }
     }
     graph.render();
@@ -238,8 +256,8 @@ function createStyleDiv(propID) {
       }
       if (label !== null) edge.style.labelText = label;
       if (color !== null) {
-         if (property === "Edge") edge.style.stroke = color;
-         else if (property === "Edge Halo") edge.style.haloStroke = color;
+        if (property === "Edge") edge.style.stroke = color;
+        else if (property === "Edge Halo") edge.style.haloStroke = color;
       }
       if (halo !== null) edge.style.halo = halo;
     }
@@ -274,10 +292,10 @@ function createStyleDiv(propID) {
 
     const clearLabelButton = document.createElement("button");
     clearLabelButton.textContent = "Clear";
-    clearLabelButton.classList.add("style-inner-button");
+    clearLabelButton.className = "style-inner-button red";
     clearLabelButton.onclick = () => {
       labelInput.value = "";
-      updateNodes(propID, property, null, null, null, "");
+      updateNodes(propID, property, null, null, null, "", null);
     };
 
     const setToIDButton = document.createElement("button");
@@ -285,20 +303,20 @@ function createStyleDiv(propID) {
     setToIDButton.classList.add("style-inner-button");
     setToIDButton.onclick = () => {
       labelInput.value = "";
-      updateNodes(propID, property, null, null, null, "::SET_TO_ID::");
+      updateNodes(propID, property, null, null, null, "::SET_TO_ID::", null);
     };
 
     labelInput.addEventListener("keypress", function (event) {
       if (event.key === "Enter") {
         event.preventDefault();
         const newLabel = labelInput.value.trim();
-        updateNodes(propID, property, null, null, null, newLabel);
+        updateNodes(propID, property, null, null, null, newLabel, null);
       }
     });
 
     controls.appendChild(labelInput);
-    controls.appendChild(clearLabelButton);
     controls.appendChild(setToIDButton);
+    controls.appendChild(clearLabelButton);
 
     return controls;
   }
@@ -312,7 +330,7 @@ function createStyleDiv(propID) {
       button.title = value;
       button.classList.add("style-inner-button");
       button.onclick = () => {
-        updateNodes(propID, null, value, null, null, null);
+        updateNodes(propID, null, value, null, null, null, null);
       };
       controls.appendChild(button);
     }
@@ -332,7 +350,7 @@ function createStyleDiv(propID) {
       colorButton.onclick = () => {
         colorInput.value = value;
         property.startsWith("Node")
-          ? updateNodes(propID, property, null, value, null, null)
+          ? updateNodes(propID, property, null, value, null, null, null)
           : updateEdges(propID, property, null, null, value, null);
       };
       controls.appendChild(colorButton);
@@ -352,7 +370,7 @@ function createStyleDiv(propID) {
     // fired when leaving the color picker
     colorPicker.onchange = () => {
       property.startsWith("Node")
-        ? updateNodes(propID, property, null, colorPicker.value, null, null)
+        ? updateNodes(propID, property, null, colorPicker.value, null, null, null)
         : updateEdges(propID, property, null, null, colorPicker.value, null);
     }
 
@@ -365,7 +383,7 @@ function createStyleDiv(propID) {
       if (event.key === "Enter") {
         event.preventDefault();
         property.startsWith("Node")
-          ? updateNodes(propID, property, null, colorInput.value, null, null)
+          ? updateNodes(propID, property, null, colorInput.value, null, null, null)
           : updateEdges(propID, property, null, null, colorInput.value, null);
       }
     });
@@ -392,7 +410,7 @@ function createStyleDiv(propID) {
       button.onclick = () => {
         sizeInput.value = value;
         property.startsWith("Node")
-          ? updateNodes(propID, property, null, null, value, null)
+          ? updateNodes(propID, property, null, null, value, null, null)
           : updateEdges(propID, property, value, null, null, null);
       };
       controls.appendChild(button);
@@ -404,7 +422,7 @@ function createStyleDiv(propID) {
         const customValue = parseFloat(sizeInput.value);
         if (!isNaN(customValue)) {
           property.startsWith("Node")
-            ? updateNodes(propID, property, null, null, customValue, null)
+            ? updateNodes(propID, property, null, null, customValue, null, null)
             : updateEdges(propID, property, customValue, null, null, null);
         } else {
           sizeInput.value = defaultValue;
@@ -439,6 +457,83 @@ function createStyleDiv(propID) {
     return controls;
   }
 
+function createBadgeControls(propID = null) {
+  const controls = document.createElement("div");
+
+  const badgeInput = document.createElement("input");
+  badgeInput.type = "text";
+  badgeInput.placeholder = "Enter badge text";
+  badgeInput.className = "style-input style-input-lg";
+
+  const colorPicker = document.createElement("input");
+  colorPicker.type = "color";
+  colorPicker.className = "style-inner-button";
+  colorPicker.style.width = "24px";
+  colorPicker.value = DEFAULTS.STYLES.NODE_BADGE_DEFAULT_COLOR;
+
+  const placementDropdown = document.createElement("select");
+  placementDropdown.className = "style-inner-button";
+  DEFAULTS.STYLES.NODE_BADGE_PLACEMENTS.forEach((placement) => {
+    const option = document.createElement("option");
+    option.value = placement;
+    option.textContent = placement.replace("-", " ");
+    placementDropdown.appendChild(option);
+  });
+
+  const addBadgeButton = document.createElement("button");
+  addBadgeButton.textContent = "Add";
+  addBadgeButton.classList.add("style-inner-button");
+  addBadgeButton.onclick = () => {
+    const badge = {
+      text: badgeInput.value.trim(),
+      color: colorPicker.value,
+      placement: placementDropdown.value
+    };
+    updateNodes(propID, null, null, null, null, null, badge);
+  };
+
+  const clearBadgesButton = document.createElement("button");
+  clearBadgesButton.textContent = "Clear";
+  clearBadgesButton.className = "style-inner-button red";
+  clearBadgesButton.onclick = () => {
+    updateNodes(propID, null, null, null, null, null, "::CLEAR::");
+  };
+
+  controls.appendChild(badgeInput);
+  controls.appendChild(colorPicker);
+  controls.appendChild(placementDropdown);
+  controls.appendChild(addBadgeButton);
+  controls.appendChild(clearBadgesButton);
+
+  function applyBadgeToSelection(badge) {
+    for (const nodeID of propID ? getTargetNodes(propID) : cache.selectedNodes) {
+      const node = cache.nodeRef.get(nodeID);
+      if (!node.style.badge) {
+        node.style.badge = true;
+        node.style.badges = [];
+        node.style.badgePalette = [];
+      }
+      node.style.badges.push({
+        text: badge.text,
+        placement: badge.placement
+      });
+      node.style.badgePalette.push(badge.color);
+    }
+    graph.render(); // Render the graph with the updated badges
+  }
+
+  function clearBadgesFromSelection() {
+    for (const nodeID of propID ? getTargetNodes(propID) : cache.selectedNodes) {
+      const node = cache.nodeRef.get(nodeID);
+      node.style.badge = false; // Disable badges
+      node.style.badges = []; // Clear the badges array
+      node.style.badgePalette = []; // Clear the badgePalette
+    }
+    graph.render(); // Render the graph to reflect the changes
+  }
+
+  return controls;
+}
 
   createSection("Node Form", createNodeFormControls());
   createSection("Node Color", createColorControls("Node", DEFAULTS.GRAPH.NODE.COLOR, DEFAULTS.STYLES.NODE_COLORS));
@@ -446,6 +541,8 @@ function createStyleDiv(propID) {
   createSection("Node Border Color", createColorControls("Node Border", DEFAULTS.STYLES.NODE_BORDER_COLORS.transparent, DEFAULTS.STYLES.NODE_BORDER_COLORS));
   createSection("Node Border Size", createSizeControls("Node Border", DEFAULTS.STYLES.NODE_BORDER_SIZES.md, DEFAULTS.STYLES.NODE_BORDER_SIZES));
   createSection("Node Label", createLabelControls("Node Label"));
+  createSection("Node Label Size", createSizeControls("Node Label", DEFAULTS.STYLES.NODE_LABEL_SIZES.md, DEFAULTS.STYLES.NODE_LABEL_SIZES));
+  createSection("Node Badges", createBadgeControls());
   createSeparator();
   createSection("Edge Color", createColorControls("Edge", DEFAULTS.GRAPH.EDGE.COLOR, DEFAULTS.STYLES.EDGE_COLORS));
   createSection("Edge Width", createSizeControls("Edge", DEFAULTS.GRAPH.EDGE.LINE_WIDTH, DEFAULTS.STYLES.EDGE_WIDTHS));
@@ -2022,9 +2119,14 @@ function getNodeStyleOrDefaults(node) {
       label: true,
       labelText: node.style?.labelText || node.label || node.id,
       labelBackground: true,
+      labelFontSize: node.style?.labelFontSize || DEFAULTS.STYLES.NODE_LABEL_SIZES.md,
       fill: node.style?.fill || DEFAULTS.GRAPH.NODE.COLOR,
       stroke: node.style?.stroke || null,
       lineWidth: node.style?.lineWidth || DEFAULTS.STYLES.NODE_BORDER_SIZES.md,
+      badge: node.style?.badge || false,
+      badges: node.style?.badges || [],
+      badgePalette: node.style?.badgePalette || [],
+      badgeFontSize: 8,
     }
   };
 }
