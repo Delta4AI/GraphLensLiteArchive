@@ -51,14 +51,24 @@ const DEFAULTS = {
     },
   },
   STYLES: {
-    NODE_FORM: ["circle", "diamond", "ellipse", "hexagon", "rect", "triangle", "donut"],
-    NODE_COLORS: ["#ff0000", "#800080", "#0000ff", "#ffc0cb"],
-    NODE_SIZES: {sm: 5, md: 15, lg: 30, xlg: 50},
-    NODE_BORDER_COLORS: ["#ff0000", "#800080", "#0000ff", "#ffc0cb"],
+    NODE_FORM: {"●": "circle", "◆": "diamond", "⬢": "hexagon", "■": "rect", "▲": "triangle", "★": "star"},
+    NODE_COLORS: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD"},
+    NODE_SIZES: {sm: 15, md: 25, lg: 35, xlg: 50},
+    NODE_BORDER_COLORS: {
+      red: "#C33D35",
+      purple: "#403C53",
+      blue: "#8CA6D9",
+      pink: "#EFB0AA",
+      grey: "#ABACBD",
+      transparent: "#00000000"
+    },
     NODE_BORDER_SIZES: {sm: 0.5, md: 1, lg: 2, xlg: 4},
-    EDGE_TYPES: ["line", "polyline", "dashed"],
-    EDGE_COLORS: ["#ff0000", "#800080", "#0000ff", "#ffc0cb"],
-    EDGE_WIDTHS: {sm: 0.5, md: 0.75, lg: 1, xlg: 2},
+    EDGE_COLORS: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD"},
+    EDGE_WIDTHS: {sm: 0.5, md: 0.75, lg: 1, xlg: 3},
+    EDGE_DASHS: {none: 0, dashed: 10},
+    EDGE_HALO: {enable: true, disable: false},
+    EDGE_HALO_STROKE: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD"},
+    EDGE_HALO_WIDTH: {sm: 2, md: 3, lg: 4, xlg: 6},
   }
 };
 
@@ -116,85 +126,249 @@ function parseLayouts(jsonLayouts) {
   return parsedLayouts;
 }
 
+function getReadableForegroundColor(hex) {
+  if (hex === "#00000000") return "#000000"
+  hex = hex.replace(/^#/, "");
+  let r = parseInt(hex.length === 3 ? hex[0] + hex[0] : hex.substring(0, 2), 16);
+  let g = parseInt(hex.length === 3 ? hex[1] + hex[1] : hex.substring(2, 4), 16);
+  let b = parseInt(hex.length === 3 ? hex[2] + hex[2] : hex.substring(4, 6), 16);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 186 ? "#000000" : "#FFFFFF";
+}
+
 function createStyleDiv(propID) {
   const container = document.createElement("div");
-  container.style.display = "grid";
-  container.style.gridTemplateColumns = "1fr 3fr";
-  container.style.gap = "10px";
+  container.classList.add("style-container");
 
-  const getTargetNodes = (propID) => {
+  if (!propID) {
+    const buttonBar = document.createElement("div");
+    const selectAllNodes = document.createElement("button");
+    selectAllNodes.textContent = "All nodes";
+    selectAllNodes.classList.add("style-inner-button");
+    selectAllNodes.onclick = () => {
+      toggleSelectionForAllNodes(true);
+    }
+    buttonBar.appendChild(selectAllNodes);
+
+    const selectNoNodes = document.createElement("button");
+    selectNoNodes.textContent = "No nodes";
+    selectNoNodes.classList.add("style-inner-button");
+    selectNoNodes.onclick = () => {
+      toggleSelectionForAllNodes(false);
+    }
+    buttonBar.appendChild(selectNoNodes);
+
+    const selectAllEdges = document.createElement("button");
+    selectAllEdges.textContent = "All edges";
+    selectAllEdges.classList.add("style-inner-button");
+    selectAllEdges.onclick = () => {
+      toggleSelectionForAllEdges(true);
+    }
+    buttonBar.appendChild(selectAllEdges);
+
+    const selectNoEdges = document.createElement("button");
+    selectNoEdges.textContent = "No edges";
+    selectNoEdges.classList.add("style-inner-button");
+    selectNoEdges.onclick = () => {
+      toggleSelectionForAllEdges(false);
+    }
+    buttonBar.appendChild(selectNoEdges);
+
+    createSection("Select", buttonBar);
+    createSeparator();
+  }
+
+  function getTargetNodes(propID) {
     if (!propID) return cache.selectedNodes;
     return [...cache.propToNodeIDs.get(propID)].filter((nodeID) =>
       cache.nodeIDsToBeShown.has(nodeID)
     );
-  };
+  }
+
+  function getTargetEdges(propID) {
+    if (!propID) return cache.selectedEdges;
+    return [...cache.propToEdgeIDs.get(propID)].filter((edgeID) =>
+      cache.edgeIDsToBeShown.has(edgeID)
+    );
+  }
+
+  function updateNodes(
+    propID = null,
+    property = null,
+    type = null,
+    color = null,
+    size = null,
+    label = null
+  ) {
+    for (const nodeID of propID ? getTargetNodes(propID) : cache.selectedNodes) {
+      const node = cache.nodeRef.get(nodeID);
+      if (type !== null) node.type = type;
+      if (color !== null) {
+        if (property === "Node") node.style.fill = color;
+        else if (property === "Node Border") {
+          node.style.stroke = color;
+          if (!node.style.lineWidth) node.style.lineWidth = DEFAULTS.STYLES.NODE_BORDER_SIZES.md;
+        }
+      }
+      if (size !== null) {
+        if (property === "Node") node.style.size = size;
+        else if (property === "Node Border") node.style.lineWidth = size;
+      }
+      if (label !== null) {
+        if (label === "::SET_TO_ID::") node.style.labelText = nodeID;
+        else node.style.labelText = label;
+      }
+    }
+    graph.render();
+  }
+
+  function updateEdges(
+    propID = null,
+    property = null,
+    width = null,
+    label = null,
+    color = null,
+    halo = null
+  ) {
+    for (const edgeID of propID ? getTargetEdges(propID) : cache.selectedEdges) {
+      const edge = cache.edgeRef.get(edgeID);
+      if (width !== null) {
+        if (property === "Edge") edge.style.lineWidth = width;
+        else if (property === "Edge Dash") edge.style.lineDash = width;
+        else if (property === "Edge Halo") edge.style.haloLineWidth = width;
+      }
+      if (label !== null) edge.style.labelText = label;
+      if (color !== null) {
+         if (property === "Edge") edge.style.stroke = color;
+         else if (property === "Edge Halo") edge.style.haloStroke = color;
+      }
+      if (halo !== null) edge.style.halo = halo;
+    }
+    graph.render();
+  }
 
   // Helper to create a labeled section with heading and controls
   function createSection(title, controls) {
     const heading = document.createElement("div");
     heading.textContent = title;
-    heading.classList.add("style-heading");
-    controls.style.display = "flex";
-    controls.style.flexWrap = "wrap";
-    controls.style.gap = "5px";
+    heading.classList.add("style-col1-heading");
+    controls.classList.add("style-col2-controls");
 
     container.appendChild(heading);
     container.appendChild(controls);
   }
 
-  // Create controls for Node Form (Shapes)
-  function createNodeFormControls() {
+  function createSeparator() {
+    const separator = document.createElement("div");
+    separator.classList.add("style-separator");
+    container.appendChild(separator);
+  }
+
+  function createLabelControls(property) {
     const controls = document.createElement("div");
 
-    DEFAULTS.STYLES.NODE_FORM.forEach((shape) => {
-      const button = document.createElement("button");
-      button.textContent = shape;
-      button.classList.add("style-inner-button");
-      button.onclick = () => {
-        console.log(`Node form selected: ${shape}`, getTargetNodes(propID));
-      };
-      controls.appendChild(button);
+    const labelInput = document.createElement("input");
+    labelInput.type = "text";
+    labelInput.placeholder = `Enter ${property}`;
+    labelInput.className = "style-input style-input-lg";
+    labelInput.value = "";
+
+    const clearLabelButton = document.createElement("button");
+    clearLabelButton.textContent = "Clear";
+    clearLabelButton.classList.add("style-inner-button");
+    clearLabelButton.onclick = () => {
+      labelInput.value = "";
+      updateNodes(propID, property, null, null, null, "");
+    };
+
+    const setToIDButton = document.createElement("button");
+    setToIDButton.textContent = "Set to ID";
+    setToIDButton.classList.add("style-inner-button");
+    setToIDButton.onclick = () => {
+      labelInput.value = "";
+      updateNodes(propID, property, null, null, null, "::SET_TO_ID::");
+    };
+
+    labelInput.addEventListener("keypress", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        const newLabel = labelInput.value.trim();
+        updateNodes(propID, property, null, null, null, newLabel);
+      }
     });
+
+    controls.appendChild(labelInput);
+    controls.appendChild(clearLabelButton);
+    controls.appendChild(setToIDButton);
 
     return controls;
   }
 
-  // Create generalized color controls
+  function createNodeFormControls() {
+    const controls = document.createElement("div");
+
+    for (const [label, value] of Object.entries(DEFAULTS.STYLES.NODE_FORM)) {
+      const button = document.createElement("button");
+      button.textContent = label;
+      button.title = value;
+      button.classList.add("style-inner-button");
+      button.onclick = () => {
+        updateNodes(propID, null, value, null, null, null);
+      };
+      controls.appendChild(button);
+    }
+
+    return controls;
+  }
+
   function createColorControls(property, defaultColor, colors) {
     const controls = document.createElement("div");
 
-    // Create color selection buttons
-    colors.forEach((color) => {
+    for (const [label, value] of Object.entries(colors)) {
       const colorButton = document.createElement("button");
-      colorButton.style.backgroundColor = color;
-      colorButton.style.color = "#fff";
-      colorButton.style.border = "none";
-      colorButton.textContent = color;
+      colorButton.style.backgroundColor = value;
+      colorButton.style.color = getReadableForegroundColor(value);
+      colorButton.classList.add("style-inner-button");
+      colorButton.textContent = label;
       colorButton.onclick = () => {
-        colorInput.value = color;
-        console.log(`${property} color selected: ${color}`, getTargetNodes(propID));
+        colorInput.value = value;
+        property.startsWith("Node")
+          ? updateNodes(propID, property, null, value, null, null)
+          : updateEdges(propID, property, null, null, value, null);
       };
       controls.appendChild(colorButton);
-    });
+    }
 
-    // Create color picker and input
     const colorPicker = document.createElement("input");
     colorPicker.type = "color";
+    colorPicker.classList.add("style-inner-button");
+    colorPicker.style.width = "24px";
     colorPicker.value = defaultColor; // Default color
+
+    // fires on every change in the color picker; only updates input
     colorPicker.oninput = () => {
       colorInput.value = colorPicker.value;
-      console.log(`${property} color picker value: ${colorPicker.value}`, getTargetNodes(propID));
     };
+
+    // fired when leaving the color picker
+    colorPicker.onchange = () => {
+      property.startsWith("Node")
+        ? updateNodes(propID, property, null, colorPicker.value, null, null)
+        : updateEdges(propID, property, null, null, colorPicker.value, null);
+    }
 
     const colorInput = document.createElement("input");
     colorInput.type = "text";
     colorInput.value = defaultColor; // Default color
     colorInput.classList.add("style-input");
-    colorInput.onkeypress = (e) => {
-      if (e.key === "Enter") {
-        console.log(`${property} custom color entered: ${colorInput.value}`);
+
+    colorInput.addEventListener("keypress", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        property.startsWith("Node")
+          ? updateNodes(propID, property, null, colorInput.value, null, null)
+          : updateEdges(propID, property, null, null, colorInput.value, null);
       }
-    };
+    });
 
     controls.appendChild(colorPicker);
     controls.appendChild(colorInput);
@@ -202,7 +376,6 @@ function createStyleDiv(propID) {
     return controls;
   }
 
-  // Create generalized size controls
   function createSizeControls(property, defaultValue, sizeMap) {
     const controls = document.createElement("div");
 
@@ -212,64 +385,111 @@ function createStyleDiv(propID) {
     sizeInput.classList.add("style-input");
     sizeInput.value = defaultValue;
 
-    // Create buttons
     for (const [label, value] of Object.entries(sizeMap)) {
       const button = document.createElement("button");
       button.textContent = label;
       button.classList.add("style-inner-button");
       button.onclick = () => {
-        sizeInput.value = value; // Update input
-        console.log(`${property} size selected: ${value}`, getTargetNodes(propID));
+        sizeInput.value = value;
+        property.startsWith("Node")
+          ? updateNodes(propID, property, null, null, value, null)
+          : updateEdges(propID, property, value, null, null, null);
       };
       controls.appendChild(button);
     }
 
-    // Allow custom input via text field
-    sizeInput.onkeypress = (e) => {
-      if (e.key === "Enter") {
+    sizeInput.addEventListener("keypress", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
         const customValue = parseFloat(sizeInput.value);
         if (!isNaN(customValue)) {
-          console.log(`${property} custom size entered: ${customValue}`, getTargetNodes(propID));
+          property.startsWith("Node")
+            ? updateNodes(propID, property, null, null, customValue, null)
+            : updateEdges(propID, property, customValue, null, null, null);
         } else {
-          console.error("Invalid size entered");
+          sizeInput.value = defaultValue;
         }
       }
-    };
+    });
 
     controls.appendChild(sizeInput);
 
     return controls;
   }
 
-  // Create controls for Edge Type
-  function createEdgeTypeControls(defaultType, edgeTypes) {
+  function createHaloEnablingControls() {
     const controls = document.createElement("div");
 
-    edgeTypes.forEach((type) => {
-      const button = document.createElement("button");
-      button.textContent = type;
-      button.style.margin = "5px";
-      button.onclick = () => {
-        console.log(`Edge type selected: ${type}`, getTargetNodes(propID));
-      };
-      controls.appendChild(button);
-    });
+    const enableButton = document.createElement("button");
+    enableButton.textContent = "Enable";
+    enableButton.classList.add("style-inner-button");
+    enableButton.onclick = () => {
+      updateEdges(propID, null, null, null, null, true);
+    };
+    controls.appendChild(enableButton);
+
+    const disableButton = document.createElement("button");
+    disableButton.textContent = "Disable";
+    disableButton.classList.add("style-inner-button");
+    disableButton.onclick = () => {
+      updateEdges(propID, null, null, null, null, false);
+    };
+    controls.appendChild(disableButton);
 
     return controls;
   }
 
-  // Add all sections using DEFAULTS
+
   createSection("Node Form", createNodeFormControls());
   createSection("Node Color", createColorControls("Node", DEFAULTS.GRAPH.NODE.COLOR, DEFAULTS.STYLES.NODE_COLORS));
   createSection("Node Size", createSizeControls("Node", DEFAULTS.GRAPH.NODE.SIZE, DEFAULTS.STYLES.NODE_SIZES));
-  createSection("Node Border Color", createColorControls("Node Border", DEFAULTS.GRAPH.NODE.COLOR, DEFAULTS.STYLES.NODE_BORDER_COLORS));
+  createSection("Node Border Color", createColorControls("Node Border", DEFAULTS.STYLES.NODE_BORDER_COLORS.transparent, DEFAULTS.STYLES.NODE_BORDER_COLORS));
   createSection("Node Border Size", createSizeControls("Node Border", DEFAULTS.STYLES.NODE_BORDER_SIZES.md, DEFAULTS.STYLES.NODE_BORDER_SIZES));
-  createSection("Edge Type", createEdgeTypeControls(DEFAULTS.GRAPH.EDGE.TYPE, DEFAULTS.STYLES.EDGE_TYPES));
+  createSection("Node Label", createLabelControls("Node Label"));
+  createSeparator();
   createSection("Edge Color", createColorControls("Edge", DEFAULTS.GRAPH.EDGE.COLOR, DEFAULTS.STYLES.EDGE_COLORS));
-  createSection("Edge Width", createSizeControls("Edge Width", DEFAULTS.GRAPH.EDGE.LINE_WIDTH, DEFAULTS.STYLES.EDGE_WIDTHS));
+  createSection("Edge Width", createSizeControls("Edge", DEFAULTS.GRAPH.EDGE.LINE_WIDTH, DEFAULTS.STYLES.EDGE_WIDTHS));
+  createSection("Edge Dash", createSizeControls("Edge Dash", DEFAULTS.STYLES.EDGE_DASHS.none, DEFAULTS.STYLES.EDGE_DASHS));
+  createSection("Edge Halo", createHaloEnablingControls());
+  createSection("Edge Halo Color", createColorControls("Edge Halo", DEFAULTS.STYLES.EDGE_HALO_STROKE.purple, DEFAULTS.STYLES.EDGE_HALO_STROKE));
+  createSection("Edge Halo Width", createSizeControls("Edge Halo", DEFAULTS.STYLES.EDGE_HALO_WIDTH.md, DEFAULTS.STYLES.EDGE_HALO_WIDTH));
 
   return container;
 }
+
+function updateSelectedState(elemData, enable) {
+  for (const item of elemData) {
+    if (!item.states) {
+      item.states = [];
+    }
+
+    if (enable) {
+      if (!item.states.includes("selected")) {
+        item.states.push("selected");
+      }
+    } else {
+      const index = item.states.indexOf("selected");
+      if (index > -1) {
+        item.states.splice(index, 1);
+      }
+    }
+  }
+}
+
+function toggleSelectionForAllNodes(enable) {
+  const nodes = graph.getNodeData();
+  updateSelectedState(nodes, enable);
+  graph.updateNodeData(nodes);
+  graph.render();
+}
+
+function toggleSelectionForAllEdges(enable) {
+  const edges = graph.getEdgeData();
+  updateSelectedState(edges, enable);
+  graph.updateEdgeData(edges);
+  graph.render();
+}
+
 function persistPositionsUpdateDataAndReDrawGraph() {
   // the timeout is necessary since otherwise, when calling this directly after rendering, the layout is not fully
   // finished and the recorded nodes are misplaced slightly
@@ -491,6 +711,9 @@ function createGraphInstance() {
           highlight: {
             stroke: '#C33D35',
           },
+          selected: {
+            stroke: '#C33D35',
+          }
         },
       },
       behaviors: [
@@ -561,7 +784,6 @@ function createGraphInstance() {
     graph.on(GraphEvent.AFTER_RENDER, () => {
       showLoading("Preparing View", "Restoring Positions and Groups");
       afterRenderEvent();
-
       // TODO: Without this update and redraw after 200ms, positions are not restored
       restorePositions();
       console.log("AFTER RENDER EVENT DONE");
@@ -575,10 +797,15 @@ function createGraphInstance() {
 }
 
 function updateSelectedNodesAndEdges() {
-  cache.selectedNodes = graph.getNodeData().filter((n) => n.states?.includes("selected") && cache.nodeIDsToBeShown.has(n.id));
-  cache.selectedEdges = graph.getEdgeData().filter((e) => e.states?.includes("selected") && cache.edgeIDsToBeShown.has(e.id));
+  cache.selectedNodes = graph.getNodeData()
+    .filter((n) => n.states?.includes("selected") && cache.nodeIDsToBeShown.has(n.id))
+    .map((n) => n.id);
+  cache.selectedEdges = graph.getEdgeData()
+    .filter((e) => e.states?.includes("selected") && cache.edgeIDsToBeShown.has(e.id))
+    .map((e) => e.id);
 
-  document.getElementById("selectedNodesStatus").textContent = `Selected nodes: ${cache.selectedNodes.length}, Selected edges: ${cache.selectedEdges.length}`;
+  document.getElementById("selectedNodes").textContent = cache.selectedNodes.length;
+  document.getElementById("selectedEdges").textContent = cache.selectedEdges.length;
 }
 
 function toggleEditMode(ev) {
@@ -617,12 +844,23 @@ function toggleEditMode(ev) {
 
 function handleEditModeUIChanges() {
   const editModeActive = document.getElementById("editBtn").classList.contains("active");
+
+  // handle all edit elements
   const editElements = document.querySelectorAll('.show-on-edit');
   editElements.forEach(el => {
     editModeActive ? el.classList.add("show") : el.classList.remove("show");
     editModeActive ? el.style.height = `${el.scrollHeight}px` : el.style.height = "0";
   });
 
+  // 'collapse' all open style rows
+  if (!editModeActive) {
+    const styleRows = document.querySelectorAll('.style-row');
+    styleRows.forEach(row => {
+      row.classList.remove("show");
+    });
+  }
+
+  // handle filter row column widths
   const filterRows = document.querySelectorAll('.filter-row');
   filterRows.forEach(row => {
     const checkboxCol = row.children[0];
@@ -710,13 +948,14 @@ function createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
 
       // load positions from the layouts position Map
       const position = data.layouts[data.selectedLayout]?.positions.get(node.id);
+
+      Object.assign(filteredNode, getNodeStyleOrDefaults(node));
+
       if (position) {
-        if (!filteredNode.style) {
-          filteredNode.style = {};
-        }
         filteredNode.style.x = position.x;
         filteredNode.style.y = position.y;
       }
+
       if (resetToCachedPositions) {
         filteredNode.style.x = cache.initialNodePositions.get(data.selectedLayout).get(node.id).x;
         filteredNode.style.y = cache.initialNodePositions.get(data.selectedLayout).get(node.id).y;
@@ -728,7 +967,11 @@ function createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
   // Process edges if provided, and exclude unwanted properties
   const filteredEdges = data.edges
     .map(edge => {
-      return filterObject(edge, ["D4Data", "features", "featureValues", "featureWithinThreshold"]);
+      const filteredEdge = filterObject(edge, ["D4Data", "features", "featureValues", "featureWithinThreshold"]);
+
+      Object.assign(filteredEdge, getEdgeStyleOrDefaults(edge));
+
+      return filteredEdge;
     });
 
   return {
@@ -968,24 +1211,25 @@ function afterRenderEvent() {
 
 function restorePositions() {
   setTimeout(() => {
-    let redrawNecessary = false;
-    for (let node of graph.getNodeData()) {
-      const persistedPosition = data.layouts[data.selectedLayout].positions.get(node.id);
-      if (node.style.x !== persistedPosition?.x || node.style.y !== persistedPosition?.y) {
-        redrawNecessary = true;
-        break;
-      }
-    }
-
-    if (redrawNecessary) {
+    if (!nodePositionsAreInSyncWithPersistedPositions()) {
       graph.updateData(createSimplifiedDataForGraphObject());
       graph.draw();
     } else {
-      console.log("No positions to restore, no redraw necessary");
+      console.log("Graph is in sync, no re-draw necessary");
     }
 
     hideLoading();
   }, 200);
+}
+
+function nodePositionsAreInSyncWithPersistedPositions() {
+  for (let node of graph.getNodeData()) {
+    const persistedPosition = data.layouts[data.selectedLayout].positions.get(node.id);
+    if (node.style.x !== persistedPosition?.x || node.style.y !== persistedPosition?.y) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function isInteger(value) {
@@ -1674,7 +1918,7 @@ function createCircleGroupButtonWithQuadrants(propID) {
 
 function createStyleToggleButton(propID) {
   const btn = document.createElement("button");
-  btn.classList.add("ml-2", "style-button", "show-on-edit");
+  btn.classList.add("ml-2", "style-icon-button", "show-on-edit");
   btn.textContent = "🎨";
 
   btn.addEventListener("click", () => {
@@ -1768,6 +2012,40 @@ function removeSelectedLayout() {
 
   document.getElementById('layout').value = DEFAULTS.LAYOUT;
   changeLayout();
+}
+
+function getNodeStyleOrDefaults(node) {
+  return {
+    type: node.type || DEFAULTS.GRAPH.NODE.TYPE,
+    style: {
+      size: node.style?.size || DEFAULTS.GRAPH.NODE.SIZE,
+      label: true,
+      labelText: node.style?.labelText || node.label || node.id,
+      labelBackground: true,
+      fill: node.style?.fill || DEFAULTS.GRAPH.NODE.COLOR,
+      stroke: node.style?.stroke || null,
+      lineWidth: node.style?.lineWidth || DEFAULTS.STYLES.NODE_BORDER_SIZES.md,
+    }
+  };
+}
+
+function getEdgeStyleOrDefaults(edge) {
+  return {
+    type: edge.type || DEFAULTS.GRAPH.EDGE.TYPE,
+    style: {
+      startArrow: edge.startArrow || DEFAULTS.GRAPH.EDGE.ARROWS.START,
+      endArrow: edge.endArrow || DEFAULTS.GRAPH.EDGE.ARROWS.END,
+      lineWidth: edge.style?.lineWidth || DEFAULTS.GRAPH.EDGE.LINE_WIDTH,
+      lineDash: edge.style?.lineDash || DEFAULTS.STYLES.EDGE_DASHS.none,
+      label: false,
+      labelText: edge.style?.labelText || "",
+      labelBackground: true,
+      stroke: edge.style?.stroke || DEFAULTS.GRAPH.EDGE.COLOR,
+      halo: edge.style?.halo || false,
+      haloStroke: edge.style?.haloStroke || DEFAULTS.STYLES.EDGE_HALO_STROKE.purple,
+      haloLineWidth: edge.style?.haloLineWidth || DEFAULTS.STYLES.EDGE_HALO_WIDTH.md
+    }
+  }
 }
 
 function exportGraphAsJSON() {
@@ -1867,13 +2145,8 @@ function preProcessData(fileData) {
     }
 
     return {
-      ...node, type: node.type || DEFAULTS.GRAPH.NODE.TYPE, style: {
-        size: node.size || DEFAULTS.GRAPH.NODE.SIZE,
-        label: true,
-        labelText: node.label || node.id,
-        labelBackground: true,
-        fill: node.color || DEFAULTS.GRAPH.NODE.COLOR,
-      },
+      ...node,
+      ...getNodeStyleOrDefaults(node),
       features: nodeFeatures,
       featureValues: nodeFeatureValues,
       featureIsWithinThreshold: nodeFeatureWithinThreshold,
@@ -1901,17 +2174,8 @@ function preProcessData(fileData) {
     }
 
     return {
-      ...edge, type: edge.type || DEFAULTS.GRAPH.EDGE.TYPE, style: {
-        startArrow: edge.startArrow || DEFAULTS.GRAPH.EDGE.ARROWS.START,
-        endArrow: edge.endArrow || DEFAULTS.GRAPH.EDGE.ARROWS.END,
-        lineWidth: edge.lineWidth || DEFAULTS.GRAPH.EDGE.LINE_WIDTH,
-        label: false,
-        labelText: edge.label || "",
-        labelBackground: true,
-        stroke: edge.color || DEFAULTS.GRAPH.EDGE.COLOR,
-      }, palette: {
-        color: edge.color || DEFAULTS.GRAPH.EDGE.COLOR,
-      },
+      ...edge,
+      ...getEdgeStyleOrDefaults(edge),
       features: edgeFeatures,
       featureValues: edgeFeatureValues,
       featureIsWithinThreshold: edgeFeatureWithinThreshold,
