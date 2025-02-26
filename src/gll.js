@@ -19,20 +19,17 @@ const TOOLTIP_HIDE_NULL_VALUES = false;
 const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
 
 const DEFAULTS = {
-  GRAPH: {
-    NODE: {COLOR: "#C33D35", SIZE: 20, TYPE: "hexagon"},
-    EDGE: {COLOR: "#403C5390", LINE_WIDTH: 0.75, TYPE: "line", ARROWS: {START: false, END: false}},
+  NODE: {
+    COLOR: "#C33D35", SIZE: 20, TYPE: "hexagon"
+  },
+  EDGE: {
+    COLOR: "#403C5390", LINE_WIDTH: 0.75, TYPE: "line", ARROWS: {START: false, END: false}
   },
   LAYOUT: "force",
   LAYOUT_INTERNALS: {
     "force": {gravity: 10},
-    "fruchterman": {
-      gravity: 5,
-      speed: 5,
-      clustering: true,
-      nodeClusterBy: 'cluster',
-      clusterGravity: 16
-    }, // "antv-dagre": {nodesep: 100, ranksep: 70, controlPoints: true},
+    "fruchterman": {gravity: 5, speed: 5, clustering: true, nodeClusterBy: 'cluster', clusterGravity: 16},
+    // "antv-dagre": {nodesep: 100, ranksep: 70, controlPoints: true},
     "circular": {startRadius: 10, endRadius: 300},
     "radial": {direction: "LR", nodeSize: 32, unitRadius: 100, linkDistance: 200},
     "concentric": {nodeSize: 32, maxLevelDiff: 0.5, sortBy: 'degree', preventOverlap: true},
@@ -40,28 +37,19 @@ const DEFAULTS = {
     "mds": {nodeSize: 32, linkDistance: 100},
   },
   BUBBLE_SET_STYLE: {
-    "groupOne": {
-      fill: '#403C53', fillOpacity: 0.25, stroke: '#C33D35', strokeOpacity: 1, virtualEdges: true,
-    }, "groupTwo": {
-      fill: '#c33d35', fillOpacity: 0.25, stroke: '#403c53', strokeOpacity: 1, virtualEdges: true,
-    }, "groupThree": {
-      fill: '#EFB0AA', fillOpacity: 0.4, stroke: '#8CA6D9', strokeOpacity: 1, virtualEdges: true,
-    }, "groupFour": {
-      fill: '#8CA6D9', fillOpacity: 0.4, stroke: '#EFB0AA', strokeOpacity: 1, virtualEdges: true,
-    },
+    "groupOne": {fill: '#403C53', fillOpacity: 0.25, stroke: '#C33D35', strokeOpacity: 1, virtualEdges: true,},
+    "groupTwo": {fill: '#c33d35', fillOpacity: 0.25, stroke: '#403c53', strokeOpacity: 1, virtualEdges: true,},
+    "groupThree": {fill: '#EFB0AA', fillOpacity: 0.4, stroke: '#8CA6D9', strokeOpacity: 1, virtualEdges: true,},
+    "groupFour": {fill: '#8CA6D9', fillOpacity: 0.4, stroke: '#EFB0AA', strokeOpacity: 1, virtualEdges: true,},
+  },
+  BUBBLE_SET_QUADRANT_POSITIONS: {
+    groupOne: "top-left", groupTwo: "top-right", groupThree: "bottom-left", groupFour: "bottom-right"
   },
   STYLES: {
     NODE_FORM: {"●": "circle", "◆": "diamond", "⬢": "hexagon", "■": "rect", "▲": "triangle", "★": "star"},
     NODE_COLORS: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD"},
     NODE_SIZES: {sm: 15, md: 25, lg: 35, xlg: 50},
-    NODE_BORDER_COLORS: {
-      red: "#C33D35",
-      purple: "#403C53",
-      blue: "#8CA6D9",
-      pink: "#EFB0AA",
-      grey: "#ABACBD",
-      transparent: "#00000000"
-    },
+    NODE_BORDER_COLORS: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD", transparent: "#00000000"},
     NODE_BORDER_SIZES: {sm: 0.5, md: 1, lg: 2, xlg: 4},
     NODE_LABEL_SIZES: {sm: 10, md: 12, lg: 14, xlg: 20},
     NODE_BADGE_PLACEMENTS: ["left", "right", "top", "bottom", "left-top", "left-bottom", "right-top", "right-bottom", "top-left", "top-right", "bottom-left", "bottom-right"],
@@ -457,99 +445,80 @@ function createStyleDiv(propID) {
     return controls;
   }
 
-function createBadgeControls(propID = null) {
-  const controls = document.createElement("div");
+  function createBadgeControls() {
+    const controls = document.createElement("div");
 
-  const badgeInput = document.createElement("input");
-  badgeInput.type = "text";
-  badgeInput.placeholder = "Enter badge text";
-  badgeInput.className = "style-input style-input-lg";
+    const badgeInput = document.createElement("input");
+    badgeInput.type = "text";
+    badgeInput.placeholder = "Enter badge text";
+    badgeInput.className = "style-input style-input-lg";
 
-  const colorPicker = document.createElement("input");
-  colorPicker.type = "color";
-  colorPicker.className = "style-inner-button";
-  colorPicker.style.width = "24px";
-  colorPicker.value = DEFAULTS.STYLES.NODE_BADGE_DEFAULT_COLOR;
+    const colorPicker = document.createElement("input");
+    colorPicker.type = "color";
+    colorPicker.className = "style-inner-button";
+    colorPicker.style.width = "24px";
+    colorPicker.value = DEFAULTS.STYLES.NODE_BADGE_DEFAULT_COLOR;
 
-  const placementDropdown = document.createElement("select");
-  placementDropdown.className = "style-inner-button";
-  DEFAULTS.STYLES.NODE_BADGE_PLACEMENTS.forEach((placement) => {
-    const option = document.createElement("option");
-    option.value = placement;
-    option.textContent = placement.replace("-", " ");
-    placementDropdown.appendChild(option);
-  });
+    const placementDropdown = document.createElement("select");
+    placementDropdown.className = "style-inner-button";
+    DEFAULTS.STYLES.NODE_BADGE_PLACEMENTS.forEach((placement) => {
+      const option = document.createElement("option");
+      option.value = placement;
+      option.textContent = placement.replace("-", " ");
+      placementDropdown.appendChild(option);
+    });
 
-  const addBadgeButton = document.createElement("button");
-  addBadgeButton.textContent = "Add";
-  addBadgeButton.classList.add("style-inner-button");
-  addBadgeButton.onclick = () => {
-    const badge = {
-      text: badgeInput.value.trim(),
-      color: colorPicker.value,
-      placement: placementDropdown.value
+    const addBadgeButton = document.createElement("button");
+    addBadgeButton.textContent = "Add";
+    addBadgeButton.classList.add("style-inner-button");
+    addBadgeButton.onclick = () => {
+      const badge = {
+        text: badgeInput.value.trim(),
+        color: colorPicker.value,
+        placement: placementDropdown.value
+      };
+      updateNodes(propID, null, null, null, null, null, badge);
     };
-    updateNodes(propID, null, null, null, null, null, badge);
-  };
 
-  const clearBadgesButton = document.createElement("button");
-  clearBadgesButton.textContent = "Clear";
-  clearBadgesButton.className = "style-inner-button red";
-  clearBadgesButton.onclick = () => {
-    updateNodes(propID, null, null, null, null, null, "::CLEAR::");
-  };
+    const clearBadgesButton = document.createElement("button");
+    clearBadgesButton.textContent = "Clear";
+    clearBadgesButton.className = "style-inner-button red";
+    clearBadgesButton.onclick = () => {
+      updateNodes(propID, null, null, null, null, null, "::CLEAR::");
+    };
 
-  controls.appendChild(badgeInput);
-  controls.appendChild(colorPicker);
-  controls.appendChild(placementDropdown);
-  controls.appendChild(addBadgeButton);
-  controls.appendChild(clearBadgesButton);
+    controls.appendChild(badgeInput);
+    controls.appendChild(colorPicker);
+    controls.appendChild(placementDropdown);
+    controls.appendChild(addBadgeButton);
+    controls.appendChild(clearBadgesButton);
 
-  function applyBadgeToSelection(badge) {
-    for (const nodeID of propID ? getTargetNodes(propID) : cache.selectedNodes) {
-      const node = cache.nodeRef.get(nodeID);
-      if (!node.style.badge) {
-        node.style.badge = true;
-        node.style.badges = [];
-        node.style.badgePalette = [];
-      }
-      node.style.badges.push({
-        text: badge.text,
-        placement: badge.placement
-      });
-      node.style.badgePalette.push(badge.color);
-    }
-    graph.render(); // Render the graph with the updated badges
+    return controls;
   }
 
-  function clearBadgesFromSelection() {
-    for (const nodeID of propID ? getTargetNodes(propID) : cache.selectedNodes) {
-      const node = cache.nodeRef.get(nodeID);
-      node.style.badge = false; // Disable badges
-      node.style.badges = []; // Clear the badges array
-      node.style.badgePalette = []; // Clear the badgePalette
-    }
-    graph.render(); // Render the graph to reflect the changes
+  if (!propID || cache.nodeExclusiveProps.has(propID) || cache.mixedProps.has(propID)) {
+    createSection("Node Form", createNodeFormControls());
+    createSection("Node Color", createColorControls("Node", DEFAULTS.NODE.COLOR, DEFAULTS.STYLES.NODE_COLORS));
+    createSection("Node Size", createSizeControls("Node", DEFAULTS.NODE.SIZE, DEFAULTS.STYLES.NODE_SIZES));
+    createSection("Node Border Color", createColorControls("Node Border", DEFAULTS.STYLES.NODE_BORDER_COLORS.transparent, DEFAULTS.STYLES.NODE_BORDER_COLORS));
+    createSection("Node Border Size", createSizeControls("Node Border", DEFAULTS.STYLES.NODE_BORDER_SIZES.md, DEFAULTS.STYLES.NODE_BORDER_SIZES));
+    createSection("Node Label", createLabelControls("Node Label"));
+    createSection("Node Label Size", createSizeControls("Node Label", DEFAULTS.STYLES.NODE_LABEL_SIZES.md, DEFAULTS.STYLES.NODE_LABEL_SIZES));
+    createSection("Node Badges", createBadgeControls());
   }
 
-  return controls;
-}
+  if (!propID || cache.mixedProps.has(propID)) {
+    createSeparator();
+  }
 
-  createSection("Node Form", createNodeFormControls());
-  createSection("Node Color", createColorControls("Node", DEFAULTS.GRAPH.NODE.COLOR, DEFAULTS.STYLES.NODE_COLORS));
-  createSection("Node Size", createSizeControls("Node", DEFAULTS.GRAPH.NODE.SIZE, DEFAULTS.STYLES.NODE_SIZES));
-  createSection("Node Border Color", createColorControls("Node Border", DEFAULTS.STYLES.NODE_BORDER_COLORS.transparent, DEFAULTS.STYLES.NODE_BORDER_COLORS));
-  createSection("Node Border Size", createSizeControls("Node Border", DEFAULTS.STYLES.NODE_BORDER_SIZES.md, DEFAULTS.STYLES.NODE_BORDER_SIZES));
-  createSection("Node Label", createLabelControls("Node Label"));
-  createSection("Node Label Size", createSizeControls("Node Label", DEFAULTS.STYLES.NODE_LABEL_SIZES.md, DEFAULTS.STYLES.NODE_LABEL_SIZES));
-  createSection("Node Badges", createBadgeControls());
-  createSeparator();
-  createSection("Edge Color", createColorControls("Edge", DEFAULTS.GRAPH.EDGE.COLOR, DEFAULTS.STYLES.EDGE_COLORS));
-  createSection("Edge Width", createSizeControls("Edge", DEFAULTS.GRAPH.EDGE.LINE_WIDTH, DEFAULTS.STYLES.EDGE_WIDTHS));
-  createSection("Edge Dash", createSizeControls("Edge Dash", DEFAULTS.STYLES.EDGE_DASHS.none, DEFAULTS.STYLES.EDGE_DASHS));
-  createSection("Edge Halo", createHaloEnablingControls());
-  createSection("Edge Halo Color", createColorControls("Edge Halo", DEFAULTS.STYLES.EDGE_HALO_STROKE.purple, DEFAULTS.STYLES.EDGE_HALO_STROKE));
-  createSection("Edge Halo Width", createSizeControls("Edge Halo", DEFAULTS.STYLES.EDGE_HALO_WIDTH.md, DEFAULTS.STYLES.EDGE_HALO_WIDTH));
+  if (!propID || cache.edgeExclusiveProps.has(propID) || cache.mixedProps.has(propID)) {
+    createSection("Edge Color", createColorControls("Edge", DEFAULTS.EDGE.COLOR, DEFAULTS.STYLES.EDGE_COLORS));
+    createSection("Edge Width", createSizeControls("Edge", DEFAULTS.EDGE.LINE_WIDTH, DEFAULTS.STYLES.EDGE_WIDTHS));
+    createSection("Edge Dash", createSizeControls("Edge Dash", DEFAULTS.STYLES.EDGE_DASHS.none, DEFAULTS.STYLES.EDGE_DASHS));
+    createSection("Edge Halo", createHaloEnablingControls());
+    createSection("Edge Halo Color", createColorControls("Edge Halo", DEFAULTS.STYLES.EDGE_HALO_STROKE.purple, DEFAULTS.STYLES.EDGE_HALO_STROKE));
+    createSection("Edge Halo Width", createSizeControls("Edge Halo", DEFAULTS.STYLES.EDGE_HALO_WIDTH.md, DEFAULTS.STYLES.EDGE_HALO_WIDTH));
+  }
 
   return container;
 }
@@ -852,7 +821,8 @@ function createGraphInstance() {
           key: `bubbleSetPlugin-${group}`,
           type: "bubble-sets",
           members: [],
-          avoidMembers: [...cache.nodeRef.keys()], ...DEFAULTS.BUBBLE_SET_STYLE[group],
+          avoidMembers: [...cache.nodeRef.keys()],
+          ...DEFAULTS.BUBBLE_SET_STYLE[group],
           strokeOpacity: 0,  // hide bubble groups initially (1 node persists due to bug)
           fillOpacity: 0,
         })),
@@ -1227,7 +1197,11 @@ function getPropertiesNotWithinThresholds(nodeID = null, edgeID = null) {
   const element = isNode ? cache.nodeRef.get(nodeID) : cache.edgeRef.get(edgeID);
 
   // we only check properties that belong to this element type (specific props for nodes and edges)
-  const availableProps = isNode ? cache.nodeExclusiveProps : cache.edgeExclusiveProps;
+  // const availableProps = isNode ? cache.nodeExclusiveProps : cache.edgeExclusiveProps;
+  const availableProps = new Set([
+    ...(isNode ? cache.nodeExclusiveProps : cache.edgeExclusiveProps),
+    ...cache.mixedProps,
+  ]);
 
   for (const [key, value] of element.featureIsWithinThreshold.entries()) {
     if (!availableProps.has(key)) continue;
@@ -1424,7 +1398,13 @@ function buildFilterUI() {
 
     const col3 = document.createElement('div');
     col3.className = "filter-row-col3";
-    col3.appendChild(createCircleGroupButtonWithQuadrants(propID));
+    if (cache.nodeExclusiveProps.has(propID) || cache.mixedProps.has(propID)) {
+      col3.appendChild(createCircleGroupButtonWithQuadrants(propID));
+    } else {
+      const placeHolder = document.createElement('div');
+      placeHolder.style.width = "18px";
+      col3.appendChild(placeHolder);
+    }
     col3.appendChild(createStyleToggleButton(propID));
     row.appendChild(col3);
 
@@ -1439,7 +1419,9 @@ function buildFilterUI() {
     div.append(hiddenRow);
   }
 
-  document.getElementById("staticStyleDiv").appendChild(createStyleDiv())
+  const staticStyleDiv = document.getElementById("staticStyleDiv");
+  staticStyleDiv.innerHTML = "";
+  staticStyleDiv.appendChild(createStyleDiv());
 
   manageDynamicWidgets();
   handleEditModeUIChanges();
@@ -1981,7 +1963,7 @@ function createCircleGroupButtonWithQuadrants(propID) {
   const circleButton = document.createElement('div');
   circleButton.className = `circle-button`;
 
-  for (let [group, quadrantPosition] of [['groupOne', 'top-left'], ['groupTwo', 'top-right'], ['groupThree', 'bottom-left'], ['groupFour', 'bottom-right']]) {
+  for (let [group, quadrantPosition] of Object.entries(DEFAULTS.BUBBLE_SET_QUADRANT_POSITIONS)) {
     const quadrant = document.createElement('button');
     quadrant.classList.add("quadrant");
     quadrant.classList.add(quadrantPosition);
@@ -2113,14 +2095,14 @@ function removeSelectedLayout() {
 
 function getNodeStyleOrDefaults(node) {
   return {
-    type: node.type || DEFAULTS.GRAPH.NODE.TYPE,
+    type: node.type || DEFAULTS.NODE.TYPE,
     style: {
-      size: node.style?.size || DEFAULTS.GRAPH.NODE.SIZE,
+      size: node.style?.size || DEFAULTS.NODE.SIZE,
       label: true,
       labelText: node.style?.labelText || node.label || node.id,
       labelBackground: true,
       labelFontSize: node.style?.labelFontSize || DEFAULTS.STYLES.NODE_LABEL_SIZES.md,
-      fill: node.style?.fill || DEFAULTS.GRAPH.NODE.COLOR,
+      fill: node.style?.fill || DEFAULTS.NODE.COLOR,
       stroke: node.style?.stroke || null,
       lineWidth: node.style?.lineWidth || DEFAULTS.STYLES.NODE_BORDER_SIZES.md,
       badge: node.style?.badge || false,
@@ -2133,16 +2115,16 @@ function getNodeStyleOrDefaults(node) {
 
 function getEdgeStyleOrDefaults(edge) {
   return {
-    type: edge.type || DEFAULTS.GRAPH.EDGE.TYPE,
+    type: edge.type || DEFAULTS.EDGE.TYPE,
     style: {
-      startArrow: edge.startArrow || DEFAULTS.GRAPH.EDGE.ARROWS.START,
-      endArrow: edge.endArrow || DEFAULTS.GRAPH.EDGE.ARROWS.END,
-      lineWidth: edge.style?.lineWidth || DEFAULTS.GRAPH.EDGE.LINE_WIDTH,
+      startArrow: edge.startArrow || DEFAULTS.EDGE.ARROWS.START,
+      endArrow: edge.endArrow || DEFAULTS.EDGE.ARROWS.END,
+      lineWidth: edge.style?.lineWidth || DEFAULTS.EDGE.LINE_WIDTH,
       lineDash: edge.style?.lineDash || DEFAULTS.STYLES.EDGE_DASHS.none,
       label: false,
       labelText: edge.style?.labelText || "",
       labelBackground: true,
-      stroke: edge.style?.stroke || DEFAULTS.GRAPH.EDGE.COLOR,
+      stroke: edge.style?.stroke || DEFAULTS.EDGE.COLOR,
       halo: edge.style?.halo || false,
       haloStroke: edge.style?.haloStroke || DEFAULTS.STYLES.EDGE_HALO_STROKE.purple,
       haloLineWidth: edge.style?.haloLineWidth || DEFAULTS.STYLES.EDGE_HALO_WIDTH.md
@@ -2323,6 +2305,7 @@ function createCache() {
   cache.activeProps = new Set();
   cache.nodeExclusiveProps = new Set();
   cache.edgeExclusiveProps = new Set();
+  cache.mixedProps = new Set();
 
   cache.propToNodes = new Map();
   cache.propToNodeIDs = new Map();
@@ -2340,6 +2323,7 @@ function createCache() {
 
   cache.selectedNodes = new Set();
   cache.selectedEdges = new Set();
+
 
   for (let group of traverseBubbleSets()) {
     cache.lastBubbleSetMembers.set(group, new Set());
@@ -2365,7 +2349,12 @@ function createCache() {
       if (!cache.propToEdgeIDs.has(prop)) cache.propToEdgeIDs.set(prop, new Set());
       cache.propToEdges.get(prop).add(edge);
       cache.propToEdgeIDs.get(prop).add(edge.id);
-      cache.edgeExclusiveProps.add(prop);
+      if (cache.nodeExclusiveProps.has(prop)) {
+        cache.nodeExclusiveProps.delete(prop);
+        cache.mixedProps.add(prop);
+      } else {
+        cache.edgeExclusiveProps.add(prop);
+      }
     }
 
     if (!cache.nodeIDToEdgeIDs.has(edge.source)) cache.nodeIDToEdgeIDs.set(edge.source, new Set());
@@ -2486,6 +2475,18 @@ function loadFileWrapper(event) {
 
 function registerHotkeyEvents() {
   document.addEventListener('keydown', (event) => {
+    const activeElement = document.activeElement;
+
+    // Skip hotkeys if currently focused on an input, textarea, or select element
+    if (
+      activeElement.tagName === "INPUT" ||
+      activeElement.tagName === "TEXTAREA" ||
+      activeElement.tagName === "SELECT" ||
+      activeElement.isContentEditable
+    ) {
+      return;
+    }
+
     switch (event.key) {
       case "p":
         exportPNG();
