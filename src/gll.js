@@ -15,6 +15,7 @@ const SORT_FILTERS = false;
 const SORT_TOOLTIPS = true;
 const TOOLTIP_LINE_BREAK = 20;
 const TOOLTIP_HIDE_NULL_VALUES = false;
+const MAX_NODES_BEFORE_HIDING_LABELS = 300;
 
 const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
 
@@ -1103,6 +1104,7 @@ function preRenderEvent() {
   const nodeIDsToBeHidden = [...cache.nodeRef.keys()].filter(nodeID => !cache.nodeIDsToBeShown.has(nodeID));
   const edgeIDsToBeHidden = [...cache.edgeRef.keys()].filter(edgeID => !cache.edgeIDsToBeShown.has(edgeID));
 
+  // TODO: skip rendering if no nodes/edges are visible
   document.getElementById("visibleNodes").innerHTML = `${cache.nodeIDsToBeShown.size}`;
   document.getElementById("totalNodes").innerHTML = `${data.nodes.length}`;
   document.getElementById("visibleEdges").innerHTML = `${cache.edgeIDsToBeShown.size}`;
@@ -2010,7 +2012,7 @@ function createStyleToggleButton(propID) {
 function handleFilterEvent(header, text, propID = null) {
   // skip rendering if property is not active
   if (propID !== null && !data.layouts[data.selectedLayout].filters.get(propID).active) {
-    return
+    return;
   }
 
   showLoading(header, text);
@@ -2094,14 +2096,10 @@ function removeSelectedLayout() {
 }
 
 function getNodeStyleOrDefaults(node) {
-  return {
+  const nodeObj = {
     type: node.type || DEFAULTS.NODE.TYPE,
     style: {
       size: node.style?.size || DEFAULTS.NODE.SIZE,
-      label: true,
-      labelText: node.style?.labelText || node.label || node.id,
-      labelBackground: true,
-      labelFontSize: node.style?.labelFontSize || DEFAULTS.STYLES.NODE_LABEL_SIZES.md,
       fill: node.style?.fill || DEFAULTS.NODE.COLOR,
       stroke: node.style?.stroke || null,
       lineWidth: node.style?.lineWidth || DEFAULTS.STYLES.NODE_BORDER_SIZES.md,
@@ -2111,6 +2109,14 @@ function getNodeStyleOrDefaults(node) {
       badgeFontSize: 8,
     }
   };
+
+  if (cache.showNodeLabels) {
+    nodeObj.style.label = true;
+    nodeObj.style.labelText = node.style?.labelText || node.label || node.id;
+    nodeObj.style.labelBackground = true;
+    nodeObj.style.labelFontSize = node.style?.labelFontSize || DEFAULTS.STYLES.NODE_LABEL_SIZES.md;
+  }
+  return nodeObj;
 }
 
 function getEdgeStyleOrDefaults(edge) {
@@ -2205,6 +2211,12 @@ function preProcessData(fileData) {
 
     data.filterDefaults.get(propHash).lowerThreshold = Math.min(nodeOrEdgeValue, data.filterDefaults.get(propHash).lowerThreshold);
     data.filterDefaults.get(propHash).upperThreshold = Math.max(nodeOrEdgeValue, data.filterDefaults.get(propHash).upperThreshold);
+  }
+
+  cache.showNodeLabels = fileData.nodes.length <= MAX_NODES_BEFORE_HIDING_LABELS;
+
+  if (!cache.showNodeLabels) {
+    alert(`Graph contains many nodes (${fileData.nodes.length}). Labels will be deactivated to improve performance.`);
   }
 
   data.nodes = fileData.nodes.map((node) => {
