@@ -1,4 +1,4 @@
-const {Graph, NodeEvent, GraphEvent, CanvasEvent, CommonEvent, WindowEvent} = G6;
+const {Graph, NodeEvent, GraphEvent, CanvasEvent, CommonEvent, WindowEvent, Layout} = G6;
 
 /** @type {import('@antv/g6').Graph","null} */
 let graph = null;
@@ -15,7 +15,7 @@ const SORT_FILTERS = false;
 const SORT_TOOLTIPS = true;
 const TOOLTIP_LINE_BREAK = 20;
 const TOOLTIP_HIDE_NULL_VALUES = false;
-const MAX_NODES_BEFORE_HIDING_LABELS = 300;
+const MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT = 300;
 
 const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
 
@@ -50,7 +50,14 @@ const DEFAULTS = {
     NODE_FORM: {"●": "circle", "◆": "diamond", "⬢": "hexagon", "■": "rect", "▲": "triangle", "★": "star"},
     NODE_COLORS: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD"},
     NODE_SIZES: {sm: 15, md: 25, lg: 35, xlg: 50},
-    NODE_BORDER_COLORS: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD", transparent: "#00000000"},
+    NODE_BORDER_COLORS: {
+      red: "#C33D35",
+      purple: "#403C53",
+      blue: "#8CA6D9",
+      pink: "#EFB0AA",
+      grey: "#ABACBD",
+      transparent: "#00000000"
+    },
     NODE_BORDER_SIZES: {sm: 0.5, md: 1, lg: 2, xlg: 4},
     NODE_LABEL_SIZES: {sm: 10, md: 12, lg: 14, xlg: 20},
     NODE_BADGE_PLACEMENTS: ["left", "right", "top", "bottom", "left-top", "left-bottom", "right-top", "right-bottom", "top-left", "top-right", "bottom-left", "bottom-right"],
@@ -127,19 +134,39 @@ function getReadableForegroundColor(hex) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b > 186 ? "#000000" : "#FFFFFF";
 }
 
+function getTargetNodes(propID) {
+  if (!propID) return cache.selectedNodes;
+  if (!cache.propToNodeIDs.has(propID)) {
+    return [];
+  }
+  return [...cache.propToNodeIDs.get(propID)].filter((nodeID) =>
+    cache.nodeIDsToBeShown.has(nodeID)
+  );
+}
+
+function getTargetEdges(propID) {
+  if (!propID) return cache.selectedEdges;
+  if (!cache.propToEdgeIDs.has(propID)) {
+    return [];
+  }
+  return [...cache.propToEdgeIDs.get(propID)].filter((edgeID) =>
+    cache.edgeIDsToBeShown.has(edgeID)
+  );
+}
+
 function createStyleDiv(propID) {
   const container = document.createElement("div");
   container.classList.add("style-container");
 
   if (!propID) {
-    const buttonBar = document.createElement("div");
+    const selectButtonBar = document.createElement("div");
     const selectAllNodes = document.createElement("button");
     selectAllNodes.textContent = "All nodes";
     selectAllNodes.classList.add("style-inner-button");
     selectAllNodes.onclick = () => {
       toggleSelectionForAllNodes(true);
     }
-    buttonBar.appendChild(selectAllNodes);
+    selectButtonBar.appendChild(selectAllNodes);
 
     const selectNoNodes = document.createElement("button");
     selectNoNodes.textContent = "No nodes";
@@ -147,7 +174,7 @@ function createStyleDiv(propID) {
     selectNoNodes.onclick = () => {
       toggleSelectionForAllNodes(false);
     }
-    buttonBar.appendChild(selectNoNodes);
+    selectButtonBar.appendChild(selectNoNodes);
 
     const selectAllEdges = document.createElement("button");
     selectAllEdges.textContent = "All edges";
@@ -155,7 +182,7 @@ function createStyleDiv(propID) {
     selectAllEdges.onclick = () => {
       toggleSelectionForAllEdges(true);
     }
-    buttonBar.appendChild(selectAllEdges);
+    selectButtonBar.appendChild(selectAllEdges);
 
     const selectNoEdges = document.createElement("button");
     selectNoEdges.textContent = "No edges";
@@ -163,25 +190,97 @@ function createStyleDiv(propID) {
     selectNoEdges.onclick = () => {
       toggleSelectionForAllEdges(false);
     }
-    buttonBar.appendChild(selectNoEdges);
+    selectButtonBar.appendChild(selectNoEdges);
 
-    createSection("Select", buttonBar);
+    createSection("Select", selectButtonBar);
+    createSeparator();
+
+    const layoutButtonBar = document.createElement("div");
+
+    const groupNodesButton = document.createElement("button");
+    groupNodesButton.textContent = "Group";
+    groupNodesButton.classList.add("style-inner-button");
+    groupNodesButton.title = "Move nodes closer together, halving their distance to the center.";
+    groupNodesButton.onclick = () => {
+      layoutSelectedNodes("group");
+    };
+    layoutButtonBar.appendChild(groupNodesButton);
+
+    const spreadNodesButton = document.createElement("button");
+    spreadNodesButton.textContent = "Spread";
+    spreadNodesButton.classList.add("style-inner-button");
+    spreadNodesButton.title = "Move nodes farther apart, doubling their distance to the center.";
+    spreadNodesButton.onclick = () => {
+      layoutSelectedNodes("spread");
+    };
+    layoutButtonBar.appendChild(spreadNodesButton);
+
+    const arrangeCircleButton = document.createElement("button");
+    arrangeCircleButton.textContent = "Arrange in Circle";
+    arrangeCircleButton.classList.add("style-inner-button");
+    arrangeCircleButton.title = "Arrange nodes evenly in a circular layout around the center.";
+    arrangeCircleButton.onclick = () => {
+      layoutSelectedNodes("circle");
+    };
+    layoutButtonBar.appendChild(arrangeCircleButton);
+
+    createSection("Arrange Nodes", layoutButtonBar);
     createSeparator();
   }
 
-  function getTargetNodes(propID) {
-    if (!propID) return cache.selectedNodes;
-    return [...cache.propToNodeIDs.get(propID)].filter((nodeID) =>
-      cache.nodeIDsToBeShown.has(nodeID)
-    );
+  function layoutSelectedNodes(action) {
+    // TODO: would be nice to replace this by some kind of grouped layout
+    // e.g. by selectively calling force layout on a set of node IDs
+
+    if (cache.selectedNodes.length === 0) return;
+
+  const selectedNodes = new Map(
+    [...data.layouts[data.selectedLayout].positions]
+      .filter(([key]) => cache.selectedNodes.includes(key))
+  );
+  const selectedNodesCoords = [...selectedNodes.values()];
+  const avgX = selectedNodesCoords.reduce((sum, pos) => sum + pos.x, 0) / selectedNodesCoords.length;
+  const avgY = selectedNodesCoords.reduce((sum, pos) => sum + pos.y, 0) / selectedNodesCoords.length;
+
+  if (action === "circle") {
+    // Arrange nodes in a circular layout
+    const radius = 100; // Radius of the circle
+    const numNodes = cache.selectedNodes.length;
+    let angleStep = (2 * Math.PI) / numNodes;
+
+    let i = 0;
+    for (const node of graph.getNodeData()) {
+      if (cache.selectedNodes.includes(node.id)) {
+        const angle = i * angleStep; // Calculate the angle for each node
+        node.style.x = avgX + radius * Math.cos(angle); // Set x based on the angle
+        node.style.y = avgY + radius * Math.sin(angle); // Set y based on the angle
+        i++;
+      }
+    }
+  } else {
+    // Scaling factor for grouping or spreading
+    const scale = action === "group" ? 0.5 : 2; // Halve or double the distance
+
+    for (const node of graph.getNodeData()) {
+      if (cache.selectedNodes.includes(node.id)) {
+        const oldX = node.style.x;
+        const oldY = node.style.y;
+
+        // Adjust position based on the center and scaling factor
+        node.style.x = avgX + (oldX - avgX) * scale;
+        node.style.y = avgY + (oldY - avgY) * scale;
+      }
+    }
   }
 
-  function getTargetEdges(propID) {
-    if (!propID) return cache.selectedEdges;
-    return [...cache.propToEdgeIDs.get(propID)].filter((edgeID) =>
-      cache.edgeIDsToBeShown.has(edgeID)
-    );
-  }
+  const eventLabel = action === "group" ? "Grouping Nodes"
+                    : action === "spread" ? "Spreading Nodes"
+                    : "Circular Layout";
+
+  persistNodePositions();
+  handleFilterEvent(eventLabel, eventLabel);
+}
+
 
   function updateNodes(
     propID = null,
@@ -757,9 +856,61 @@ function parseExcelToJson(file) {
 function createGraphInstance() {
   if (graph === null) {
 
+    const behaviors = [
+      {type: 'drag-canvas', key: 'drag-canvas',},
+      {type: 'zoom-canvas', key: 'zoom-canvas',},
+      {type: 'drag-element', cursor: {default: 'default', grab: 'default', grabbing: 'default'},},
+    ];
+
+    if (cache.showNodeLabelsAndHoverEffect) {
+      behaviors.push(
+        {
+          type: 'hover-activate',
+          enable: (event) => {
+            // console.log(event.target.config.id);
+            return event.targetType === 'node' || event.targetType === 'edge';
+          },
+          degree: 1,
+          // degree: (event) => {
+          //   if (event.targetType === 'node') {
+          //     let relatedEdges = graph.getRelatedEdgesData(event.target.config.id).map(e => e.id);
+          //     let relatedNodes = graph.getNeighborNodesData(event.target.config.id).map(n => n.id);
+          //     if (!relatedEdges.every(edgeId => !cache.edgeIDsToBeShown.has(edgeId))) {
+          //       return 0;
+          //     }
+          //     // return visibleNeighbors.length > 0 ? 1 : 0;
+          //   }
+          //   return 1;
+          // },
+          state: 'highlight',
+          inactiveState: 'dim',
+        }
+      );
+    }
+
+    const plugins = [
+      {
+        key: "tooltip",
+        type: "tooltip",
+        trigger: "click",
+        enterable: true,
+        getContent: (e, items) => cache.toolTips.get(items[0].id),
+      },
+      {key: "minimap", type: "minimap",},
+      ...[...traverseBubbleSets()].map(group => ({
+        key: `bubbleSetPlugin-${group}`,
+        type: "bubble-sets",
+        members: [],
+        avoidMembers: [...cache.nodeRef.keys()],
+        ...DEFAULTS.BUBBLE_SET_STYLE[group],
+        strokeOpacity: 0,  // hide bubble groups initially (1 node persists due to bug)
+        fillOpacity: 0,
+      })),
+    ];
+
     graph = new Graph({
       container: 'innerGraphContainer',
-      autoFit: 'view',
+      autoFit: false,  // 'view'
       animation: false,
       autoResize: true,
       padding: 10,
@@ -783,51 +934,8 @@ function createGraphInstance() {
           }
         },
       },
-      behaviors: [
-        {type: 'drag-canvas', key: 'drag-canvas',},
-        {type: 'zoom-canvas', key: 'zoom-canvas',},
-        {type: 'drag-element', cursor: {default: 'default', grab: 'default', grabbing: 'default'},},
-        {
-          type: 'hover-activate',
-          enable: (event) => {
-            // console.log(event.target.config.id);
-            return event.targetType === 'node' || event.targetType === 'edge';
-          },
-          degree: 1,
-          // degree: (event) => {
-          //   if (event.targetType === 'node') {
-          //     let relatedEdges = graph.getRelatedEdgesData(event.target.config.id).map(e => e.id);
-          //     let relatedNodes = graph.getNeighborNodesData(event.target.config.id).map(n => n.id);
-          //     if (!relatedEdges.every(edgeId => !cache.edgeIDsToBeShown.has(edgeId))) {
-          //       return 0;
-          //     }
-          //     // return visibleNeighbors.length > 0 ? 1 : 0;
-          //   }
-          //   return 1;
-          // },
-          state: 'highlight',
-          inactiveState: 'dim',
-        },
-      ],
-      plugins: [
-        {
-          key: "tooltip",
-          type: "tooltip",
-          trigger: "click",
-          enterable: true,
-          getContent: (e, items) => cache.toolTips.get(items[0].id),
-        },
-        {key: "minimap", type: "minimap",},
-        ...[...traverseBubbleSets()].map(group => ({
-          key: `bubbleSetPlugin-${group}`,
-          type: "bubble-sets",
-          members: [],
-          avoidMembers: [...cache.nodeRef.keys()],
-          ...DEFAULTS.BUBBLE_SET_STYLE[group],
-          strokeOpacity: 0,  // hide bubble groups initially (1 node persists due to bug)
-          fillOpacity: 0,
-        })),
-      ],
+      behaviors: behaviors,
+      plugins: plugins,
     });
 
     graph.on(NodeEvent.DRAG_END, (event) => {
@@ -883,14 +991,17 @@ function toggleEditMode(ev) {
   const nonEditBehaviors = [
     {type: 'drag-canvas', key: 'drag-canvas'},
     {type: 'drag-element', cursor: {default: 'default', grab: 'default', grabbing: 'default'}},
-    {
+  ];
+
+  if (cache.showNodeLabelsAndHoverEffect) {
+    nonEditBehaviors.push({
       type: 'hover-activate', degree: 1, state: 'highlight', inactiveState: 'dim',
       enable: (event) => {
         // console.log(event.targetType);
         return event.targetType === 'node' || event.targetType === 'edge';
       },
-    },
-  ];
+    });
+  }
 
   const editBehaviors = [
     {type: "lasso-select", key: "lasso-select", trigger: "drag"},
@@ -1062,6 +1173,7 @@ function preRenderEvent() {
   cache.nodeIDsToBeShown = new Set();
   cache.propIDsToNodeIDsToBeShown = new Map();  // this is used by the bubble-grouping functionality after rendering
   cache.edgeIDsToBeShown = new Set();
+  cache.propIDsToEdgeIDsToBeShown = new Map();
   cache.remainingEdgeRelatedNodes = new Set();
   resetFeatureIsWithinThresholdMaps();
 
@@ -1070,7 +1182,7 @@ function preRenderEvent() {
     cache.propIDsToNodeIDsToBeShown.set(propID, new Set());
 
     for (let node of cache.propToNodes.get(propID) || []) {
-      if (isWithinThreshold(fd, node.featureValues.get(propID), node)) {
+      if (isWithinThreshold(fd, node.featureValues.get(propID))) {
         // this node has an active property and is within the defined thresholds, so we can consider showing it
         cache.nodeIDsToBeShown.add(node.id);
         cache.propIDsToNodeIDsToBeShown.get(propID).add(node.id);
@@ -1084,11 +1196,14 @@ function preRenderEvent() {
   // we need two iterations over all activated props, otherwise we might miss node ids to be shown
   for (let propID of cache.activeProps) {
     let fd = data.layouts[data.selectedLayout].filters.get(propID);
+    cache.propIDsToEdgeIDsToBeShown.set(propID, new Set());
+
     for (let edge of cache.propToEdges.get(propID) || []) {
-      if (isWithinThreshold(fd, edge.featureValues.get(propID), edge) && allRelatedNodesAreVisible(edge.id)) {
+      if (isWithinThreshold(fd, edge.featureValues.get(propID)) && allRelatedNodesAreVisible(edge.id)) {
         // this edge has an active property, is within the defined thresholds, and all of its related nodes are visible,
         // so we can also consider to show the edge itself
         cache.edgeIDsToBeShown.add(edge.id);
+        cache.propIDsToEdgeIDsToBeShown.get(propID).add(edge.id);
         edge.featureIsWithinThreshold.set(propID, true);
       } else {
         edge.featureIsWithinThreshold.set(propID, false);
@@ -1130,6 +1245,7 @@ function performANDFilterLogic() {
     let propertiesNotWithinThresholds = getPropertiesNotWithinThresholds(null, edgeID);
     if (propertiesNotWithinThresholds.length > 0) {
       cache.edgeIDsToBeShown.delete(edgeID);
+      removeFromPropIDsToEdgeIDsToBeShown(edgeID);
     } else {
       // we have edges in an AND-filtered graph, so we want to remember the connected nodes, since all other dangling
       // nodes should be removed
@@ -1177,6 +1293,12 @@ function cleanUpDanglingElements() {
 function removeFromPropIDsToNodeIDsToBeShown(nodeID) {
   for (let propID of cache.propIDsToNodeIDsToBeShown.keys()) {
     cache.propIDsToNodeIDsToBeShown.get(propID).delete(nodeID);
+  }
+}
+
+function removeFromPropIDsToEdgeIDsToBeShown(edgeID) {
+  for (let propID of cache.propIDsToEdgeIDsToBeShown.keys()) {
+    cache.propIDsToEdgeIDsToBeShown.get(propID).delete(edgeID);
   }
 }
 
@@ -1408,6 +1530,8 @@ function buildFilterUI() {
       col3.appendChild(placeHolder);
     }
     col3.appendChild(createStyleToggleButton(propID));
+    col3.appendChild(createAddOrRemoveToSelectionButton(propID, true));
+    col3.appendChild(createAddOrRemoveToSelectionButton(propID, false));
     row.appendChild(col3);
 
     div.append(row);
@@ -2001,11 +2125,45 @@ function createStyleToggleButton(propID) {
   const btn = document.createElement("button");
   btn.classList.add("ml-2", "style-icon-button", "show-on-edit");
   btn.textContent = "🎨";
+  btn.title = "Control style for this property";
 
   btn.addEventListener("click", () => {
     document.getElementById(`style-row-${propID}`).classList.toggle("show");
   });
 
+  return btn;
+}
+
+function createAddOrRemoveToSelectionButton(propID, shouldAdd) {
+  const btn = document.createElement("button");
+  btn.classList.add("plus-minus-button", "show-on-edit");
+  btn.textContent = shouldAdd ? "+" : "-";
+  btn.title = shouldAdd ? "Add to selection" : "Remove from selection";
+  btn.addEventListener("click", () => {
+    let triggerRender = false;
+
+    const nodeIDs = cache.propIDsToNodeIDsToBeShown.get(propID) || [];
+    if (nodeIDs.size > 0) {
+      const nodes = graph.getNodeData([...nodeIDs]);
+      updateSelectedState(nodes, shouldAdd);
+      graph.updateNodeData(nodes);
+      triggerRender = true;
+    }
+
+    const edgeIDs = cache.propIDsToEdgeIDsToBeShown.get(propID) || [];
+    if (edgeIDs.size > 0) {
+      const edges = graph.getEdgeData([...edgeIDs]);
+      updateSelectedState(edges, shouldAdd);
+      graph.updateEdgeData(edges);
+      triggerRender = true;
+    }
+
+    if (triggerRender) {
+      const addRemove = shouldAdd ? "Adding" : "Removing";
+      const filler = shouldAdd ? "to" : "from";
+      handleFilterEvent(`${addRemove} ${filler} Selection`, `${addRemove} ${propID} ${filler} selection`, propID);
+    }
+  });
   return btn;
 }
 
@@ -2110,7 +2268,7 @@ function getNodeStyleOrDefaults(node) {
     }
   };
 
-  if (cache.showNodeLabels) {
+  if (cache.showNodeLabelsAndHoverEffect) {
     nodeObj.style.label = true;
     nodeObj.style.labelText = node.style?.labelText || node.label || node.id;
     nodeObj.style.labelBackground = true;
@@ -2213,10 +2371,10 @@ function preProcessData(fileData) {
     data.filterDefaults.get(propHash).upperThreshold = Math.max(nodeOrEdgeValue, data.filterDefaults.get(propHash).upperThreshold);
   }
 
-  cache.showNodeLabels = fileData.nodes.length <= MAX_NODES_BEFORE_HIDING_LABELS;
+  cache.showNodeLabelsAndHoverEffect = fileData.nodes.length <= MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT;
 
-  if (!cache.showNodeLabels) {
-    alert(`Graph contains many nodes (${fileData.nodes.length}). Labels will be deactivated to improve performance.`);
+  if (!cache.showNodeLabelsAndHoverEffect) {
+    alert(`Graph contains many nodes (${fileData.nodes.length}). Labels and hover-effects will be deactivated to improve performance.`);
   }
 
   data.nodes = fileData.nodes.map((node) => {
@@ -2332,6 +2490,7 @@ function createCache() {
   cache.nodeIDsToBeShown = new Set();
   cache.propIDsToNodeIDsToBeShown = new Map();
   cache.edgeIDsToBeShown = new Set();
+  cache.propIDsToEdgeIDsToBeShown = new Map();
 
   cache.selectedNodes = new Set();
   cache.selectedEdges = new Set();
