@@ -234,53 +234,57 @@ function createStyleDiv(propID) {
 
     if (cache.selectedNodes.length === 0) return;
 
-  const selectedNodes = new Map(
-    [...data.layouts[data.selectedLayout].positions]
-      .filter(([key]) => cache.selectedNodes.includes(key))
-  );
-  const selectedNodesCoords = [...selectedNodes.values()];
-  const avgX = selectedNodesCoords.reduce((sum, pos) => sum + pos.x, 0) / selectedNodesCoords.length;
-  const avgY = selectedNodesCoords.reduce((sum, pos) => sum + pos.y, 0) / selectedNodesCoords.length;
+    function groupOrSpreadSelectedNodes(scale) {
+      for (const node of graph.getNodeData()) {
+        if (cache.selectedNodes.includes(node.id)) {
+          const oldX = node.style.x;
+          const oldY = node.style.y;
 
-  if (action === "circle") {
-    // Arrange nodes in a circular layout
-    const radius = 100; // Radius of the circle
-    const numNodes = cache.selectedNodes.length;
-    let angleStep = (2 * Math.PI) / numNodes;
-
-    let i = 0;
-    for (const node of graph.getNodeData()) {
-      if (cache.selectedNodes.includes(node.id)) {
-        const angle = i * angleStep; // Calculate the angle for each node
-        node.style.x = avgX + radius * Math.cos(angle); // Set x based on the angle
-        node.style.y = avgY + radius * Math.sin(angle); // Set y based on the angle
-        i++;
+          node.style.x = avgX + (oldX - avgX) * scale;
+          node.style.y = avgY + (oldY - avgY) * scale;
+        }
       }
     }
-  } else {
-    // Scaling factor for grouping or spreading
-    const scale = action === "group" ? 0.5 : 2; // Halve or double the distance
 
-    for (const node of graph.getNodeData()) {
-      if (cache.selectedNodes.includes(node.id)) {
-        const oldX = node.style.x;
-        const oldY = node.style.y;
+    function arrangeNodesInCircle(radius) {
+      const numNodes = cache.selectedNodes.length;
+      let angleStep = (2 * Math.PI) / numNodes;
 
-        // Adjust position based on the center and scaling factor
-        node.style.x = avgX + (oldX - avgX) * scale;
-        node.style.y = avgY + (oldY - avgY) * scale;
+      let i = 0;
+      for (const node of graph.getNodeData()) {
+        if (cache.selectedNodes.includes(node.id)) {
+          const angle = i * angleStep; // Calculate the angle for each node
+          node.style.x = avgX + radius * Math.cos(angle); // Set x based on the angle
+          node.style.y = avgY + radius * Math.sin(angle); // Set y based on the angle
+          i++;
+        }
       }
     }
+
+    const selectedNodes = new Map(
+      [...data.layouts[data.selectedLayout].positions]
+        .filter(([key]) => cache.selectedNodes.includes(key))
+    );
+    const selectedNodesCoords = [...selectedNodes.values()];
+    const avgX = selectedNodesCoords.reduce((sum, pos) => sum + pos.x, 0) / selectedNodesCoords.length;
+    const avgY = selectedNodesCoords.reduce((sum, pos) => sum + pos.y, 0) / selectedNodesCoords.length;
+
+    const eventLabels = {
+      "group": "Grouping Nodes",
+      "spread": "Spreading Nodes",
+      "circle": "Applying Circular Layout"
+    }
+
+    const layoutActions = {
+      "group": () => groupOrSpreadSelectedNodes(0.5),
+      "spread": () => groupOrSpreadSelectedNodes(2),
+      "circle": () => arrangeNodesInCircle(100),
+    }
+
+    layoutActions[action]();
+    persistNodePositions();
+    handleFilterEvent(action, eventLabels[action]);
   }
-
-  const eventLabel = action === "group" ? "Grouping Nodes"
-                    : action === "spread" ? "Spreading Nodes"
-                    : "Circular Layout";
-
-  persistNodePositions();
-  handleFilterEvent(eventLabel, eventLabel);
-}
-
 
   function updateNodes(
     propID = null,
@@ -324,7 +328,8 @@ function createStyleDiv(propID) {
         }
       }
     }
-    graph.render();
+
+    handleFilterEvent("Style", "Updating Node Style", propID);
   }
 
   function updateEdges(
@@ -349,7 +354,8 @@ function createStyleDiv(propID) {
       }
       if (halo !== null) edge.style.halo = halo;
     }
-    graph.render();
+
+    handleFilterEvent("Style", "Updating Edge Style", propID);
   }
 
   // Helper to create a labeled section with heading and controls
