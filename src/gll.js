@@ -193,31 +193,35 @@ function createStyleDiv(propID) {
     }
     selectButtonBar.appendChild(selectNoEdges);
 
-    createSection("Select", selectButtonBar);
+    createSection("Select", selectButtonBar, propID);
     createSeparator();
 
     const layoutButtonBar = document.createElement("div");
 
-    const groupNodesButton = document.createElement("button");
-    groupNodesButton.textContent = "Group";
-    groupNodesButton.classList.add("style-inner-button");
-    groupNodesButton.title = "Move nodes closer together, halving their distance to the center.";
-    groupNodesButton.onclick = () => {
-      layoutSelectedNodes("group");
+    const shrinkNodesButton = document.createElement("button");
+    shrinkNodesButton.textContent = "Shrink";
+    shrinkNodesButton.classList.add("style-inner-button");
+    shrinkNodesButton.title = "Move nodes closer together, halving their distance to the center.";
+    shrinkNodesButton.onclick = () => {
+      layoutSelectedNodes("shrink");
     };
-    layoutButtonBar.appendChild(groupNodesButton);
+    layoutButtonBar.appendChild(shrinkNodesButton);
 
-    const spreadNodesButton = document.createElement("button");
-    spreadNodesButton.textContent = "Spread";
-    spreadNodesButton.classList.add("style-inner-button");
-    spreadNodesButton.title = "Move nodes farther apart, doubling their distance to the center.";
-    spreadNodesButton.onclick = () => {
-      layoutSelectedNodes("spread");
+    const expandNodesButton = document.createElement("button");
+    expandNodesButton.textContent = "Expand";
+    expandNodesButton.classList.add("style-inner-button");
+    expandNodesButton.title = "Move nodes farther apart, doubling their distance to the center.";
+    expandNodesButton.onclick = () => {
+      layoutSelectedNodes("expand");
     };
-    layoutButtonBar.appendChild(spreadNodesButton);
+    layoutButtonBar.appendChild(expandNodesButton);
+
+    const verticalRule = document.createElement("div");
+    verticalRule.classList.add("vr");
+    layoutButtonBar.appendChild(verticalRule);
 
     const arrangeCircleButton = document.createElement("button");
-    arrangeCircleButton.textContent = "Arrange in Circle";
+    arrangeCircleButton.textContent = "Circle";
     arrangeCircleButton.classList.add("style-inner-button");
     arrangeCircleButton.title = "Arrange nodes evenly in a circular layout around the center.";
     arrangeCircleButton.onclick = () => {
@@ -225,7 +229,7 @@ function createStyleDiv(propID) {
     };
     layoutButtonBar.appendChild(arrangeCircleButton);
 
-    createSection("Arrange Nodes", layoutButtonBar);
+    createSection("Arrange Nodes", layoutButtonBar, propID);
     createSeparator();
   }
 
@@ -271,14 +275,14 @@ function createStyleDiv(propID) {
     const avgY = selectedNodesCoords.reduce((sum, pos) => sum + pos.y, 0) / selectedNodesCoords.length;
 
     const eventLabels = {
-      "group": "Grouping Nodes",
-      "spread": "Spreading Nodes",
-      "circle": "Applying Circular Layout"
+      "shrink": "Shrinking Selected Nodes in Layout",
+      "expand": "Expanding Selected Nodes in Layout",
+      "circle": "Applying Circular Layout to Selected Nodes"
     }
 
     const layoutActions = {
-      "group": () => groupOrSpreadSelectedNodes(0.5),
-      "spread": () => groupOrSpreadSelectedNodes(2),
+      "shrink": () => groupOrSpreadSelectedNodes(0.5),
+      "expand": () => groupOrSpreadSelectedNodes(2),
       "circle": () => arrangeNodesInCircle(100),
     }
 
@@ -360,11 +364,14 @@ function createStyleDiv(propID) {
   }
 
   // Helper to create a labeled section with heading and controls
-  function createSection(title, controls) {
+  function createSection(title, controls, propID) {
     const heading = document.createElement("div");
     heading.textContent = title;
     heading.classList.add("style-col1-heading");
     controls.classList.add("style-col2-controls");
+
+    heading.id = `${title}-heading-${propID}`;
+    controls.id = `${title}-controls-${propID}`;
 
     container.appendChild(heading);
     container.appendChild(controls);
@@ -604,14 +611,14 @@ function createStyleDiv(propID) {
   }
 
   if (!propID || cache.nodeExclusiveProps.has(propID) || cache.mixedProps.has(propID)) {
-    createSection("Node Form", createNodeFormControls());
-    createSection("Node Color", createColorControls("Node", DEFAULTS.NODE.COLOR, DEFAULTS.STYLES.NODE_COLORS));
-    createSection("Node Size", createSizeControls("Node", DEFAULTS.NODE.SIZE, DEFAULTS.STYLES.NODE_SIZES));
-    createSection("Node Border Color", createColorControls("Node Border", DEFAULTS.STYLES.NODE_BORDER_COLORS.transparent, DEFAULTS.STYLES.NODE_BORDER_COLORS));
-    createSection("Node Border Size", createSizeControls("Node Border", DEFAULTS.STYLES.NODE_BORDER_SIZES.md, DEFAULTS.STYLES.NODE_BORDER_SIZES));
-    createSection("Node Label", createLabelControls("Node Label"));
-    createSection("Node Label Size", createSizeControls("Node Label", DEFAULTS.STYLES.NODE_LABEL_SIZES.md, DEFAULTS.STYLES.NODE_LABEL_SIZES));
-    createSection("Node Badges", createBadgeControls());
+    createSection("Node Form", createNodeFormControls(), propID);
+    createSection("Node Color", createColorControls("Node", DEFAULTS.NODE.COLOR, DEFAULTS.STYLES.NODE_COLORS), propID);
+    createSection("Node Size", createSizeControls("Node", DEFAULTS.NODE.SIZE, DEFAULTS.STYLES.NODE_SIZES), propID);
+    createSection("Node Border Color", createColorControls("Node Border", DEFAULTS.STYLES.NODE_BORDER_COLORS.transparent, DEFAULTS.STYLES.NODE_BORDER_COLORS), propID);
+    createSection("Node Border Size", createSizeControls("Node Border", DEFAULTS.STYLES.NODE_BORDER_SIZES.md, DEFAULTS.STYLES.NODE_BORDER_SIZES), propID);
+    createSection("Node Label", createLabelControls("Node Label"), propID);
+    createSection("Node Label Size", createSizeControls("Node Label", DEFAULTS.STYLES.NODE_LABEL_SIZES.md, DEFAULTS.STYLES.NODE_LABEL_SIZES), propID);
+    createSection("Node Badges", createBadgeControls(), propID);
   }
 
   if (!propID || cache.mixedProps.has(propID)) {
@@ -619,15 +626,42 @@ function createStyleDiv(propID) {
   }
 
   if (!propID || cache.edgeExclusiveProps.has(propID) || cache.mixedProps.has(propID)) {
-    createSection("Edge Color", createColorControls("Edge", DEFAULTS.EDGE.COLOR, DEFAULTS.STYLES.EDGE_COLORS));
-    createSection("Edge Width", createSizeControls("Edge", DEFAULTS.EDGE.LINE_WIDTH, DEFAULTS.STYLES.EDGE_WIDTHS));
-    createSection("Edge Dash", createSizeControls("Edge Dash", DEFAULTS.STYLES.EDGE_DASHS.none, DEFAULTS.STYLES.EDGE_DASHS));
-    createSection("Edge Halo", createHaloEnablingControls());
-    createSection("Edge Halo Color", createColorControls("Edge Halo", DEFAULTS.STYLES.EDGE_HALO_STROKE.purple, DEFAULTS.STYLES.EDGE_HALO_STROKE));
-    createSection("Edge Halo Width", createSizeControls("Edge Halo", DEFAULTS.STYLES.EDGE_HALO_WIDTH.md, DEFAULTS.STYLES.EDGE_HALO_WIDTH));
+    createSection("Edge Color", createColorControls("Edge", DEFAULTS.EDGE.COLOR, DEFAULTS.STYLES.EDGE_COLORS), propID);
+    createSection("Edge Width", createSizeControls("Edge", DEFAULTS.EDGE.LINE_WIDTH, DEFAULTS.STYLES.EDGE_WIDTHS), propID);
+    createSection("Edge Dash", createSizeControls("Edge Dash", DEFAULTS.STYLES.EDGE_DASHS.none, DEFAULTS.STYLES.EDGE_DASHS), propID);
+    createSection("Edge Halo", createHaloEnablingControls(), propID);
+    createSection("Edge Halo Color", createColorControls("Edge Halo", DEFAULTS.STYLES.EDGE_HALO_STROKE.purple, DEFAULTS.STYLES.EDGE_HALO_STROKE), propID);
+    createSection("Edge Halo Width", createSizeControls("Edge Halo", DEFAULTS.STYLES.EDGE_HALO_WIDTH.md, DEFAULTS.STYLES.EDGE_HALO_WIDTH), propID);
   }
 
   return container;
+}
+
+function toggleNodeStyleElements(enable) {
+  toggleStyleElements([
+    "Node Form", "Node Color", "Node Size", "Node Border Color", "Node Border Size", "Node Label", "Node Label Size",
+    "Node Badges"], enable);
+}
+
+function toggleEdgeStyleElements(enable) {
+  toggleStyleElements([
+    "Edge Color", "Edge Width", "Edge Dash", "Edge Halo", "Edge Halo Color", "Edge Halo Width"], enable);
+}
+
+function toggleCommonStyleElements(enable) {
+  toggleStyleElements(["Arrange Nodes"], enable);
+}
+
+function toggleSelectStyleElements(enable) {
+  toggleStyleElements(["Select"], enable);
+}
+
+function toggleStyleElements(headingLabels, enable) {
+  const elementIDs = headingLabels.flatMap(l => [`${l}-heading-undefined`, `${l}-controls-undefined`]);
+  for (let elemID of elementIDs) {
+    const elem = document.getElementById(elemID);
+    enable ? elem.classList.remove("is-disabled") : elem.classList.add("is-disabled");
+  }
 }
 
 function updateSelectedState(elemData, enable) {
@@ -987,8 +1021,32 @@ function updateSelectedNodesAndEdges() {
     .filter((e) => e.states?.includes("selected") && cache.edgeIDsToBeShown.has(e.id))
     .map((e) => e.id);
 
-  document.getElementById("selectedNodes").textContent = cache.selectedNodes.length;
-  document.getElementById("selectedEdges").textContent = cache.selectedEdges.length;
+  const selectedNodesCount = cache.selectedNodes?.length || 0;
+  const selectedEdgesCount = cache.selectedEdges?.length || 0;
+
+
+  document.getElementById("selectedNodes").textContent = `${selectedNodesCount}`;
+  document.getElementById("selectedEdges").textContent = `${selectedEdgesCount}`;
+
+  if (selectedNodesCount > 0) {
+    document.getElementById("selectedNodes").style.display = "block";
+    toggleNodeStyleElements(true);
+  } else {
+    document.getElementById("selectedNodes").style.display = "none";
+    toggleNodeStyleElements(false);
+  }
+
+  if (selectedEdgesCount > 0) {
+    toggleEdgeStyleElements(true);
+  } else {
+    toggleEdgeStyleElements(false);
+  }
+
+  if (selectedNodesCount > 0 || selectedEdgesCount > 0) {
+    toggleCommonStyleElements(true);
+  } else {
+    toggleCommonStyleElements(false);
+  }
 }
 
 function toggleEditMode(ev) {
@@ -1231,6 +1289,12 @@ function preRenderEvent() {
   document.getElementById("totalNodes").innerHTML = `${data.nodes.length}`;
   document.getElementById("visibleEdges").innerHTML = `${cache.edgeIDsToBeShown.size}`;
   document.getElementById("totalEdges").innerHTML = `${data.edges.length}`;
+
+  if (cache.nodeIDsToBeShown.size > 0 || cache.edgeIDsToBeShown.size > 0) {
+    toggleSelectStyleElements(true);
+  } else {
+    toggleSelectStyleElements(false);
+  }
 
   const idsToShow = [...cache.nodeIDsToBeShown, ...cache.edgeIDsToBeShown];
   const idsToHide = [...nodeIDsToBeHidden, ...edgeIDsToBeHidden];
