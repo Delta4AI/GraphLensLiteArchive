@@ -1916,6 +1916,34 @@ class DropdownChecklist {
     this.categories = data.filterDefaults.get(propID).categories;
     this.selectedCategories = data.layouts[data.selectedLayout].filters.get(propID).categories;
     this.isVisible = false;
+    this.sortCategories();
+  }
+
+  sortCategories() {
+    const catArray = Array.isArray(this.categories)
+      ? [...this.categories]
+      : Array.from(this.categories);
+
+    catArray.sort((a, b) => {
+      const getPriority = (val) => {
+        const lower = val.toLowerCase();
+        if (lower === "low") return 1;
+        if (lower === "medium") return 2;
+        if (lower === "high") return 3;
+        return 0; // “other” values
+      };
+      const priorityA = getPriority(a);
+      const priorityB = getPriority(b);
+
+      if (priorityA === 0 && priorityB === 0) {
+        // Both “other” values → alphabetical
+        return a.localeCompare(b);
+      }
+      // Sort by priority ascending: 0 → “other”, 1 → “low”, 2 → “medium”, 3 → “high”
+      return priorityA - priorityB;
+    });
+
+    this.categories = new Set(catArray);
   }
 
   appendTo(parent) {
