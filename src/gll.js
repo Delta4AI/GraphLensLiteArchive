@@ -2237,6 +2237,10 @@ class InvertibleRangeSlider {
       handleFilterEvent("Filtering",
         `Applying upper threshold ${this.sliderEnd.value} for ${this.propID}`, this.propID);
     });
+
+    // initially dispatch input event once to match slider visuals to the current state
+    this.sliderStart.dispatchEvent(new Event('input'));
+    this.sliderEnd.dispatchEvent(new Event('input'));
   }
 
   handleThresholdOnInputEvent(isLower) {
