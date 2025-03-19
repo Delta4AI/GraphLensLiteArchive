@@ -18,6 +18,7 @@ const TOOLTIP_HIDE_NULL_VALUES = false;
 const MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT = 300;
 
 const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
+const SHOW_NODE_OR_EDGE_PROPERTY_SPECIFIC_STYLE_BUTTON = false;
 
 const DEFAULTS = {
   NODE: {
@@ -1535,7 +1536,9 @@ function buildFilterUI() {
       placeHolder.style.width = "18px";
       col3.appendChild(placeHolder);
     }
-    col3.appendChild(createStyleToggleButton(propID));
+    if (SHOW_NODE_OR_EDGE_PROPERTY_SPECIFIC_STYLE_BUTTON) {
+      col3.appendChild(createStyleToggleButton(propID));
+    }
     col3.appendChild(createAddOrRemoveToSelectionButton(propID, true));
     col3.appendChild(createAddOrRemoveToSelectionButton(propID, false));
     row.appendChild(col3);
