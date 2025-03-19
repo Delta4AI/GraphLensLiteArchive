@@ -15,7 +15,7 @@ const SORT_FILTERS = false;
 const SORT_TOOLTIPS = true;
 const TOOLTIP_LINE_BREAK = 20;
 const TOOLTIP_HIDE_NULL_VALUES = false;
-const MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT = 300;
+const MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT = 20;
 
 const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
 const SHOW_NODE_OR_EDGE_PROPERTY_SPECIFIC_STYLE_BUTTON = false;
@@ -237,7 +237,7 @@ function createStyleDiv(propID) {
       layoutSelectedNodes("force");
     }
     layoutButtonBar.appendChild(forceLayoutButton);
-    
+
     const gridLayoutButton = document.createElement("button");
     gridLayoutButton.textContent = "Grid";
     gridLayoutButton.classList.add("style-inner-button");
@@ -246,7 +246,7 @@ function createStyleDiv(propID) {
       layoutSelectedNodes("grid");
     }
     layoutButtonBar.appendChild(gridLayoutButton);
-    
+
     const randomLayoutButton = document.createElement("button");
     randomLayoutButton.textContent = "Random";
     randomLayoutButton.classList.add("style-inner-button");
@@ -441,8 +441,12 @@ function createStyleDiv(propID) {
         else if (property === "Node Label") node.style.labelFontSize = size;
       }
       if (label !== null) {
-        if (label === "::SET_TO_ID::") node.style.labelText = nodeID;
-        else node.style.labelText = label;
+        let labelText = (label === "::SET_TO_ID::") ? nodeID : label;
+        if (node.style.label === undefined || node.style.label === false) {
+          enableNodeLabelAndSetToDefaults(node, labelText);
+        } else {
+          node.style.labelText = labelText;
+        }
       }
       if (badge !== null) {
         if (badge === "::CLEAR::") {
@@ -460,6 +464,18 @@ function createStyleDiv(propID) {
     }
 
     handleFilterEvent("Style", "Updating Node Style", propID);
+  }
+
+  function enableNodeLabelAndSetToDefaults(node, labelText) {
+    graph.updateNodeData([{
+      id: node.id,
+      style: {
+        label: true,
+        labelText: labelText,
+        labelBackground: true,
+        labelFontSize: DEFAULTS.STYLES.NODE_LABEL_SIZES.md,
+      },
+    }]);
   }
 
   function updateEdges(
