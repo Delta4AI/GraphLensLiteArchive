@@ -229,25 +229,51 @@ function createStyleDiv(propID) {
     };
     layoutButtonBar.appendChild(arrangeCircleButton);
 
+    const forceLayoutButton = document.createElement("button");
+    forceLayoutButton.textContent = "Force";
+    forceLayoutButton.classList.add("style-inner-button");
+    forceLayoutButton.title = "Apply a force-directed layout to the selected nodes.";
+    forceLayoutButton.onclick = () => {
+      layoutSelectedNodes("force");
+    }
+    layoutButtonBar.appendChild(forceLayoutButton);
+    
+    const gridLayoutButton = document.createElement("button");
+    gridLayoutButton.textContent = "Grid";
+    gridLayoutButton.classList.add("style-inner-button");
+    gridLayoutButton.title = "Apply a grid layout to the selected nodes.";
+    gridLayoutButton.onclick = () => {
+      layoutSelectedNodes("grid");
+    }
+    layoutButtonBar.appendChild(gridLayoutButton);
+    
+    const randomLayoutButton = document.createElement("button");
+    randomLayoutButton.textContent = "Random";
+    randomLayoutButton.classList.add("style-inner-button");
+    randomLayoutButton.title = "Apply a random layout to the selected nodes.";
+    randomLayoutButton.onclick = () => {
+      layoutSelectedNodes("random");
+    }
+    layoutButtonBar.appendChild(randomLayoutButton);
+
     createSection("Arrange Nodes", layoutButtonBar, propID);
     createSeparator();
   }
 
   function layoutSelectedNodes(action) {
-    // TODO: would be nice to replace this by some kind of grouped layout
-    // e.g. by selectively calling force layout on a set of node IDs
-
     if (cache.selectedNodes.length === 0) return;
 
-    function groupOrSpreadSelectedNodes(scale) {
-      for (const node of graph.getNodeData()) {
-        if (cache.selectedNodes.includes(node.id)) {
-          const oldX = node.style.x;
-          const oldY = node.style.y;
+    function getSelectedNodes() {
+      return graph.getNodeData().filter((node) => cache.selectedNodes.includes(node.id));
+    }
 
-          node.style.x = avgX + (oldX - avgX) * scale;
-          node.style.y = avgY + (oldY - avgY) * scale;
-        }
+    function groupOrSpreadSelectedNodes(scale) {
+      for (const node of getSelectedNodes()) {
+        const oldX = node.style.x;
+        const oldY = node.style.y;
+
+        node.style.x = avgX + (oldX - avgX) * scale;
+        node.style.y = avgY + (oldY - avgY) * scale;
       }
     }
 
@@ -256,13 +282,100 @@ function createStyleDiv(propID) {
       let angleStep = (2 * Math.PI) / numNodes;
 
       let i = 0;
-      for (const node of graph.getNodeData()) {
-        if (cache.selectedNodes.includes(node.id)) {
-          const angle = i * angleStep; // Calculate the angle for each node
-          node.style.x = avgX + radius * Math.cos(angle); // Set x based on the angle
-          node.style.y = avgY + radius * Math.sin(angle); // Set y based on the angle
-          i++;
+      for (const node of getSelectedNodes()) {
+        const angle = i * angleStep;
+        node.style.x = avgX + radius * Math.cos(angle);
+        node.style.y = avgY + radius * Math.sin(angle);
+        i++;
+      }
+    }
+
+    function applyForceLayout(iterations) {
+      const repelForce = 3000;      // Overall strength of repulsion.
+      const springLength = 150;     // Ideal edge length for springs.
+      const springStrength = 0.01;  // Spring tension.
+
+      const nodes = getSelectedNodes();
+      for (let i = 0; i < iterations; i++) {
+        // -- Repel each pair of selected nodes
+        for (let a = 0; a < nodes.length; a++) {
+          for (let b = a + 1; b < nodes.length; b++) {
+            const dx = nodes[b].style.x - nodes[a].style.x;
+            const dy = nodes[b].style.y - nodes[a].style.y;
+            const dist = Math.sqrt(dx * dx + dy * dy) + 0.01; // Add small term to avoid division by zero
+
+            // Calculate force based on 1 / distance^2
+            const force = repelForce / (dist * dist);
+
+            // Force direction
+            const fx = force * (dx / dist);
+            const fy = force * (dy / dist);
+
+            // Apply to each node. Could also factor in a node 'mass' here.
+            nodes[a].style.x -= fx;
+            nodes[a].style.y -= fy;
+            nodes[b].style.x += fx;
+            nodes[b].style.y += fy;
+          }
         }
+
+        // -- Attract nodes that share an edge (spring force). Only applied between selected nodes.
+        for (const edge of graph.getEdgeData()) {
+          const {source, target} = edge;
+          if (
+            cache.selectedNodes.includes(source) &&
+            cache.selectedNodes.includes(target)
+          ) {
+            const nodeA = nodes.find((n) => n.id === source);
+            const nodeB = nodes.find((n) => n.id === target);
+            if (nodeA && nodeB) {
+              const dx = nodeB.style.x - nodeA.style.x;
+              const dy = nodeB.style.y - nodeA.style.y;
+              const dist = Math.sqrt(dx * dx + dy * dy) + 0.01;
+
+              // Attractive force that strives to keep nodes near springLength.
+              const force = (dist - springLength) * springStrength;
+              const fx = force * (dx / dist);
+              const fy = force * (dy / dist);
+
+              nodeA.style.x += fx;
+              nodeA.style.y += fy;
+              nodeB.style.x -= fx;
+              nodeB.style.y -= fy;
+            }
+          }
+        }
+      }
+    }
+
+    function applyGridLayout() {
+      const nodes = getSelectedNodes();
+      if (nodes.length === 0) return;
+
+      const count = nodes.length;
+      const columns = Math.ceil(Math.sqrt(count));
+      const spacing = 100;
+
+      const rows = Math.ceil(count / columns);
+      const totalWidth = (columns - 1) * spacing;
+      const totalHeight = (rows - 1) * spacing;
+
+      let idx = 0;
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < columns; col++) {
+          if (idx >= count) break;
+          const node = nodes[idx];
+          node.style.x = avgX - totalWidth / 2 + col * spacing;
+          node.style.y = avgY - totalHeight / 2 + row * spacing;
+          idx++;
+        }
+      }
+    }
+
+    function applyRandomLayout() {
+      for (const node of getSelectedNodes()) {
+        node.style.x = Math.random() * xDistance;
+        node.style.y = Math.random() * yDistance;
       }
     }
 
@@ -273,17 +386,29 @@ function createStyleDiv(propID) {
     const selectedNodesCoords = [...selectedNodes.values()];
     const avgX = selectedNodesCoords.reduce((sum, pos) => sum + pos.x, 0) / selectedNodesCoords.length;
     const avgY = selectedNodesCoords.reduce((sum, pos) => sum + pos.y, 0) / selectedNodesCoords.length;
+    const minX = Math.min(...selectedNodesCoords.map((pos) => pos.x));
+    const maxX = Math.max(...selectedNodesCoords.map((pos) => pos.x));
+    const minY = Math.min(...selectedNodesCoords.map((pos) => pos.y));
+    const maxY = Math.max(...selectedNodesCoords.map((pos) => pos.y));
+    const xDistance = maxX - minX;
+    const yDistance = maxY - minY;
 
     const eventLabels = {
       "shrink": "Shrinking Selected Nodes in Layout",
       "expand": "Expanding Selected Nodes in Layout",
-      "circle": "Applying Circular Layout to Selected Nodes"
+      "circle": "Applying Circular Layout to Selected Nodes",
+      "force": "Applying Force Layout to Selected Nodes",
+      "grid": "Applying Grid Layout to Selected Nodes",
+      "random": "Applying Random Layout to Selected Nodes",
     }
 
     const layoutActions = {
       "shrink": () => groupOrSpreadSelectedNodes(0.5),
       "expand": () => groupOrSpreadSelectedNodes(2),
       "circle": () => arrangeNodesInCircle(100),
+      "force": () => applyForceLayout(100),
+      "grid": () => applyGridLayout(),
+      "random": () => applyRandomLayout(),
     }
 
     layoutActions[action]();
