@@ -4,21 +4,25 @@ const {Graph, NodeEvent, GraphEvent, CanvasEvent, CommonEvent, WindowEvent, Layo
 let graph = null;
 let data = {};  // Stores data that can be serialized as json file
 let cache = {};  // Stores references to map IDs to node/edge objects that cannot be serialized to a json file
-let inputErrors = [];
 
 const HIDE_SLIDERS_WITH_SAME_MIN_MAX_VALUES = true;
 const FILTER_STEP_SIZE_INTEGER = 1;
 const FILTER_STEP_SIZE_FLOAT = 0.000001;
 const FILTER_VISUAL_FLOAT_PRECISION = 3;  // used in slider thumbs and tooltips; in the back, full float is used
-const FILTERS_ACTIVE_PER_DEFAULT = false;
+let FILTERS_ACTIVE_PER_DEFAULT = true;
 const SORT_FILTERS = false;
 const SORT_TOOLTIPS = true;
 const TOOLTIP_LINE_BREAK = 20;
 const TOOLTIP_HIDE_NULL_VALUES = false;
 const MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT = 300;
+const REMOVE_DANGLING_NODES_WHEN_AND_FILTER_IS_ACTIVE_AND_EDGES_ARE_DISPLAYED = false;
 
 const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
 const SHOW_NODE_OR_EDGE_PROPERTY_SPECIFIC_STYLE_BUTTON = false;
+
+const EXCEL_UNCATEGORIZED_SUBHEADER = "Uncategorized Properties";
+const EXCEL_NODE_HEADER = "Node filters";
+const EXCEL_EDGE_HEADER = "Edge filters";
 
 const DEFAULTS = {
   NODE: {
@@ -69,7 +73,8 @@ const DEFAULTS = {
     EDGE_HALO: {enable: true, disable: false},
     EDGE_HALO_STROKE: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD"},
     EDGE_HALO_WIDTH: {sm: 2, md: 3, lg: 4, xlg: 6},
-  }
+  },
+  FILTER_STRATEGY: "OR",
 };
 
 function createDefaultLayout(key) {
@@ -83,7 +88,7 @@ function createDefaultLayout(key) {
     positions: new Map(),
     filters: structuredClone(data.filterDefaults),
     isCustom: false,
-    filterStrategy: "AND",
+    filterStrategy: DEFAULTS.FILTER_STRATEGY,
   };
 
   for (let group of traverseBubbleSets()) {
@@ -116,7 +121,7 @@ function parseLayouts(jsonLayouts) {
         ...value, ...parseGroups(value),
       },])),
       isCustom: layout.isCustom || false,
-      filterStrategy: layout.filterStrategy || "AND",
+      filterStrategy: layout.filterStrategy || DEFAULTS.FILTER_STRATEGY,
     };
 
     for (let group of traverseBubbleSets()) {
@@ -864,10 +869,6 @@ function persistNodePositions(targetMap = data.layouts[data.selectedLayout].posi
 }
 
 function* traverseD4Data(nodeOrEdge) {
-  // call with
-  //     for (let [section, subsection, prop, data] of traverseD4Data(nodeOrEdge)) {
-  //        console.log(`Section: ${section}, SubSection: ${subsection}, Prop: ${prop}, Data:`, data);
-  //      }
   if (!nodeOrEdge.D4Data) return;
 
   for (let section in nodeOrEdge.D4Data) {
@@ -958,20 +959,6 @@ function parseJSON(file) {
 function parseExcelToJson(file) {
   const workbook = XLSX.read(file, {type: 'array'});
 
-  // TODO: skip lines that have no ID / are empty
-  // TODO: skip lines that have "Required", "Optional", or "User Data [group]" as ID
-
-  // Reserved column mappings
-  const RESERVED_COLUMNS = {
-    x: 'x', // Position X
-    y: 'y', // Position Y
-    label: 'label', // Node or edge label
-    color: 'color', // Node or edge color
-    size: 'size', // Node size
-    source: 'source', // Edge source node ID
-    target: 'target', // Edge target node ID
-  };
-
   const nodesSheet = workbook.Sheets['nodes'];
   const edgesSheet = workbook.Sheets['edges'];
 
@@ -980,61 +967,233 @@ function parseExcelToJson(file) {
     return;
   }
 
+  function getOrNull(row, key) {
+    const lowerCaseKey = key.toString().toLowerCase().trim();
+    const value = row[Object.keys(row).find(key => key.toLowerCase() === lowerCaseKey)];
+    if (value && value.toString().trim() !== "") {
+      return value;
+    }
+    return null;
+  }
+
   const nodesData = XLSX.utils.sheet_to_json(nodesSheet, {defval: null});
   const edgesData = XLSX.utils.sheet_to_json(edgesSheet, {defval: null});
 
+  if (nodesData.length === 0) {
+    error('The "nodes" sheet is empty or invalid.');
+    return;
+  }
+
+  if (edgesData.length === 0) {
+    error('The "edges" sheet is empty or invalid.');
+    return;
+  }
+
+  const firstNodeRowKeys = Object.keys(nodesData[0]).map(k => k.toLowerCase().trim());
+  const firstEdgeRowKeys = Object.keys(edgesData[0]).map(k => k.toLowerCase().trim());
+
+  if (!firstNodeRowKeys.includes("id")) {
+    error('The "nodes" sheet must contain an "ID" column.');
+    return;
+  }
+
+  if (!firstEdgeRowKeys.includes("source id")) {
+    error('The "edges" sheet must contain a "Source ID" column.');
+  }
+
+  if (!firstEdgeRowKeys.includes("target id")) {
+    error('The "edges" sheet must contain a "Target ID" column.');
+  }
+
+  function addNodeStyle(node, row) {
+    node.style = {};
+
+    const nodeLabel = getOrNull(row, "Label");
+    if (nodeLabel) {
+      node.label = nodeLabel;
+      node.style.label = true;
+      node.style.labelText = nodeLabel;
+      node.style.labelBackgroundColor = true;
+      node.style.labelFontSize = DEFAULTS.STYLES.NODE_LABEL_SIZES.md;
+    }
+
+    const nodeDescription = getOrNull(row, "Description");
+    if (nodeDescription) node.description = nodeDescription;
+
+    const nodeType = getOrNull(row, "Type");
+    if (nodeType) node.type = nodeType;
+
+    const nodeSize = getOrNull(row, "Size");
+    if (nodeSize) node.style.size = nodeSize;
+
+    const nodeFillColor = getOrNull(row, "Fill Color");
+    if (nodeFillColor) node.style.fill = nodeFillColor;
+
+    const nodeStrokeColor = getOrNull(row, "Stroke Color");
+    if (nodeStrokeColor) node.style.stroke = nodeStrokeColor;
+
+    const nodeXCoordinate = getOrNull(row, "X Coordinate");
+    if (nodeXCoordinate) node.style.x = nodeXCoordinate;
+
+    const nodeYCoordinate = getOrNull(row, "Y Coordinate");
+    if (nodeYCoordinate) node.style.y = nodeYCoordinate;
+  }
+
+  function validateUserData(row, key) {
+    const val = row[key];
+
+    if (val === null || val.toString().trim() === "") {
+      return null;
+    }
+
+    let subGroup = EXCEL_UNCATEGORIZED_SUBHEADER;
+    if (key.indexOf("[") > -1 && key.indexOf("]") > -1) {
+      subGroup = key.substring(key.indexOf("[") + 1, key.indexOf("]")).trim();
+    }
+    const trimmedKey = key.split("[")[0].trim();
+
+    return {"subGroup": subGroup, "key": trimmedKey, "value": val};
+  }
+
+  function addNodeUserData(node, row) {
+    node.D4Data = {
+      [EXCEL_NODE_HEADER]: {},
+    };
+
+    let propsAdded = 0;
+
+    for (let key in row) {
+      if (["id", "label", "description", "type", "size", "fill color", "stroke color", "x coordinate", "y coordinate"]
+        .includes(key.toLowerCase())) {
+        continue;
+      }
+
+      const userData = validateUserData(row, key);
+
+      if (!userData) continue;
+
+      if (!node.D4Data[EXCEL_NODE_HEADER].hasOwnProperty(userData.subGroup)) {
+        node.D4Data[EXCEL_NODE_HEADER][userData.subGroup] = {};
+      }
+
+      node.D4Data[EXCEL_NODE_HEADER][userData.subGroup][userData.key] = userData.value;
+      propsAdded++;
+    }
+
+    if (propsAdded === 0) {
+      warning(`Node in row ${row.__rowNum__} (${node.id}) has no properties. 
+      Added property 'exists' to enable display.`);
+      node.D4Data[EXCEL_NODE_HEADER][EXCEL_UNCATEGORIZED_SUBHEADER] = {
+        "exists": true
+      }
+    }
+  }
+
+  const nodeIDs = new Set();
+
   const parsedNodes = nodesData.map(row => {
     const node = {};
-    if (row.id == null) {
-      throw new Error('Each node must have an "id" column.');
+
+    const nodeID = getOrNull(row, "ID");
+    if (!nodeID) {
+      warning(`Node in row ${row.__rowNum__} does not contain an ID and will be skipped.`);
+      return null;
     }
 
-    node.id = row.id; // Mandatory ID
-    node.label = row[RESERVED_COLUMNS.label] || null; // Optional label
-    node.style = {}; // Styles (e.g., color, size)
+    if (nodeIDs.has(nodeID)) {
+      warning(`Node in row ${row.__rowNum__} (ID ${nodeID}) already exists and will be skipped.`);
+      return null;
+    }
 
-    if (row[RESERVED_COLUMNS.x] != null && row[RESERVED_COLUMNS.y] != null) {
-      node.x = row[RESERVED_COLUMNS.x];
-      node.y = row[RESERVED_COLUMNS.y];
-    }
-    if (row[RESERVED_COLUMNS.color]) {
-      node.style.fill = row[RESERVED_COLUMNS.color]; // Map color to node style
-    }
-    if (row[RESERVED_COLUMNS.size] != null) {
-      node.style.size = row[RESERVED_COLUMNS.size];
-    }
+    node.id = nodeID;
+    nodeIDs.add(nodeID);
+
+    addNodeStyle(node, row);
+    addNodeUserData(node, row);
 
     return node;
-  });
+  }).filter(node => node !== null);
+
+  function addEdgeStyle(edge, row) {
+    edge.style = {};
+
+    const edgeLineWidth = getOrNull(row, "Line Width");
+    if (edgeLineWidth) edge.style.lineWidth = edgeLineWidth;
+
+    const edgeColor = getOrNull(row, "Color");
+    if (edgeColor) edge.style.stroke = edgeColor;
+  }
+
+  function addEdgeUserData(edge, row) {
+    edge.D4Data = {
+      [EXCEL_EDGE_HEADER]: {},
+    };
+
+    let propsAdded = 0;
+    for (let key in row) {
+      if (["source id", "target id", "color", "line width"].includes(key.toLowerCase())) {
+        continue;
+      }
+
+      const userData = validateUserData(row, key);
+
+      if (!userData) continue;
+
+      if (!edge.D4Data[EXCEL_EDGE_HEADER].hasOwnProperty(userData.subGroup)) {
+        edge.D4Data[EXCEL_EDGE_HEADER][userData.subGroup] = {};
+      }
+
+      edge.D4Data[EXCEL_EDGE_HEADER][userData.subGroup][userData.key] = userData.value;
+      propsAdded++;
+    }
+
+    if (propsAdded === 0) {
+      warning(`Edge in row ${row.__rowNum__} (${edge.source} -> ${edge.target}) has no properties. 
+      Added property 'exists' to enable display.`);
+      edge.D4Data[EXCEL_EDGE_HEADER][EXCEL_UNCATEGORIZED_SUBHEADER] = {
+        "exists": true
+      };
+    }
+  }
 
   const parsedEdges = edgesData.map(row => {
     const edge = {};
-    if (row[RESERVED_COLUMNS.source] == null || row[RESERVED_COLUMNS.target] == null) {
-      throw new Error('Each edge must have "source" and "target" columns.');
+
+    const sourceID = getOrNull(row, "Source ID");
+    if (!sourceID) {
+      warning(`Edge in row ${edge.__rowNum__} does not contain a Source ID and will be skipped.`);
+      return null;
     }
 
-    edge.source = row[RESERVED_COLUMNS.source]; // Mandatory source
-    edge.target = row[RESERVED_COLUMNS.target]; // Mandatory target
-    edge.label = row[RESERVED_COLUMNS.label] || null; // Optional label
-    edge.style = {}; // Styles (e.g., color)
-
-    if (row[RESERVED_COLUMNS.color]) {
-      edge.style.stroke = row[RESERVED_COLUMNS.color]; // Map color to edge style
+    if (!nodeIDs.has(sourceID)) {
+      warning(`Edge in row ${edge.__rowNum__} has an invalid/missing Source ID (${sourceID}) and will be skipped.`);
+      return null;
     }
+
+    const targetID = getOrNull(row, "Target ID");
+    if (!targetID) {
+      warning(`Edge in row ${edge.__rowNum__} does not contain a Target ID and will be skipped.`)
+      return null;
+    }
+
+    if (!nodeIDs.has(targetID)) {
+      warning(`Edge in row ${edge.__rowNum__} has an invalid/missing Target ID (${targetID}) and will be skipped.`);
+      return null;
+    }
+
+    edge.id = `${sourceID}::${targetID}`;
+    edge.source = sourceID;
+    edge.target = targetID;
+
+    addEdgeStyle(edge, row);
+    addEdgeUserData(edge, row);
 
     return edge;
-  });
-
-  // return {
-  //   nodes: [{"id": "MF_0", "color": "#572cd2", "label": "MF 0", "description": "optional description for node id 0", "type": "hexagon", "size": 25, "D4Data": {"cells": {}, "tissues": {"vasculature": {"Endothelium": "category_1"}, "heart": {"Myocardium": 20}}, "phenotypes": {"NO_GROUPS_YET": {"Collagenous Sprue": "category_3"}}}},{"id": "MF_1", "color": "#1495f8", "label": "MF 1", "description": "optional description for node id 1", "type": "hexagon", "size": 25, "D4Data": {"cells": {}, "tissues": {"vasculature": {"Endothelium": "category_2"}}, "phenotypes": {"NO_GROUPS_YET": {"Atrial Remodeling": 215}}}},{"id": "MF_15", "color": "#61752d", "label": "MF 15", "description": "optional description for node id 15", "type": "hexagon", "size": 25, "D4Data": {"cells": {"adipose tissue": {"ADIPOCYTE": 1.137999}, "ECM": {"CARDIOFIBROBLAST": "category_2"}}, "tissues": {}, "phenotypes": {"NO_GROUPS_YET": {"Rhinitis, Allergic": 533}}}}],
-  //   edges: [{"color": "#E4E3EA", "source": "MF_0", "target": "MF_15", "D4Data": {"properties": {"NO_GROUPS_YET": {"GWAS": 422}}}, "id": "MF_0::MF_15", "label": "Edge 0"}]
-  // }
+  }).filter(edge => edge !== null);
 
   return {
     nodes: parsedNodes,
     edges: parsedEdges,
-    combos: [],
-    layouts: {},
   };
 }
 
@@ -1053,21 +1212,9 @@ function createGraphInstance() {
         {
           type: 'hover-activate',
           enable: (event) => {
-            // console.log(event.target.config.id);
             return event.targetType === 'node' || event.targetType === 'edge';
           },
           degree: 1,
-          // degree: (event) => {
-          //   if (event.targetType === 'node') {
-          //     let relatedEdges = graph.getRelatedEdgesData(event.target.config.id).map(e => e.id);
-          //     let relatedNodes = graph.getNeighborNodesData(event.target.config.id).map(n => n.id);
-          //     if (!relatedEdges.every(edgeId => !cache.edgeIDsToBeShown.has(edgeId))) {
-          //       return 0;
-          //     }
-          //     // return visibleNeighbors.length > 0 ? 1 : 0;
-          //   }
-          //   return 1;
-          // },
           state: 'highlight',
           inactiveState: 'dim',
         }
@@ -1125,10 +1272,6 @@ function createGraphInstance() {
     });
 
     graph.on(NodeEvent.DRAG_END, (event) => {
-      // persist only the node affected by the event (when moving a group of selected nodes, the event only holds one id ..)
-      // data.layouts[data.selectedLayout].positions.set(event.target.id, {...event.canvas});
-      // console.log(`moved ${event.target.id} to ${event.canvas.x}, ${event.canvas.y}`);
-
       // persist all node positions
       persistNodePositions();
     });
@@ -1140,7 +1283,6 @@ function createGraphInstance() {
 
     graph.on(GraphEvent.BEFORE_RENDER, () => {
       preRenderEvent();
-      console.log("BEFORE RENDER EVENT DONE");
     });
 
     graph.on(GraphEvent.AFTER_RENDER, () => {
@@ -1149,7 +1291,6 @@ function createGraphInstance() {
       updateNodeConnectivityMetrics();
       // TODO: Without this update and redraw after 200ms, positions are not restored
       restorePositions();
-      console.log("AFTER RENDER EVENT DONE");
     });
 
     let layout = data.layouts[data.selectedLayout];
@@ -1473,7 +1614,9 @@ function performANDFilterLogic() {
   }
 
   // if we have any edges displayed, clean up incomplete ones and dangling nodes
-  cleanUpDanglingElements();
+  if (REMOVE_DANGLING_NODES_WHEN_AND_FILTER_IS_ACTIVE_AND_EDGES_ARE_DISPLAYED) {
+    cleanUpDanglingElements();
+  }
 }
 
 function cleanUpDanglingElements() {
@@ -2557,6 +2700,7 @@ function addLayout() {
     internals: null,
     positions: structuredClone(currentLayout.positions),
     filters: structuredClone(currentLayout.filters),
+    filterStrategy: structuredClone(currentLayout.filterStrategy),
     isCustom: true
   };
   for (let group of traverseBubbleSets()) {
@@ -2686,9 +2830,8 @@ function preProcessData(fileData) {
     if (isNaN(nodeOrEdgeValue)) {
       if (data.filterDefaults.get(propHash).lowerThreshold !== Infinity) {
         let [section, subSection, prop] = decodePropHashId(propHash);
-        let warning = `Property ${prop} (section ${section} sub-section ${subSection} contains both numeric and categorical values. To proceed, please use a single data type. Property has been excluded.`;
-        console.log(warning);
-        inputErrors.push(warning);
+        warning(`Property ${prop} (section ${section} sub-section ${subSection} contains both numeric and 
+        categorical values. To proceed, please use a single data type. Property has been excluded.`);
         data.filterDefaults.delete(propHash);
         return
       }
@@ -2704,7 +2847,9 @@ function preProcessData(fileData) {
   cache.showNodeLabelsAndHoverEffect = fileData.nodes.length <= MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT;
 
   if (!cache.showNodeLabelsAndHoverEffect) {
-    alert(`Graph contains many nodes (${fileData.nodes.length}). Labels and hover-effects will be deactivated to improve performance.`);
+    warning(`Large graph with ${fileData.nodes.length} nodes detected. Labels and hover effects are disabled to 
+    improve performance. The network is hidden by default - toggle filters to display the nodes.`);
+    FILTERS_ACTIVE_PER_DEFAULT = false;
   }
 
   data.nodes = fileData.nodes.map((node) => {
@@ -2939,8 +3084,14 @@ function buildToolTipText(nodeOrEdgeID, isEdge) {
   return tooltip;
 }
 
+function humanFileSize(size) {
+    let i = size === 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
+    return +((size / Math.pow(1024, i)).toFixed(2)) + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+}
+
 function loadFileWrapper(event) {
-  showLoading("Loading", "Loading data");
+  let file = event.target.files[0];
+  showLoading("Loading", `Loading ${file.name} (${file.type} with ${humanFileSize(file.size)})`);
   setTimeout(() => {
     loadFile(event)
       .then((fileData) => {
@@ -3056,7 +3207,9 @@ function showLoading(header, text = "", invisible = false, autoFade = false) {
   document.getElementById('loadingText').textContent = text;
 
   setTimeout(() => {
-    console.log(header);
+    let logInfo = header;
+    if (text) logInfo += `: ${text}`;
+    console.log(logInfo);
   }, 25);
 
   if (autoFade) {
@@ -3079,11 +3232,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   hideLoading();
 });
 
-window.addEventListener('resize', () => {
-  if (graph !== null) {
-
-  }
-})
+// window.addEventListener('resize', () => {
+//   if (graph !== null) {
+//
+//   }
+// })
 
 function logMessage(text, colorClass, bold = false) {
   const now = new Date();
@@ -3126,4 +3279,8 @@ function error(message) {
 
 function success(message) {
   logMessage(message, "green");
+}
+
+function debug(message) {
+  logMessage(message, "grey");
 }
