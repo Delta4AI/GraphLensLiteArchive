@@ -36,6 +36,24 @@
           overflow-y: auto;
           overflow-x: hidden;
           transition: min-width 0.2s ease-in-out;
+          display: flex;
+          flex-direction: column;
+          flex-shrink: 0;
+      }
+
+      #sidebarContentContainer {
+          flex: 1;
+          overflow-y: auto;
+      }
+
+      #sidebarStatusContainer {
+          flex: 0 0 10%;
+          min-width: 0;
+          max-width: 360px;
+          overflow: auto;
+          border-top: 1px solid #ccc;
+          font-size: 0.8rem;
+          /*white-space: nowrap;*/
       }
 
       #outerGraphContainer {
@@ -257,6 +275,10 @@
           font-size: 12px;
       }
 
+      .black {
+          color: #000000;
+      }
+
       .brown {
           color: #773901;
           border: 1px solid #773901;
@@ -264,6 +286,14 @@
 
       .green {
           color: #015C0C;
+      }
+
+      .grey {
+          color: #878996;
+      }
+
+      .orange {
+          color: #E57B3C;
       }
 
       .red {
@@ -1012,45 +1042,50 @@
 </div>
 <div id="mainContent">
   <div id="sidebar">
-    <h3>Load Model</h3>
-    <input type="file" id="fileInput" name="fileInput" onchange="loadFileWrapper(event);"
-           accept=".json, .xls, .xlsx, .csv, .tab"/>
-    <button id="exportModel" class="showOnLoad" onclick="exportGraphAsJSON()" title="Save Model (S)">💾</button>
-    <button id="exportImage" class="showOnLoad" onclick="exportPNG()" title="Save Image (P)">📷️</button>
-    <div class="showOnLoad">
-      <hr>
-      <h3>Network Options</h3>
-      <label for="layout">Network View:</label>
-      <select name="layout" id="layout" onchange="changeLayout()" style="margin-bottom:10px;"></select>
-      <button class="small-btn" id="resetLayoutButton" onclick="resetLayout()" title="Reset View Arrangement (R)">⭯
-      </button>
-      <button class="small-btn" onclick="graph.fitView()" title="Fit View in Viewport (F)">⛶</button>
-      <button class="small-btn green" onclick="addLayout()" title="Create New View">✚</button>
-      <button class="small-btn red disabled" onclick="removeSelectedLayout()" id="removeSelectedLayoutButton"
-              title="Remove Layout">✗
-      </button>
-      <button class="small-btn show-on-edit" title="Save filter settings to stash (to be reapplied in different view)"
-              onclick="saveFiltersToStash()">📥
-      </button>
-      <button class="small-btn show-on-edit" title="Load filter settings from stash" onclick="loadFiltersFromStash()">
-        📤
-      </button>
-      <button class="small-btn edit-btn" id="editBtn" onclick="toggleEditMode(this)" title="Enter Edit mode (E)">⚙
-      </button>
-      <br>
-      <div class="edit-container show-on-edit">
-        <div>
-          <h5 class="purple">Selected nodes: <span class="red" id="selectedNodes">0</span> | Selected edges: <span
-                  class="red" id="selectedEdges">0</span></h5>
+    <div id="sidebarContentContainer">
+      <h3>Load Model</h3>
+      <input type="file" id="fileInput" name="fileInput" onchange="loadFileWrapper(event);"
+             accept=".json, .xls, .xlsx, .csv, .tab"/>
+      <button id="exportModel" class="showOnLoad" onclick="exportGraphAsJSON()" title="Save Model (S)">💾</button>
+      <button id="exportImage" class="showOnLoad" onclick="exportPNG()" title="Save Image (P)">📷️</button>
+      <div class="showOnLoad">
+        <hr>
+        <h3>Network Options</h3>
+        <label for="layout">Network View:</label>
+        <select name="layout" id="layout" onchange="changeLayout()" style="margin-bottom:10px;"></select>
+        <button class="small-btn" id="resetLayoutButton" onclick="resetLayout()" title="Reset View Arrangement (R)">⭯
+        </button>
+        <button class="small-btn" onclick="graph.fitView()" title="Fit View in Viewport (F)">⛶</button>
+        <button class="small-btn green" onclick="addLayout()" title="Create New View">✚</button>
+        <button class="small-btn red disabled" onclick="removeSelectedLayout()" id="removeSelectedLayoutButton"
+                title="Remove Layout">✗
+        </button>
+        <button class="small-btn show-on-edit" title="Save filter settings to stash (to be reapplied in different view)"
+                onclick="saveFiltersToStash()">📥
+        </button>
+        <button class="small-btn show-on-edit" title="Load filter settings from stash" onclick="loadFiltersFromStash()">
+          📤
+        </button>
+        <button class="small-btn edit-btn" id="editBtn" onclick="toggleEditMode(this)" title="Enter Edit mode (E)">⚙
+        </button>
+        <br>
+        <div class="edit-container show-on-edit">
+          <div>
+            <h5 class="purple">Selected nodes: <span class="red" id="selectedNodes">0</span> | Selected edges: <span
+                    class="red" id="selectedEdges">0</span></h5>
+          </div>
+          <div id="staticStyleDiv"></div>
         </div>
-        <div id="staticStyleDiv"></div>
+        <h5 class="purple">
+          <span id="visibleNodes" class="red">0</span>/<span id="totalNodes">0</span> nodes |
+          <span id="visibleEdges" class="red">0</span>/<span id="totalEdges">0</span> edges active
+        </h5>
+        <hr>
+        <div id="filterContainer"></div>
       </div>
-      <h5 class="purple">
-        <span id="visibleNodes" class="red">0</span>/<span id="totalNodes">0</span> nodes |
-        <span id="visibleEdges" class="red">0</span>/<span id="totalEdges">0</span> edges active
-      </h5>
-      <hr>
-      <div id="filterContainer"></div>
+    </div>
+    <div id="sidebarStatusContainer">
+
     </div>
   </div>
   <div id="outerGraphContainer">
