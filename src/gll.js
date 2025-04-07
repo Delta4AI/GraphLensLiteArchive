@@ -24,6 +24,8 @@ const EXCEL_UNCATEGORIZED_SUBHEADER = "Uncategorized Properties";
 const EXCEL_NODE_HEADER = "Node filters";
 const EXCEL_EDGE_HEADER = "Edge filters";
 
+const INVISIBLE_CHARACTER = "\u200B";
+
 const DEFAULTS = {
   NODE: {
     COLOR: "#C33D35", SIZE: 20, TYPE: "hexagon"
@@ -450,7 +452,14 @@ function createStyleDiv(propID) {
         else if (property === "Node Label") node.style.labelFontSize = size;
       }
       if (label !== null) {
-        let labelText = (label === "::SET_TO_ID::") ? nodeID : label;
+        let labelText = label;
+
+        if (label === "::SET_TO_ID::") labelText = nodeID;
+        else if (label === "::SET_TO_LABEL::") {
+          if (node.label) labelText = node.label;
+          else labelText = INVISIBLE_CHARACTER;
+        }
+
         if (node.style.label === undefined || node.style.label === false) {
           enableNodeLabelAndSetToDefaults(node, labelText);
         } else {
@@ -546,8 +555,8 @@ function createStyleDiv(propID) {
     clearLabelButton.textContent = "Clear";
     clearLabelButton.className = "style-inner-button red";
     clearLabelButton.onclick = () => {
-      labelInput.value = "";
-      updateNodes(propID, property, null, null, null, "", null);
+      labelInput.value = INVISIBLE_CHARACTER;
+      updateNodes(propID, property, null, null, null, INVISIBLE_CHARACTER, null);
     };
 
     const setToIDButton = document.createElement("button");
@@ -556,6 +565,14 @@ function createStyleDiv(propID) {
     setToIDButton.onclick = () => {
       labelInput.value = "";
       updateNodes(propID, property, null, null, null, "::SET_TO_ID::", null);
+    };
+
+    const setToLabelButton = document.createElement("button");
+    setToLabelButton.textContent = "Set to Label";
+    setToLabelButton.classList.add("style-inner-button");
+    setToLabelButton.onclick = () => {
+      labelInput.value = "";
+      updateNodes(propID, property, null, null, null, "::SET_TO_LABEL::", null);
     };
 
     labelInput.addEventListener("keypress", function (event) {
@@ -568,6 +585,7 @@ function createStyleDiv(propID) {
 
     controls.appendChild(labelInput);
     controls.appendChild(setToIDButton);
+    controls.appendChild(setToLabelButton);
     controls.appendChild(clearLabelButton);
 
     return controls;
