@@ -1376,6 +1376,9 @@ function toggleEditMode(ev) {
 function handleEditModeUIChanges() {
   const editModeActive = document.getElementById("editBtn").classList.contains("active");
 
+  const sideBarContentContainer = document.getElementById("sidebarContentContainer");
+  editModeActive ? sideBarContentContainer.style.paddingRight = "6px" : "0";
+
   // handle all edit elements
   const editElements = document.querySelectorAll('.show-on-edit');
   editElements.forEach(el => {
@@ -1395,7 +1398,7 @@ function handleEditModeUIChanges() {
   const filterRows = document.querySelectorAll('.filter-row');
   filterRows.forEach(row => {
     const checkboxCol = row.children[0];
-    checkboxCol.style.width = editModeActive ? "35%" : "66%";
+    checkboxCol.style.width = editModeActive ? "45%" : "56%";
 
     const sliderCol = row.querySelector(".filter-row-col2");
     sliderCol.style.width = editModeActive ? "65%" : "33%";
@@ -1953,6 +1956,7 @@ function buildNodeConnectivitySection() {
 
     const col2 = document.createElement("div");
     col2.className = "filter-row-col2";
+    col2.style.marginRight = "28px";
     if (metric.type === "slider") {
       const slider = new InvertibleRangeSlider(metric.id);
       slider.appendTo(col2);
