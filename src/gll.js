@@ -958,6 +958,9 @@ function parseJSON(file) {
 function parseExcelToJson(file) {
   const workbook = XLSX.read(file, {type: 'array'});
 
+  // TODO: skip lines that have no ID / are empty
+  // TODO: skip lines that have "Required", "Optional", or "User Data [group]" as ID
+
   // Reserved column mappings
   const RESERVED_COLUMNS = {
     x: 'x', // Position X
@@ -973,7 +976,8 @@ function parseExcelToJson(file) {
   const edgesSheet = workbook.Sheets['edges'];
 
   if (!nodesSheet || !edgesSheet) {
-    throw new Error('The Excel file must have two sheets: "nodes" and "edges".');
+    error('The Excel file must contain a "nodes" and "edges" sheet.');
+    return;
   }
 
   const nodesData = XLSX.utils.sheet_to_json(nodesSheet, {defval: null});
@@ -1142,6 +1146,7 @@ function createGraphInstance() {
     graph.on(GraphEvent.AFTER_RENDER, () => {
       showLoading("Preparing View", "Restoring Positions and Groups");
       afterRenderEvent();
+      updateNodeConnectivityMetrics();
       // TODO: Without this update and redraw after 200ms, positions are not restored
       restorePositions();
       console.log("AFTER RENDER EVENT DONE");
@@ -1763,8 +1768,79 @@ function buildFilterUI() {
   staticStyleDiv.innerHTML = "";
   staticStyleDiv.appendChild(createStyleDiv());
 
+  div.appendChild(buildNodeConnectivitySection());
   manageDynamicWidgets();
   handleEditModeUIChanges();
+}
+
+function buildNodeConnectivitySection() {
+  const container = document.createElement("div");
+  container.style.marginTop = "1.5em";
+
+  const header = document.createElement("h3");
+  header.textContent = "Node Connectivity";
+  header.classList.add("inline");
+  container.appendChild(header);
+
+  const hr = document.createElement("hr");
+  container.appendChild(hr);
+
+  const metrics = [
+    {name: "Betweenness", id: "betweenness", type: "slider", min: 0, max: 1, step: 0.01},
+    {name: "Closeness Centrality", id: "closenessCentrality", type: "slider", min: 0, max: 1, step: 0.01},
+  ];
+
+  metrics.forEach(metric => {
+    data.filterDefaults.set(metric.id, {
+      isCategory: false,
+      lowerThreshold: 0,
+      upperThreshold: 1,
+      step: 0.01
+    });
+
+    const row = document.createElement("div");
+    row.className = "filter-row";
+
+    const col1 = document.createElement("div");
+    col1.className = "filter-row-col1";
+    const metricLabel = document.createElement("label");
+    metricLabel.textContent = metric.name;
+    col1.appendChild(metricLabel);
+    row.appendChild(col1);
+
+    const col2 = document.createElement("div");
+    col2.className = "filter-row-col2";
+    if (metric.type === "slider") {
+      const slider = new InvertibleRangeSlider(metric.id);
+      slider.appendTo(col2);
+    } else if (metric.type === "checkbox") {
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.id = metric.id;
+      col2.appendChild(checkbox);
+    }
+    row.appendChild(col2);
+
+    container.appendChild(row);
+  });
+
+  return container;
+}
+
+function updateNodeConnectivityMetrics() {
+  // Recompute connectivity metrics here based on visible nodes/edges
+  // Access the graph, data, or cache objects as needed.
+  // For example, using a graph library to compute betweenness or closeness for each node:
+
+  /*
+  for (let node of data.nodes) {
+    // Hypothetical: use a centrality function from your library
+    node.betweenness = computeBetweenness(node, graph);
+    node.closenessCentrality = computeCloseness(node, graph);
+    // etc.
+  }
+  */
+  console.log("!!TODO: Node connectivity metrics updated!");
 }
 
 function saveFiltersToStash() {
@@ -2128,17 +2204,25 @@ class InvertibleRangeSlider {
   }
 
   readCurrentFilterSettings() {
-    let filterData = data.layouts[data.selectedLayout].filters.get(this.propID);
-    this.currentMin = filterData.lowerThreshold;
-    this.currentMax = filterData.upperThreshold;
-    this.isInverted = filterData.isInverted;
+    if (!data.layouts[data.selectedLayout].filters.has(this.propID)) {
+      this.currentMin = 0;
+      this.currentMax = 1;
+      this.isInverted = false;
+    } else {
+      let filterData = data.layouts[data.selectedLayout].filters.get(this.propID);
+      this.currentMin = filterData.lowerThreshold;
+      this.currentMax = filterData.upperThreshold;
+      this.isInverted = filterData.isInverted;
+    }
   }
 
   writeCurrentFilterSettings() {
-    let filterData = data.layouts[data.selectedLayout].filters.get(this.propID);
-    filterData.lowerThreshold = this.currentMin;
-    filterData.upperThreshold = this.currentMax;
-    filterData.isInverted = this.isInverted;
+    if (data.layouts[data.selectedLayout].filters.has(this.propID)) {
+      let filterData = data.layouts[data.selectedLayout].filters.get(this.propID);
+      filterData.lowerThreshold = this.currentMin;
+      filterData.upperThreshold = this.currentMax;
+      filterData.isInverted = this.isInverted;
+    }
   }
 
   calcPercentage(value) {
@@ -3000,3 +3084,46 @@ window.addEventListener('resize', () => {
 
   }
 })
+
+function logMessage(text, colorClass, bold = false) {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  const timestamp = `${hh}:${mm}:${ss}`;
+
+  const container = document.getElementById('sidebarStatusContainer');
+  const p = document.createElement('p');
+  p.style.marginBlockStart = "0.3em";
+  p.style.marginBlockEnd = "0.3em";
+
+  const spanTime = document.createElement('span');
+  spanTime.textContent = `${timestamp} | `;
+  spanTime.classList.add("grey");
+  p.appendChild(spanTime);
+
+  const spanText = document.createElement('span');
+  spanText.classList.add(colorClass);
+  spanText.style.fontWeight = bold ? "bold" : "normal";
+  spanText.textContent = text;
+  p.appendChild(spanText);
+
+  container.appendChild(p);
+  container.scrollTop = container.scrollHeight;
+}
+
+function info(message) {
+  logMessage(message, "black");
+}
+
+function warning(message) {
+  logMessage(message, "orange");
+}
+
+function error(message) {
+  logMessage(message, "red", true);
+}
+
+function success(message) {
+  logMessage(message, "green");
+}
