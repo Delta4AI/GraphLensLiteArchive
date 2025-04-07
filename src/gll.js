@@ -91,6 +91,10 @@ function createDefaultLayout(key) {
     filterStrategy: DEFAULTS.FILTER_STRATEGY,
   };
 
+  for (const [nodeID, positions] of cache.nodePositionsFromExcelImport) {
+    defLayout.positions.set(nodeID, {x: positions.x, y: positions.y});
+  }
+
   for (let group of traverseBubbleSets()) {
     defLayout[`${group}Props`] = new Set();
   }
@@ -1196,7 +1200,6 @@ function parseExcelToJson(file) {
     edges: parsedEdges,
   };
 }
-
 
 function createGraphInstance() {
   if (graph === null) {
@@ -2429,7 +2432,6 @@ class InvertibleRangeSlider {
 
     const colRight = document.createElement('div');
     colRight.classList.add('show-on-edit');
-    colRight.style.marginLeft = '10px';
     colRight.style.transition = 'width 0.2s ease';
     const rightElem = this.createSliderInput(this.sliderIdEndInput, this.currentMax, this.sliderIdEnd);
     colRight.appendChild(rightElem);
@@ -2849,6 +2851,7 @@ function preProcessData(fileData) {
   }
 
   cache.showNodeLabelsAndHoverEffect = fileData.nodes.length <= MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT;
+  cache.nodePositionsFromExcelImport = new Map();
 
   if (!cache.showNodeLabelsAndHoverEffect) {
     warning(`Large graph with ${fileData.nodes.length} nodes detected. Labels and hover effects are disabled to 
@@ -2875,6 +2878,10 @@ function preProcessData(fileData) {
       }
       nodeFeatureWithinThreshold.set(propId, null);
       populateFilterPropsLowsAndHighs(propId, data);
+    }
+
+    if (node.style?.x && node.style?.y) {
+      cache.nodePositionsFromExcelImport.set(node.id, {x: node.style.x, y: node.style.y});
     }
 
     return {
