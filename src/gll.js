@@ -29,32 +29,76 @@ register(ExtensionCategory.LAYOUT, 'custom', CustomForceLayout);
 // persistNodePositions();
 // handleFilterEvent("Custom", "foo");
 
-/** @type {import('@antv/g6').Graph","null} */
-let graph = null;
+/**
+ *  Essential objects
+ */
+/* @type {import('@antv/g6').Graph","null} */
+let graph = null;  // The G6 graph object
 let data = {};  // Stores data that can be serialized as json file
 let cache = {};  // Stores references to map IDs to node/edge objects that cannot be serialized to a json file
 
+/**
+ *  GLL configuration parameters
+ */
+
+// Determines if filter sliders should be hidden when the minimum and maximum values are identical
 const HIDE_SLIDERS_WITH_SAME_MIN_MAX_VALUES = true;
+
+// Specifies the slider step size for integer-based properties
 const FILTER_STEP_SIZE_INTEGER = 1;
+
+// Specifies the slider step size for float-based properties
 const FILTER_STEP_SIZE_FLOAT = 0.000001;
-const FILTER_VISUAL_FLOAT_PRECISION = 3;  // used in slider thumbs and tooltips; in the back, full float is used
+
+// Specifies the slider thumb- and tooltip-values (only visually); internally, the full float precision is used
+const FILTER_VISUAL_FLOAT_PRECISION = 3;
+
+// If true, all node and edge filters are enabled on initial model load; disabled on large graphs
 let FILTERS_ACTIVE_PER_DEFAULT = true;
+
+// If true, filters in the side-panel are sorted alphabetically
 const SORT_FILTERS = false;
+
+// If true, filters in the tooltips are sorted alphabetically
 const SORT_TOOLTIPS = true;
+
+// Maximum number of lines per tooltip column
 const TOOLTIP_LINE_BREAK = 20;
+
+// If true, properties with null (empty) values are not displayed in tooltips
 const TOOLTIP_HIDE_NULL_VALUES = false;
+
+// Node count threshold beyond which labels and hover effects are disabled to keep the application responsive
 const MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT = 300;
+
+// Specifies whether isolated nodes (with no connecting edges) are removed automatically when the "AND" filter type is active
 const REMOVE_DANGLING_NODES_WHEN_AND_FILTER_IS_ACTIVE_AND_EDGES_ARE_DISPLAYED = false;
 
+// If true, bubble groups avoid all non-bubble group members per default
 const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
+
+// If true, each property has an individual "Style" button to color nodes for a single property only
 const SHOW_NODE_OR_EDGE_PROPERTY_SPECIFIC_STYLE_BUTTON = false;
 
-const EXCEL_UNCATEGORIZED_SUBHEADER = "Uncategorized Properties";
-const EXCEL_NODE_HEADER = "Node filters";
-const EXCEL_EDGE_HEADER = "Edge filters";
-
+// Used for "clearing" labels
 const INVISIBLE_CHARACTER = "\u200B";
 
+/**
+ *  Excel-model import related properties
+ */
+
+// Header automatically assigned to properties without a group definition
+const EXCEL_UNCATEGORIZED_SUBHEADER = "Uncategorized Properties";
+
+// Node filter header
+const EXCEL_NODE_HEADER = "Node filters";
+
+// Edge filter header
+const EXCEL_EDGE_HEADER = "Edge filters";
+
+/**
+ * Defaults for the graph, layouts and UI
+ */
 const DEFAULTS = {
   NODE: {
     COLOR: "#C33D35", SIZE: 20, TYPE: "hexagon"
@@ -961,11 +1005,15 @@ function toggleStyleElementsThatRequireAtLeastOneSelectedEdge(enable) {
 }
 
 function toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(enable) {
-  toggleStyleElements(["Arrange Nodes"], enable);
+  toggleStyleElements([], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(enable) {
   toggleStyleElements(["Select"], enable);
+}
+
+function toggleStyleElementsThatRequireMoreThanOneSelectedNode(enable) {
+  toggleStyleElements(["Arrange Nodes"], enable);
 }
 
 function toggleStyleElements(headingLabels, enable) {
@@ -1530,25 +1578,18 @@ function updateSelectedNodesAndEdges() {
   document.getElementById("selectedNodes").textContent = `${selectedNodesCount}`;
   document.getElementById("selectedEdges").textContent = `${selectedEdgesCount}`;
 
-  if (selectedNodesCount > 0) {
-    document.getElementById("selectedNodes").style.display = "block";
-    toggleStyleElementsThatRequireAtLeastOneSelectedNode(true);
-  } else {
-    document.getElementById("selectedNodes").style.display = "none";
-    toggleStyleElementsThatRequireAtLeastOneSelectedNode(false);
-  }
+  const atLeastOneNodeSelected = selectedNodesCount > 0;
+  const atLeastOneEdgeSelected = selectedEdgesCount > 0;
+  const atLeastOneNodeOrEdgeSelected = atLeastOneNodeSelected || atLeastOneEdgeSelected;
 
-  if (selectedEdgesCount > 0) {
-    toggleStyleElementsThatRequireAtLeastOneSelectedEdge(true);
-  } else {
-    toggleStyleElementsThatRequireAtLeastOneSelectedEdge(false);
-  }
+  const moreThanOneNodeSelected = selectedNodesCount > 1;
 
-  if (selectedNodesCount > 0 || selectedEdgesCount > 0) {
-    toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(true);
-  } else {
-    toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(false);
-  }
+  document.getElementById("selectedNodes").style.display = atLeastOneNodeSelected ? "block" : "none";
+
+  toggleStyleElementsThatRequireAtLeastOneSelectedNode(atLeastOneNodeSelected);
+  toggleStyleElementsThatRequireAtLeastOneSelectedEdge(atLeastOneEdgeSelected);
+  toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(atLeastOneNodeOrEdgeSelected);
+  toggleStyleElementsThatRequireMoreThanOneSelectedNode(moreThanOneNodeSelected);
 }
 
 function toggleEditMode(ev) {
