@@ -1,4 +1,33 @@
-const {Graph, NodeEvent, GraphEvent, CanvasEvent, CommonEvent, WindowEvent, Layout} = G6;
+const {Graph, NodeEvent, GraphEvent, CanvasEvent, CommonEvent, WindowEvent, Layout, BaseLayout, ExtensionCategory, register} = G6;
+
+
+class CustomForceLayout extends BaseLayout {
+  id = 'custom-force-layout';
+
+  async execute(data) {
+    const {nodes = []} = data;
+    const myNodes = nodes
+      .filter(n => cache.selectedNodes.includes(n.id))
+      .map((node, index) => ({
+        id: node.id,
+        style: {
+          x: 50 * index + 25,
+          y: 50 * index + 25,
+        },
+      }));
+    graph.updateNodeData(myNodes);
+    persistNodePositions();
+    return {
+      nodes: myNodes,
+    };
+  }
+}
+
+register(ExtensionCategory.LAYOUT, 'custom', CustomForceLayout);
+
+// graph.setLayout({type: 'custom'});
+// persistNodePositions();
+// handleFilterEvent("Custom", "foo");
 
 /** @type {import('@antv/g6').Graph","null} */
 let graph = null;
@@ -171,40 +200,113 @@ function createStyleDiv(propID) {
   container.classList.add("style-container");
 
   if (!propID) {
-    const selectButtonBar = document.createElement("div");
+    const selectButtonBarRowOne = document.createElement("div");
+    const selectButtonBarRowTwo = document.createElement("div");
+    const selectButtonBarRowThree = document.createElement("div");
+    const selectButtonBarRowFour = document.createElement("div");
+
     const selectAllNodes = document.createElement("button");
     selectAllNodes.textContent = "All nodes";
+    selectAllNodes.title = "Select all visible nodes";
     selectAllNodes.classList.add("style-inner-button");
     selectAllNodes.onclick = () => {
       toggleSelectionForAllNodes(true);
     }
-    selectButtonBar.appendChild(selectAllNodes);
+    selectButtonBarRowOne.appendChild(selectAllNodes);
 
     const selectNoNodes = document.createElement("button");
     selectNoNodes.textContent = "No nodes";
+    selectNoNodes.title = "Deselect all visible nodes";
     selectNoNodes.classList.add("style-inner-button");
     selectNoNodes.onclick = () => {
       toggleSelectionForAllNodes(false);
     }
-    selectButtonBar.appendChild(selectNoNodes);
+    selectButtonBarRowOne.appendChild(selectNoNodes);
 
     const selectAllEdges = document.createElement("button");
     selectAllEdges.textContent = "All edges";
+    selectAllEdges.title = "Select all visible edges";
     selectAllEdges.classList.add("style-inner-button");
     selectAllEdges.onclick = () => {
       toggleSelectionForAllEdges(true);
     }
-    selectButtonBar.appendChild(selectAllEdges);
+    selectButtonBarRowOne.appendChild(selectAllEdges);
 
     const selectNoEdges = document.createElement("button");
     selectNoEdges.textContent = "No edges";
+    selectNoEdges.title = "Deselect all visible edges";
     selectNoEdges.classList.add("style-inner-button");
     selectNoEdges.onclick = () => {
       toggleSelectionForAllEdges(false);
     }
-    selectButtonBar.appendChild(selectNoEdges);
+    selectButtonBarRowOne.appendChild(selectNoEdges);
 
-    createSection("Select", selectButtonBar, propID);
+    createSection("Select", selectButtonBarRowOne, propID);
+
+    selectButtonBarRowTwo.appendChild(createLineBreak())
+
+    const expandByEdges = document.createElement("button");
+    expandByEdges.textContent = "Expand by Edges";
+    expandByEdges.title = "Add all edges connected to the currently selected nodes to the selection";
+    expandByEdges.classList.add("style-inner-button");
+    expandByEdges.onclick = () => {
+      toggleSelectionByNeighbors("expand-edges");
+    }
+    selectButtonBarRowTwo.appendChild(expandByEdges);
+
+    const reduceByEdges = document.createElement("button");
+    reduceByEdges.textContent = "Reduce by Edges";
+    reduceByEdges.title = "Remove edges that do not connect two selected nodes";
+    reduceByEdges.classList.add("style-inner-button");
+    reduceByEdges.onclick = () => {
+      toggleSelectionByNeighbors("reduce-edges");
+    }
+    selectButtonBarRowTwo.appendChild(reduceByEdges);
+
+    createSection(null, selectButtonBarRowTwo, propID, "expandOrReduceByEdges");
+
+    const expandByNeighbors = document.createElement("button");
+    expandByNeighbors.textContent = "Expand by Neighbors";
+    expandByNeighbors.title = "Add all directly connected neighbor nodes (and their edges) to the current selection";
+    expandByNeighbors.classList.add("style-inner-button");
+    expandByNeighbors.onclick = () => {
+      toggleSelectionByNeighbors("expand-neighbors");
+    }
+    selectButtonBarRowThree.appendChild(expandByNeighbors);
+
+    const reduceByNeighbors = document.createElement("button");
+    reduceByNeighbors.textContent = "Reduce by Neighbors";
+    reduceByNeighbors.title = "Remove the outermost layer of selected neighbor nodes (and their edges) from the " +
+      "selection"
+    reduceByNeighbors.classList.add("style-inner-button");
+    reduceByNeighbors.onclick = () => {
+      toggleSelectionByNeighbors("reduce-neighbors");
+    }
+
+    selectButtonBarRowThree.appendChild(reduceByNeighbors);
+
+    createSection(null, selectButtonBarRowThree, propID, "expandOrReduceByNeighbors");
+
+    const selectNextOuterLayer = document.createElement("button");
+    selectNextOuterLayer.textContent = "Only Outer Layer";
+    selectNextOuterLayer.title = "Select only the next outer layer of connected nodes from the currently selected nodes";
+    selectNextOuterLayer.classList.add("style-inner-button");
+    selectNextOuterLayer.onclick = () => {
+      toggleSelectionByNeighbors("only-outer-layer");
+    };
+    selectButtonBarRowFour.appendChild(selectNextOuterLayer);
+
+    const selectInnerLayer = document.createElement("button");
+    selectInnerLayer.textContent = "Only Inner Layer";
+    selectInnerLayer.title = "Select only the inner layer (excluding outermost nodes) of the currently selected nodes";
+    selectInnerLayer.classList.add("style-inner-button");
+    selectInnerLayer.onclick = () => {
+      toggleSelectionByNeighbors("only-inner-layer");
+    };
+    selectButtonBarRowFour.appendChild(selectInnerLayer);
+
+    createSection(null, selectButtonBarRowFour, propID, "selectOnlyInnerOrOuterLayer");
+
     createSeparator();
 
     const layoutButtonBar = document.createElement("div");
@@ -302,41 +404,55 @@ function createStyleDiv(propID) {
     }
 
     function applyForceLayout(iterations) {
-      const repelForce = 3000;      // Overall strength of repulsion.
-      const springLength = 150;     // Ideal edge length for springs.
-      const springStrength = 0.01;  // Spring tension.
+      // -----------------------------
+      // Updated parameters
+      // -----------------------------
+      const INITIAL_TEMPERATURE = 2.0;     // Starting "temperature" for the cooling factor
+      const COOLING_FACTOR = 0.98;    // Slower cooling to allow more spreading
+      const GRAVITY_STRENGTH = 0.00001; // Reduced gravity so nodes aren't pulled too close
+      const MAX_DISPLACEMENT = 50;      // Higher limit on movement per iteration or remove if needed
 
+      const REPULSION = 20000;        // Strong repulsion to push nodes apart
+      const SPRING_LENGTH = 300;         // Ideal distance between connected nodes
+      const SPRING_STRENGTH = 0.005;        // Reduced tension to allow more space
+
+      // -----------------------------
+      // Larger initial placement range
+      // -----------------------------
       const nodes = getSelectedNodes();
+      for (const node of nodes) {
+        node.style.x = Math.random() * 1000 - 500;  // Range: [-500, 500]
+        node.style.y = Math.random() * 1000 - 500;  // Range: [-500, 500]
+      }
+
+      // -----------------------------
+      // Main iteration
+      // -----------------------------
+      let temperature = INITIAL_TEMPERATURE;
       for (let i = 0; i < iterations; i++) {
-        // -- Repel each pair of selected nodes
+        // 1) Repulsion between every pair of nodes
         for (let a = 0; a < nodes.length; a++) {
           for (let b = a + 1; b < nodes.length; b++) {
             const dx = nodes[b].style.x - nodes[a].style.x;
             const dy = nodes[b].style.y - nodes[a].style.y;
-            const dist = Math.sqrt(dx * dx + dy * dy) + 0.01; // Add small term to avoid division by zero
+            const dist = Math.sqrt(dx * dx + dy * dy) + 0.01; // Avoid dividing by zero
 
-            // Calculate force based on 1 / distance^2
-            const force = repelForce / (dist * dist);
-
-            // Force direction
+            const force = REPULSION / (dist * dist); // 1 / distance^2
             const fx = force * (dx / dist);
             const fy = force * (dy / dist);
 
-            // Apply to each node. Could also factor in a node 'mass' here.
-            nodes[a].style.x -= fx;
-            nodes[a].style.y -= fy;
-            nodes[b].style.x += fx;
-            nodes[b].style.y += fy;
+            // Apply forces (scaled by temperature)
+            nodes[a].style.x -= fx * temperature;
+            nodes[a].style.y -= fy * temperature;
+            nodes[b].style.x += fx * temperature;
+            nodes[b].style.y += fy * temperature;
           }
         }
 
-        // -- Attract nodes that share an edge (spring force). Only applied between selected nodes.
+        // 2) Spring forces (edges)
         for (const edge of graph.getEdgeData()) {
           const {source, target} = edge;
-          if (
-            cache.selectedNodes.includes(source) &&
-            cache.selectedNodes.includes(target)
-          ) {
+          if (cache.selectedNodes.includes(source) && cache.selectedNodes.includes(target)) {
             const nodeA = nodes.find((n) => n.id === source);
             const nodeB = nodes.find((n) => n.id === target);
             if (nodeA && nodeB) {
@@ -344,18 +460,40 @@ function createStyleDiv(propID) {
               const dy = nodeB.style.y - nodeA.style.y;
               const dist = Math.sqrt(dx * dx + dy * dy) + 0.01;
 
-              // Attractive force that strives to keep nodes near springLength.
-              const force = (dist - springLength) * springStrength;
+              // (currentDistance - idealDistance)
+              const force = (dist - SPRING_LENGTH) * SPRING_STRENGTH;
               const fx = force * (dx / dist);
               const fy = force * (dy / dist);
 
-              nodeA.style.x += fx;
-              nodeA.style.y += fy;
-              nodeB.style.x -= fx;
-              nodeB.style.y -= fy;
+              // Apply (scaled by temperature)
+              nodeA.style.x += fx * temperature;
+              nodeA.style.y += fy * temperature;
+              nodeB.style.x -= fx * temperature;
+              nodeB.style.y -= fy * temperature;
             }
           }
         }
+
+        // 3) Gravity / Centering
+        // With reduced gravity, nodes won't cluster too tightly
+        for (const node of nodes) {
+          node.style.x += -node.style.x * GRAVITY_STRENGTH * temperature;
+          node.style.y += -node.style.y * GRAVITY_STRENGTH * temperature;
+        }
+
+        // 4) Limit maximum displacement (optional)
+        // Increase or remove if you don't want clamping
+        for (const node of nodes) {
+          const dist = Math.sqrt(node.style.x * node.style.x + node.style.y * node.style.y);
+          if (dist > MAX_DISPLACEMENT) {
+            const ratio = MAX_DISPLACEMENT / dist;
+            node.style.x *= ratio;
+            node.style.y *= ratio;
+          }
+        }
+
+        // 5) Cool down temperature for next iteration
+        temperature *= COOLING_FACTOR;
       }
     }
 
@@ -385,8 +523,8 @@ function createStyleDiv(propID) {
 
     function applyRandomLayout() {
       for (const node of getSelectedNodes()) {
-        node.style.x = Math.random() * xDistance;
-        node.style.y = Math.random() * yDistance;
+        node.style.x = minX + Math.random() * xDistance;
+        node.style.y = minY + Math.random() * yDistance;
       }
     }
 
@@ -417,7 +555,7 @@ function createStyleDiv(propID) {
       "shrink": () => groupOrSpreadSelectedNodes(0.5),
       "expand": () => groupOrSpreadSelectedNodes(2),
       "circle": () => arrangeNodesInCircle(100),
-      "force": () => applyForceLayout(100),
+      "force": () => applyForceLayout(150),
       "grid": () => applyGridLayout(),
       "random": () => applyRandomLayout(),
     }
@@ -523,14 +661,14 @@ function createStyleDiv(propID) {
   }
 
   // Helper to create a labeled section with heading and controls
-  function createSection(title, controls, propID) {
+  function createSection(title, controls, propID, hiddenTag=null) {
     const heading = document.createElement("div");
-    heading.textContent = title;
+    if (title) heading.textContent = title;
     heading.classList.add("style-col1-heading");
     controls.classList.add("style-col2-controls");
 
-    heading.id = `${title}-heading-${propID}`;
-    controls.id = `${title}-controls-${propID}`;
+    heading.id = `${title || hiddenTag}-heading-${propID}`;
+    controls.id = `${title || hiddenTag}-controls-${propID}`;
 
     container.appendChild(heading);
     container.appendChild(controls);
@@ -540,6 +678,12 @@ function createStyleDiv(propID) {
     const separator = document.createElement("div");
     separator.classList.add("style-separator");
     container.appendChild(separator);
+  }
+
+  function createLineBreak() {
+    const lineBreak = document.createElement("div");
+    lineBreak.classList.add("style-line-break");
+    return lineBreak;
   }
 
   function createLabelControls(property) {
@@ -805,22 +949,22 @@ function createStyleDiv(propID) {
   return container;
 }
 
-function toggleNodeStyleElements(enable) {
+function toggleStyleElementsThatRequireAtLeastOneSelectedNode(enable) {
   toggleStyleElements([
     "Node Form", "Node Color", "Node Size", "Node Border Color", "Node Border Size", "Node Label", "Node Label Size",
-    "Node Badges"], enable);
+    "Node Badges", "expandOrReduceByEdges", "expandOrReduceByNeighbors", "selectOnlyInnerOrOuterLayer"], enable);
 }
 
-function toggleEdgeStyleElements(enable) {
+function toggleStyleElementsThatRequireAtLeastOneSelectedEdge(enable) {
   toggleStyleElements([
     "Edge Color", "Edge Width", "Edge Dash", "Edge Halo", "Edge Halo Color", "Edge Halo Width"], enable);
 }
 
-function toggleCommonStyleElements(enable) {
+function toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(enable) {
   toggleStyleElements(["Arrange Nodes"], enable);
 }
 
-function toggleSelectStyleElements(enable) {
+function toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(enable) {
   toggleStyleElements(["Select"], enable);
 }
 
@@ -863,6 +1007,56 @@ function toggleSelectionForAllEdges(enable) {
   updateSelectedState(edges, enable);
   graph.updateEdgeData(edges);
   graph.render();
+}
+
+function toggleSelectionByNeighbors(mode) {
+  let edges;
+  const edgesToShow = [];
+  const edgesToHide = [];
+  const nodesToShow = [];
+  const nodesToHide = [];
+
+  switch (mode) {
+    case "expand-edges":
+      for (let nodeID of cache.selectedNodes) {
+        edgesToShow.push(graph.getEdgeData(...cache.nodeIDToEdgeIDs.get(nodeID)));
+      }
+      break;
+    case "reduce-edges":
+      for (let edge of graph.getEdgeData()) {
+        const nodesAreSelected = cache.selectedNodes.includes(edge.source) && cache.selectedNodes.includes(edge.target);
+        nodesAreSelected ? edgesToShow.push(edge) : edgesToHide.push(edge);
+      }
+      break;
+    case "expand-neighbors":
+      console.log("Add all directly connected neighbor nodes (and their edges) to the current selection");
+      break;
+    case "reduce-neighbors":
+      console.log("Remove the outermost layer of selected neighbor nodes (and their edges) from the selection");
+      break;
+    case "only-outer-layer":
+      console.log("Select only the next outer layer of connected nodes from the currently selected nodes");
+      break;
+    case "only-inner-layer":
+      console.log("Select only the inner layer (excluding outermost nodes) of the currently selected nodes");
+      break;
+    default:
+      break;
+  }
+
+  if (edgesToShow.size > 0) updateSelectedState(edgesToShow, true);
+  if (edgesToHide.size > 0) updateSelectedState(edgesToHide, false);
+  if (nodesToShow.size > 0) updateSelectedState(nodesToShow, true);
+  if (nodesToHide.size > 0) updateSelectedState(nodesToHide, false);
+
+  const edgesChanged = edgesToShow.size > 0 || edgesToHide.size > 0;
+  const nodesChanged = nodesToShow.size > 0 || nodesToHide.size > 0;
+  const graphChanged = edgesChanged || nodesChanged;
+
+  if (edgesChanged) graph.updateEdgeData([...edgesToShow, ...edgesToHide]);
+  if (nodesChanged) graph.updateNodeData([...nodesToShow, ...nodesToHide]);
+
+  if (graphChanged) graph.render();
 }
 
 function persistPositionsUpdateDataAndReDrawGraph() {
@@ -1338,22 +1532,22 @@ function updateSelectedNodesAndEdges() {
 
   if (selectedNodesCount > 0) {
     document.getElementById("selectedNodes").style.display = "block";
-    toggleNodeStyleElements(true);
+    toggleStyleElementsThatRequireAtLeastOneSelectedNode(true);
   } else {
     document.getElementById("selectedNodes").style.display = "none";
-    toggleNodeStyleElements(false);
+    toggleStyleElementsThatRequireAtLeastOneSelectedNode(false);
   }
 
   if (selectedEdgesCount > 0) {
-    toggleEdgeStyleElements(true);
+    toggleStyleElementsThatRequireAtLeastOneSelectedEdge(true);
   } else {
-    toggleEdgeStyleElements(false);
+    toggleStyleElementsThatRequireAtLeastOneSelectedEdge(false);
   }
 
   if (selectedNodesCount > 0 || selectedEdgesCount > 0) {
-    toggleCommonStyleElements(true);
+    toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(true);
   } else {
-    toggleCommonStyleElements(false);
+    toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(false);
   }
 }
 
@@ -1602,9 +1796,9 @@ function preRenderEvent() {
   document.getElementById("totalEdges").innerHTML = `${data.edges.length}`;
 
   if (cache.nodeIDsToBeShown.size > 0 || cache.edgeIDsToBeShown.size > 0) {
-    toggleSelectStyleElements(true);
+    toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(true);
   } else {
-    toggleSelectStyleElements(false);
+    toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(false);
   }
 
   const idsToShow = [...cache.nodeIDsToBeShown, ...cache.edgeIDsToBeShown];
@@ -3114,8 +3308,8 @@ function buildToolTipText(nodeOrEdgeID, isEdge) {
 }
 
 function humanFileSize(size) {
-    let i = size === 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
-    return +((size / Math.pow(1024, i)).toFixed(2)) + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+  let i = size === 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
+  return +((size / Math.pow(1024, i)).toFixed(2)) + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
 }
 
 function loadFileWrapper(event) {
