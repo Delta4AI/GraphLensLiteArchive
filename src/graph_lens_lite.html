@@ -47,13 +47,22 @@
       }
 
       #sidebarStatusContainer {
-          flex: 0 0 8%;
-          min-width: 0;
+          display: flex;
+          align-items: flex-start;
+          flex-direction: column;
+          flex: none;
+          height: 0;
+
+          transition: height 0.3s ease-in-out;
+
+          width: 100%;
           max-width: 360px;
-          overflow: auto;
+          overflow-y: auto;
+          overflow-x: hidden;
           border-top: 1px solid #ccc;
           font-size: 0.8rem;
-          /*white-space: nowrap;*/
+          white-space: pre-wrap;
+          word-wrap: break-word;
       }
 
       #outerGraphContainer {
@@ -1049,7 +1058,7 @@
 <div id="mainContent">
   <div id="sidebar">
     <div id="sidebarContentContainer">
-      <h3>Load Model</h3>
+      <h3>Graph Lens Lite</h3>
       <input type="file" id="fileInput" name="fileInput" onchange="loadFileWrapper(event);"
              accept=".json, .xls, .xlsx, .csv, .tab"/>
       <button id="exportModel" class="showOnLoad" onclick="exportGraphAsJSON()" title="Save Model (S)">💾</button>
@@ -1077,8 +1086,12 @@
         <br>
         <div class="edit-container show-on-edit">
           <div>
-            <h5 class="purple">Selected nodes: <span class="red" id="selectedNodes">0</span> | Selected edges: <span
-                    class="red" id="selectedEdges">0</span></h5>
+            <h5 class="purple inline">Selected nodes: <span class="red" id="selectedNodes">0</span> | Selected edges: <span
+                    class="red" id="selectedEdges">0</span> |</h5>
+            <button class="small-btn inline disabled" title="Undo Selection" id="undoSelectionBtn"
+                    onclick="undoSelection()">↩</button>
+            <button class="small-btn inline disabled" title="Redo Selection" id="redoSelectionButton"
+                    onclick="redoSelection()">↪</button>
           </div>
           <div id="staticStyleDiv"></div>
         </div>

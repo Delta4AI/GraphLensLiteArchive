@@ -1,4 +1,15 @@
-const {Graph, NodeEvent, GraphEvent, CanvasEvent, CommonEvent, WindowEvent, Layout, BaseLayout, ExtensionCategory, register} = G6;
+const {
+  Graph,
+  NodeEvent,
+  GraphEvent,
+  CanvasEvent,
+  CommonEvent,
+  WindowEvent,
+  Layout,
+  BaseLayout,
+  ExtensionCategory,
+  register
+} = G6;
 
 
 class CustomForceLayout extends BaseLayout {
@@ -36,6 +47,7 @@ register(ExtensionCategory.LAYOUT, 'custom', CustomForceLayout);
 let graph = null;  // The G6 graph object
 let data = {};  // Stores data that can be serialized as json file
 let cache = {};  // Stores references to map IDs to node/edge objects that cannot be serialized to a json file
+let didShowAnyStatusMessage = false;
 
 /**
  *  GLL configuration parameters
@@ -82,6 +94,9 @@ const SHOW_NODE_OR_EDGE_PROPERTY_SPECIFIC_STYLE_BUTTON = false;
 
 // Used for "clearing" labels
 const INVISIBLE_CHARACTER = "\u200B";
+
+// Maximum capacity of selection memory
+const MAX_SELECTION_MEMORY = 10;
 
 /**
  *  Excel-model import related properties
@@ -331,25 +346,25 @@ function createStyleDiv(propID) {
 
     createSection(null, selectButtonBarRowThree, propID, "expandOrReduceByNeighbors");
 
-    const selectNextOuterLayer = document.createElement("button");
-    selectNextOuterLayer.textContent = "Only Outer Layer";
-    selectNextOuterLayer.title = "Select only the next outer layer of connected nodes from the currently selected nodes";
-    selectNextOuterLayer.classList.add("style-inner-button");
-    selectNextOuterLayer.onclick = () => {
-      toggleSelectionByNeighbors("only-outer-layer");
-    };
-    selectButtonBarRowFour.appendChild(selectNextOuterLayer);
-
-    const selectInnerLayer = document.createElement("button");
-    selectInnerLayer.textContent = "Only Inner Layer";
-    selectInnerLayer.title = "Select only the inner layer (excluding outermost nodes) of the currently selected nodes";
-    selectInnerLayer.classList.add("style-inner-button");
-    selectInnerLayer.onclick = () => {
-      toggleSelectionByNeighbors("only-inner-layer");
-    };
-    selectButtonBarRowFour.appendChild(selectInnerLayer);
-
-    createSection(null, selectButtonBarRowFour, propID, "selectOnlyInnerOrOuterLayer");
+    // const selectNextOuterLayer = document.createElement("button");
+    // selectNextOuterLayer.textContent = "Only Outer Layer";
+    // selectNextOuterLayer.title = "Select only the next outer layer of connected nodes from the currently selected nodes";
+    // selectNextOuterLayer.classList.add("style-inner-button");
+    // selectNextOuterLayer.onclick = () => {
+    //   toggleSelectionByNeighbors("only-outer-layer");
+    // };
+    // selectButtonBarRowFour.appendChild(selectNextOuterLayer);
+    //
+    // const selectInnerLayer = document.createElement("button");
+    // selectInnerLayer.textContent = "Only Inner Layer";
+    // selectInnerLayer.title = "Select only the inner layer (excluding outermost nodes) of the currently selected nodes";
+    // selectInnerLayer.classList.add("style-inner-button");
+    // selectInnerLayer.onclick = () => {
+    //   toggleSelectionByNeighbors("only-inner-layer");
+    // };
+    // selectButtonBarRowFour.appendChild(selectInnerLayer);
+    //
+    // createSection(null, selectButtonBarRowFour, propID, "selectOnlyInnerOrOuterLayer");
 
     createSeparator();
 
@@ -705,7 +720,7 @@ function createStyleDiv(propID) {
   }
 
   // Helper to create a labeled section with heading and controls
-  function createSection(title, controls, propID, hiddenTag=null) {
+  function createSection(title, controls, propID, hiddenTag = null) {
     const heading = document.createElement("div");
     if (title) heading.textContent = title;
     heading.classList.add("style-col1-heading");
@@ -996,7 +1011,8 @@ function createStyleDiv(propID) {
 function toggleStyleElementsThatRequireAtLeastOneSelectedNode(enable) {
   toggleStyleElements([
     "Node Form", "Node Color", "Node Size", "Node Border Color", "Node Border Size", "Node Label", "Node Label Size",
-    "Node Badges", "expandOrReduceByEdges", "expandOrReduceByNeighbors", "selectOnlyInnerOrOuterLayer"], enable);
+    "Node Badges", "expandOrReduceByEdges", "expandOrReduceByNeighbors"], enable);
+  // , "selectOnlyInnerOrOuterLayer"
 }
 
 function toggleStyleElementsThatRequireAtLeastOneSelectedEdge(enable) {
@@ -1043,68 +1059,165 @@ function updateSelectedState(elemData, enable) {
   }
 }
 
+function updateSelectionLoadingAndRenderEvent(header="Selection", text="Updating Selection", propID=null) {
+  handleFilterEvent(header, text, propID);
+}
+
 function toggleSelectionForAllNodes(enable) {
   const nodes = graph.getNodeData();
   updateSelectedState(nodes, enable);
   graph.updateNodeData(nodes);
-  graph.render();
+  updateSelectionLoadingAndRenderEvent();
 }
 
 function toggleSelectionForAllEdges(enable) {
   const edges = graph.getEdgeData();
   updateSelectedState(edges, enable);
   graph.updateEdgeData(edges);
-  graph.render();
+  updateSelectionLoadingAndRenderEvent();
+}
+
+function syncSelectionCacheAndElementStates() {
+  const nodesToShow = [];
+  const nodesToHide = [];
+  const edgesToShow = [];
+  const edgesToHide = [];
+
+  const snapshot = cache.selectionMemory[cache.selectedMemoryIndex];
+
+  cache.selectedNodes = snapshot.nodes;
+  cache.selectedEdges = snapshot.edges;
+
+  for (const node of graph.getNodeData()) {
+    snapshot.nodes.includes(node.id) ? nodesToShow.push(node) : nodesToHide.push(node);
+  }
+  for (const edge of graph.getEdgeData()) {
+    snapshot.edges.includes(edge.id) ? edgesToShow.push(edge) : edgesToHide.push(edge);
+  }
+  updateSelectedState(nodesToShow, true);
+  updateSelectedState(nodesToHide, false);
+  updateSelectedState(edgesToShow, true);
+  updateSelectedState(edgesToHide, false);
+
+  updateSelectionLoadingAndRenderEvent();
+}
+
+function undoSelection() {
+  if (cache.selectedMemoryIndex > 0) {
+    cache.selectedMemoryIndex--;
+    syncSelectionCacheAndElementStates();
+  } else {
+    warning("Cannot undo!");
+  }
+}
+
+function redoSelection() {
+  if (cache.selectionMemory.length > cache.selectedMemoryIndex + 1) {
+    cache.selectedMemoryIndex++;
+    syncSelectionCacheAndElementStates();
+  } else {
+    warning("Cannot redo!");
+  }
 }
 
 function toggleSelectionByNeighbors(mode) {
-  let edges;
   const edgesToShow = [];
   const edgesToHide = [];
   const nodesToShow = [];
   const nodesToHide = [];
 
+  function isOuterNodeInSelection(nodeID) {
+    let neighborsInSelection = 0;
+
+    for (const edgeID of cache.nodeIDToEdgeIDs.get(nodeID) || []) {
+      const edge = cache.edgeRef.get(edgeID);
+      if (!edge) continue;
+
+      const neighbor = edge.source === nodeID ? edge.target : edge.source;
+
+      if (cache.selectedNodes.includes(neighbor)) {
+        neighborsInSelection++;
+        if (neighborsInSelection > 1) {
+          return false;
+        }
+      }
+    }
+
+    return neighborsInSelection <= 1;
+  }
+
+  function update() {
+    if (edgesToShow.length > 0) updateSelectedState(edgesToShow, true);
+    if (edgesToHide.length > 0) updateSelectedState(edgesToHide, false);
+    if (nodesToShow.length > 0) updateSelectedState(nodesToShow, true);
+    if (nodesToHide.length > 0) updateSelectedState(nodesToHide, false);
+
+    const edgesChanged = edgesToShow.length > 0 || edgesToHide.length > 0;
+    const nodesChanged = nodesToShow.length > 0 || nodesToHide.length > 0;
+    const graphChanged = edgesChanged || nodesChanged;
+
+    if (edgesChanged) graph.updateEdgeData([...edgesToShow, ...edgesToHide]);
+    if (nodesChanged) graph.updateNodeData([...nodesToShow, ...nodesToHide]);
+
+    if (graphChanged) {
+      updateSelectionLoadingAndRenderEvent();
+    }
+  }
+
   switch (mode) {
+
     case "expand-edges":
       for (let nodeID of cache.selectedNodes) {
-        edgesToShow.push(graph.getEdgeData(...cache.nodeIDToEdgeIDs.get(nodeID)));
+        for (let edgeID of cache.nodeIDToEdgeIDs.get(nodeID) || []) {
+          edgesToShow.push(cache.edgeRef.get(edgeID));
+        }
       }
       break;
+
     case "reduce-edges":
-      for (let edge of graph.getEdgeData()) {
-        const nodesAreSelected = cache.selectedNodes.includes(edge.source) && cache.selectedNodes.includes(edge.target);
-        nodesAreSelected ? edgesToShow.push(edge) : edgesToHide.push(edge);
+      for (let edgeID of cache.selectedEdges) {
+        const edge = cache.edgeRef.get(edgeID);
+        const connectingNodesAreSelected = cache.selectedNodes.includes(edge.source)
+          && cache.selectedNodes.includes(edge.target);
+        connectingNodesAreSelected ? edgesToShow.push(edge) : edgesToHide.push(edge);
       }
       break;
+
     case "expand-neighbors":
-      console.log("Add all directly connected neighbor nodes (and their edges) to the current selection");
+      for (let nodeID of cache.selectedNodes) {
+        for (let edgeID of cache.nodeIDToEdgeIDs.get(nodeID) || []) {
+          const edge = cache.edgeRef.get(edgeID);
+          edgesToShow.push(edge);
+
+          nodesToShow.push(cache.nodeRef.get(edge.source));
+          nodesToShow.push(cache.nodeRef.get(edge.target));
+        }
+      }
       break;
+
     case "reduce-neighbors":
-      console.log("Remove the outermost layer of selected neighbor nodes (and their edges) from the selection");
+      for (const nodeID of cache.selectedNodes.filter(isOuterNodeInSelection)) {
+        nodesToHide.push(cache.nodeRef.get(nodeID));
+
+        for (const edgeID of cache.nodeIDToEdgeIDs.get(nodeID) || []) {
+          edgesToHide.push(cache.edgeRef.get(edgeID));
+        }
+      }
       break;
-    case "only-outer-layer":
-      console.log("Select only the next outer layer of connected nodes from the currently selected nodes");
-      break;
-    case "only-inner-layer":
-      console.log("Select only the inner layer (excluding outermost nodes) of the currently selected nodes");
-      break;
+
+    // case "only-outer-layer":
+    //   console.log("Select only the next outer layer of connected nodes from the currently selected nodes");
+    //   break;
+    //
+    // case "only-inner-layer":
+    //   console.log("Select only the inner layer (excluding outermost nodes) of the currently selected nodes");
+    //   break;
+
     default:
       break;
   }
 
-  if (edgesToShow.size > 0) updateSelectedState(edgesToShow, true);
-  if (edgesToHide.size > 0) updateSelectedState(edgesToHide, false);
-  if (nodesToShow.size > 0) updateSelectedState(nodesToShow, true);
-  if (nodesToHide.size > 0) updateSelectedState(nodesToHide, false);
-
-  const edgesChanged = edgesToShow.size > 0 || edgesToHide.size > 0;
-  const nodesChanged = nodesToShow.size > 0 || nodesToHide.size > 0;
-  const graphChanged = edgesChanged || nodesChanged;
-
-  if (edgesChanged) graph.updateEdgeData([...edgesToShow, ...edgesToHide]);
-  if (nodesChanged) graph.updateNodeData([...nodesToShow, ...nodesToHide]);
-
-  if (graphChanged) graph.render();
+  update();
 }
 
 function persistPositionsUpdateDataAndReDrawGraph() {
@@ -1563,6 +1676,69 @@ function createGraphInstance() {
   }
 }
 
+function arraysAreEqual(a, b) {
+  if (a === b) return true;       // Same reference
+  if (!a || !b) return false;     // One is undefined/null
+  if (a.length !== b.length) return false;
+
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+let changeCounter = 0;
+
+function updateSelectionCache() {
+  const { selectedNodes, selectedEdges, selectionMemory, selectedMemoryIndex } = cache;
+
+  // this should never be triggered; in case no snapshot is available, create an empty one
+  if (selectionMemory.length === 0) {
+    selectionMemory.push({nodes: [], edges: []});
+    cache.selectedMemoryIndex = 0;
+  }
+
+  const currentSnapshot = selectionMemory[selectedMemoryIndex];
+
+  const nodesChanged = !arraysAreEqual(currentSnapshot.nodes, selectedNodes);
+  const edgesChanged = !arraysAreEqual(currentSnapshot.edges, selectedEdges);
+
+  if (nodesChanged || edgesChanged) {
+    changeCounter++;
+
+    // In case the user goes back in memory & then changes the selection, clear all memories after the current selection
+    if (selectedMemoryIndex < selectionMemory.length - 1) {
+      selectionMemory.splice(selectedMemoryIndex + 1);
+    }
+
+    // if the memory limit is reached, clear the first entry
+    if (selectionMemory.length === MAX_SELECTION_MEMORY) {
+      selectionMemory.shift();
+      cache.selectedMemoryIndex = selectionMemory.length - 1;
+    }
+
+    // push new memory, increment index
+    selectionMemory.push({
+      nodes: [...selectedNodes],
+      edges: [...selectedEdges],
+    });
+
+    cache.selectedMemoryIndex = selectionMemory.length - 1;
+  }
+}
+
+function updateEnabledStateUndoRedoSelectionButtons() {
+  const { selectionMemory, selectedMemoryIndex } = cache;
+  const canUndo = (selectedMemoryIndex > 0);
+  const canRedo = (selectedMemoryIndex < selectionMemory.length - 1);
+
+  const undoButton = document.getElementById("undoSelectionBtn");
+  const redoButton = document.getElementById("redoSelectionButton");
+
+  canUndo ? undoButton.classList.remove("disabled") : undoButton.classList.add("disabled");
+  canRedo ? redoButton.classList.remove("disabled") : redoButton.classList.add("disabled");
+}
+
 function updateSelectedNodesAndEdges() {
   cache.selectedNodes = graph.getNodeData()
     .filter((n) => n.states?.includes("selected") && cache.nodeIDsToBeShown.has(n.id))
@@ -1574,14 +1750,12 @@ function updateSelectedNodesAndEdges() {
   const selectedNodesCount = cache.selectedNodes?.length || 0;
   const selectedEdgesCount = cache.selectedEdges?.length || 0;
 
-
   document.getElementById("selectedNodes").textContent = `${selectedNodesCount}`;
   document.getElementById("selectedEdges").textContent = `${selectedEdgesCount}`;
 
   const atLeastOneNodeSelected = selectedNodesCount > 0;
   const atLeastOneEdgeSelected = selectedEdgesCount > 0;
   const atLeastOneNodeOrEdgeSelected = atLeastOneNodeSelected || atLeastOneEdgeSelected;
-
   const moreThanOneNodeSelected = selectedNodesCount > 1;
 
   document.getElementById("selectedNodes").style.display = atLeastOneNodeSelected ? "block" : "none";
@@ -1590,6 +1764,9 @@ function updateSelectedNodesAndEdges() {
   toggleStyleElementsThatRequireAtLeastOneSelectedEdge(atLeastOneEdgeSelected);
   toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(atLeastOneNodeOrEdgeSelected);
   toggleStyleElementsThatRequireMoreThanOneSelectedNode(moreThanOneNodeSelected);
+
+  updateSelectionCache();
+  updateEnabledStateUndoRedoSelectionButtons();
 }
 
 function toggleEditMode(ev) {
@@ -1632,14 +1809,17 @@ function toggleEditMode(ev) {
 function handleEditModeUIChanges() {
   const editModeActive = document.getElementById("editBtn").classList.contains("active");
 
-  const sideBarContentContainer = document.getElementById("sidebarContentContainer");
-  editModeActive ? sideBarContentContainer.style.paddingRight = "6px" : "0";
+  const container = document.getElementById("sidebarContentContainer");
+  const sidebar = document.getElementById("sidebar");
+  const status = document.getElementById("sidebarStatusContainer");
+
+  container.style.paddingRight = editModeActive ? "6px" : "0";
 
   // handle all edit elements
   const editElements = document.querySelectorAll('.show-on-edit');
   editElements.forEach(el => {
     editModeActive ? el.classList.add("show") : el.classList.remove("show");
-    editModeActive ? el.style.height = `${el.scrollHeight}px` : el.style.height = "0";
+    el.style.height = editModeActive ? `${el.scrollHeight}px` : "0";
   });
 
   // 'collapse' all open style rows
@@ -1674,7 +1854,12 @@ function handleEditModeUIChanges() {
     }
   });
 
-  document.getElementById("sidebar").style.minWidth = editModeActive ? "600px" : "360px";
+  sidebar.style.minWidth = editModeActive ? "600px" : "360px";
+  status.style.maxWidth = editModeActive ? "600px" : "360px";
+
+  // if (didShowAnyStatusMessage) {
+  //   status.style.height = "8%;"
+  // }
 }
 
 function* traverseBubbleSets() {
@@ -2893,7 +3078,7 @@ function createAddOrRemoveToSelectionButton(propID, shouldAdd) {
     if (triggerRender) {
       const addRemove = shouldAdd ? "Adding" : "Removing";
       const filler = shouldAdd ? "to" : "from";
-      handleFilterEvent(`${addRemove} ${filler} Selection`, `${addRemove} ${propID} ${filler} selection`, propID);
+      updateSelectionLoadingAndRenderEvent(`${addRemove} ${filler} Selection`, `${addRemove} ${propID} ${filler} selection`, propID);
     }
   });
   return btn;
@@ -3234,6 +3419,8 @@ function createCache() {
   cache.selectedNodes = new Set();
   cache.selectedEdges = new Set();
 
+  cache.selectionMemory = [{nodes: [], edges: []}];
+  cache.selectedMemoryIndex = 0;
 
   for (let group of traverseBubbleSets()) {
     cache.lastBubbleSetMembers.set(group, new Set());
@@ -3503,6 +3690,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 // })
 
 function logMessage(text, colorClass, bold = false) {
+  if (!didShowAnyStatusMessage) didShowAnyStatusMessage = true;
+
   const now = new Date();
   const hh = String(now.getHours()).padStart(2, '0');
   const mm = String(now.getMinutes()).padStart(2, '0');
@@ -3510,9 +3699,10 @@ function logMessage(text, colorClass, bold = false) {
   const timestamp = `${hh}:${mm}:${ss}`;
 
   const container = document.getElementById('sidebarStatusContainer');
+  container.style.height = "8%";
+
   const p = document.createElement('p');
-  p.style.marginBlockStart = "0.3em";
-  p.style.marginBlockEnd = "0.3em";
+  p.style.margin = "0 0 1px 0";
 
   const spanTime = document.createElement('span');
   spanTime.textContent = `${timestamp} | `;
