@@ -112,9 +112,11 @@ const EXCEL_NODE_HEADER = "Node filters";
 const EXCEL_EDGE_HEADER = "Edge filters";
 
 // The following constants define the columns in the Excel template for mapping node and edge properties
+// allowed types: "str", "num", "bool", "rgba", "oneOf:a|b|c"
+// @formatter:off
 const EXCEL_NODE_PROPERTIES = [
-  {column: "ID", required: true},
-  {column: "Label", apply: (n, v) => {
+  {column: "ID", type: "str", required: true},
+  {column: "Label", type: "str", apply: (n, v) => {
     n.label = v;
     n.style.label = DEFAULTS.NODE.LABEL.ENABLED;
     n.style.labelText = v;
@@ -124,26 +126,31 @@ const EXCEL_NODE_PROPERTIES = [
     n.style.labelBackgroundFill = DEFAULTS.NODE.BACKGROUND_COLOR;
     n.style.labelPlacement = DEFAULTS.NODE.PLACEMENT;
   }},
-  {column: "Label Font Size", apply: (n, v) => {n.style.labelFontSize = v; }},
-  {column: "Label Placement", apply: (n, v) => {n.style.labelPlacement = v; }},
-  {column: "Label Color", apply: (n, v) => {n.style.labelFill = v; }},
-  {column: "Label Background Color", apply: (n, v) => {
+  {column: "Label Font Size", type: "num", apply: (n, v) => {n.style.labelFontSize = v; }},
+  {
+    column: "Label Placement",
+    type: "oneOf:left|right|top|bottom|left-top|left-bottom|right-top|right-bottom|top-left|top-right|bottom-left|"
+      + "bottom-right|center",
+    apply: (n, v) => {n.style.labelPlacement = v; }
+  },
+  {column: "Label Color", type: "rgba", apply: (n, v) => {n.style.labelFill = v; }},
+  {column: "Label Background Color", type: "rgba", apply: (n, v) => {
     n.style.labelBackground = true;
     n.style.labelBackgroundFill = v;
   }},
-  {column: "Description", apply: (n, v) => {n.description = v; }},
-  {column: "Shape", apply: (n, v) => {n.type = v; }},
-  {column: "Size", apply: (n, v) => {n.style.size = v; }},
-  {column: "Fill Color", apply: (n, v) => {n.style.fill = v; }},
-  {column: "Stroke Color", apply: (n, v) => {n.style.stroke = v; }},
-  {column: "X Coordinate", apply: (n, v) => {n.style.x = v; }},
-  {column: "Y Coordinate", apply: (n, v) => {n.style.y = v; }},
+  {column: "Description", type: "str", apply: (n, v) => {n.description = v; }},
+  {column: "Shape", type: "oneOf:circle|diamond|hexagon|rect|triangle|star", apply: (n, v) => {n.type = v; }},
+  {column: "Size", type: "num", apply: (n, v) => {n.style.size = v; }},
+  {column: "Fill Color", type: "rgba", apply: (n, v) => {n.style.fill = v; }},
+  {column: "Stroke Color", type: "rgba", apply: (n, v) => {n.style.stroke = v; }},
+  {column: "X Coordinate", type: "num", apply: (n, v) => {n.style.x = v; }},
+  {column: "Y Coordinate", type: "num", apply: (n, v) => {n.style.y = v; }},
 ];
 
 const EXCEL_EDGE_PROPERTIES = [
-  {column: "Source ID", required: true},
-  {column: "Target ID", required: true},
-  {column: "Label", apply: (e, v) => {
+  {column: "Source ID", type: "str", required: true},
+  {column: "Target ID", type: "str", required: true},
+  {column: "Label", type: "str", apply: (e, v) => {
     e.label = v;
     e.style.label = true;
     e.style.labelText = v;
@@ -154,32 +161,37 @@ const EXCEL_EDGE_PROPERTIES = [
     e.style.labelBackground = DEFAULTS.EDGE.LABEL.BACKGROUND;
     e.style.labelBackgroundFill = DEFAULTS.EDGE.LABEL.BACKGROUND_COLOR;
   }},
-  {column: "Label Font Size", apply: (e, v) => {e.style.labelFontSize = v; }},
-  {column: "Label Placement", apply: (e, v) => {e.style.labelPlacement = v; }},
-  {column: "Label Offset X", apply: (e, v) => {e.style.labelOffsetX = v; }},
-  {column: "Label Offset Y", apply: (e, v) => {e.style.labelOffsetY = v; }},
-  {column: "Label Color", apply: (e, v) => {e.style.labelFill = v; }},
-  {column: "Label Background Color", apply: (e, v) => {
+  {column: "Label Font Size", type: "num", apply: (e, v) => {e.style.labelFontSize = v; }},
+  {column: "Label Placement", type: "oneOf:start|center|end", apply: (e, v) => {e.style.labelPlacement = v; }},
+  {column: "Label Color", type: "rgba", apply: (e, v) => {e.style.labelFill = v; }},
+  {column: "Label Background Color", type: "rgba", apply: (e, v) => {
     e.style.labelBackground = true;
     e.style.labelBackgroundFill = v;
   }},
-  {column: "Label Auto Rotate", apply: (e, v) => {e.style.labelAutoRotate = v; }},
-  {column: "Color", apply: (e, v) => {e.style.stroke = v; }},
-  {column: "Line Width", apply: (e, v) => {e.style.lineWidth = v; }},
-  {column: "Line Dash", apply: (e, v) => {e.style.lineDash = v; }},
-  {column: "Type", apply: (e, v) => {e.type = v; }},
-  {column: "Start Arrow", apply: (e, v) => {e.startArrow = v; }},
-  {column: "Start Arrow Size", apply: (e, v) => {e.startArrowSize = v; }},
-  {column: "Start Arrow Type", apply: (e, v) => {e.startArrowType = v; }},
-  {column: "End Arrow", apply: (e, v) => {e.endArrow = v; }},
-  {column: "End Arrow Size", apply: (e, v) => {e.endArrowSize = v; }},
-  {column: "End Arrow Type", apply: (e, v) => {e.endArrowType = v; }},
-  {column: "Halo Color", apply: (e, v) => {
+  {column: "Label Offset X", type: "num", apply: (e, v) => {e.style.labelOffsetX = v; }},
+  {column: "Label Offset Y", type: "num", apply: (e, v) => {e.style.labelOffsetY = v; }},
+  {column: "Label Auto Rotate", type: "bool", apply: (e, v) => {e.style.labelAutoRotate = v; }},
+  {column: "Color", type: "rgba", apply: (e, v) => {e.style.stroke = v; }},
+  {column: "Line Width", type: "num", apply: (e, v) => {e.style.lineWidth = v; }},
+  {column: "Line Dash", type: "num", apply: (e, v) => {e.style.lineDash = v; }},
+  {column: "Type", type: "oneOf:line|cubic|quadratic|polyline", apply: (e, v) => {e.type = v; }},
+  {column: "Start Arrow", type: "bool", apply: (e, v) => {e.startArrow = v; }},
+  {column: "Start Arrow Size", type: "num", apply: (e, v) => {e.startArrowSize = v; }},
+  {column: "Start Arrow Type", type: "oneOf:triangle|circle|diamond|vee|rect|triangleRect|simple",
+    apply: (e, v) => {e.startArrowType = v; }
+  },
+  {column: "End Arrow", type: "bool", apply: (e, v) => {e.endArrow = v; }},
+  {column: "End Arrow Size", type: "num", apply: (e, v) => {e.endArrowSize = v; }},
+  {column: "End Arrow Type", type: "oneOf:triangle|circle|diamond|vee|rect|triangleRect|simple",
+    apply: (e, v) => { e.endArrowType = v; }
+  },
+  {column: "Halo Color", type: "rgba", apply: (e, v) => {
     e.style.halo = true;
     e.style.haloStroke = v;
   }},
-  {column: "Halo Width", apply: (e, v) => {e.style.haloLineWidth = v; }},
+  {column: "Halo Width", type: "num", apply: (e, v) => {e.style.haloLineWidth = v; }},
 ];
+// @formatter:on
 
 /**
  * Defaults for the graph, layouts and UI
@@ -249,12 +261,41 @@ const DEFAULTS = {
   FILTER_STRATEGY: "OR",
 };
 
-function createDefaultLayout(key) {
-  if (data?.layouts?.[key]) {
-    alert("Layout with key '" + key + "' already exists.");
-    return false;
-  }
+function isString(value) {
+  return typeof value === 'string' || value instanceof String;
+}
 
+function isNumber(value) {
+  const parsed = parseFloat(value);
+  return !isNaN(parsed) && isFinite(parsed);
+}
+
+function isInList(value, allowedValues) {
+  return allowedValues.includes(value);
+}
+
+function isBoolean(value) {
+  if (typeof value === 'boolean') {
+    return true;
+  }
+  if (typeof value === 'string') {
+    const lowerVal = value.trim().toLowerCase();
+    return lowerVal === 'true' || lowerVal === 'false';
+  }
+  if (typeof value === 'number') {
+    return value === 1 || value === 0;
+  }
+  return false;
+}
+
+function isHexColor(value) {
+  if (!isString(value)) return false;
+  const hexRegex = /^#(?:[A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$/;
+  return hexRegex.test(value.trim());
+}
+
+
+function createDefaultLayout(key) {
   const defLayout = {
     internals: DEFAULTS.LAYOUT_INTERNALS[key] || null,
     positions: new Map(),
@@ -271,7 +312,7 @@ function createDefaultLayout(key) {
     defLayout[`${group}Props`] = new Set();
   }
 
-  return defLayout
+  return defLayout;
 }
 
 function parseGroups(filterValue) {
@@ -1141,7 +1182,7 @@ function updateSelectedState(elemData, enable) {
   }
 }
 
-function updateSelectionLoadingAndRenderEvent(header="Selection", text="Updating Selection", propID=null) {
+function updateSelectionLoadingAndRenderEvent(header = "Selection", text = "Updating Selection", propID = null) {
   handleFilterEvent(header, text, propID);
 }
 
@@ -1470,15 +1511,52 @@ function parseExcelToJson(file) {
     .map(edge => edge.column.toLowerCase().trim());
   validateColumns(requiredEdgeColumns, firstEdgeRowKeys, 'edges');
 
-  function addNodeOrEdgeStyle(nodeOrEdge, row, propertyMap) {
+  function addNodeOrEdgeStyle(nodeOrEdge, row, propertyMap, descriptor) {
     nodeOrEdge.style = {};
 
-    propertyMap.forEach(({column, required, apply}) => {
+    propertyMap.forEach(({column, type, required, apply}) => {
       if (required) return;
+
+      const rowNum = row.__rowNum__ + 1;
+
+      if (!type) {
+        warning(`Unsure how to validate ${descriptor} property ${column} in row ${rowNum}. 
+        Missing definition in EXCEL_NODE_PROPERTIES or EXCEL_EDGE_PROPERTIES?`);
+        return;
+      }
 
       const maybeValue = getOrNull(row, column);
       if (maybeValue) {
-        apply(nodeOrEdge, maybeValue);
+        let validated = false;
+        let listValues = null;
+        if (type.startsWith("oneOf:")) {
+            listValues = type.split(":")[1].split("|");
+            type = "list";
+        }
+        switch (type) {
+          case "str":
+            validated = true;
+            break;
+          case "num":
+            validated = isNumber(maybeValue);
+            break;
+          case "bool":
+            validated = isBoolean(maybeValue);
+            break;
+          case "rgba":
+            validated = isHexColor(maybeValue);
+            break;
+          case "list":
+            validated = isInList(maybeValue, listValues);
+            break;
+          default:
+            break;
+        }
+        if (!validated) {
+          error(`${descriptor} property '${column}' in row ${rowNum} has an invalid value '${maybeValue}' and will be ignored (value must be of type '${type}').`);
+        } else {
+          apply(nodeOrEdge, maybeValue);
+        }
       }
     });
   }
@@ -1535,49 +1613,53 @@ function parseExcelToJson(file) {
 
   const parsedNodes = nodesData.map(row => {
     const node = {};
+    const nodeRowNum = row.__rowNum__ + 1;
+    const descriptor = "Node";
 
     const nodeID = getOrNull(row, "ID");
     if (!nodeID) {
-      warning(`Node in row ${row.__rowNum__} does not contain an ID and will be skipped.`);
+      warning(`Node in row ${nodeRowNum} does not contain an ID and will be skipped.`);
       return null;
     }
 
     if (nodeIDs.has(nodeID)) {
-      warning(`Node in row ${row.__rowNum__} (ID ${nodeID}) already exists and will be skipped.`);
+      warning(`Node in row ${nodeRowNum} (ID ${nodeID}) already exists and will be skipped.`);
       return null;
     }
 
     node.id = nodeID;
     nodeIDs.add(nodeID);
 
-    addNodeOrEdgeStyle(node, row, EXCEL_NODE_PROPERTIES);
-    addNodeOrEdgeUserData(node, row, EXCEL_NODE_PROPERTIES, EXCEL_NODE_HEADER, "Node");
+    addNodeOrEdgeStyle(node, row, EXCEL_NODE_PROPERTIES, descriptor);
+    addNodeOrEdgeUserData(node, row, EXCEL_NODE_PROPERTIES, EXCEL_NODE_HEADER, descriptor);
 
     return node;
   }).filter(node => node !== null);
 
   const parsedEdges = edgesData.map(row => {
     const edge = {};
+    const edgeRowNum = row.__rowNum__ + 1;
+    const descriptor = "Edge";
 
     const sourceID = getOrNull(row, "Source ID");
     if (!sourceID) {
-      warning(`Edge in row ${edge.__rowNum__} does not contain a Source ID and will be skipped.`);
+      warning(`Edge in row ${edgeRowNum} does not contain a Source ID and will be skipped.`);
       return null;
     }
 
     if (!nodeIDs.has(sourceID)) {
-      warning(`Edge in row ${edge.__rowNum__} has an invalid/missing Source ID (${sourceID}) and will be skipped.`);
+      warning(`Edge in row ${edgeRowNum} has an invalid/missing Source ID (${sourceID}) and will be skipped.`);
       return null;
     }
 
     const targetID = getOrNull(row, "Target ID");
     if (!targetID) {
-      warning(`Edge in row ${edge.__rowNum__} does not contain a Target ID and will be skipped.`)
+      warning(`Edge in row ${edgeRowNum} does not contain a Target ID and will be skipped.`)
       return null;
     }
 
     if (!nodeIDs.has(targetID)) {
-      warning(`Edge in row ${edge.__rowNum__} has an invalid/missing Target ID (${targetID}) and will be skipped.`);
+      warning(`Edge in row ${edgeRowNum} has an invalid/missing Target ID (${targetID}) and will be skipped.`);
       return null;
     }
 
@@ -1585,8 +1667,8 @@ function parseExcelToJson(file) {
     edge.source = sourceID;
     edge.target = targetID;
 
-    addNodeOrEdgeStyle(edge, row, EXCEL_EDGE_PROPERTIES);
-    addNodeOrEdgeUserData(edge, row, EXCEL_EDGE_PROPERTIES, EXCEL_EDGE_HEADER, "Edge");
+    addNodeOrEdgeStyle(edge, row, EXCEL_EDGE_PROPERTIES, descriptor);
+    addNodeOrEdgeUserData(edge, row, EXCEL_EDGE_PROPERTIES, EXCEL_EDGE_HEADER, descriptor);
 
     return edge;
   }).filter(edge => edge !== null);
@@ -1713,7 +1795,7 @@ function arraysAreEqual(a, b) {
 let changeCounter = 0;
 
 function updateSelectionCache() {
-  const { selectedNodes, selectedEdges, selectionMemory, selectedMemoryIndex } = cache;
+  const {selectedNodes, selectedEdges, selectionMemory, selectedMemoryIndex} = cache;
 
   // this should never be triggered; in case no snapshot is available, create an empty one
   if (selectionMemory.length === 0) {
@@ -1751,7 +1833,7 @@ function updateSelectionCache() {
 }
 
 function updateEnabledStateUndoRedoSelectionButtons() {
-  const { selectionMemory, selectedMemoryIndex } = cache;
+  const {selectionMemory, selectedMemoryIndex} = cache;
   const canUndo = (selectedMemoryIndex > 0);
   const canRedo = (selectedMemoryIndex < selectionMemory.length - 1);
 
@@ -3199,7 +3281,7 @@ function getNodeStyleOrDefaults(node) {
     type: node.type || DEFAULTS.NODE.TYPE,
     style: {
       labelFontSize: node.style?.labelFontSize || DEFAULTS.NODE.LABEL.FONT_SIZE,
-      labelPlacement :node.style?.labelPlacement || DEFAULTS.NODE.LABEL.PLACEMENT,
+      labelPlacement: node.style?.labelPlacement || DEFAULTS.NODE.LABEL.PLACEMENT,
       labelFill: node.style?.labelFill || DEFAULTS.NODE.LABEL.FOREGROUND_COLOR,
       labelBackgroundFill: node.style?.labelBackgroundFill || DEFAULTS.NODE.LABEL.BACKGROUND_COLOR,
       labelBackground: node.style?.labelBackground || DEFAULTS.NODE.LABEL.BACKGROUND,
@@ -3410,8 +3492,13 @@ function preProcessData(fileData) {
     data.layouts = parseLayouts(fileData.layouts);
   } else {
     data.layouts = Object.keys(DEFAULTS.LAYOUT_INTERNALS).reduce((acc, key) => {
-      acc[key] = createDefaultLayout(key);
-      return acc;
+      if (data?.layouts?.[key]) {
+        warning("Layout with key '" + key + "' already exists.");
+        return acc;
+      } else {
+        acc[key] = createDefaultLayout(key);
+        return acc;
+      }
     }, {});
   }
 
