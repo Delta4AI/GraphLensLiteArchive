@@ -270,10 +270,10 @@
 
       .tooltip {
           font-family: sans-serif !important;
-          max-width: 640px !important;
+          max-width: 360px !important;
+          max-height: 400px !important;
+          overflow: auto !important;
           border: 1px solid black;
-          /*width: auto;*/
-          /*white-space: normal;*/
       }
 
       .tooltip hr {
@@ -293,6 +293,11 @@
       .tooltip ul {
           margin: 0;
           padding-left: 20px;
+          line-height: 0.8rem;
+          font-size: 10px;
+      }
+
+      .tooltip li {
           line-height: 0.8rem;
           font-size: 10px;
       }

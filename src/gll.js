@@ -74,8 +74,8 @@ const SORT_FILTERS = false;
 // If true, filters in the tooltips are sorted alphabetically
 const SORT_TOOLTIPS = true;
 
-// Maximum number of lines per tooltip column
-const TOOLTIP_LINE_BREAK = 20;
+// Maximum tooltip columns
+const TOOLTIP_MAX_COLUMNS = 2;
 
 // If true, properties with null (empty) values are not displayed in tooltips
 const TOOLTIP_HIDE_NULL_VALUES = false;
@@ -3816,67 +3816,85 @@ function clearActivePropsCacheOnLayoutChange() {
 }
 
 function buildToolTipText(nodeOrEdgeID, isEdge) {
-  let item = isEdge ? cache.edgeRef.get(nodeOrEdgeID) : cache.nodeRef.get(nodeOrEdgeID);
-  let label = item.label && item.label !== item.id ? `${item.label} (${item.id})` : item.id;
+  const item = isEdge ? cache.edgeRef.get(nodeOrEdgeID) : cache.nodeRef.get(nodeOrEdgeID);
+  const label = item.label && item.label !== item.id ? `${item.label} (${item.id})` : item.id;
   let tooltip = `<h3>${isEdge ? "Edge" : "Node"} <i>${label}</i></h3>`;
 
   if (item.description) {
     tooltip += `<p>${item.description}</p>`;
   }
-
   if (!item.D4Data) return tooltip;
 
-  const sortedPropIDs = SORT_TOOLTIPS ? [...data.filterDefaults.keys()].sort() : [...data.filterDefaults.keys()];
+  const sortedPropIDs = SORT_TOOLTIPS
+    ? [...data.filterDefaults.keys()].sort()
+    : [...data.filterDefaults.keys()];
 
-  let currentLineCount = 0;
-  tooltip += `<hr><div class="tooltip-columns"><div class="tooltip-column">`;
-
-  let lastSection = null;
-  let lastSubSection = null;
+  // Collect all lines for columns
+  const lines = [];
+  let lastSection = null, lastSubSection = null;
 
   for (const propID of sortedPropIDs) {
     const [section, subSection, property] = decodePropHashId(propID);
-
-    // Skip if this property is not defined in the current item's data
     if (item.D4Data[section]?.[subSection]?.[property] === undefined) continue;
 
+    // Section header if changed
     if (section !== lastSection) {
-      if (lastSection !== null) tooltip += `</ul>`; // Close the last subsection if it exists
-      tooltip += `<h3>${section}</h3>`;
+      lines.push({ type: "section", text: section });
       lastSection = section;
       lastSubSection = null;
-      currentLineCount++;
     }
-
+    // Subsection header if changed
     if (subSection !== lastSubSection) {
-      if (lastSubSection !== null) tooltip += `</ul>`; // Close the previous subsection if it exists
-
-      const subSectionLineCount = 1 + Object.keys(item.D4Data[section][subSection]).length;
-      if (currentLineCount + subSectionLineCount > TOOLTIP_LINE_BREAK) {
-        tooltip += `</div><div class="tooltip-column">`; // Start new column
-        currentLineCount = 0;
-      }
-
-      tooltip += `<h5>${subSection}</h5><ul>`;
+      lines.push({ type: "subSection", text: subSection });
       lastSubSection = subSection;
-      currentLineCount++;
     }
 
-    // Add property and its value
-    const value = item.D4Data[section][subSection][property];
-    if (TOOLTIP_HIDE_NULL_VALUES && value === 0) continue;
+    const rawValue = item.D4Data[section][subSection][property];
+    if (TOOLTIP_HIDE_NULL_VALUES && rawValue === 0) continue;
 
-    const formattedValue = isNaN(value) ? value : formatNumber(value, FILTER_VISUAL_FLOAT_PRECISION);
-    tooltip += `<li>${property}: <span class="red"><b>${formattedValue}</b></span></li>`;
-    currentLineCount++;
+    const value = isNaN(rawValue)
+      ? rawValue
+      : formatNumber(rawValue, FILTER_VISUAL_FLOAT_PRECISION);
+    lines.push({ type: "property", property, value });
   }
 
-  // Close any remaining open tags
-  tooltip += `</ul></div></div>`;
+  // Distribute lines into columns as evenly as possible
+  const linesPerColumn = Math.ceil(lines.length / TOOLTIP_MAX_COLUMNS);
+  const columns = [];
+  for (let i = 0; i < TOOLTIP_MAX_COLUMNS; i++) {
+    columns.push(lines.slice(i * linesPerColumn, (i + 1) * linesPerColumn));
+  }
+
+  tooltip += `<hr><div class="tooltip-columns">`;
+  for (const col of columns) {
+    tooltip += `<div class="tooltip-column">`;
+    let inList = false;
+
+    for (const entry of col) {
+      if (entry.type === "section") {
+        if (inList) {
+          tooltip += `</ul>`;
+          inList = false;
+        }
+        tooltip += `<h3>${entry.text}</h3>`;
+      } else if (entry.type === "subSection") {
+        if (inList) {
+          tooltip += `</ul>`;
+          inList = false;
+        }
+        tooltip += `<h5>${entry.text}</h5><ul>`;
+        inList = true;
+      } else if (entry.type === "property") {
+        tooltip += `<li>${entry.property}: <span class="red"><b>${entry.value}</b></span></li>`;
+      }
+    }
+    if (inList) tooltip += `</ul>`;
+    tooltip += `</div>`;
+  }
+  tooltip += `</div>`;
 
   return tooltip;
 }
-
 function humanFileSize(size) {
   let i = size === 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
   return +((size / Math.pow(1024, i)).toFixed(2)) + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
