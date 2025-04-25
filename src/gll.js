@@ -601,9 +601,10 @@ function layoutSelectedNodes(action) {
 function createStyleDiv() {
   const root = document.createElement("div");
 
-  function createNewRow(parent) {
+  function createNewRow(parent, id = null) {
     const row = document.createElement("div");
     row.classList.add("card-row");
+    row.id = id;
     parent.appendChild(row);
     return row;
   }
@@ -946,7 +947,7 @@ function createStyleDiv() {
   }
 
   function createInput(large = true, placeholder = undefined, title = undefined,
-                            defaultValue = undefined, callback = undefined) {
+                       defaultValue = undefined, callback = undefined) {
     const input = document.createElement("input");
     input.type = "text";
     input.placeholder = placeholder;
@@ -963,6 +964,12 @@ function createStyleDiv() {
       });
     }
     return input;
+  }
+
+  function appendInput(parent, large = true, placeholder = undefined, title = undefined,
+                       defaultValue = undefined, callback = undefined) {
+    const input = createInput(large, placeholder, title, defaultValue, callback);
+    parent.appendChild(input);
   }
 
   function createNodeShapeControls(parent) {
@@ -1029,18 +1036,37 @@ function createStyleDiv() {
       () => toggleSelectionForAllEdges(false));
 
     const rowTwo = createNewRow(selDiv);
-    appendButton(rowTwo, "Expand Edges", "Add all edges connected to the currently selected nodes to the selection",
+    appendButton(rowTwo, "Expand Edges",
+      "Add all edges connected to the currently selected nodes to the selection",
       () => toggleSelectionByNeighbors("expand-edges"));
-    appendButton(rowTwo, "Reduce Edges", "Remove edges that do not connect two selected nodes",
+    appendButton(rowTwo, "Reduce Edges",
+      "Remove edges that do not connect two selected nodes",
       () => toggleSelectionByNeighbors("reduce-edges"));
     appendVerticalRule(rowTwo);
-    appendButton(rowTwo, "Expand Neighbors", "Add all directly connected neighbor nodes (and their edges) to the current selection",
+    appendButton(rowTwo, "Expand Neighbors",
+      "Add all directly connected neighbor nodes (and their edges) to the current selection",
       () => toggleSelectionByNeighbors("expand-neighbors"));
-    appendButton(rowTwo, "Reduce Neighbors", "Remove the outermost layer of selected neighbor nodes (and their edges) from the ",
+    appendButton(rowTwo, "Reduce Neighbors",
+      "Remove the outermost layer of selected neighbor nodes (and their edges) from the ",
       () => toggleSelectionByNeighbors("reduce-neighbors"));
 
-    // const rowThree = createNewRow(selDiv);
-    // appendLabel(rowThree, "Select by Node ID(s)", "Enter comma-separated Node IDs to add to selection");
+    const rowThree = createNewRow(selDiv, "Select by Node ID(s)");
+    appendLabel(rowThree, "Select by Node ID(s)",
+      "Enter comma-separated node IDs to add to selection.");
+    const topTwoNodeIDs = data?.nodes?.slice(0, 2).map(n => n.id).join(',') || 'Node1,Node2';
+    appendInput(rowThree, true, topTwoNodeIDs, "Enter comma-separated list of node IDs to add to selection.",
+      undefined, (val) => {
+        addNodeOrEdgeIDsToSelection(val, true);
+      });
+
+    const rowFour = createNewRow(selDiv, "Select by Edge ID(s)");
+    appendLabel(rowFour, "Select by Edge ID(s)",
+      "Enter comma-separated edge IDs (SourceID::TargetID) to add to selection.");
+    const topTwoEdgeIDs = data?.edges?.slice(0, 2).map(e => e.id).join(',') || 'Node1::Node2,Node1::Node3';
+    appendInput(rowFour, true, topTwoEdgeIDs,
+      "Enter comma-separated edge IDs (SourceID::TargetID) to add to selection.", undefined, (val) => {
+        addNodeOrEdgeIDsToSelection(val, false);
+      });
   }
 
   function createArrangeNodesCard() {
@@ -1290,11 +1316,11 @@ function toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(enable) {
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleNode(enable) {
-  toggleStyleElements([], enable);
+  toggleStyleElements(["Select by Node ID(s)"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleEdge(enable) {
-  toggleStyleElements([], enable);
+  toggleStyleElements(["Select by Edge ID(s)"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(enable) {
@@ -1393,6 +1419,40 @@ function redoSelection() {
     syncSelectionCacheAndElementStates();
   } else {
     warning("Cannot redo!");
+  }
+}
+
+function addNodeOrEdgeIDsToSelection(elementIDs, isNode) {
+  if (!elementIDs) return;
+
+  const elemDescription = isNode ? "Node" : "Edge";
+  const idArray = elementIDs.split(",");
+
+  const visibleElements = isNode ? cache.nodeIDsToBeShown : cache.edgeIDsToBeShown;
+  const existingElements = isNode ? cache.nodeRef.keys().toArray() : cache.edgeRef.keys().toArray();
+  const selectedElements = isNode ? cache.selectedNodes : cache.selectedEdges;
+  const ref = isNode ? cache.nodeRef : cache.edgeRef;
+
+  for (const elemID of idArray) {
+    if (!existingElements.includes(elemID)) {
+      error(`${elemDescription} with ID: '${elemID}' does not exist!`);
+      continue;
+    }
+
+    if (!visibleElements.has(elemID)) {
+      warning(`Cannot select ${elemDescription} with ID: '${elemID}' as it is not visible.`);
+      continue;
+    }
+
+    const elementsToUpdate = [];
+    if (!selectedElements.includes(elemID)) {
+      elementsToUpdate.push(ref.get(elemID));
+    }
+
+    if (elementsToUpdate.length > 0) {
+      updateSelectedState(elementsToUpdate, true);
+      updateSelectionLoadingAndRenderEvent();
+    }
   }
 }
 
