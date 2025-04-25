@@ -46,7 +46,7 @@ register(ExtensionCategory.LAYOUT, 'custom', CustomForceLayout);
 /* @type {import('@antv/g6').Graph","null} */
 let graph = null;  // The G6 graph object
 let data = {};  // Stores data that can be serialized as json file
-let cache = {};  // Stores references to map IDs to node/edge objects that cannot be serialized to a json file
+let cache = {initialized: false};  // Stores references to map IDs to node/edge objects that cannot be serialized to a json file
 let didShowAnyStatusMessage = false;
 
 /**
@@ -89,14 +89,14 @@ const REMOVE_DANGLING_NODES_WHEN_AND_FILTER_IS_ACTIVE_AND_EDGES_ARE_DISPLAYED = 
 // If true, bubble groups avoid all non-bubble group members per default
 const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
 
-// If true, each property has an individual "Style" button to color nodes for a single property only
-const SHOW_NODE_OR_EDGE_PROPERTY_SPECIFIC_STYLE_BUTTON = false;
-
 // Used for "clearing" labels
 const INVISIBLE_CHARACTER = "\u200B";
 
 // Maximum capacity of selection memory
 const MAX_SELECTION_MEMORY = 10;
+
+// If true, an additional "Node Connectivity" section is displayed in the UI
+const ENABLE_NODE_CONNECTIVITY_SECTION = false;
 
 /**
  *  Excel-model import related properties
@@ -142,7 +142,8 @@ const EXCEL_NODE_PROPERTIES = [
   {column: "Shape", type: "oneOf:circle|diamond|hexagon|rect|triangle|star", apply: (n, v) => {n.type = v; }},
   {column: "Size", type: "num", apply: (n, v) => {n.style.size = v; }},
   {column: "Fill Color", type: "rgba", apply: (n, v) => {n.style.fill = v; }},
-  {column: "Stroke Color", type: "rgba", apply: (n, v) => {n.style.stroke = v; }},
+  {column: "Border Color", type: "rgba", apply: (n, v) => {n.style.stroke = v; }},
+  {column: "Border Size", type: "num", apply: (n, v) => {n.style.lineWidth = v; }},
   {column: "X Coordinate", type: "num", apply: (n, v) => {n.style.x = v; }},
   {column: "Y Coordinate", type: "num", apply: (n, v) => {n.style.y = v; }},
 ];
@@ -199,17 +200,20 @@ const EXCEL_EDGE_PROPERTIES = [
 const DEFAULTS = {
   NODE: {
     FILL_COLOR: "#C33D35", SIZE: 20, LINE_WIDTH: 1, TYPE: "hexagon", STROKE_COLOR: null,
+    BADGE: {
+      FONT_SIZE: 8, COLOR: "#C33D35"
+    },
     LABEL: {
-      ENABLED: true, FOREGROUND_COLOR: "#000000", BACKGROUND: false, BACKGROUND_COLOR: null, PLACEMENT: "bottom",
-      FONT_SIZE: 12
-    }
+      ENABLED: true, FOREGROUND_COLOR: "#000000", BACKGROUND: false, BACKGROUND_COLOR: null, BACKGROUND_RADIUS: 5,
+      PADDING: 2, PLACEMENT: "bottom", FONT_SIZE: 12
+    },
   },
   EDGE: {
     COLOR: "#403C5390", LINE_WIDTH: 0.75, LINE_DASH: 0, TYPE: "line",
     ARROWS: {START: false, END: false, START_SIZE: 8, START_TYPE: "triangle", END_SIZE: 8, END_TYPE: "triangle"},
     LABEL: {
       ENABLED: false, TEXT: null, FOREGROUND_COLOR: "#000000", BACKGROUND: false, BACKGROUND_COLOR: null,
-      PLACEMENT: "center", FONT_SIZE: 12, AUTO_ROTATE: true, OFFSET_X: 0, OFFSET_Y: 0
+      PLACEMENT: "center", FONT_SIZE: 12, AUTO_ROTATE: false, OFFSET_X: 0, OFFSET_Y: 0
     },
     HALO: {
       ENABLED: false, COLOR: "#403C53", WIDTH: 3,
@@ -238,25 +242,50 @@ const DEFAULTS = {
   STYLES: {
     NODE_FORM: {"●": "circle", "◆": "diamond", "⬢": "hexagon", "■": "rect", "▲": "triangle", "★": "star"},
     NODE_COLORS: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD"},
-    NODE_SIZES: {sm: 15, md: 25, lg: 35, xlg: 50},
+    NODE_SIZES: {s: 15, m: 25, l: 35, xl: 50},
     NODE_BORDER_COLORS: {
       red: "#C33D35",
       purple: "#403C53",
       blue: "#8CA6D9",
       pink: "#EFB0AA",
       grey: "#ABACBD",
-      transparent: "#00000000"
+      none: "#00000000"
     },
     NODE_BORDER_SIZES: {sm: 0.5, md: 1, lg: 2, xlg: 4},
-    NODE_LABEL_SIZES: {sm: 10, md: 12, lg: 14, xlg: 20},
+    NODE_LABEL_FONT_SIZES: {sm: 10, md: 12, lg: 14, xlg: 20},
+    NODE_LABEL_COLORS: {black: "#000000", red: "#C33D35", purple: "#403C53", grey: "#ABACBD"},
+    NODE_LABEL_PLACEMENTS: ["left", "right", "top", "bottom", "left-top", "left-bottom", "right-top", "right-bottom", "top-left", "top-right", "bottom-left", "bottom-right", "center"],
+    NODE_LABEL_BACKGROUND_COLORS: {
+      red: "#C33D35",
+      purple: "#403C53",
+      blue: "#8CA6D9",
+      pink: "#EFB0AA",
+      grey: "#ABACBD",
+      none: "#00000000"
+    },
     NODE_BADGE_PLACEMENTS: ["left", "right", "top", "bottom", "left-top", "left-bottom", "right-top", "right-bottom", "top-left", "top-right", "bottom-left", "bottom-right"],
-    NODE_BADGE_DEFAULT_COLOR: "#C33D35",
+    EDGE_TYPES: ["line", "cubic", "quadratic", "polyline"],
     EDGE_COLORS: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD"},
-    EDGE_WIDTHS: {sm: 0.5, md: 0.75, lg: 1, xlg: 3},
+    // EDGE_WIDTHS: {sm: 0.5, md: 0.75, lg: 1, xlg: 3},
     EDGE_DASHS: {none: 0, dashed: 10},
+    EDGE_LABEL_FONT_SIZES: {sm: 8, md: 12, lg: 16},
+    EDGE_LABEL_PLACEMENTS: ["start", "center", "end"],
+    EDGE_LABEL_COLORS: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD"},
+    EDGE_LABEL_BACKGROUND_COLORS: {
+      red: "#C33D35",
+      purple: "#403C53",
+      blue: "#8CA6D9",
+      pink: "#EFB0AA",
+      grey: "#ABACBD"
+    },
+    EDGE_LABEL_OFFSET_X: {"-25": -25, "0": 0, "25": 25},
+    EDGE_LABEL_OFFSET_Y: {"-25": -25, "0": 0, "25": 25},
+    // EDGE_LABEL_AUTOROTATE: {enable: true, disable: false},
+    // EDGE_ARROW_SIZES: {sm: 8, md: 10, lg: 14},
+    EDGE_ARROW_TYPES: ["triangle", "circle", "diamond", "vee", "rect", "triangleRect", "simple"],
     EDGE_HALO: {enable: true, disable: false},
-    EDGE_HALO_STROKE: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD"},
-    EDGE_HALO_WIDTH: {sm: 2, md: 3, lg: 4, xlg: 6},
+    EDGE_HALO_STROKE: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9"},
+    EDGE_HALO_WIDTH: {sm: 2, md: 3, lg: 5},
   },
   FILTER_STRATEGY: "OR",
 };
@@ -377,789 +406,913 @@ function getTargetEdges(propID) {
   );
 }
 
-function createStyleDiv(propID) {
-  const container = document.createElement("div");
-  container.classList.add("style-container");
+function layoutSelectedNodes(action) {
+  if (cache.selectedNodes.length === 0) return;
 
-  if (!propID) {
-    const selectButtonBarRowOne = document.createElement("div");
-    const selectButtonBarRowTwo = document.createElement("div");
-    const selectButtonBarRowThree = document.createElement("div");
-    const selectButtonBarRowFour = document.createElement("div");
-
-    const selectAllNodes = document.createElement("button");
-    selectAllNodes.textContent = "All nodes";
-    selectAllNodes.title = "Select all visible nodes";
-    selectAllNodes.classList.add("style-inner-button");
-    selectAllNodes.onclick = () => {
-      toggleSelectionForAllNodes(true);
-    }
-    selectButtonBarRowOne.appendChild(selectAllNodes);
-
-    const selectNoNodes = document.createElement("button");
-    selectNoNodes.textContent = "No nodes";
-    selectNoNodes.title = "Deselect all visible nodes";
-    selectNoNodes.classList.add("style-inner-button");
-    selectNoNodes.onclick = () => {
-      toggleSelectionForAllNodes(false);
-    }
-    selectButtonBarRowOne.appendChild(selectNoNodes);
-
-    const selectAllEdges = document.createElement("button");
-    selectAllEdges.textContent = "All edges";
-    selectAllEdges.title = "Select all visible edges";
-    selectAllEdges.classList.add("style-inner-button");
-    selectAllEdges.onclick = () => {
-      toggleSelectionForAllEdges(true);
-    }
-    selectButtonBarRowOne.appendChild(selectAllEdges);
-
-    const selectNoEdges = document.createElement("button");
-    selectNoEdges.textContent = "No edges";
-    selectNoEdges.title = "Deselect all visible edges";
-    selectNoEdges.classList.add("style-inner-button");
-    selectNoEdges.onclick = () => {
-      toggleSelectionForAllEdges(false);
-    }
-    selectButtonBarRowOne.appendChild(selectNoEdges);
-
-    createSection("Select", selectButtonBarRowOne, propID);
-
-    selectButtonBarRowTwo.appendChild(createLineBreak())
-
-    const expandByEdges = document.createElement("button");
-    expandByEdges.textContent = "Expand by Edges";
-    expandByEdges.title = "Add all edges connected to the currently selected nodes to the selection";
-    expandByEdges.classList.add("style-inner-button");
-    expandByEdges.onclick = () => {
-      toggleSelectionByNeighbors("expand-edges");
-    }
-    selectButtonBarRowTwo.appendChild(expandByEdges);
-
-    const reduceByEdges = document.createElement("button");
-    reduceByEdges.textContent = "Reduce by Edges";
-    reduceByEdges.title = "Remove edges that do not connect two selected nodes";
-    reduceByEdges.classList.add("style-inner-button");
-    reduceByEdges.onclick = () => {
-      toggleSelectionByNeighbors("reduce-edges");
-    }
-    selectButtonBarRowTwo.appendChild(reduceByEdges);
-
-    createSection(null, selectButtonBarRowTwo, propID, "expandOrReduceByEdges");
-
-    const expandByNeighbors = document.createElement("button");
-    expandByNeighbors.textContent = "Expand by Neighbors";
-    expandByNeighbors.title = "Add all directly connected neighbor nodes (and their edges) to the current selection";
-    expandByNeighbors.classList.add("style-inner-button");
-    expandByNeighbors.onclick = () => {
-      toggleSelectionByNeighbors("expand-neighbors");
-    }
-    selectButtonBarRowThree.appendChild(expandByNeighbors);
-
-    const reduceByNeighbors = document.createElement("button");
-    reduceByNeighbors.textContent = "Reduce by Neighbors";
-    reduceByNeighbors.title = "Remove the outermost layer of selected neighbor nodes (and their edges) from the " +
-      "selection"
-    reduceByNeighbors.classList.add("style-inner-button");
-    reduceByNeighbors.onclick = () => {
-      toggleSelectionByNeighbors("reduce-neighbors");
-    }
-
-    selectButtonBarRowThree.appendChild(reduceByNeighbors);
-
-    createSection(null, selectButtonBarRowThree, propID, "expandOrReduceByNeighbors");
-
-    // const selectNextOuterLayer = document.createElement("button");
-    // selectNextOuterLayer.textContent = "Only Outer Layer";
-    // selectNextOuterLayer.title = "Select only the next outer layer of connected nodes from the currently selected nodes";
-    // selectNextOuterLayer.classList.add("style-inner-button");
-    // selectNextOuterLayer.onclick = () => {
-    //   toggleSelectionByNeighbors("only-outer-layer");
-    // };
-    // selectButtonBarRowFour.appendChild(selectNextOuterLayer);
-    //
-    // const selectInnerLayer = document.createElement("button");
-    // selectInnerLayer.textContent = "Only Inner Layer";
-    // selectInnerLayer.title = "Select only the inner layer (excluding outermost nodes) of the currently selected nodes";
-    // selectInnerLayer.classList.add("style-inner-button");
-    // selectInnerLayer.onclick = () => {
-    //   toggleSelectionByNeighbors("only-inner-layer");
-    // };
-    // selectButtonBarRowFour.appendChild(selectInnerLayer);
-    //
-    // createSection(null, selectButtonBarRowFour, propID, "selectOnlyInnerOrOuterLayer");
-
-    createSeparator();
-
-    const layoutButtonBar = document.createElement("div");
-
-    const shrinkNodesButton = document.createElement("button");
-    shrinkNodesButton.textContent = "Shrink";
-    shrinkNodesButton.classList.add("style-inner-button");
-    shrinkNodesButton.title = "Move nodes closer together, halving their distance to the center.";
-    shrinkNodesButton.onclick = () => {
-      layoutSelectedNodes("shrink");
-    };
-    layoutButtonBar.appendChild(shrinkNodesButton);
-
-    const expandNodesButton = document.createElement("button");
-    expandNodesButton.textContent = "Expand";
-    expandNodesButton.classList.add("style-inner-button");
-    expandNodesButton.title = "Move nodes farther apart, doubling their distance to the center.";
-    expandNodesButton.onclick = () => {
-      layoutSelectedNodes("expand");
-    };
-    layoutButtonBar.appendChild(expandNodesButton);
-
-    const verticalRule = document.createElement("div");
-    verticalRule.classList.add("vr");
-    layoutButtonBar.appendChild(verticalRule);
-
-    const arrangeCircleButton = document.createElement("button");
-    arrangeCircleButton.textContent = "Circle";
-    arrangeCircleButton.classList.add("style-inner-button");
-    arrangeCircleButton.title = "Arrange nodes evenly in a circular layout around the center.";
-    arrangeCircleButton.onclick = () => {
-      layoutSelectedNodes("circle");
-    };
-    layoutButtonBar.appendChild(arrangeCircleButton);
-
-    const forceLayoutButton = document.createElement("button");
-    forceLayoutButton.textContent = "Force";
-    forceLayoutButton.classList.add("style-inner-button");
-    forceLayoutButton.title = "Apply a force-directed layout to the selected nodes.";
-    forceLayoutButton.onclick = () => {
-      layoutSelectedNodes("force");
-    }
-    layoutButtonBar.appendChild(forceLayoutButton);
-
-    const gridLayoutButton = document.createElement("button");
-    gridLayoutButton.textContent = "Grid";
-    gridLayoutButton.classList.add("style-inner-button");
-    gridLayoutButton.title = "Apply a grid layout to the selected nodes.";
-    gridLayoutButton.onclick = () => {
-      layoutSelectedNodes("grid");
-    }
-    layoutButtonBar.appendChild(gridLayoutButton);
-
-    const randomLayoutButton = document.createElement("button");
-    randomLayoutButton.textContent = "Random";
-    randomLayoutButton.classList.add("style-inner-button");
-    randomLayoutButton.title = "Apply a random layout to the selected nodes.";
-    randomLayoutButton.onclick = () => {
-      layoutSelectedNodes("random");
-    }
-    layoutButtonBar.appendChild(randomLayoutButton);
-
-    createSection("Arrange Nodes", layoutButtonBar, propID);
-    createSeparator();
+  function getSelectedNodes() {
+    return graph.getNodeData().filter((node) => cache.selectedNodes.includes(node.id));
   }
 
-  function layoutSelectedNodes(action) {
-    if (cache.selectedNodes.length === 0) return;
+  function groupOrSpreadSelectedNodes(scale) {
+    for (const node of getSelectedNodes()) {
+      const oldX = node.style.x;
+      const oldY = node.style.y;
 
-    function getSelectedNodes() {
-      return graph.getNodeData().filter((node) => cache.selectedNodes.includes(node.id));
+      node.style.x = avgX + (oldX - avgX) * scale;
+      node.style.y = avgY + (oldY - avgY) * scale;
+    }
+  }
+
+  function arrangeNodesInCircle(radius) {
+    const numNodes = cache.selectedNodes.length;
+    let angleStep = (2 * Math.PI) / numNodes;
+
+    let i = 0;
+    for (const node of getSelectedNodes()) {
+      const angle = i * angleStep;
+      node.style.x = avgX + radius * Math.cos(angle);
+      node.style.y = avgY + radius * Math.sin(angle);
+      i++;
+    }
+  }
+
+  function applyForceLayout(iterations) {
+    // -----------------------------
+    // Updated parameters
+    // -----------------------------
+    const INITIAL_TEMPERATURE = 2.0;     // Starting "temperature" for the cooling factor
+    const COOLING_FACTOR = 0.98;    // Slower cooling to allow more spreading
+    const GRAVITY_STRENGTH = 0.00001; // Reduced gravity so nodes aren't pulled too close
+    const MAX_DISPLACEMENT = 50;      // Higher limit on movement per iteration or remove if needed
+
+    const REPULSION = 20000;        // Strong repulsion to push nodes apart
+    const SPRING_LENGTH = 300;         // Ideal distance between connected nodes
+    const SPRING_STRENGTH = 0.005;        // Reduced tension to allow more space
+
+    // -----------------------------
+    // Larger initial placement range
+    // -----------------------------
+    const nodes = getSelectedNodes();
+    for (const node of nodes) {
+      node.style.x = Math.random() * 1000 - 500;  // Range: [-500, 500]
+      node.style.y = Math.random() * 1000 - 500;  // Range: [-500, 500]
     }
 
-    function groupOrSpreadSelectedNodes(scale) {
-      for (const node of getSelectedNodes()) {
-        const oldX = node.style.x;
-        const oldY = node.style.y;
+    // -----------------------------
+    // Main iteration
+    // -----------------------------
+    let temperature = INITIAL_TEMPERATURE;
+    for (let i = 0; i < iterations; i++) {
+      // 1) Repulsion between every pair of nodes
+      for (let a = 0; a < nodes.length; a++) {
+        for (let b = a + 1; b < nodes.length; b++) {
+          const dx = nodes[b].style.x - nodes[a].style.x;
+          const dy = nodes[b].style.y - nodes[a].style.y;
+          const dist = Math.sqrt(dx * dx + dy * dy) + 0.01; // Avoid dividing by zero
 
-        node.style.x = avgX + (oldX - avgX) * scale;
-        node.style.y = avgY + (oldY - avgY) * scale;
-      }
-    }
+          const force = REPULSION / (dist * dist); // 1 / distance^2
+          const fx = force * (dx / dist);
+          const fy = force * (dy / dist);
 
-    function arrangeNodesInCircle(radius) {
-      const numNodes = cache.selectedNodes.length;
-      let angleStep = (2 * Math.PI) / numNodes;
-
-      let i = 0;
-      for (const node of getSelectedNodes()) {
-        const angle = i * angleStep;
-        node.style.x = avgX + radius * Math.cos(angle);
-        node.style.y = avgY + radius * Math.sin(angle);
-        i++;
-      }
-    }
-
-    function applyForceLayout(iterations) {
-      // -----------------------------
-      // Updated parameters
-      // -----------------------------
-      const INITIAL_TEMPERATURE = 2.0;     // Starting "temperature" for the cooling factor
-      const COOLING_FACTOR = 0.98;    // Slower cooling to allow more spreading
-      const GRAVITY_STRENGTH = 0.00001; // Reduced gravity so nodes aren't pulled too close
-      const MAX_DISPLACEMENT = 50;      // Higher limit on movement per iteration or remove if needed
-
-      const REPULSION = 20000;        // Strong repulsion to push nodes apart
-      const SPRING_LENGTH = 300;         // Ideal distance between connected nodes
-      const SPRING_STRENGTH = 0.005;        // Reduced tension to allow more space
-
-      // -----------------------------
-      // Larger initial placement range
-      // -----------------------------
-      const nodes = getSelectedNodes();
-      for (const node of nodes) {
-        node.style.x = Math.random() * 1000 - 500;  // Range: [-500, 500]
-        node.style.y = Math.random() * 1000 - 500;  // Range: [-500, 500]
+          // Apply forces (scaled by temperature)
+          nodes[a].style.x -= fx * temperature;
+          nodes[a].style.y -= fy * temperature;
+          nodes[b].style.x += fx * temperature;
+          nodes[b].style.y += fy * temperature;
+        }
       }
 
-      // -----------------------------
-      // Main iteration
-      // -----------------------------
-      let temperature = INITIAL_TEMPERATURE;
-      for (let i = 0; i < iterations; i++) {
-        // 1) Repulsion between every pair of nodes
-        for (let a = 0; a < nodes.length; a++) {
-          for (let b = a + 1; b < nodes.length; b++) {
-            const dx = nodes[b].style.x - nodes[a].style.x;
-            const dy = nodes[b].style.y - nodes[a].style.y;
-            const dist = Math.sqrt(dx * dx + dy * dy) + 0.01; // Avoid dividing by zero
+      // 2) Spring forces (edges)
+      for (const edge of graph.getEdgeData()) {
+        const {source, target} = edge;
+        if (cache.selectedNodes.includes(source) && cache.selectedNodes.includes(target)) {
+          const nodeA = nodes.find((n) => n.id === source);
+          const nodeB = nodes.find((n) => n.id === target);
+          if (nodeA && nodeB) {
+            const dx = nodeB.style.x - nodeA.style.x;
+            const dy = nodeB.style.y - nodeA.style.y;
+            const dist = Math.sqrt(dx * dx + dy * dy) + 0.01;
 
-            const force = REPULSION / (dist * dist); // 1 / distance^2
+            // (currentDistance - idealDistance)
+            const force = (dist - SPRING_LENGTH) * SPRING_STRENGTH;
             const fx = force * (dx / dist);
             const fy = force * (dy / dist);
 
-            // Apply forces (scaled by temperature)
-            nodes[a].style.x -= fx * temperature;
-            nodes[a].style.y -= fy * temperature;
-            nodes[b].style.x += fx * temperature;
-            nodes[b].style.y += fy * temperature;
+            // Apply (scaled by temperature)
+            nodeA.style.x += fx * temperature;
+            nodeA.style.y += fy * temperature;
+            nodeB.style.x -= fx * temperature;
+            nodeB.style.y -= fy * temperature;
           }
         }
-
-        // 2) Spring forces (edges)
-        for (const edge of graph.getEdgeData()) {
-          const {source, target} = edge;
-          if (cache.selectedNodes.includes(source) && cache.selectedNodes.includes(target)) {
-            const nodeA = nodes.find((n) => n.id === source);
-            const nodeB = nodes.find((n) => n.id === target);
-            if (nodeA && nodeB) {
-              const dx = nodeB.style.x - nodeA.style.x;
-              const dy = nodeB.style.y - nodeA.style.y;
-              const dist = Math.sqrt(dx * dx + dy * dy) + 0.01;
-
-              // (currentDistance - idealDistance)
-              const force = (dist - SPRING_LENGTH) * SPRING_STRENGTH;
-              const fx = force * (dx / dist);
-              const fy = force * (dy / dist);
-
-              // Apply (scaled by temperature)
-              nodeA.style.x += fx * temperature;
-              nodeA.style.y += fy * temperature;
-              nodeB.style.x -= fx * temperature;
-              nodeB.style.y -= fy * temperature;
-            }
-          }
-        }
-
-        // 3) Gravity / Centering
-        // With reduced gravity, nodes won't cluster too tightly
-        for (const node of nodes) {
-          node.style.x += -node.style.x * GRAVITY_STRENGTH * temperature;
-          node.style.y += -node.style.y * GRAVITY_STRENGTH * temperature;
-        }
-
-        // 4) Limit maximum displacement (optional)
-        // Increase or remove if you don't want clamping
-        for (const node of nodes) {
-          const dist = Math.sqrt(node.style.x * node.style.x + node.style.y * node.style.y);
-          if (dist > MAX_DISPLACEMENT) {
-            const ratio = MAX_DISPLACEMENT / dist;
-            node.style.x *= ratio;
-            node.style.y *= ratio;
-          }
-        }
-
-        // 5) Cool down temperature for next iteration
-        temperature *= COOLING_FACTOR;
       }
-    }
 
-    function applyGridLayout() {
-      const nodes = getSelectedNodes();
-      if (nodes.length === 0) return;
+      // 3) Gravity / Centering
+      // With reduced gravity, nodes won't cluster too tightly
+      for (const node of nodes) {
+        node.style.x += -node.style.x * GRAVITY_STRENGTH * temperature;
+        node.style.y += -node.style.y * GRAVITY_STRENGTH * temperature;
+      }
 
-      const count = nodes.length;
-      const columns = Math.ceil(Math.sqrt(count));
-      const spacing = 100;
-
-      const rows = Math.ceil(count / columns);
-      const totalWidth = (columns - 1) * spacing;
-      const totalHeight = (rows - 1) * spacing;
-
-      let idx = 0;
-      for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < columns; col++) {
-          if (idx >= count) break;
-          const node = nodes[idx];
-          node.style.x = avgX - totalWidth / 2 + col * spacing;
-          node.style.y = avgY - totalHeight / 2 + row * spacing;
-          idx++;
+      // 4) Limit maximum displacement (optional)
+      // Increase or remove if you don't want clamping
+      for (const node of nodes) {
+        const dist = Math.sqrt(node.style.x * node.style.x + node.style.y * node.style.y);
+        if (dist > MAX_DISPLACEMENT) {
+          const ratio = MAX_DISPLACEMENT / dist;
+          node.style.x *= ratio;
+          node.style.y *= ratio;
         }
       }
+
+      // 5) Cool down temperature for next iteration
+      temperature *= COOLING_FACTOR;
     }
-
-    function applyRandomLayout() {
-      for (const node of getSelectedNodes()) {
-        node.style.x = minX + Math.random() * xDistance;
-        node.style.y = minY + Math.random() * yDistance;
-      }
-    }
-
-    const selectedNodes = new Map(
-      [...data.layouts[data.selectedLayout].positions]
-        .filter(([key]) => cache.selectedNodes.includes(key))
-    );
-    const selectedNodesCoords = [...selectedNodes.values()];
-    const avgX = selectedNodesCoords.reduce((sum, pos) => sum + pos.x, 0) / selectedNodesCoords.length;
-    const avgY = selectedNodesCoords.reduce((sum, pos) => sum + pos.y, 0) / selectedNodesCoords.length;
-    const minX = Math.min(...selectedNodesCoords.map((pos) => pos.x));
-    const maxX = Math.max(...selectedNodesCoords.map((pos) => pos.x));
-    const minY = Math.min(...selectedNodesCoords.map((pos) => pos.y));
-    const maxY = Math.max(...selectedNodesCoords.map((pos) => pos.y));
-    const xDistance = maxX - minX;
-    const yDistance = maxY - minY;
-
-    const eventLabels = {
-      "shrink": "Shrinking Selected Nodes in Layout",
-      "expand": "Expanding Selected Nodes in Layout",
-      "circle": "Applying Circular Layout to Selected Nodes",
-      "force": "Applying Force Layout to Selected Nodes",
-      "grid": "Applying Grid Layout to Selected Nodes",
-      "random": "Applying Random Layout to Selected Nodes",
-    }
-
-    const layoutActions = {
-      "shrink": () => groupOrSpreadSelectedNodes(0.5),
-      "expand": () => groupOrSpreadSelectedNodes(2),
-      "circle": () => arrangeNodesInCircle(100),
-      "force": () => applyForceLayout(150),
-      "grid": () => applyGridLayout(),
-      "random": () => applyRandomLayout(),
-    }
-
-    layoutActions[action]();
-    persistNodePositions();
-    handleFilterEvent(action, eventLabels[action]);
   }
 
-  function updateNodes(
-    propID = null,
-    property = null,
-    type = null,
-    color = null,
-    size = null,
-    label = null,
-    badge = null
-  ) {
-    for (const nodeID of propID ? getTargetNodes(propID) : cache.selectedNodes) {
-      const node = cache.nodeRef.get(nodeID);
-      if (type !== null) node.type = type;
-      if (color !== null) {
-        if (property === "Node") node.style.fill = color;
-        else if (property === "Node Border") {
-          node.style.stroke = color;
-          if (!node.style.lineWidth) node.style.lineWidth = DEFAULTS.STYLES.NODE_BORDER_SIZES.md;
-        }
-      }
-      if (size !== null) {
-        if (property === "Node") node.style.size = size;
-        else if (property === "Node Border") node.style.lineWidth = size;
-        else if (property === "Node Label") node.style.labelFontSize = size;
-      }
-      if (label !== null) {
-        let labelText = label;
+  function applyGridLayout() {
+    const nodes = getSelectedNodes();
+    if (nodes.length === 0) return;
 
-        if (label === "::SET_TO_ID::") labelText = nodeID;
-        else if (label === "::SET_TO_LABEL::") {
-          if (node.label) labelText = node.label;
-          else labelText = INVISIBLE_CHARACTER;
-        }
+    const count = nodes.length;
+    const columns = Math.ceil(Math.sqrt(count));
+    const spacing = 100;
 
-        if (node.style.label === undefined || node.style.label === false) {
-          enableNodeLabelAndSetToDefaults(node, labelText);
-        } else {
-          node.style.labelText = labelText;
-        }
-      }
-      if (badge !== null) {
-        if (badge === "::CLEAR::") {
-          node.style.badge = false;
-          node.style.badges = [];
-          node.style.badgePalette = [];
-        } else {
-          node.style.badge = true;
-          if (!node.style.badges) node.style.badges = [];
-          if (!node.style.badgePalette) node.style.badgePalette = [];
-          node.style.badges.push({text: badge.text, placement: badge.placement});
-          node.style.badgePalette.push(badge.color);
-        }
+    const rows = Math.ceil(count / columns);
+    const totalWidth = (columns - 1) * spacing;
+    const totalHeight = (rows - 1) * spacing;
+
+    let idx = 0;
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < columns; col++) {
+        if (idx >= count) break;
+        const node = nodes[idx];
+        node.style.x = avgX - totalWidth / 2 + col * spacing;
+        node.style.y = avgY - totalHeight / 2 + row * spacing;
+        idx++;
       }
     }
-
-    handleFilterEvent("Style", "Updating Node Style", propID);
   }
 
-  function enableNodeLabelAndSetToDefaults(node, labelText) {
-    graph.updateNodeData([{
-      id: node.id,
-      style: {
-        label: true,
-        labelText: labelText,
-        labelBackground: true,
-        labelFontSize: DEFAULTS.STYLES.NODE_LABEL_SIZES.md,
-      },
-    }]);
-  }
-
-  function updateEdges(
-    propID = null,
-    property = null,
-    width = null,
-    label = null,
-    color = null,
-    halo = null
-  ) {
-    for (const edgeID of propID ? getTargetEdges(propID) : cache.selectedEdges) {
-      const edge = cache.edgeRef.get(edgeID);
-      if (width !== null) {
-        if (property === "Edge") edge.style.lineWidth = width;
-        else if (property === "Edge Dash") edge.style.lineDash = width;
-        else if (property === "Edge Halo") edge.style.haloLineWidth = width;
-      }
-      if (label !== null) edge.style.labelText = label;
-      if (color !== null) {
-        if (property === "Edge") edge.style.stroke = color;
-        else if (property === "Edge Halo") edge.style.haloStroke = color;
-      }
-      if (halo !== null) edge.style.halo = halo;
+  function applyRandomLayout() {
+    for (const node of getSelectedNodes()) {
+      node.style.x = minX + Math.random() * xDistance;
+      node.style.y = minY + Math.random() * yDistance;
     }
-
-    handleFilterEvent("Style", "Updating Edge Style", propID);
   }
 
-  // Helper to create a labeled section with heading and controls
-  function createSection(title, controls, propID, hiddenTag = null) {
-    const heading = document.createElement("div");
-    if (title) heading.textContent = title;
-    heading.classList.add("style-col1-heading");
-    controls.classList.add("style-col2-controls");
+  const selectedNodes = new Map(
+    [...data.layouts[data.selectedLayout].positions]
+      .filter(([key]) => cache.selectedNodes.includes(key))
+  );
+  const selectedNodesCoords = [...selectedNodes.values()];
+  const avgX = selectedNodesCoords.reduce((sum, pos) => sum + pos.x, 0) / selectedNodesCoords.length;
+  const avgY = selectedNodesCoords.reduce((sum, pos) => sum + pos.y, 0) / selectedNodesCoords.length;
+  const minX = Math.min(...selectedNodesCoords.map((pos) => pos.x));
+  const maxX = Math.max(...selectedNodesCoords.map((pos) => pos.x));
+  const minY = Math.min(...selectedNodesCoords.map((pos) => pos.y));
+  const maxY = Math.max(...selectedNodesCoords.map((pos) => pos.y));
+  const xDistance = maxX - minX;
+  const yDistance = maxY - minY;
 
-    heading.id = `${title || hiddenTag}-heading-${propID}`;
-    controls.id = `${title || hiddenTag}-controls-${propID}`;
-
-    container.appendChild(heading);
-    container.appendChild(controls);
+  const eventLabels = {
+    "shrink": "Shrinking Selected Nodes in Layout",
+    "expand": "Expanding Selected Nodes in Layout",
+    "circle": "Applying Circular Layout to Selected Nodes",
+    "force": "Applying Force Layout to Selected Nodes",
+    "grid": "Applying Grid Layout to Selected Nodes",
+    "random": "Applying Random Layout to Selected Nodes",
   }
 
-  function createSeparator() {
-    const separator = document.createElement("div");
-    separator.classList.add("style-separator");
-    container.appendChild(separator);
+  const layoutActions = {
+    "shrink": () => groupOrSpreadSelectedNodes(0.5),
+    "expand": () => groupOrSpreadSelectedNodes(2),
+    "circle": () => arrangeNodesInCircle(100),
+    "force": () => applyForceLayout(150),
+    "grid": () => applyGridLayout(),
+    "random": () => applyRandomLayout(),
   }
 
-  function createLineBreak() {
-    const lineBreak = document.createElement("div");
-    lineBreak.classList.add("style-line-break");
-    return lineBreak;
+  layoutActions[action]();
+  persistNodePositions();
+  handleFilterEvent(action, eventLabels[action]);
+}
+
+function createStyleDiv() {
+  const root = document.createElement("div");
+
+  function createNewRow(parent) {
+    const row = document.createElement("div");
+    row.classList.add("card-row");
+    parent.appendChild(row);
+    return row;
   }
 
-  function createLabelControls(property) {
-    const controls = document.createElement("div");
+  function appendVerticalRule(parent, label = undefined, tooltip = undefined) {
+    const verticalRule = document.createElement("div");
+    verticalRule.className = "vr";
+    parent.appendChild(verticalRule);
+    appendLabel(parent, label, tooltip);
+  }
 
-    const labelInput = document.createElement("input");
-    labelInput.type = "text";
-    labelInput.placeholder = `Enter ${property}`;
-    labelInput.className = "style-input style-input-lg";
-    labelInput.value = "";
+  function appendLabel(parent, labelText, tooltip = undefined) {
+    if (labelText) {
+      const label = document.createElement("label");
+      label.textContent = labelText;
+      label.className = "vr-label";
+      if (tooltip) label.title = tooltip;
+      parent.appendChild(label);
+    }
+  }
 
-    const clearLabelButton = document.createElement("button");
-    clearLabelButton.textContent = "Clear";
-    clearLabelButton.className = "style-inner-button red";
-    clearLabelButton.onclick = () => {
-      labelInput.value = INVISIBLE_CHARACTER;
-      updateNodes(propID, property, null, null, null, INVISIBLE_CHARACTER, null);
-    };
+  function createCard(label) {
+    const card = document.createElement("div");
+    card.classList.add("card-labeled");
+    card.dataset.label = label;
+    card.id = label;
+    root.appendChild(card);
+    return card;
+  }
 
-    const setToIDButton = document.createElement("button");
-    setToIDButton.textContent = "Set to ID";
-    setToIDButton.classList.add("style-inner-button");
-    setToIDButton.onclick = () => {
-      labelInput.value = "";
-      updateNodes(propID, property, null, null, null, "::SET_TO_ID::", null);
-    };
 
-    const setToLabelButton = document.createElement("button");
-    setToLabelButton.textContent = "Set to Label";
-    setToLabelButton.classList.add("style-inner-button");
-    setToLabelButton.onclick = () => {
-      labelInput.value = "";
-      updateNodes(propID, property, null, null, null, "::SET_TO_LABEL::", null);
-    };
+  function handleStyleChangeEvent(property, value) {
+    switch (property) {
+      case "Node Size":
+        updateNodes({style: {size: value}});
+        break;
+      case "Node Border Size":
+        updateNodes({style: {lineWidth: value}});
+        break;
+      case "Node Label Font Size":
+        updateNodes({style: {labelFontSize: value}});
+        break;
+      case "Node Label Font Color":
+        updateNodes({style: {labelFill: value}});
+        break;
+      case "Node Label Background Color":
+        updateNodes({style: {labelBackground: true, labelBackgroundFill: value}});
+        break;
+      case "Node Fill Color":
+        updateNodes({style: {fill: value}});
+        break;
+      case "Node Border Color":
+        updateNodes({style: {stroke: value}});
+        break;
+      case "Node Label Color":
+        updateNodes({style: {labelFill: value}});
+        break;
+      case "Node Label Placement":
+        updateNodes({style: {labelPlacement: value}});
+        break;
+      case "Edge Color":
+        updateEdges({style: {stroke: value}});
+        break;
+      case "Edge Width":
+        updateEdges({style: {lineWidth: value}});
+        break;
+      case "Edge Dash":
+        updateEdges({style: {lineDash: value}});
+        break;
+      case "Edge Label Font Size":
+        updateEdges({style: {labelFontSize: value}});
+        break;
+      case "Edge Label Offset X":
+        updateEdges({style: {labelOffsetX: value}});
+        break;
+      case "Edge Label Offset Y":
+        updateEdges({style: {labelOffsetY: value}});
+        break;
+      case "Edge Label Placement":
+        updateEdges({style: {labelPlacement: value}});
+        break;
+      case "Edge Label Font Color":
+        updateEdges({style: {labelFill: value}});
+        break;
+      case "Edge Label Background Color":
+        updateEdges({style: {labelBackground: true, labelBackgroundFill: value}});
+        break;
+      case "Edge Label Auto Rotate":
+        updateEdges({style: {labelAutoRotate: value}});
+        break;
+      case "Edge Start Arrow":
+        updateEdges({style: {startArrow: value}});
+        break;
+      case "Edge End Arrow":
+        updateEdges({style: {endArrow: value}});
+        break;
+      case "Edge Start Arrow Size":
+        updateEdges({style: {startArrowSize: value}});
+        break;
+      case "Edge End Arrow Size":
+        updateEdges({style: {endArrowSize: value}});
+        break;
+      case "Edge Start Arrow Type":
+        updateEdges({style: {startArrowType: value}});
+        break;
+      case "Edge End Arrow Type":
+        updateEdges({style: {endArrowType: value}});
+        break;
+      case "Edge Halo":
+        updateEdges({style: {halo: value}});
+        break;
+      case "Edge Halo Width":
+        updateEdges({style: {haloLineWidth: value}});
+        break;
+      case "Edge Halo Color":
+        updateEdges({style: {haloStroke: value}});
+        break;
+      default:
+        break;
+    }
+  }
 
-    labelInput.addEventListener("keypress", function (event) {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        const newLabel = labelInput.value.trim();
-        updateNodes(propID, property, null, null, null, newLabel, null);
-      }
+  function createBooleanControls(parent, property, tooltip = undefined) {
+    const onBtn = document.createElement("button");
+    onBtn.textContent = "On";
+    onBtn.classList.add("style-inner-button");
+    onBtn.onclick = () => {
+      handleStyleChangeEvent(property, true);
+    }
+    if (tooltip) onBtn.title = tooltip;
+    parent.appendChild(onBtn);
+
+    const offBtn = document.createElement("button");
+    offBtn.textContent = "Off";
+    offBtn.classList.add("style-inner-button");
+    offBtn.onclick = () => {
+      handleStyleChangeEvent(property, false);
+    }
+    if (tooltip) offBtn.title = tooltip;
+    parent.appendChild(offBtn);
+  }
+
+
+  function createCategoricalControls(parent, property, defaultValue, listOfValues, tooltip = undefined) {
+    const dropdown = document.createElement("select");
+    dropdown.className = "style-inner-button";
+    if (tooltip) dropdown.title = tooltip;
+
+    listOfValues.forEach((value) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = value;
+      dropdown.appendChild(option);
+      dropdown.onchange = () => {
+        handleStyleChangeEvent(property, dropdown.value);
+      };
     });
 
-    controls.appendChild(labelInput);
-    controls.appendChild(setToIDButton);
-    controls.appendChild(setToLabelButton);
-    controls.appendChild(clearLabelButton);
-
-    return controls;
+    dropdown.value = defaultValue;
+    parent.appendChild(dropdown);
   }
 
-  function createNodeFormControls() {
-    const controls = document.createElement("div");
+  function createNumericalSlider(parent, property, defaultValue, sliderParams = {
+    min: 0,
+    max: 100,
+    step: 1
+  }, tooltip = undefined) {
+    const useFloat =
+      !Number.isInteger(sliderParams.min) ||
+      !Number.isInteger(sliderParams.max) ||
+      !Number.isInteger(sliderParams.step);
 
-    for (const [label, value] of Object.entries(DEFAULTS.STYLES.NODE_FORM)) {
-      const button = document.createElement("button");
-      button.textContent = label;
-      button.title = value;
-      button.classList.add("style-inner-button");
-      button.onclick = () => {
-        updateNodes(propID, null, value, null, null, null, null);
-      };
-      controls.appendChild(button);
+    // A helper function to parse according to the useFloat flag
+    function parseValue(val) {
+      return useFloat ? parseFloat(val) : parseInt(val, 10);
     }
 
-    return controls;
+    const typedDefaultValue = parseValue(defaultValue);
+
+    const container = document.createElement("div");
+    container.className = "style-slider-container";
+    if (tooltip) container.title = tooltip;
+
+    const slider = document.createElement("input");
+    slider.type = "range";
+    slider.min = sliderParams.min;
+    slider.max = sliderParams.max;
+    slider.step = sliderParams.step;
+    slider.value = typedDefaultValue;
+    slider.classList.add("style-slider");
+
+    const valueInput = document.createElement("input");
+    valueInput.type = "number";
+    valueInput.value = typedDefaultValue;
+    valueInput.classList.add("style-input-sm");
+
+    slider.oninput = () => {
+      valueInput.value = slider.value;
+    };
+
+    slider.onchange = () => {
+      handleStyleChangeEvent(property, parseValue(slider.value));
+    };
+
+    valueInput.onchange = () => {
+      slider.value = valueInput.value;
+      handleStyleChangeEvent(property, parseValue(valueInput.value));
+    };
+
+    container.appendChild(slider);
+    container.appendChild(valueInput);
+
+    parent.appendChild(container);
   }
 
-  function createColorControls(property, defaultColor, colors) {
-    const controls = document.createElement("div");
+  function createColorPicker(defaultColor, title) {
+    const colorPicker = document.createElement("input");
+    colorPicker.type = "color";
+    colorPicker.classList.add("style-inner-button");
+    colorPicker.style.width = "24px";
+    colorPicker.value = defaultColor;
+    colorPicker.title = title;
+    return colorPicker;
+  }
+
+  function createColorControls(parent, property, defaultColor, colors) {
+    const colorButtonDiv = document.createElement("div");
+    colorButtonDiv.className = "style-color-button-container";
 
     for (const [label, value] of Object.entries(colors)) {
       const colorButton = document.createElement("button");
       colorButton.style.backgroundColor = value;
       colorButton.style.color = getReadableForegroundColor(value);
-      colorButton.classList.add("style-inner-button");
-      colorButton.textContent = label;
+      colorButton.className = "style-inner-button style-color-button";
+      colorButton.title = `Set ${property} of the selected elements to ${label} (${value}).`;
+
+      if (label === "none") {
+        colorButton.textContent = "×";
+        colorButton.style.maxWidth = "12px";
+      }
+
       colorButton.onclick = () => {
         colorInput.value = value;
-        property.startsWith("Node")
-          ? updateNodes(propID, property, null, value, null, null, null)
-          : updateEdges(propID, property, null, null, value, null);
+        handleStyleChangeEvent(property, value);
       };
-      controls.appendChild(colorButton);
+      colorButtonDiv.appendChild(colorButton);
     }
 
-    const colorPicker = document.createElement("input");
-    colorPicker.type = "color";
-    colorPicker.classList.add("style-inner-button");
-    colorPicker.style.width = "24px";
-    colorPicker.value = defaultColor; // Default color
+    parent.appendChild(colorButtonDiv);
 
-    // fires on every change in the color picker; only updates input
+    const colorPicker = createColorPicker(defaultColor,
+      `Set ${property} of the selected elements to a color of choice.`);
+
     colorPicker.oninput = () => {
       colorInput.value = colorPicker.value;
     };
 
-    // fired when leaving the color picker
     colorPicker.onchange = () => {
-      property.startsWith("Node")
-        ? updateNodes(propID, property, null, colorPicker.value, null, null, null)
-        : updateEdges(propID, property, null, null, colorPicker.value, null);
+      handleStyleChangeEvent(property, colorPicker.value);
     }
 
     const colorInput = document.createElement("input");
     colorInput.type = "text";
-    colorInput.value = defaultColor; // Default color
+    colorInput.value = defaultColor;
     colorInput.classList.add("style-input");
+    colorInput.title = `Set ${property} of the selected elements to a color of choice (RGBA hex color code).`;
+    colorInput.placeholder = `Enter Color`;
 
     colorInput.addEventListener("keypress", function (event) {
       if (event.key === "Enter") {
         event.preventDefault();
-        property.startsWith("Node")
-          ? updateNodes(propID, property, null, colorInput.value, null, null, null)
-          : updateEdges(propID, property, null, null, colorInput.value, null);
+        handleStyleChangeEvent(property, colorInput.value);
       }
     });
 
-    controls.appendChild(colorPicker);
-    controls.appendChild(colorInput);
-
-    return controls;
+    parent.appendChild(colorPicker);
+    parent.appendChild(colorInput);
   }
 
-  function createSizeControls(property, defaultValue, sizeMap) {
-    const controls = document.createElement("div");
+  function createLabelControls(parent, property, isNode = null) {
+    const labelInput = createInput(true, `Enter Custom ${property}`,
+      `Set the label of the selected ${isNode ? "nodes" : "edges"} to a custom label.`, undefined, () => {
+        isNode ? updateNodes({
+          style: {
+            label: true,
+            labelText: labelInput.value.trim()
+          }
+        }) : updateEdges({style: {label: true, labelText: labelInput.value.trim()}});
+      });
 
-    const sizeInput = document.createElement("input");
-    sizeInput.type = "text";
-    sizeInput.placeholder = `Custom ${property.toLowerCase()} size`;
-    sizeInput.classList.add("style-input");
-    sizeInput.value = defaultValue;
+    const clearLabelButton = createButton("Clear",
+      `Clear the label of the selected ${isNode ? "nodes" : "edges"}.`, () => {
+        labelInput.value = "";
+        const sharedOverride = {
+          style: {
+            label: false,
+            labelText: INVISIBLE_CHARACTER
+          }
+        };
+        isNode ? updateNodes(sharedOverride) : updateEdges(sharedOverride);
+        labelInput.value = "";
+      });
 
-    for (const [label, value] of Object.entries(sizeMap)) {
-      const button = document.createElement("button");
-      button.textContent = label;
-      button.classList.add("style-inner-button");
-      button.onclick = () => {
-        sizeInput.value = value;
-        property.startsWith("Node")
-          ? updateNodes(propID, property, null, null, value, null, null)
-          : updateEdges(propID, property, value, null, null, null);
-      };
-      controls.appendChild(button);
+    const setToIDButton = createButton("Set to ID",
+      `Set the label of the selected ${isNode ? "nodes" : "edges"} to their predefined IDs.`, () => {
+        labelInput.value = "";
+        const sharedCommands = ["label_set_to_id"];
+        isNode ? updateNodes(undefined, sharedCommands) : updateEdges(undefined, sharedCommands);
+      });
+    const setToLabelButton = createButton("Set to Label",
+      `Set the label of the selected ${isNode ? "nodes" : "edges"} to their predefined labels.`, () => {
+        labelInput.value = "";
+        const sharedCommands = ["label_set_to_label"];
+        isNode ? updateNodes(undefined, sharedCommands) : updateEdges(undefined, sharedCommands);
+      });
+
+    parent.appendChild(labelInput);
+    parent.appendChild(setToIDButton);
+    if (isNode) parent.appendChild(setToLabelButton);
+    parent.appendChild(clearLabelButton);
+  }
+
+
+  function createButton(label, tooltip, callback) {
+    const btn = document.createElement("button");
+    btn.textContent = label;
+    btn.title = tooltip;
+    btn.classList.add("style-inner-button");
+    if (label === "Clear") btn.classList.add("red");
+    btn.id = label;
+    btn.onclick = () => {
+      callback();
     }
+    return btn;
+  }
 
-    sizeInput.addEventListener("keypress", function (event) {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        const customValue = parseFloat(sizeInput.value);
-        if (!isNaN(customValue)) {
-          property.startsWith("Node")
-            ? updateNodes(propID, property, null, null, customValue, null, null)
-            : updateEdges(propID, property, customValue, null, null, null);
-        } else {
-          sizeInput.value = defaultValue;
+  function appendButton(parent, label, tooltip, callback) {
+    const btn = createButton(label, tooltip, callback);
+    parent.appendChild(btn);
+  }
+
+  function createInput(large = true, placeholder = undefined, title = undefined,
+                            defaultValue = undefined, callback = undefined) {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = placeholder;
+    input.title = title;
+    input.classList.add("style-input");
+    input.value = defaultValue || "";
+    if (large) input.classList.add("style-input-lg");
+    if (callback) {
+      input.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          callback(input.value.trim());
         }
-      }
-    });
-
-    controls.appendChild(sizeInput);
-
-    return controls;
+      });
+    }
+    return input;
   }
 
-  function createHaloEnablingControls() {
-    const controls = document.createElement("div");
-
-    const enableButton = document.createElement("button");
-    enableButton.textContent = "Enable";
-    enableButton.classList.add("style-inner-button");
-    enableButton.onclick = () => {
-      updateEdges(propID, null, null, null, null, true);
-    };
-    controls.appendChild(enableButton);
-
-    const disableButton = document.createElement("button");
-    disableButton.textContent = "Disable";
-    disableButton.classList.add("style-inner-button");
-    disableButton.onclick = () => {
-      updateEdges(propID, null, null, null, null, false);
-    };
-    controls.appendChild(disableButton);
-
-    return controls;
+  function createNodeShapeControls(parent) {
+    for (const [label, value] of Object.entries(DEFAULTS.STYLES.NODE_FORM)) {
+      appendButton(parent, label, value,
+        () => updateNodes({type: value})
+      );
+    }
   }
 
-  function createBadgeControls() {
-    const controls = document.createElement("div");
+  function createEdgeTypeControls(parent) {
+    for (const label of DEFAULTS.STYLES.EDGE_TYPES) {
+      appendButton(parent, label, label, () => updateEdges({type: label}));
+    }
+  }
 
-    const badgeInput = document.createElement("input");
-    badgeInput.type = "text";
-    badgeInput.placeholder = "Enter badge text";
-    badgeInput.className = "style-input style-input-lg";
+  function createNodeBadgeControls(parent) {
+    const badgeInput = createInput(true, "Enter Badge Text",
+      "Enter the text of the badge to add to the selected nodes.", undefined, undefined);
+    parent.appendChild(badgeInput);
 
-    const colorPicker = document.createElement("input");
-    colorPicker.type = "color";
-    colorPicker.className = "style-inner-button";
-    colorPicker.style.width = "24px";
-    colorPicker.value = DEFAULTS.STYLES.NODE_BADGE_DEFAULT_COLOR;
+    const badgeColorPicker = createColorPicker(DEFAULTS.NODE.BADGE.COLOR, "Set the color of the badge.");
+    parent.appendChild(badgeColorPicker);
 
-    const placementDropdown = document.createElement("select");
-    placementDropdown.className = "style-inner-button";
+    const badgePlacementDropdown = document.createElement("select");
+    badgePlacementDropdown.className = "style-inner-button";
     DEFAULTS.STYLES.NODE_BADGE_PLACEMENTS.forEach((placement) => {
       const option = document.createElement("option");
       option.value = placement;
       option.textContent = placement.replace("-", " ");
-      placementDropdown.appendChild(option);
+      badgePlacementDropdown.appendChild(option);
     });
+    parent.appendChild(badgePlacementDropdown);
 
-    const addBadgeButton = document.createElement("button");
-    addBadgeButton.textContent = "Add";
-    addBadgeButton.classList.add("style-inner-button");
-    addBadgeButton.onclick = () => {
-      const badge = {
-        text: badgeInput.value.trim(),
-        color: colorPicker.value,
-        placement: placementDropdown.value
-      };
-      updateNodes(propID, null, null, null, null, null, badge);
-    };
-
-    const clearBadgesButton = document.createElement("button");
-    clearBadgesButton.textContent = "Clear";
-    clearBadgesButton.className = "style-inner-button red";
-    clearBadgesButton.onclick = () => {
-      updateNodes(propID, null, null, null, null, null, "::CLEAR::");
-    };
-
-    controls.appendChild(badgeInput);
-    controls.appendChild(colorPicker);
-    controls.appendChild(placementDropdown);
-    controls.appendChild(addBadgeButton);
-    controls.appendChild(clearBadgesButton);
-
-    return controls;
+    appendButton(parent, "Add", "Add a badge to the selected nodes.", () => {
+      updateNodes({
+          style: {
+            badges: [{
+              text: badgeInput.value.trim(),
+              placement: badgePlacementDropdown.value
+            }],
+            badgePalette: [badgeColorPicker.value]
+          }
+        }, ["badge_add"]
+      );
+    });
+    appendButton(parent, "Clear", "Clear all badges from the selected nodes.", () => {
+      updateNodes({}, ["badge_clear"]);
+    });
   }
 
-  if (!propID || cache.nodeExclusiveProps.has(propID) || cache.mixedProps.has(propID)) {
-    createSection("Node Form", createNodeFormControls(), propID);
-    createSection("Node Color", createColorControls("Node", DEFAULTS.NODE.FILL_COLOR, DEFAULTS.STYLES.NODE_COLORS), propID);
-    createSection("Node Size", createSizeControls("Node", DEFAULTS.NODE.SIZE, DEFAULTS.STYLES.NODE_SIZES), propID);
-    createSection("Node Border Color", createColorControls("Node Border", DEFAULTS.STYLES.NODE_BORDER_COLORS.transparent, DEFAULTS.STYLES.NODE_BORDER_COLORS), propID);
-    createSection("Node Border Size", createSizeControls("Node Border", DEFAULTS.STYLES.NODE_BORDER_SIZES.md, DEFAULTS.STYLES.NODE_BORDER_SIZES), propID);
-    createSection("Node Label", createLabelControls("Node Label"), propID);
-    createSection("Node Label Size", createSizeControls("Node Label", DEFAULTS.STYLES.NODE_LABEL_SIZES.md, DEFAULTS.STYLES.NODE_LABEL_SIZES), propID);
-    createSection("Node Badges", createBadgeControls(), propID);
+  function createSelectCard() {
+    const selDiv = createCard("Select Elements");
+
+    const rowOne = createNewRow(selDiv);
+    appendButton(rowOne, "All Nodes", "Select all visible nodes",
+      () => toggleSelectionForAllNodes(true));
+    appendButton(rowOne, "No Nodes", "Deselect all visible nodes",
+      () => toggleSelectionForAllNodes(false));
+    appendVerticalRule(rowOne);
+    appendButton(rowOne, "All Edges", "Select all visible edges",
+      () => toggleSelectionForAllEdges(true));
+    appendButton(rowOne, "No Edges", "Deselect all visible edges",
+      () => toggleSelectionForAllEdges(false));
+
+    const rowTwo = createNewRow(selDiv);
+    appendButton(rowTwo, "Expand Edges", "Add all edges connected to the currently selected nodes to the selection",
+      () => toggleSelectionByNeighbors("expand-edges"));
+    appendButton(rowTwo, "Reduce Edges", "Remove edges that do not connect two selected nodes",
+      () => toggleSelectionByNeighbors("reduce-edges"));
+    appendVerticalRule(rowTwo);
+    appendButton(rowTwo, "Expand Neighbors", "Add all directly connected neighbor nodes (and their edges) to the current selection",
+      () => toggleSelectionByNeighbors("expand-neighbors"));
+    appendButton(rowTwo, "Reduce Neighbors", "Remove the outermost layer of selected neighbor nodes (and their edges) from the ",
+      () => toggleSelectionByNeighbors("reduce-neighbors"));
+
+    // const rowThree = createNewRow(selDiv);
+    // appendLabel(rowThree, "Select by Node ID(s)", "Enter comma-separated Node IDs to add to selection");
   }
 
-  if (!propID || cache.mixedProps.has(propID)) {
-    createSeparator();
+  function createArrangeNodesCard() {
+    const arrDiv = createCard("Arrange Selection");
+
+    const rowOne = createNewRow(arrDiv);
+    appendButton(rowOne, "Shrink", "Move nodes closer together, halving their distance to the center.",
+      () => layoutSelectedNodes("shrink"));
+    appendButton(rowOne, "Expand", "Move nodes farther apart, doubling their distance to the center.",
+      () => layoutSelectedNodes("expand"));
+    appendVerticalRule(rowOne);
+    appendButton(rowOne, "Circle", "Arrange nodes evenly in a circular layout around the center.",
+      () => layoutSelectedNodes("circle"));
+    appendButton(rowOne, "Force", "Apply a force-directed layout to the selected nodes.",
+      () => layoutSelectedNodes("force"));
+    appendButton(rowOne, "Grid", "Apply a grid layout to the selected nodes.",
+      () => layoutSelectedNodes("grid"));
+    appendButton(rowOne, "Random", "Apply a random layout to the selected nodes.",
+      () => layoutSelectedNodes("random"));
   }
 
-  if (!propID || cache.edgeExclusiveProps.has(propID) || cache.mixedProps.has(propID)) {
-    createSection("Edge Color", createColorControls("Edge", DEFAULTS.EDGE.COLOR, DEFAULTS.STYLES.EDGE_COLORS), propID);
-    createSection("Edge Width", createSizeControls("Edge", DEFAULTS.EDGE.LINE_WIDTH, DEFAULTS.STYLES.EDGE_WIDTHS), propID);
-    createSection("Edge Dash", createSizeControls("Edge Dash", DEFAULTS.STYLES.EDGE_DASHS.none, DEFAULTS.STYLES.EDGE_DASHS), propID);
-    createSection("Edge Halo", createHaloEnablingControls(), propID);
-    createSection("Edge Halo Color", createColorControls("Edge Halo", DEFAULTS.STYLES.EDGE_HALO_STROKE.purple, DEFAULTS.STYLES.EDGE_HALO_STROKE), propID);
-    createSection("Edge Halo Width", createSizeControls("Edge Halo", DEFAULTS.STYLES.EDGE_HALO_WIDTH.md, DEFAULTS.STYLES.EDGE_HALO_WIDTH), propID);
+  function createNodeConfigCard() {
+    const nodeDiv = createCard("Node Configuration");
+
+    const rowOne = createNewRow(nodeDiv);
+    appendLabel(rowOne, "Shape");
+    createNodeShapeControls(rowOne);
+    appendVerticalRule(rowOne, "Size");
+    createNumericalSlider(rowOne, "Node Size", DEFAULTS.NODE.SIZE,
+      {min: 10, max: 50, step: 1});
+    appendVerticalRule(rowOne, "Fill Color");
+    createColorControls(rowOne, "Node Fill Color", DEFAULTS.NODE.FILL_COLOR, DEFAULTS.STYLES.NODE_COLORS);
+
+    const rowTwo = createNewRow(nodeDiv);
+    appendLabel(rowTwo, "Border Size", "Defines the width of the border of the selected nodes.");
+    createNumericalSlider(rowTwo, "Node Border Size", DEFAULTS.NODE.LINE_WIDTH,
+      {min: 1, max: 10, step: 1}, "Defines the width of the border of the selected nodes.");
+    appendVerticalRule(rowTwo, "Border Color", "Defines the fill color of the selected nodes.");
+    createColorControls(rowTwo, "Node Border Color", DEFAULTS.NODE.STROKE_COLOR,
+      DEFAULTS.STYLES.NODE_BORDER_COLORS);
+
+    const rowThree = createNewRow(nodeDiv);
+    appendLabel(rowThree, "Label", "Customize the selected nodes labels.");
+    createLabelControls(rowThree, "Node Label", true);
+    appendVerticalRule(rowThree, "Font Size", "Defines the font size of the selected nodes labels.");
+    createNumericalSlider(rowThree, "Node Label Font Size", DEFAULTS.NODE.LABEL.FONT_SIZE,
+      {min: 10, max: 30, step: 1}, "Defines the font size of the selected nodes labels.");
+    appendVerticalRule(rowThree, "Placement", "Defines the placement of the selected nodes labels.");
+    createCategoricalControls(rowThree, "Node Label Placement", DEFAULTS.NODE.LABEL.PLACEMENT,
+      DEFAULTS.STYLES.NODE_LABEL_PLACEMENTS, "Defines the placement of the selected nodes labels.");
+
+    const rowFour = createNewRow(nodeDiv);
+    appendLabel(rowFour, "Label Color",
+      "Defines the foreground (text) color of the selected nodes labels.");
+    createColorControls(rowFour, "Node Label Font Color", DEFAULTS.NODE.LABEL.FOREGROUND_COLOR,
+      DEFAULTS.STYLES.NODE_LABEL_COLORS);
+    appendVerticalRule(rowFour, "Label Background Color",
+      "Defines the background color of the selected nodes labels.");
+    createColorControls(rowFour, "Node Label Background Color", DEFAULTS.NODE.LABEL.BACKGROUND_COLOR,
+      DEFAULTS.STYLES.NODE_LABEL_BACKGROUND_COLORS);
+
+    const rowFive = createNewRow(nodeDiv);
+    appendLabel(rowFive, "Badges", "Add Badges to the selected nodes.");
+    createNodeBadgeControls(rowFive);
+
   }
 
-  return container;
+  function createEdgeConfigCard() {
+    const edgeDiv = createCard("Edge Configuration");
+
+    const rowOne = createNewRow(edgeDiv);
+    appendLabel(rowOne, "Type", "Change the geometric edge type of the selected edges.");
+    createEdgeTypeControls(rowOne);
+    appendVerticalRule(rowOne, "Width", "Change the width of the selected edges.");
+    createNumericalSlider(rowOne, "Edge Width", DEFAULTS.EDGE.LINE_WIDTH,
+      {min: 0.1, max: 10.0, step: 0.1}, "Change the width of the selected edges.");
+    appendVerticalRule(rowOne, "Dash", "Define the dash pattern of the selected edges.");
+    createNumericalSlider(rowOne, "Edge Dash", DEFAULTS.EDGE.LINE_DASH,
+      {min: 0, max: 40, step: 1}, "Define the dash pattern of the selected edges.");
+    appendVerticalRule(rowOne, "Color", "Define the selected edges color.");
+    createColorControls(rowOne, "Edge Color", DEFAULTS.EDGE.COLOR, DEFAULTS.STYLES.EDGE_COLORS);
+
+    const rowTwo = createNewRow(edgeDiv);
+    appendLabel(rowTwo, "Label", "Customize the selected edges labels.");
+    createLabelControls(rowTwo, "Edge Label");
+    appendVerticalRule(rowTwo, "Font Size", "Defines the font size of the selected edges labels.");
+    createNumericalSlider(rowTwo, "Edge Label Font Size", DEFAULTS.EDGE.LABEL.FONT_SIZE,
+      {min: 10, max: 30, step: 1}, "Defines the font size of the selected edges labels.");
+    appendVerticalRule(rowTwo, "Placement", "Defines the placement of the selected edges labels.");
+    createCategoricalControls(rowTwo, "Edge Label Placement", DEFAULTS.EDGE.LABEL.PLACEMENT,
+      DEFAULTS.STYLES.EDGE_LABEL_PLACEMENTS, "Defines the placement of the selected edges labels.");
+    appendVerticalRule(rowTwo, "Rotate", "Enable/Disable label rotation.");
+    createBooleanControls(rowTwo, "Edge Label Auto Rotate", "Enable/Disable label rotation.");
+
+    const rowThree = createNewRow(edgeDiv);
+    appendLabel(rowThree, "Label Offset X",
+      "Define the offset of the selected edges labels along the X-axis.");
+    createNumericalSlider(rowThree, "Edge Label Offset X", DEFAULTS.EDGE.LABEL.OFFSET_X,
+      {min: -100, max: 100, step: 1},
+      "Define the offset of the selected edges labels along the X-axis.");
+    appendVerticalRule(rowThree, "Label Offset Y",
+      "Define the offset of the selected edges labels along the Y-axis.");
+    createNumericalSlider(rowThree, "Edge Label Offset Y", DEFAULTS.EDGE.LABEL.OFFSET_Y,
+      {min: -100, max: 100, step: 1},
+      "Define the offset of the selected edges labels along the Y-axis.");
+
+    const rowFour = createNewRow(edgeDiv);
+    appendLabel(rowFour, "Label Color",
+      "Defines the foreground (text) color of the selected edges labels.");
+    createColorControls(rowFour, "Edge Label Font Color", DEFAULTS.EDGE.LABEL.FOREGROUND_COLOR,
+      DEFAULTS.STYLES.EDGE_LABEL_COLORS, "Defines the foreground (text) color of the selected edges labels.");
+    appendVerticalRule(rowFour, "Label Background Color",
+      "Defines the background color of the selected edges labels.");
+    createColorControls(rowFour, "Edge Label Background Color", DEFAULTS.EDGE.LABEL.BACKGROUND_COLOR,
+      DEFAULTS.STYLES.EDGE_LABEL_BACKGROUND_COLORS, "Defines the background color of the selected edges labels.");
+
+    const rowFive = createNewRow(edgeDiv);
+    appendLabel(rowFive, "Start Arrow", "Enable/Disable the start arrow of the selected edges.");
+    createBooleanControls(rowFive, "Edge Start Arrow", "Enable/Disable the start arrow of the selected edges.");
+    appendVerticalRule(rowFive, "Size", "Define the size of the start arrow of the selected edges.");
+    createNumericalSlider(rowFive, "Edge Start Arrow Size", DEFAULTS.EDGE.ARROWS.START_SIZE,
+      {min: 10, max: 40, step: 1}, "Define the size of the start arrow of the selected edges.");
+    appendVerticalRule(rowFive, "Type", "Define the type of the start arrow of the selected edges.");
+    createCategoricalControls(rowFive, "Edge Start Arrow Type", DEFAULTS.EDGE.ARROWS.START_TYPE,
+      DEFAULTS.STYLES.EDGE_ARROW_TYPES, "Define the type of the start arrow of the selected edges.");
+
+    const rowSix = createNewRow(edgeDiv);
+    appendLabel(rowSix, "End Arrow", "Enable/Disable the end arrow of the selected edges.");
+    createBooleanControls(rowSix, "Edge End Arrow", "Enable/Disable the end arrow of the selected edges.");
+    appendVerticalRule(rowSix, "Size", "Define the size of the end arrow of the selected edges.");
+    createNumericalSlider(rowSix, "Edge End Arrow Size", DEFAULTS.EDGE.ARROWS.END_SIZE,
+      {min: 10, max: 40, step: 1}, "Define the size of the end arrow of the selected edges.");
+    appendVerticalRule(rowSix, "Type", "Define the type of the end arrow of the selected edges.");
+    createCategoricalControls(rowSix, "Edge End Arrow Type", DEFAULTS.EDGE.ARROWS.END_TYPE,
+      DEFAULTS.STYLES.EDGE_ARROW_TYPES, "Define the type of the end arrow of the selected edges.");
+
+    const rowSeven = createNewRow(edgeDiv);
+    appendLabel(rowSeven, "Halo", "Enable/Disable a halo around the selected edges.");
+    createBooleanControls(rowSeven, "Edge Halo", "Enable/Disable a halo around the selected edges.");
+    appendVerticalRule(rowSeven, "Color", "Define the color of the halo for the selected edges.");
+    createColorControls(rowSeven, "Edge Halo Color", DEFAULTS.EDGE.COLOR,
+      DEFAULTS.STYLES.EDGE_COLORS);
+    appendVerticalRule(rowSeven, "Width", "Define the halo width for the selected edges.");
+    createNumericalSlider(rowSeven, "Edge Halo Width", DEFAULTS.EDGE.HALO.WIDTH,
+      {min: 1, max: 30, step: 1}, "Define the halo width for the selected edges.");
+  }
+
+  createSelectCard();
+  createArrangeNodesCard();
+  createNodeConfigCard();
+  createEdgeConfigCard();
+
+  return root;
+}
+
+function updateEdges(overrides = {}, commands = []) {
+  for (const edgeID of cache.selectedEdges) {
+    const edge = cache.edgeRef.get(edgeID);
+
+    for (const command of commands) {
+      if (command === "label_set_to_id") {
+        edge.style.label = true;
+        edge.style.labelText = edge.id;
+      }
+    }
+
+    // apply overrides
+    deepMerge(edge, overrides);
+    cache.edgeRef.set(edgeID, edge);
+  }
+
+  handleStyleChangeLoadingEvent("Style", "Updating Edge Styles");
+}
+
+/**
+ * Recursively merges properties from `source` into `target`.
+ * - Existing properties in `target` remain if not in `source`.
+ * - Matching keys in `source` overwrite `target`.
+ * - New keys are added to `target`.
+ */
+function deepMerge(target, source) {
+  if (!isObject(target) || !isObject(source)) return;
+
+  for (const [key, value] of Object.entries(source)) {
+    // If both target and value are objects, recurse into them
+    if (isObject(value) && isObject(target[key])) {
+      deepMerge(target[key], value);
+    } else {
+      // Otherwise, just overwrite
+      target[key] = value;
+    }
+  }
+}
+
+function isObject(obj) {
+  return obj !== null && typeof obj === "object" && !Array.isArray(obj);
+}
+
+function updateNodes(overrides = {}, commands = []) {
+  for (const nodeID of cache.selectedNodes) {
+    const node = cache.nodeRef.get(nodeID);
+
+    for (const command of commands) {
+      if (command === "badge_clear") {
+        node.style.badge = false;
+        node.style.badges = [];
+        node.style.badgePalette = [];
+      }
+      if (command === "badge_add") {
+        node.style.badge = true;
+        node.style.badges = node.style.badges || [];
+        node.style.badgePalette = node.style.badgePalette || [];
+        node.style.badges = [...node.style.badges, ...overrides.style.badges];
+        node.style.badgePalette = [...node.style.badgePalette, ...overrides.style.badgePalette];
+        delete overrides.style?.badges;
+        delete overrides.style?.badgePalette;
+      }
+      if (command === "label_set_to_id") {
+        node.style.label = true;
+        node.style.labelText = node.id;
+      }
+      if (command === "label_set_to_label") {
+        node.style.label = true;
+        node.style.labelText = node.label;
+      }
+    }
+
+    // apply overrides
+    deepMerge(node, overrides);
+    cache.nodeRef.set(nodeID, node);
+  }
+  handleStyleChangeLoadingEvent("Style", `Updating Node Styles`);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneSelectedNode(enable) {
   toggleStyleElements([
-    "Node Form", "Node Color", "Node Size", "Node Border Color", "Node Border Size", "Node Label", "Node Label Size",
-    "Node Badges", "expandOrReduceByEdges", "expandOrReduceByNeighbors"], enable);
-  // , "selectOnlyInnerOrOuterLayer"
+    "Node Configuration", "Expand Edges", "Reduce Edges", "Expand Neighbors", "Reduce Neighbors"
+  ], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneSelectedEdge(enable) {
-  toggleStyleElements([
-    "Edge Color", "Edge Width", "Edge Dash", "Edge Halo", "Edge Halo Color", "Edge Halo Width"], enable);
+  toggleStyleElements(["Edge Configuration"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(enable) {
   toggleStyleElements([], enable);
 }
 
+function toggleStyleElementsThatRequireAtLeastOneVisibleNode(enable) {
+  toggleStyleElements([], enable);
+}
+
+function toggleStyleElementsThatRequireAtLeastOneVisibleEdge(enable) {
+  toggleStyleElements([], enable);
+}
+
 function toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(enable) {
-  toggleStyleElements(["Select"], enable);
+  toggleStyleElements(["Select Elements"], enable);
 }
 
 function toggleStyleElementsThatRequireMoreThanOneSelectedNode(enable) {
-  toggleStyleElements(["Arrange Nodes"], enable);
+  toggleStyleElements(["Arrange Selection"], enable);
 }
 
 function toggleStyleElements(headingLabels, enable) {
-  const elementIDs = headingLabels.flatMap(l => [`${l}-heading-undefined`, `${l}-controls-undefined`]);
-  for (let elemID of elementIDs) {
+  for (let elemID of headingLabels) {
     const elem = document.getElementById(elemID);
-    enable ? elem.classList.remove("is-disabled") : elem.classList.add("is-disabled");
+    if (elem) {
+      enable ? elem.classList.remove("is-disabled") : elem.classList.add("is-disabled");
+    } else {
+      debug("Element not found: " + elemID);
+    }
   }
 }
 
@@ -1530,8 +1683,8 @@ function parseExcelToJson(file) {
         let validated = false;
         let listValues = null;
         if (type.startsWith("oneOf:")) {
-            listValues = type.split(":")[1].split("|");
-            type = "list";
+          listValues = type.split(":")[1].split("|");
+          type = "list";
         }
         switch (type) {
           case "str":
@@ -2121,16 +2274,7 @@ function preRenderEvent() {
   const edgeIDsToBeHidden = [...cache.edgeRef.keys()].filter(edgeID => !cache.edgeIDsToBeShown.has(edgeID));
 
   // TODO: skip rendering if no nodes/edges are visible
-  document.getElementById("visibleNodes").innerHTML = `${cache.nodeIDsToBeShown.size}`;
-  document.getElementById("totalNodes").innerHTML = `${data.nodes.length}`;
-  document.getElementById("visibleEdges").innerHTML = `${cache.edgeIDsToBeShown.size}`;
-  document.getElementById("totalEdges").innerHTML = `${data.edges.length}`;
 
-  if (cache.nodeIDsToBeShown.size > 0 || cache.edgeIDsToBeShown.size > 0) {
-    toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(true);
-  } else {
-    toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(false);
-  }
 
   const idsToShow = [...cache.nodeIDsToBeShown, ...cache.edgeIDsToBeShown];
   const idsToHide = [...nodeIDsToBeHidden, ...edgeIDsToBeHidden];
@@ -2401,7 +2545,7 @@ function buildFilterUI() {
 
       const subHeader = document.createElement("h5");
       subHeader.textContent = subSection;
-      subHeader.classList.add("ml-0", "inline");
+      subHeader.className = "sub-header-card inline";
       subHeaderDiv.appendChild(subHeader);
 
       subHeaderDiv.appendChild(createSectionToggleButton(true, section, subSection));
@@ -2438,29 +2582,21 @@ function buildFilterUI() {
       placeHolder.style.width = "18px";
       col3.appendChild(placeHolder);
     }
-    if (SHOW_NODE_OR_EDGE_PROPERTY_SPECIFIC_STYLE_BUTTON) {
-      col3.appendChild(createStyleToggleButton(propID));
-    }
     col3.appendChild(createAddOrRemoveToSelectionButton(propID, true));
     col3.appendChild(createAddOrRemoveToSelectionButton(propID, false));
     row.appendChild(col3);
 
     div.append(row);
     sliderOrDropdown.appendListeners();
-
-    const hiddenRow = document.createElement("div");
-    hiddenRow.id = `style-row-${propID}`;
-    hiddenRow.className = "style-row";
-    hiddenRow.appendChild(createStyleDiv(propID));
-
-    div.append(hiddenRow);
   }
 
   const staticStyleDiv = document.getElementById("staticStyleDiv");
   staticStyleDiv.innerHTML = "";
   staticStyleDiv.appendChild(createStyleDiv());
 
-  div.appendChild(buildNodeConnectivitySection());
+  if (ENABLE_NODE_CONNECTIVITY_SECTION) {
+    div.appendChild(buildNodeConnectivitySection());
+  }
   manageDynamicWidgets();
   handleEditModeUIChanges();
 }
@@ -2536,10 +2672,11 @@ function updateNodeConnectivityMetrics() {
   console.log("!!TODO: Node connectivity metrics updated!");
 }
 
-function saveFiltersToStash() {
+function saveFiltersToStash(manualTriggered = false) {
   data.stash = {
     filters: structuredClone(data.layouts[data.selectedLayout].filters),
     filterStrategy: structuredClone(data.layouts[data.selectedLayout].filterStrategy),
+    triggered: manualTriggered
   };
   showLoading("Saving filter", "Saving filter settings to stash", false, true);
 }
@@ -3201,6 +3338,13 @@ function handleFilterEvent(header, text, propID = null) {
   }, 25);
 }
 
+function handleStyleChangeLoadingEvent(header, text) {
+  showLoading(header, text);
+  setTimeout(() => {
+    graph.render().then(r => console.log(`Graph updated after style event with message ${header} ${text}`));
+  }, 25);
+}
+
 function showUI(show) {
   document.querySelectorAll('.showOnLoad').forEach((element) => {
     element.style.opacity = show ? "1" : "0";
@@ -3285,6 +3429,8 @@ function getNodeStyleOrDefaults(node) {
       labelFill: node.style?.labelFill || DEFAULTS.NODE.LABEL.FOREGROUND_COLOR,
       labelBackgroundFill: node.style?.labelBackgroundFill || DEFAULTS.NODE.LABEL.BACKGROUND_COLOR,
       labelBackground: node.style?.labelBackground || DEFAULTS.NODE.LABEL.BACKGROUND,
+      labelBackgroundRadius: DEFAULTS.NODE.LABEL.BACKGROUND_RADIUS,
+      labelPadding: DEFAULTS.NODE.LABEL.PADDING,
       size: node.style?.size || DEFAULTS.NODE.SIZE,
       fill: node.style?.fill || DEFAULTS.NODE.FILL_COLOR,
       stroke: node.style?.stroke || DEFAULTS.NODE.STROKE_COLOR,
@@ -3292,14 +3438,14 @@ function getNodeStyleOrDefaults(node) {
       badge: node.style?.badge || false,
       badges: node.style?.badges || [],
       badgePalette: node.style?.badgePalette || [],
-      badgeFontSize: 8,
+      badgeFontSize: DEFAULTS.NODE.BADGE.FONT_SIZE,
     }
   };
 
   if (cache.showNodeLabelsAndHoverEffect) {
     nodeObj.style.label = true;
     nodeObj.style.labelText = node.style?.labelText || node.label || node.id;
-    nodeObj.style.labelFontSize = node.style?.labelFontSize || DEFAULTS.STYLES.NODE_LABEL_SIZES.md;
+    nodeObj.style.labelFontSize = node.style?.labelFontSize || DEFAULTS.STYLES.NODE_LABEL_FONT_SIZES.md;
   }
   return nodeObj;
 }
@@ -3308,12 +3454,12 @@ function getEdgeStyleOrDefaults(edge) {
   return {
     type: edge.type || DEFAULTS.EDGE.TYPE,
     style: {
-      startArrow: edge.startArrow || DEFAULTS.EDGE.ARROWS.START,
-      startArrowSize: edge.startArrowSize || DEFAULTS.EDGE.ARROWS.START_SIZE,
-      startArrowType: edge.startArrowType || DEFAULTS.EDGE.ARROWS.START_TYPE,
-      endArrow: edge.endArrow || DEFAULTS.EDGE.ARROWS.END,
-      endArrowSize: edge.endArrowSize || DEFAULTS.EDGE.ARROWS.END_SIZE,
-      endArrowType: edge.endArrowType || DEFAULTS.EDGE.ARROWS.END_TYPE,
+      startArrow: edge.style?.startArrow || DEFAULTS.EDGE.ARROWS.START,
+      startArrowSize: edge.style?.startArrowSize || DEFAULTS.EDGE.ARROWS.START_SIZE,
+      startArrowType: edge.style?.startArrowType || DEFAULTS.EDGE.ARROWS.START_TYPE,
+      endArrow: edge.style?.endArrow || DEFAULTS.EDGE.ARROWS.END,
+      endArrowSize: edge.style?.endArrowSize || DEFAULTS.EDGE.ARROWS.END_SIZE,
+      endArrowType: edge.style?.endArrowType || DEFAULTS.EDGE.ARROWS.END_TYPE,
       lineWidth: edge.style?.lineWidth || DEFAULTS.EDGE.LINE_WIDTH,
       lineDash: edge.style?.lineDash || DEFAULTS.EDGE.LINE_DASH,
       label: edge.style?.label || DEFAULTS.EDGE.LABEL.ENABLED,
@@ -3362,7 +3508,7 @@ function exportGraphAsJSON() {
 function preProcessData(fileData) {
   data = {};
   data.filterDefaults = new Map();  // used as template for each layout
-  cache = {};
+  cache = {initialized: false};
 
   function getDefaultFilterObject() {
     let obj = {
@@ -3512,6 +3658,7 @@ function preProcessData(fileData) {
         },
       ])
     );
+    data.stash.triggered = true;
   }
 
   console.log("Done pre-processing data");
@@ -3547,6 +3694,8 @@ function createCache() {
 
   cache.selectionMemory = [{nodes: [], edges: []}];
   cache.selectedMemoryIndex = 0;
+
+  cache.initialized = true;
 
   for (let group of traverseBubbleSets()) {
     cache.lastBubbleSetMembers.set(group, new Set());
@@ -3685,7 +3834,7 @@ function loadFileWrapper(event) {
         graph.render().then(r => {
           console.log("Initial graph rendered");
           persistPositionsUpdateDataAndReDrawGraph();
-          saveFiltersToStash();
+          saveFiltersToStash(false);
           hideLoading();
         });
 
@@ -3794,6 +3943,8 @@ function showLoading(header, text = "", invisible = false, autoFade = false) {
       hideLoading();
     }, 1000);
   }
+
+  refreshUI();
 }
 
 function hideLoading() {
@@ -3803,11 +3954,29 @@ function hideLoading() {
   setTimeout(() => {
     overlay.style.display = 'none';
   }, 200);
+
+  refreshUI();
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
   hideLoading();
 });
+
+function refreshUI() {
+  if (!cache.initialized) return;
+
+  const loadFromStashBtn = document.getElementById("loadFromStashBtn");
+  data.stash?.triggered ? loadFromStashBtn.classList.remove("disabled") : loadFromStashBtn.classList.add("disabled");
+
+  toggleStyleElementsThatRequireAtLeastOneVisibleNode(cache.nodeIDsToBeShown.size > 0);
+  toggleStyleElementsThatRequireAtLeastOneVisibleEdge(cache.edgeIDsToBeShown.size > 0);
+  toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(cache.nodeIDsToBeShown.size > 0 || cache.edgeIDsToBeShown.size > 0);
+
+  document.getElementById("visibleNodes").innerHTML = `${cache.nodeIDsToBeShown.size}`;
+  document.getElementById("totalNodes").innerHTML = `${data.nodes.length}`;
+  document.getElementById("visibleEdges").innerHTML = `${cache.edgeIDsToBeShown.size}`;
+  document.getElementById("totalEdges").innerHTML = `${data.edges.length}`;
+}
 
 // window.addEventListener('resize', () => {
 //   if (graph !== null) {
