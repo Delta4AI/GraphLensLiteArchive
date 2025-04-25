@@ -601,10 +601,9 @@ function layoutSelectedNodes(action) {
 function createStyleDiv() {
   const root = document.createElement("div");
 
-  function createNewRow(parent, id = null) {
+  function createNewRow(parent) {
     const row = document.createElement("div");
     row.classList.add("card-row");
-    row.id = id;
     parent.appendChild(row);
     return row;
   }
@@ -616,14 +615,21 @@ function createStyleDiv() {
     appendLabel(parent, label, tooltip);
   }
 
-  function appendLabel(parent, labelText, tooltip = undefined) {
+  function createLabel(labelText, tooltip = undefined) {
     if (labelText) {
       const label = document.createElement("label");
       label.textContent = labelText;
       label.className = "vr-label";
+      label.id = labelText;
       if (tooltip) label.title = tooltip;
-      parent.appendChild(label);
+      return label;
     }
+    return null;
+  }
+
+  function appendLabel(parent, labelText, tooltip = undefined) {
+    const label = createLabel(labelText, tooltip);
+    if (label) parent.appendChild(label);
   }
 
   function createCard(label) {
@@ -1034,39 +1040,40 @@ function createStyleDiv() {
       () => toggleSelectionForAllEdges(true));
     appendButton(rowOne, "No Edges", "Deselect all visible edges",
       () => toggleSelectionForAllEdges(false));
-
-    const rowTwo = createNewRow(selDiv);
-    appendButton(rowTwo, "Expand Edges",
+    appendVerticalRule(rowOne);
+    appendButton(rowOne, "Expand Edges",
       "Add all edges connected to the currently selected nodes to the selection",
       () => toggleSelectionByNeighbors("expand-edges"));
-    appendButton(rowTwo, "Reduce Edges",
+    appendButton(rowOne, "Reduce Edges",
       "Remove edges that do not connect two selected nodes",
       () => toggleSelectionByNeighbors("reduce-edges"));
-    appendVerticalRule(rowTwo);
-    appendButton(rowTwo, "Expand Neighbors",
+    appendVerticalRule(rowOne);
+    appendButton(rowOne, "Expand Neighbors",
       "Add all directly connected neighbor nodes (and their edges) to the current selection",
       () => toggleSelectionByNeighbors("expand-neighbors"));
-    appendButton(rowTwo, "Reduce Neighbors",
+    appendButton(rowOne, "Reduce Neighbors",
       "Remove the outermost layer of selected neighbor nodes (and their edges) from the ",
       () => toggleSelectionByNeighbors("reduce-neighbors"));
 
-    const rowThree = createNewRow(selDiv, "Select by Node ID(s)");
-    appendLabel(rowThree, "Select by Node ID(s)",
+    const rowTwo = createNewRow(selDiv);
+    appendLabel(rowTwo, "Select by Node ID(s)",
       "Enter comma-separated node IDs to add to selection.");
     const topTwoNodeIDs = data?.nodes?.slice(0, 2).map(n => n.id).join(',') || 'Node1,Node2';
-    appendInput(rowThree, true, topTwoNodeIDs, "Enter comma-separated list of node IDs to add to selection.",
+    const nodeIDsInput = createInput(true, topTwoNodeIDs, "Enter comma-separated list of node IDs to add to selection.",
       undefined, (val) => {
         addNodeOrEdgeIDsToSelection(val, true);
       });
-
-    const rowFour = createNewRow(selDiv, "Select by Edge ID(s)");
-    appendLabel(rowFour, "Select by Edge ID(s)",
+    nodeIDsInput.id = "selectByNodeIDsInput";
+    rowTwo.appendChild(nodeIDsInput);
+    appendVerticalRule(rowTwo, "Select by Edge ID(s)",
       "Enter comma-separated edge IDs (SourceID::TargetID) to add to selection.");
     const topTwoEdgeIDs = data?.edges?.slice(0, 2).map(e => e.id).join(',') || 'Node1::Node2,Node1::Node3';
-    appendInput(rowFour, true, topTwoEdgeIDs,
+    const edgeIDsInput = createInput(true, topTwoEdgeIDs,
       "Enter comma-separated edge IDs (SourceID::TargetID) to add to selection.", undefined, (val) => {
         addNodeOrEdgeIDsToSelection(val, false);
       });
+    edgeIDsInput.id = "selectByEdgeIDsInput";
+    rowTwo.appendChild(edgeIDsInput);
   }
 
   function createArrangeNodesCard() {
@@ -1316,11 +1323,11 @@ function toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(enable) {
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleNode(enable) {
-  toggleStyleElements(["Select by Node ID(s)"], enable);
+  toggleStyleElements(["Select by Node ID(s)", "selectByNodeIDsInput"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleEdge(enable) {
-  toggleStyleElements(["Select by Edge ID(s)"], enable);
+  toggleStyleElements(["Select by Edge ID(s)", "selectByEdgeIDsInput"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(enable) {
@@ -2601,11 +2608,11 @@ function buildFilterUI() {
 
     if (!subSectionsCreated.has(subSection)) {
       const subHeaderDiv = document.createElement("div");
-      subHeaderDiv.classList.add("container-vertical-aligned");
+      subHeaderDiv.className = "sub-header-card";
 
       const subHeader = document.createElement("h5");
       subHeader.textContent = subSection;
-      subHeader.className = "sub-header-card inline";
+      subHeader.className = "m-0 inline";
       subHeaderDiv.appendChild(subHeader);
 
       subHeaderDiv.appendChild(createSectionToggleButton(true, section, subSection));
@@ -2797,9 +2804,9 @@ function manageDynamicWidgets() {
 
 function createSectionToggleButton(enable, section, subSection = null) {
   const btn = document.createElement("button");
-  btn.classList.add("small-btn", "no-border", "no-background", "red");
+  btn.className = "small-btn toggle-section-btn ml-1";
   if (subSection) btn.classList.add("extra-small");
-  if (enable) btn.classList.add("ml-1");
+  if (enable) btn.classList.add("ml-2");
   btn.textContent = enable ? "✔" : "✗";
   btn.title = `${enable ? 'Enable' : 'Disable'} all filters for the ${subSection ? 'sub-section: ' + subSection : 'section: ' + section}`;
   btn.onclick = () => {
