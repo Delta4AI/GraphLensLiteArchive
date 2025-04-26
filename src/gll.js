@@ -83,9 +83,6 @@ const TOOLTIP_HIDE_NULL_VALUES = false;
 // Node count threshold beyond which labels and hover effects are disabled to keep the application responsive
 const MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT = 300;
 
-// Specifies whether isolated nodes (with no connecting edges) are removed automatically when the "AND" filter type is active
-const REMOVE_DANGLING_NODES_WHEN_AND_FILTER_IS_ACTIVE_AND_EDGES_ARE_DISPLAYED = false;
-
 // If true, bubble groups avoid all non-bubble group members per default
 const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
 
@@ -1719,22 +1716,28 @@ function parseExcelToJson(file) {
     return;
   }
 
-  const firstNodeRowKeys = Object.keys(nodesData[0]).map(k => k.toLowerCase().trim());
+  const firstNodeRowKeys = Object.keys(nodesData[0])
+    .map(k => k.toLowerCase().trim());
   const requiredNodeColumns = EXCEL_NODE_PROPERTIES
     .filter(node => node.required)
     .map(node => node.column.toLowerCase().trim());
   validateColumns(requiredNodeColumns, firstNodeRowKeys, 'nodes');
 
-  const firstEdgeRowKeys = Object.keys(edgesData[0]).map(k => k.toLowerCase().trim());
+  const firstEdgeRowKeys = Object.keys(edgesData[0])
+    .map(k => k.toLowerCase().trim());
   const requiredEdgeColumns = EXCEL_EDGE_PROPERTIES
     .filter(edge => edge.required)
     .map(edge => edge.column.toLowerCase().trim());
   validateColumns(requiredEdgeColumns, firstEdgeRowKeys, 'edges');
 
   const nonDataNodeColumns = new Set(EXCEL_NODE_PROPERTIES.map((p) => p.column.toLowerCase().trim()));
-  const nodeDataHeaders = Object.keys(nodesData[0]).filter(k => !nonDataNodeColumns.has(k.toLowerCase().trim())).map((k) => decodeKey(k));
+  const nodeDataHeaders = Object.keys(nodesData[0])
+    .filter(k => !nonDataNodeColumns.has(k.toLowerCase().trim()) && !k.startsWith("__EMPTY"))
+    .map((k) => decodeKey(k));
   const nonDataEdgeColumns = new Set(EXCEL_EDGE_PROPERTIES.map((p) => p.column.toLowerCase().trim()));
-  const edgeDataHeaders = Object.keys(edgesData[0]).filter(k => !nonDataEdgeColumns.has(k.toLowerCase().trim())).map((k) => decodeKey(k));
+  const edgeDataHeaders = Object.keys(edgesData[0])
+    .filter(k => !nonDataEdgeColumns.has(k.toLowerCase().trim()) && !k.startsWith("__EMPTY"))
+    .map((k) => decodeKey(k));
 
   function addNodeOrEdgeStyle(nodeOrEdge, row, propertyMap, descriptor) {
     nodeOrEdge.style = {};
@@ -2353,8 +2356,18 @@ function preRenderEvent() {
   // TODO: skip rendering if no nodes/edges are visible
 
 
-  const idsToShow = [...cache.nodeIDsToBeShown, ...cache.edgeIDsToBeShown];
-  const idsToHide = [...nodeIDsToBeHidden, ...edgeIDsToBeHidden];
+  const idsToShow = [
+    ...cache.nodeIDsToBeShown,
+    ...cache.edgeIDsToBeShown
+  ];
+
+  const idsToHide = [
+    ...nodeIDsToBeHidden,
+    ...edgeIDsToBeHidden,
+    ...cache.hiddenDanglingNodeIDs,
+    ...cache.hiddenDanglingEdgeIDs
+  ];
+
   graph.showElement(idsToShow).then(r => console.log(`${cache.nodeIDsToBeShown.size} nodes and ${cache.edgeIDsToBeShown.size} edges shown`));
   graph.hideElement(idsToHide).then(r => console.log(`${nodeIDsToBeHidden.length} nodes and ${edgeIDsToBeHidden.length} edges hidden`));
 }
@@ -2382,42 +2395,76 @@ function performANDFilterLogic() {
       cache.remainingEdgeRelatedNodes.add(target);
     }
   }
+}
 
-  // if we have any edges displayed, clean up incomplete ones and dangling nodes
-  if (REMOVE_DANGLING_NODES_WHEN_AND_FILTER_IS_ACTIVE_AND_EDGES_ARE_DISPLAYED) {
-    cleanUpDanglingElements();
+function toggleCleanUpDanglingElements(btn) {
+  const shouldEnable = btn.classList.contains("red");
+
+  if (shouldEnable) {
+    btn.classList.remove("red");
+    btn.classList.add("green", "highlight");
+    btn.title = "Show all nodes and edges, irrespectively of their connectedness.";
+    btn.textContent = "👁";
+    hideDanglingElements();
+  } else {
+    btn.classList.remove("green", "highlight");
+    btn.classList.add("red");
+    btn.title = "Hide all nodes and edges that are not connected to any other node or edge.";
+    btn.textContent = "🚫";
+    showDanglingElements();
   }
 }
 
-function cleanUpDanglingElements() {
-  if (cache.remainingEdgeRelatedNodes.size === 0) return;
+function nodeHasAVisibleEdge(nodeID) {
+  for (const edgeID of cache.nodeIDToEdgeIDs.get(nodeID) || []) {
+    if (cache.edgeIDsToBeShown.has(edgeID) && !cache.hiddenDanglingEdgeIDs.has(edgeID)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function edgeIsConnectedToTwoVisibleNodes(edgeID) {
+  for (const nodeID of cache.edgeIDToNodeIDs.get(edgeID) || []) {
+    if (!cache.nodeIDsToBeShown.has(nodeID) || cache.hiddenDanglingNodeIDs.has(nodeID)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function hideDanglingElements() {
   let changes;
+
   do {
     changes = false;
 
-    // Remove nodes without visible edges
-    for (let nodeID of [...cache.nodeIDsToBeShown]) {
-      const hasVisibleEdges = Array.from(cache.edgeIDsToBeShown).some(edgeID => {
-        const [source, target] = edgeID.split("::");
-        return source === nodeID || target === nodeID;
-      });
-
-      if (!hasVisibleEdges) {
-        cache.nodeIDsToBeShown.delete(nodeID);
-        removeFromPropIDsToNodeIDsToBeShown(nodeID);
+    for (let nodeID of cache.nodeIDsToBeShown) {
+      if (!nodeHasAVisibleEdge(nodeID) && !cache.hiddenDanglingNodeIDs.has(nodeID)) {
+        cache.hiddenDanglingNodeIDs.add(nodeID);
         changes = true;
       }
     }
 
-    // Remove edges with invisible nodes
-    for (let edgeID of [...cache.edgeIDsToBeShown]) {
-      const [source, target] = edgeID.split("::");
-      if (!cache.nodeIDsToBeShown.has(source) || !cache.nodeIDsToBeShown.has(target)) {
-        cache.edgeIDsToBeShown.delete(edgeID);
+    for (let edgeID of cache.edgeIDsToBeShown) {
+      if (!edgeIsConnectedToTwoVisibleNodes(edgeID) && !cache.hiddenDanglingEdgeIDs.has(edgeID)) {
+        cache.hiddenDanglingEdgeIDs.add(edgeID);
         changes = true;
       }
     }
-  } while (changes); // Repeat until no changes
+
+  } while (changes);
+
+  handleFilterEvent("Hiding Elements", "Hiding nodes and edges that are not connected to any other node or edge.");
+}
+
+function showDanglingElements() {
+  cache.hiddenDanglingNodeIDs.clear();
+  cache.hiddenDanglingEdgeIDs.clear();
+
+  handleFilterEvent("Showing Elements",
+    "Showing all previously hidden nodes and edges that are not connected to any other node or edge.");
 }
 
 function removeFromPropIDsToNodeIDsToBeShown(nodeID) {
@@ -2863,7 +2910,7 @@ function createCheckbox(propID, prop) {
 
   const customCheckbox = document.createElement('span');
   customCheckbox.id = `filter-${propID}-checkbox-inner`;
-  customCheckbox.classList.add('checkbox', 'red', 'red-border');
+  customCheckbox.className = "checkbox checkbox-red";
 
   const updateCheckbox = () => {
     customCheckbox.textContent = input.checked ? '✔' : '';
@@ -3755,6 +3802,8 @@ function preProcessData(fileData) {
 }
 
 function createCache() {
+  cache.initialized = true;
+
   cache.nodeRef = new Map();
   cache.edgeRef = new Map();
   cache.toolTips = new Map();
@@ -3785,7 +3834,8 @@ function createCache() {
   cache.selectionMemory = [{nodes: [], edges: []}];
   cache.selectedMemoryIndex = 0;
 
-  cache.initialized = true;
+  cache.hiddenDanglingNodeIDs = new Set();
+  cache.hiddenDanglingEdgeIDs = new Set();
 
   for (let group of traverseBubbleSets()) {
     cache.lastBubbleSetMembers.set(group, new Set());
@@ -4128,10 +4178,14 @@ function refreshUI() {
   toggleStyleElementsThatRequireAtLeastOneVisibleEdge(cache.edgeIDsToBeShown.size > 0);
   toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(cache.nodeIDsToBeShown.size > 0 || cache.edgeIDsToBeShown.size > 0);
 
-  document.getElementById("visibleNodes").innerHTML = `${cache.nodeIDsToBeShown.size}`;
-  document.getElementById("totalNodes").innerHTML = `${data.nodes.length}`;
-  document.getElementById("visibleEdges").innerHTML = `${cache.edgeIDsToBeShown.size}`;
-  document.getElementById("totalEdges").innerHTML = `${data.edges.length}`;
+  function updateElem(elementID, value) {
+    document.getElementById("visibleNodes").innerHTML = value;
+  }
+
+  updateElem("visibleNodes", `${cache.nodeIDsToBeShown.size - cache.hiddenDanglingNodeIDs.size}`);
+  updateElem("totalNodes", `${data.nodes.length}`);
+  updateElem("visibleEdges", `${cache.edgeIDsToBeShown.size - cache.hiddenDanglingEdgeIDs.size}`);
+  updateElem("totalEdges", `${data.edges.length}`);
 }
 
 // window.addEventListener('resize', () => {
