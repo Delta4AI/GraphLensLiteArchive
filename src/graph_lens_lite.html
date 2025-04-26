@@ -338,7 +338,7 @@
 
       .checkboxWrapper {
           display: flex;
-          align-items: flex-start;
+          align-items: center;
           gap: 4px;
           cursor: pointer;
       }
@@ -392,6 +392,25 @@
           border-radius: 3px;
       }
 
+      .checkbox-red {
+          color: #C33D35;
+          border: 1px solid #C33D35;
+          border-radius: 3px;
+      }
+
+      .checkbox-red:hover {
+          border-color: black;
+      }
+
+      input:not(:checked) + .checkbox-red:hover::after {
+          content: "✔";
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          opacity: 50%;
+      }
+
       .purple {
           color: #403C53;
       }
@@ -423,6 +442,7 @@
           border-radius: 3px;
           cursor: pointer;
           padding: 0;
+          transition: box-shadow 0.2s ease-in-out;
       }
 
       .toggle-section-btn {
@@ -480,6 +500,10 @@
       }
 
       .edit-btn.active {
+          box-shadow: 0 0 5px #C33D35;
+      }
+
+      .highlight {
           box-shadow: 0 0 5px #C33D35;
       }
 
@@ -1251,6 +1275,7 @@
         <button class="small-btn show-on-edit disabled" title="Load filter settings from stash" id="loadFromStashBtn" onclick="loadFiltersFromStash()">
           📤
         </button>
+        <button class="small-btn red" onclick="toggleCleanUpDanglingElements(this)" title="Hide all nodes and edges that are not connected to any other node or edge.">🚫</button>
         <button class="small-btn edit-btn" id="editBtn" onclick="toggleEditMode(this)" title="Enter Edit mode (E)">⚙
         </button>
         <br>
