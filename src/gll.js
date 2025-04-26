@@ -1731,6 +1731,11 @@ function parseExcelToJson(file) {
     .map(edge => edge.column.toLowerCase().trim());
   validateColumns(requiredEdgeColumns, firstEdgeRowKeys, 'edges');
 
+  const nonDataNodeColumns = new Set(EXCEL_NODE_PROPERTIES.map((p) => p.column.toLowerCase().trim()));
+  const nodeDataHeaders = Object.keys(nodesData[0]).filter(k => !nonDataNodeColumns.has(k.toLowerCase().trim())).map((k) => decodeKey(k));
+  const nonDataEdgeColumns = new Set(EXCEL_EDGE_PROPERTIES.map((p) => p.column.toLowerCase().trim()));
+  const edgeDataHeaders = Object.keys(edgesData[0]).filter(k => !nonDataEdgeColumns.has(k.toLowerCase().trim())).map((k) => decodeKey(k));
+
   function addNodeOrEdgeStyle(nodeOrEdge, row, propertyMap, descriptor) {
     nodeOrEdge.style = {};
 
@@ -1781,6 +1786,15 @@ function parseExcelToJson(file) {
     });
   }
 
+  function decodeKey(key) {
+    let subGroup = EXCEL_UNCATEGORIZED_SUBHEADER;
+    if (key.indexOf("[") > -1 && key.indexOf("]") > -1) {
+      subGroup = key.substring(key.indexOf("[") + 1, key.indexOf("]")).trim();
+    }
+    const trimmedKey = key.split("[")[0].trim();
+    return {"subGroup": subGroup, "key": trimmedKey};
+  }
+
   function validateUserData(row, key) {
     const val = row[key];
 
@@ -1788,13 +1802,7 @@ function parseExcelToJson(file) {
       return null;
     }
 
-    let subGroup = EXCEL_UNCATEGORIZED_SUBHEADER;
-    if (key.indexOf("[") > -1 && key.indexOf("]") > -1) {
-      subGroup = key.substring(key.indexOf("[") + 1, key.indexOf("]")).trim();
-    }
-    const trimmedKey = key.split("[")[0].trim();
-
-    return {"subGroup": subGroup, "key": trimmedKey, "value": val};
+    return {"value": val, ...decodeKey(key)};
   }
 
   function addNodeOrEdgeUserData(nodeOrEdge, row, propertyMap, header, descriptor) {
@@ -1896,6 +1904,8 @@ function parseExcelToJson(file) {
   return {
     nodes: parsedNodes,
     edges: parsedEdges,
+    nodeDataHeaders: nodeDataHeaders,
+    edgeDataHeaders: edgeDataHeaders,
   };
 }
 
@@ -3625,9 +3635,22 @@ function preProcessData(fileData) {
   cache.nodePositionsFromExcelImport = new Map();
 
   if (!cache.showNodeLabelsAndHoverEffect) {
-    warning(`Large graph with ${fileData.nodes.length} nodes detected. Labels and hover effects are disabled to 
-    improve performance. The network is hidden by default - toggle filters to display the nodes.`);
+    warning(`Large graph with ${fileData.nodes.length} nodes detected. Labels and hover effects are disabled to improve performance. The network is hidden by default - toggle filters to display the nodes.`);
     FILTERS_ACTIVE_PER_DEFAULT = false;
+  }
+
+  // takes excel header and pre-populates data.filterDefaults to maintain order
+  if (fileData.nodeDataHeaders) {
+    for (const nodeHeader of fileData.nodeDataHeaders) {
+      const nodePropHash = generatePropHashId(EXCEL_NODE_HEADER, nodeHeader.subGroup, nodeHeader.key);
+      data.filterDefaults.set(nodePropHash, getDefaultFilterObject());
+    }
+  }
+  if (fileData.edgeDataHeaders) {
+    for (const edgeHeader of fileData.edgeDataHeaders) {
+      const edgePropHash = generatePropHashId(EXCEL_EDGE_HEADER, edgeHeader.subGroup, edgeHeader.key);
+      data.filterDefaults.set(edgePropHash, getDefaultFilterObject());
+    }
   }
 
   data.nodes = fileData.nodes.map((node) => {
@@ -3817,11 +3840,11 @@ function clearActivePropsCacheOnLayoutChange() {
 
 function buildToolTipText(nodeOrEdgeID, isEdge) {
   const item = isEdge ? cache.edgeRef.get(nodeOrEdgeID) : cache.nodeRef.get(nodeOrEdgeID);
-  const label = item.label && item.label !== item.id ? `${item.label} (<i>${item.id})</i>` : item.id;
+  const label = item.label && item.label !== item.id ? `${item.label}<br><small>${item.id}</small>` : item.id;
   let tooltip = `<h3><span class="purple">${isEdge ? "Edge" : "Node"}</span> <span class="red">${label}</span></h3>`;
 
   if (item.description) {
-    tooltip += `<p>${item.description}</p>`;
+    tooltip += `<p class="tooltip-description">${item.description}</p>`;
   }
   if (!item.D4Data) return tooltip;
 
@@ -3840,15 +3863,15 @@ function buildToolTipText(nodeOrEdgeID, isEdge) {
   function pushSubSectionProperty(secName, subName, prop, val) {
     let sectionObj = structuredData.find(s => s.section === secName);
     if (!sectionObj) {
-      sectionObj = { section: secName, subSections: [] };
+      sectionObj = {section: secName, subSections: []};
       structuredData.push(sectionObj);
     }
     let subObj = sectionObj.subSections.find(sub => sub.name === subName);
     if (!subObj) {
-      subObj = { name: subName, props: [] };
+      subObj = {name: subName, props: []};
       sectionObj.subSections.push(subObj);
     }
-    subObj.props.push({ key: prop, value: val });
+    subObj.props.push({key: prop, value: val});
   }
 
   // Gather valid properties, grouped
@@ -3881,9 +3904,9 @@ function buildToolTipText(nodeOrEdgeID, isEdge) {
   // ------------------
   const orderedBlocks = [];
   for (const s of structuredData) {
-    orderedBlocks.push({ type: "section", text: s.section });
+    orderedBlocks.push({type: "section", text: s.section});
     for (const sb of s.subSections) {
-      orderedBlocks.push({ type: "subSection", section: s.section, text: sb.name, props: sb.props });
+      orderedBlocks.push({type: "subSection", section: s.section, text: sb.name, props: sb.props});
     }
   }
 
@@ -3918,7 +3941,7 @@ function buildToolTipText(nodeOrEdgeID, isEdge) {
           tooltip += `</ul>`;
           startedList = false;
         }
-        tooltip += `<h3 class="tooltip-section">${block.text}</h3>`;
+        // tooltip += `<h3 class="tooltip-section">${block.text}</h3>`;
       } else if (block.type === "subSection") {
         if (startedList) {
           tooltip += `</ul>`;
