@@ -1943,7 +1943,11 @@ function createGraphInstance() {
         enterable: true,
         getContent: (e, items) => cache.toolTips.get(items[0].id),
       },
-      {key: "minimap", type: "minimap",},
+      {
+        key: "minimap",
+        type: "minimap",
+        position: "bottom-left",
+      },
       ...[...traverseBubbleSets()].map(group => ({
         key: `bubbleSetPlugin-${group}`,
         type: "bubble-sets",
@@ -2147,11 +2151,17 @@ function toggleEditMode(ev) {
 function handleEditModeUIChanges() {
   const editModeActive = document.getElementById("editBtn").classList.contains("active");
 
+  const mainContent = document.getElementById("mainContent");
   const container = document.getElementById("sidebarContentContainer");
   const sidebar = document.getElementById("sidebar");
   const status = document.getElementById("sidebarStatusContainer");
+  const bottomBar = document.getElementById("bottomBar");
 
   container.style.paddingRight = editModeActive ? "6px" : "0";
+
+  mainContent.style.height = editModeActive ? "90%" : "100%";
+  bottomBar.style.height = editModeActive ? "10%" : "0";
+  bottomBar.classList.toggle("active", editModeActive);
 
   // handle all edit elements
   const editElements = document.querySelectorAll('.show-on-edit');
@@ -4016,6 +4026,15 @@ function buildToolTipText(nodeOrEdgeID, isEdge) {
   return tooltip;
 }
 
+function updateQueryTextArea(formattedQuery) {
+  document.getElementById("queryTextArea").value = formattedQuery;
+}
+
+function handleQueryChangeEvent() {
+  const query = document.getElementById("queryTextArea").value;
+  console.log("Query changed: " + query);
+}
+
 function humanFileSize(size) {
   let i = size === 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
   return +((size / Math.pow(1024, i)).toFixed(2)) + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
@@ -4178,14 +4197,10 @@ function refreshUI() {
   toggleStyleElementsThatRequireAtLeastOneVisibleEdge(cache.edgeIDsToBeShown.size > 0);
   toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(cache.nodeIDsToBeShown.size > 0 || cache.edgeIDsToBeShown.size > 0);
 
-  function updateElem(elementID, value) {
-    document.getElementById("visibleNodes").innerHTML = value;
-  }
-
-  updateElem("visibleNodes", `${cache.nodeIDsToBeShown.size - cache.hiddenDanglingNodeIDs.size}`);
-  updateElem("totalNodes", `${data.nodes.length}`);
-  updateElem("visibleEdges", `${cache.edgeIDsToBeShown.size - cache.hiddenDanglingEdgeIDs.size}`);
-  updateElem("totalEdges", `${data.edges.length}`);
+  document.getElementById("visibleNodes").innerHTML = `${cache.nodeIDsToBeShown.size - cache.hiddenDanglingNodeIDs.size}`;
+  document.getElementById("totalNodes").innerHTML = `${data.nodes.length}`;
+  document.getElementById("visibleEdges").innerHTML = `${cache.edgeIDsToBeShown.size - cache.hiddenDanglingEdgeIDs.size}`;
+  document.getElementById("totalEdges").innerHTML = `${data.edges.length}`;
 }
 
 // window.addEventListener('resize', () => {

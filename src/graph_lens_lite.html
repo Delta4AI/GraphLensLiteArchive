@@ -21,7 +21,10 @@
       #mainContent {
           display: flex;
           flex-direction: row;
-          height: 100vh;
+          height: 100%;
+          width: 100%;
+          overflow: hidden;
+          transition: height 0.3s ease-in-out;
       }
 
       .inline {
@@ -65,9 +68,47 @@
           word-wrap: break-word;
       }
 
+      #bottomBar {
+          height: 0;
+          width: 100%;
+          display: none;
+          /*overflow-y: auto;*/
+          /*overflow-x: hidden;*/
+          overflow: hidden;
+          box-sizing: border-box;
+      }
+
+      #bottomBar.active {
+          background-color: #f4f4f4;
+          padding: 10px;
+          border-top: 1px solid #403C53;
+          /*display: block;*/
+          display: flex;
+          align-items: center;
+      }
+
+      #queryTextArea {
+          /*width: 100%;*/
+          flex: 0 0 90%;
+          height: 100%;
+          box-sizing: border-box;
+          overflow-y: auto;
+          overflow-x: hidden;
+          resize: none;
+      }
+
+      #queryUpdateBtn {
+          flex: 0 0 8%;
+          margin-left: 10px;
+          margin-right: 10px;
+          height: 2.5em;
+          cursor: pointer;
+      }
+
       #outerGraphContainer {
-          flex: 1;
-          padding: 2px;
+          flex: 1 1 auto;
+          min-width: 0;
+          /*padding: 2px;*/
       }
 
       #innerGraphContainer {
@@ -75,6 +116,23 @@
           height: 100%;
           border: 1px solid #ccc;
       }
+
+      /*#innerGraphContainer .g6-minimap {*/
+      /*    !*position: absolute !important;*!*/
+      /*    bottom: 10px !important;*/
+      /*    !*right: 10px;*!*/
+      /*    top: auto !important;*/
+      /*    !*left: auto !important;*!*/
+      /*}*/
+
+      #innerGraphContainer .g6-minimap {
+          position: absolute !important; /* re-enforce absolute */
+          bottom: 10px !important; /* 10px up from bottom */
+          right: 10px !important; /* 10px in from right */
+          top: auto !important; /* clear out inline top */
+          left: auto !important; /* clear out inline left */
+      }
+
 
       h4 {
           margin: 0.2rem;
@@ -1265,17 +1323,19 @@
         <button class="small-btn" id="resetLayoutButton" onclick="resetLayout()" title="Reset View Arrangement (R)">⭯
         </button>
         <button class="small-btn" onclick="graph.fitView()" title="Fit View in Viewport (F)">⛶</button>
-        <button class="small-btn green" onclick="addLayout()" title="Create New View">✚</button>
-        <button class="small-btn red disabled" onclick="removeSelectedLayout()" id="removeSelectedLayoutButton"
-                title="Remove Layout">✗
-        </button>
+        <button class="small-btn green show-on-edit" onclick="addLayout()" title="Create New View">&nbsp;✚&nbsp;</button>
+        <button class="small-btn red show-on-edit disabled" onclick="removeSelectedLayout()" id="removeSelectedLayoutButton"
+                title="Remove Layout">&nbsp;✗&nbsp;</button>
         <button class="small-btn show-on-edit" title="Save filter settings to stash (to be reapplied in different view)"
                 onclick="saveFiltersToStash(true)">📥
         </button>
-        <button class="small-btn show-on-edit disabled" title="Load filter settings from stash" id="loadFromStashBtn" onclick="loadFiltersFromStash()">
+        <button class="small-btn show-on-edit disabled" title="Load filter settings from stash" id="loadFromStashBtn"
+                onclick="loadFiltersFromStash()">
           📤
         </button>
-        <button class="small-btn red" onclick="toggleCleanUpDanglingElements(this)" title="Hide all nodes and edges that are not connected to any other node or edge.">🚫</button>
+        <button class="small-btn red" onclick="toggleCleanUpDanglingElements(this)"
+                title="Hide all nodes and edges that are not connected to any other node or edge.">🚫
+        </button>
         <button class="small-btn edit-btn" id="editBtn" onclick="toggleEditMode(this)" title="Enter Edit mode (E)">⚙
         </button>
         <br>
@@ -1306,6 +1366,10 @@
   <div id="outerGraphContainer">
     <div id="innerGraphContainer"></div>
   </div>
+</div>
+<div id="bottomBar">
+  <textarea id="queryTextArea" placeholder="Query will appear here .."></textarea>
+  <button id="queryUpdateBtn">Update</button>
 </div>
 </body>
 </html>
