@@ -2009,6 +2009,8 @@ function createGraphInstance() {
       updateNodeConnectivityMetrics();
       // TODO: Without this update and redraw after 200ms, positions are not restored
       restorePositions();
+      // refreshUI();
+      updateQueryTextArea();
     });
 
     let layout = data.layouts[data.selectedLayout];
@@ -3847,6 +3849,8 @@ function createCache() {
   cache.hiddenDanglingNodeIDs = new Set();
   cache.hiddenDanglingEdgeIDs = new Set();
 
+  cache.query = "";
+
   for (let group of traverseBubbleSets()) {
     cache.lastBubbleSetMembers.set(group, new Set());
   }
@@ -4026,13 +4030,132 @@ function buildToolTipText(nodeOrEdgeID, isEdge) {
   return tooltip;
 }
 
-function updateQueryTextArea(formattedQuery) {
-  document.getElementById("queryTextArea").value = formattedQuery;
+const asciiToHtml = new Map([
+  ["AND", "<span class='q-and'>AND</span>"],
+  [") AND (", "<span class='q-bracketed-and'>) AND (</span>"],
+  ["OR", "<span class='q-or'>OR</span>"],
+  [") OR (", "<span class='q-bracketed-or'>) OR (</span>"],
+  ["NOT", "<span class='q-not'>NOT</span>"],
+  [") NOT (", "<span class='q-bracketed-not'>) NOT (</span>"],
+  ["IN [", "<span class='q-in-cat-bracket-open'>IN [</span>"],
+  ["]", "<span class='q-cat-bracket-close'>]</span>"],
+  ["(", "<span class='q-bracket-open'>(</span>"],
+  [")", "<span class='q-bracket-close'>)</span>"],
+  [",", "<span class='q-comma'>,</span>"],
+  ["LOWER THAN", "<span class='q-lower-than'>LOWER THAN</span>"],
+  ["GREATER THAN", "<span class='q-greater-than'>GREATER THAN</span>"],
+  ["BETWEEN", "<span class='q-between'>BETWEEN</span>"],
+  ["{NUMBER}", "<span class='q-number'>{NUMBER}</span>"],
+  ["{STRING}", "<span class='q-string'>{STRING}</span>"],
+  ["{PROPERTYWRAPPER}", "<span class='q-property-wrapper'>{PROPERTY}</span>"],
+  ["{MAINGROUP}", "<span class='q-maingroup'>{MAINGROUP}</span>"],
+  ["{SUBGROUP}", "<span class='q-subgroup'>{SUBGROUP}</span>"],
+  ["{PROPERTY}", "<span class='q-property'>{PROPERTY}</span>"],
+  ["{UNCLASSIFIED}", "<span class='q-unclassified'>{UNCLASSIFIED}</span>"],
+]);
+
+const htmlToAscii = new Map(Array.from(asciiToHtml, ([key, value]) => [value, key]));
+
+function encodeString(asciiStr) {
+  // Encode properties: Match group::subGroup::property format
+  // asciiStr = asciiStr.replace(/(?:Node filters|Edge filters)::[^:]+::[^:]+(?=\s(?:IN|BETWEEN|\)))/g, (match, mainGroup, subGroup, prop) => {
+  asciiStr = asciiStr.replace(/(Node filters|Edge filters)::([^:]+)::([^:]+)(?=\s(?:IN|BETWEEN|\)))/g, (match, mainGroup, subGroup, prop) => {
+    console.log(mainGroup, subGroup, prop);
+    const mainGroupEncoded = asciiToHtml.get("{MAINGROUP}").replace("{MAINGROUP}", mainGroup);
+    const subGroupEncoded = asciiToHtml.get("{SUBGROUP}").replace("{SUBGROUP}", subGroup);
+    const propEncoded = asciiToHtml.get("{PROPERTY}").replace("{PROPERTY}", prop);
+    return asciiToHtml.get("{PROPERTYWRAPPER}").replace("{PROPERTY}", `${mainGroupEncoded}::${subGroupEncoded}::${propEncoded}`);
+    // return match.replace(match, mainGroupEncoded + subGroupEncoded + propertyWrapper);
+    // return asciiToHtml.get("{PROPERTY}").replace("{PROPERTY}", match);
+
+  });
+
+  // Encode numbers (including decimals and negatives)
+  asciiStr = asciiStr.replace(/(?<=\bBETWEEN\s|\bAND\s|\bGREATER\sTHAN\s)(-?\d+(\.\d+)?)(?=\sAND|\))/g, (match) => {
+    return asciiToHtml.get("{NUMBER}").replace("{NUMBER}", match);
+  });
+
+  // Encode strings within square brackets (categories)
+  asciiStr = asciiStr.replace(/IN\s*\[([^\]]*)]\)/g, (match, group) => {
+    const encodedStrings = group.split(",").map(str =>
+      asciiToHtml.get("{STRING}").replace("{STRING}", str.trim())
+    );
+    return `${asciiToHtml.get("IN [")}${encodedStrings.join(asciiToHtml.get(","))}${asciiToHtml.get("]")}${asciiToHtml.get(")")}`;
+  });
+
+  // Encode default values (AND, OR, etc.)
+  asciiStr = asciiStr.split(" ").map(word => {
+    return asciiToHtml.get(word) || word;
+  }).join(" ");
+
+  return asciiStr;
+}
+function decodeString(htmlStr) {
+  // Decode strings within square brackets (categories)
+  htmlStr = htmlStr.replace(
+    /<span class='q-in-cat-bracket-open'>IN \[<\/span>\s*(.*?)\s*<span class='q-cat-bracket-close'>]<\/span>/g,
+    (match, group) => {
+      const decodedStrings = group.split(asciiToHtml.get(",")).map(html => {
+        return htmlToAscii.get(html.trim()) || html;
+      });
+      return `IN [${decodedStrings.join(", ")}]`;
+    }
+  );
+
+  // Decode properties
+  htmlStr = htmlStr.replace(/<span class='q-property'>(.*?)<\/span>/g, (match, property) => {
+    return property;
+  });
+
+  // Decode numbers
+  htmlStr = htmlStr.replace(/<span class='q-number'>(.*?)<\/span>/g, (match, number) => {
+    return number;
+  });
+
+  // Decode other patterns
+  for (const [html, ascii] of htmlToAscii) {
+    htmlStr = htmlStr.replaceAll(html, ascii);
+  }
+
+  return htmlStr;
+}
+
+function updateQueryTextArea() {
+  const query = document.getElementById("queryTextArea");
+  query.innerHTML = "";
+  let tmp = "";
+
+  let queryEntries = [];
+  for (const [propID, fo] of data.layouts[data.selectedLayout].filters.entries()) {
+    if (fo.active) {
+      if (fo.isCategory) {
+        queryEntries.push(`${propID} IN [${[...fo.categories].map(cat => cat).join(",")}]`);
+      } else {
+        if (fo.isInverted) {
+          queryEntries.push(`${propID} LOWER THAN ${fo.lowerThreshold} AND ${propID} GREATER THAN ${fo.upperThreshold}`);
+        }
+        queryEntries.push(`${propID} BETWEEN ${fo.lowerThreshold} AND ${fo.upperThreshold}`);
+      }
+    }
+  }
+
+  if (queryEntries.length > 0) {
+    tmp += "(";
+    tmp += queryEntries.join(") OR (");
+    tmp += ")";
+  }
+  query.innerHTML = encodeString(tmp);
+
+}
+
+function handleQueryValidationEvent() {
+  const query = document.getElementById("queryTextArea");
+  console.log(`Query Changed and needs to be validated: ${query.value}`);
 }
 
 function handleQueryChangeEvent() {
-  const query = document.getElementById("queryTextArea").value;
-  console.log("Query changed: " + query);
+  const query = document.getElementById("queryTextArea");
+  console.log(`Query changed and needs to be transformed into code / updates: ${query.value}`);
 }
 
 function humanFileSize(size) {
@@ -4169,7 +4292,7 @@ function showLoading(header, text = "", invisible = false, autoFade = false) {
     }, 1000);
   }
 
-  refreshUI();
+  // refreshUI();
 }
 
 function hideLoading() {
