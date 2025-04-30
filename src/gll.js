@@ -4123,13 +4123,13 @@ function encodeQuery(asciiStr) {
   );
 
   /* ------------------------------------------------------------------ */
-  /* 4.  Top-level connectors  ") OR ("  /  ") AND ("                  */
+  /* 4.  Top-level connectors  ") OR ("  /  ") AND ("  /  ") NOT ("     */
   /* ------------------------------------------------------------------ */
   const connectorOpeningBracket = `<span class='q-connector-opening-bracket' data-encoded>(</span>`;
   const connectorClosingBracket = `<span class='q-connector-closing' data-encoded>)</span>`;
 
   asciiStr = asciiStr.replace(
-    /\)\s*(OR|AND)\s*\(/gi,
+    /\)\s*(OR|AND|NOT)\s*\(/gi,
     (_m, connector) =>
       connectorClosingBracket
       + `<span class='q-connector-${connector.toLowerCase()}' data-encoded>`
@@ -4142,7 +4142,6 @@ function encodeQuery(asciiStr) {
 
   /* ------------------------------------------------------------------ */
   /* 5. Brackets with depth tracking                                    */
-
   /* ------------------------------------------------------------------ */
   function findUnmatchedBracketIndices(str) {
     const stack = [];
@@ -4348,6 +4347,7 @@ function decodeQuery(queryHTML) {
     // connectors
     'q-connector-or': () => 'OR',
     'q-connector-and': () => 'AND',
+    'q-connector-not': () => 'NOT',
 
     // brackets
     'q-bracket-open-lvl-1': () => ({type: '(', value: '('}),
@@ -4384,7 +4384,6 @@ function decodeQuery(queryHTML) {
       return;                         // ignore plain text / spaces
     }
 
-    // if element => check if we have a known class
     if (node.nodeType === Node.ELEMENT_NODE) {
       for (const cls of node.classList) {
         if (classMap[cls]) {
@@ -4395,7 +4394,6 @@ function decodeQuery(queryHTML) {
       }
     }
 
-    // children
     node.childNodes.forEach(walk);
   }
 
