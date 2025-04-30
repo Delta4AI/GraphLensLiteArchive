@@ -89,6 +89,8 @@
 
       #queryTextArea {
           /*width: 100%;*/
+          font-family: sans-serif;
+          color: #403C53;
           flex: 0 0 90%;
           height: 100%;
           box-sizing: border-box;
@@ -169,70 +171,97 @@
           margin-left: 0.4em;
       }
 
-      .q-param {
-          color: #E4E3EA;
+      .q-space {
+
       }
 
-      .q-bracket-open {
-          color: #C33D35;
+      .q-property-wrapper {
+          color: black;
+          font-weight: 500;
+          font-size: 0.9em;
+          border: 1px solid #403C53;
+          border-radius: 999rem;
+          margin-left: 0.1em;
+          margin-right: 0.1em;
+          white-space: nowrap;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
       }
 
-      .q-bracket-close {
-          color: #C33D35;
+      .q-maingroup {
+          background-color: #EDD9A366;
+          padding-left: 0.3em;
+          padding-right: 0.1em;
       }
 
-      .q-cat-bracket-close {
-          color: #403C53;
+      .q-subgroup {
+          background-color: #F79C7966;
+          padding: 0 0.1em;
       }
 
-      .q-comma {
-          color: #403C53;
+      .q-property {
+          background-color: #F2637F66;
+          padding-left: 0.1em;
+          padding-right: 0.3em;
+      }
+
+      .q-prop-group-separator {
+
       }
 
       .q-number {
           color: #C33D35;
+          font-weight: bold;
+      }
+
+      .q-comma {
+          color: #8CA6D9;
       }
 
       .q-string {
           color: #C33D35;
-      }
-
-      .q-unclassified {
-          color: red;
-      }
-
-      .q-and {
-          color: #403C53;
-      }
-
-      .q-bracketed-and {
-          color: red;
           font-weight: bold;
       }
 
-      .q-or {
-          color: #403C53;
-      }
-
-      .q-bracketed-or {
-          color: blue;
+      .q-bracket-open-lvl-1, .q-bracket-close-lvl-1 {
+          color: #C33D35;
           font-weight: bold;
+          font-size: 12px;
+          margin: 1px;
       }
 
-      .q-not {
+      .q-bracket-open-lvl-2, .q-bracket-close-lvl-2 {
+          color: #482173;
+          font-weight: bold;
+          font-size: 12px;
+          margin: 1px;
+      }
+
+      .q-bracket-open-lvl-3, .q-bracket-close-lvl-3 {
+          color: #2E6F8E;
+          font-weight: bold;
+          font-size: 12px;
+          margin: 1px;
+      }
+
+      .q-bracket-open-lvl-4, .q-bracket-close-lvl-4 {
+          color: #29AF7F;
+          font-weight: bold;
+          font-size: 12px;
+          margin: 1px;
+      }
+
+      .q-bracket-open-lvl-5, .q-bracket-close-lvl-5 {
+          color: #BDDF26;
+          font-weight: bold;
+          font-size: 12px;
+          margin: 1px;
+      }
+
+      .q-kw-between {
           color: #8CA6D9;
       }
 
-      .q-bracketed-not {
-          color: green;
-          font-weight: bold;
-      }
-
-      .q-in-cat-bracket-open {
-          color: #403C53;
-      }
-
-      .q-in {
+      .q-kw-between-and {
           color: #8CA6D9;
       }
 
@@ -240,37 +269,84 @@
           color: #8CA6D9;
       }
 
-      .q-greater-than {
+      .q-and-greater-than {
           color: #8CA6D9;
       }
 
-      .q-between {
+      .q-in-cat-bracket-open {
           color: #8CA6D9;
       }
 
-      .q-property-wrapper {
-          color: #ABACBD;
-          font-size: 10px;
-          border: 1px solid #403C53;
-          border-radius: 3px;
-          margin-left: 2px;
-          margin-right: 2px;
-          padding: 1px;
-          white-space: nowrap;
-          /*background-color: #403C53;*/
-      }
-
-      .q-maingroup {
-          color: #878996;
-      }
-
-      .q-subgroup {
-          color: #EFB0AA;
-      }
-
-      .q-property {
+      .q-cat-bracket-close {
           color: #8CA6D9;
       }
+
+      .q-connector-opening-bracket {
+
+      }
+
+      .q-connector-closing-bracket {
+
+      }
+
+      .q-connector-or {
+          font-size: 0.9em;
+          margin-left: 0.2em;
+          padding-left: 0.2em;
+          margin-right: 0.2em;
+          padding-right: 0.2em;
+          font-weight: 600;
+          background-color: #c7254e;
+          color: white;
+          border-radius: 999rem;
+      }
+
+      .q-connector-and {
+          font-size: 0.9em;
+          margin-left: 0.2em;
+          padding-left: 0.2em;
+          margin-right: 0.2em;
+          padding-right: 0.2em;
+          font-weight: 600;
+          background-color: #31708f;
+          color: white;
+          border-radius: 999rem;
+      }
+
+      .q-error-unrecognized {
+          color: red;
+          font-weight: bold;
+          text-decoration-color: red;
+          text-decoration-line: underline;
+          text-decoration-style: wavy;
+      }
+
+      .q-error-unmatched-opening-bracket,
+      .q-error-unmatched-closing-bracket {
+          color: red;
+          font-weight: 700;
+          position: relative;
+          text-shadow: 0 0 2px rgba(0, 0, 0, .25);
+          z-index: 2;
+      }
+
+      /* little arrow pointing at the bracket */
+      .q-error-unmatched-opening-bracket::before,
+      .q-error-unmatched-closing-bracket::before {
+          content: '';
+          position: absolute;
+          top: -8px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 0;
+          height: 0;
+          border-left: 4px solid transparent;
+          border-right: 4px solid transparent;
+          border-top: 8px solid red;
+          filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .35));
+          pointer-events: none;
+      }
+
 
       .sub-header-card {
           background-color: #403C53;
@@ -1481,7 +1557,7 @@
 </div>
 <div id="bottomBar">
   <div id="queryTextArea" contenteditable="true" spellcheck="false" oninput="handleQueryValidationEvent();"></div>
-  <button id="queryUpdateBtn">Update</button>
+  <button id="queryUpdateBtn" class="disabled" onclick="handleQueryUpdateEvent()">Update</button>
 </div>
 </body>
 </html>
