@@ -3850,6 +3850,21 @@ function createCache() {
   cache.hiddenDanglingEdgeIDs = new Set();
 
   cache.query = "";
+  cache.uniquePropHierarchy = {};
+  cache.queryValidated = false;
+
+  function populateUniquePropGroups(propHash) {
+    const [mainGroup, subGroup, prop] = decodePropHashId(propHash);
+    if (!cache.uniquePropHierarchy[mainGroup]) {
+      cache.uniquePropHierarchy[mainGroup] = {};
+    }
+
+    if (!cache.uniquePropHierarchy[mainGroup][subGroup]) {
+      cache.uniquePropHierarchy[mainGroup][subGroup] = new Set();
+    }
+
+    cache.uniquePropHierarchy[mainGroup][subGroup].add(prop);
+  }
 
   for (let group of traverseBubbleSets()) {
     cache.lastBubbleSetMembers.set(group, new Set());
@@ -3859,6 +3874,7 @@ function createCache() {
     cache.nodeRef.set(node.id, node);
     cache.toolTips.set(node.id, buildToolTipText(node.id, false));
     for (let prop of node.features) {
+      populateUniquePropGroups(prop);
       if (!cache.propToNodes.has(prop)) cache.propToNodes.set(prop, new Set());
       if (!cache.propToNodeIDs.has(prop)) cache.propToNodeIDs.set(prop, new Set());
       cache.propToNodes.get(prop).add(node);
@@ -3871,6 +3887,7 @@ function createCache() {
     cache.edgeRef.set(edge.id, edge);
     cache.toolTips.set(edge.id, buildToolTipText(edge.id, true));
     for (let prop of edge.features) {
+      populateUniquePropGroups(prop);
       if (!cache.propToEdges.has(prop)) cache.propToEdges.set(prop, new Set());
       if (!cache.propToEdgeIDs.has(prop)) cache.propToEdgeIDs.set(prop, new Set());
       cache.propToEdges.get(prop).add(edge);
@@ -4030,94 +4047,187 @@ function buildToolTipText(nodeOrEdgeID, isEdge) {
   return tooltip;
 }
 
-const asciiToHtml = new Map([
-  ["AND", "<span class='q-and'>AND</span>"],
-  [") AND (", "<span class='q-bracketed-and'>) AND (</span>"],
-  ["OR", "<span class='q-or'>OR</span>"],
-  [") OR (", "<span class='q-bracketed-or'>) OR (</span>"],
-  ["NOT", "<span class='q-not'>NOT</span>"],
-  [") NOT (", "<span class='q-bracketed-not'>) NOT (</span>"],
-  ["IN [", "<span class='q-in-cat-bracket-open'>IN [</span>"],
-  ["]", "<span class='q-cat-bracket-close'>]</span>"],
-  ["(", "<span class='q-bracket-open'>(</span>"],
-  [")", "<span class='q-bracket-close'>)</span>"],
-  [",", "<span class='q-comma'>,</span>"],
-  ["LOWER THAN", "<span class='q-lower-than'>LOWER THAN</span>"],
-  ["GREATER THAN", "<span class='q-greater-than'>GREATER THAN</span>"],
-  ["BETWEEN", "<span class='q-between'>BETWEEN</span>"],
-  ["{NUMBER}", "<span class='q-number'>{NUMBER}</span>"],
-  ["{STRING}", "<span class='q-string'>{STRING}</span>"],
-  ["{PROPERTYWRAPPER}", "<span class='q-property-wrapper'>{PROPERTY}</span>"],
-  ["{MAINGROUP}", "<span class='q-maingroup'>{MAINGROUP}</span>"],
-  ["{SUBGROUP}", "<span class='q-subgroup'>{SUBGROUP}</span>"],
-  ["{PROPERTY}", "<span class='q-property'>{PROPERTY}</span>"],
-  ["{UNCLASSIFIED}", "<span class='q-unclassified'>{UNCLASSIFIED}</span>"],
-]);
+function encodeQuery(asciiStr) {
+  cache.queryValidated = true;
 
-const htmlToAscii = new Map(Array.from(asciiToHtml, ([key, value]) => [value, key]));
+  const space = `<span class='q-space' data-encoded> </span>`
 
-function encodeString(asciiStr) {
-  // Encode properties: Match group::subGroup::property format
-  // asciiStr = asciiStr.replace(/(?:Node filters|Edge filters)::[^:]+::[^:]+(?=\s(?:IN|BETWEEN|\)))/g, (match, mainGroup, subGroup, prop) => {
-  asciiStr = asciiStr.replace(/(Node filters|Edge filters)::([^:]+)::([^:]+)(?=\s(?:IN|BETWEEN|\)))/g, (match, mainGroup, subGroup, prop) => {
-    console.log(mainGroup, subGroup, prop);
-    const mainGroupEncoded = asciiToHtml.get("{MAINGROUP}").replace("{MAINGROUP}", mainGroup);
-    const subGroupEncoded = asciiToHtml.get("{SUBGROUP}").replace("{SUBGROUP}", subGroup);
-    const propEncoded = asciiToHtml.get("{PROPERTY}").replace("{PROPERTY}", prop);
-    return asciiToHtml.get("{PROPERTYWRAPPER}").replace("{PROPERTY}", `${mainGroupEncoded}::${subGroupEncoded}::${propEncoded}`);
-    // return match.replace(match, mainGroupEncoded + subGroupEncoded + propertyWrapper);
-    // return asciiToHtml.get("{PROPERTY}").replace("{PROPERTY}", match);
+  /* ------------------------------------------------------------------ */
+  /* 1. Property names (main group::sub group::property)                */
+  /* ------------------------------------------------------------------ */
+  asciiStr = asciiStr.replace(
+    /(Node filters|Edge filters)::([^:]+)::([^:]+)(?=\s(?:IN|BETWEEN|LOWER\sTHAN|\)))/g,
+    (match, mainGroup, subGroup, prop) => {
+      const mgok = mainGroup in cache.uniquePropHierarchy;
+      const sgok = mgok && (subGroup in cache.uniquePropHierarchy[mainGroup]);
+      const pok = sgok && cache.uniquePropHierarchy[mainGroup][subGroup].has(prop);
 
-  });
+      const mainGroupEncoded = `<span class="${mgok ? 'q-maingroup' : 'q-error-unrecognized'}" data-encoded>${mainGroup}</span>`;
+      const subGroupEncoded = `<span class="${sgok ? 'q-subgroup' : 'q-error-unrecognized'}" data-encoded>${subGroup}</span>`;
+      const propEncoded = `<span class="${pok ? 'q-property' : 'q-error-unrecognized'}" data-encoded>${prop}</span>`;
+      const sep = `<span class="q-prop-group-separator" data-encoded>::</span>`;
 
-  // Encode numbers (including decimals and negatives)
-  asciiStr = asciiStr.replace(/(?<=\bBETWEEN\s|\bAND\s|\bGREATER\sTHAN\s)(-?\d+(\.\d+)?)(?=\sAND|\))/g, (match) => {
-    return asciiToHtml.get("{NUMBER}").replace("{NUMBER}", match);
-  });
-
-  // Encode strings within square brackets (categories)
-  asciiStr = asciiStr.replace(/IN\s*\[([^\]]*)]\)/g, (match, group) => {
-    const encodedStrings = group.split(",").map(str =>
-      asciiToHtml.get("{STRING}").replace("{STRING}", str.trim())
-    );
-    return `${asciiToHtml.get("IN [")}${encodedStrings.join(asciiToHtml.get(","))}${asciiToHtml.get("]")}${asciiToHtml.get(")")}`;
-  });
-
-  // Encode default values (AND, OR, etc.)
-  asciiStr = asciiStr.split(" ").map(word => {
-    return asciiToHtml.get(word) || word;
-  }).join(" ");
-
-  return asciiStr;
-}
-function decodeString(htmlStr) {
-  // Decode strings within square brackets (categories)
-  htmlStr = htmlStr.replace(
-    /<span class='q-in-cat-bracket-open'>IN \[<\/span>\s*(.*?)\s*<span class='q-cat-bracket-close'>]<\/span>/g,
-    (match, group) => {
-      const decodedStrings = group.split(asciiToHtml.get(",")).map(html => {
-        return htmlToAscii.get(html.trim()) || html;
-      });
-      return `IN [${decodedStrings.join(", ")}]`;
+      return `<span class="q-property-wrapper" data-encoded>`
+        + mainGroupEncoded + sep
+        + subGroupEncoded + sep
+        + propEncoded
+        + `</span>`;
     }
   );
 
-  // Decode properties
-  htmlStr = htmlStr.replace(/<span class='q-property'>(.*?)<\/span>/g, (match, property) => {
-    return property;
-  });
+  /* ------------------------------------------------------------------ */
+  /* 2. Keyword highlighting and encapsulated numbers                   */
+  /* ------------------------------------------------------------------ */
 
-  // Decode numbers
-  htmlStr = htmlStr.replace(/<span class='q-number'>(.*?)<\/span>/g, (match, number) => {
-    return number;
-  });
+  /* 5-1  "BETWEEN X AND Y" --------- */
+  asciiStr = asciiStr.replace(
+    /(BETWEEN)\s+(-?\d+(?:\.\d+)?)\s+(AND)\s+(-?\d+(?:\.\d+)?)/gi,
+    (_m, betweenKw, low, andKw, high) =>
+      `<span class='q-kw-between' data-encoded>${betweenKw}</span>`
+      + space
+      + `<span class='q-number' data-encoded>${low}</span>`
+      + space
+      + `<span class='q-kw-between-and' data-encoded>${andKw}</span>`
+      + space
+      + `<span class='q-number' data-encoded>${high}</span>`
+  );
 
-  // Decode other patterns
-  for (const [html, ascii] of htmlToAscii) {
-    htmlStr = htmlStr.replaceAll(html, ascii);
+  /* 5-2  "LOWER THAN X AND GREATER THAN Y" --------- */
+  asciiStr = asciiStr.replace(
+    /(LOWER THAN)\s+(-?\d+(?:\.\d+)?)\s+(AND GREATER THAN)\s+(-?\d+(?:\.\d+)?)/gi,
+    (_m, lowerThanKw, low, andGreaterThanKw, high) =>
+      `<span class='q-lower-than' data-encoded>${lowerThanKw}</span>`
+      + space
+      + `<span class='q-number' data-encoded>${low}</span>`
+      + space
+      + `<span class='q-and-greater-than' data-encoded>${andGreaterThanKw}</span>`
+      + space
+      + `<span class='q-number' data-encoded>${high}</span>`
+  );
+
+  /* ------------------------------------------------------------------ */
+  /* 3. List-Categories after "IN [" up to "]"                          */
+  /* ------------------------------------------------------------------ */
+  asciiStr = asciiStr.replace(/IN\s*\[([^\]]*?)]/g, (_match, list) => {
+      const encodedCategories = list
+        .split(",")
+        .map(cat => `<span class='q-string' data-encoded>${cat}</span>`)
+        .join(`<span class='q-comma' data-encoded>,</span>`);
+
+      return [
+        `<span class='q-in-cat-bracket-open' data-encoded>IN${space}[</span>`,
+        encodedCategories,
+        `<span class='q-cat-bracket-close' data-encoded>]</span>`
+      ].join("");
+    }
+  );
+
+  /* ------------------------------------------------------------------ */
+  /* 4.  Top-level connectors  ") OR ("  /  ") AND ("                  */
+  /* ------------------------------------------------------------------ */
+  const connectorOpeningBracket = `<span class='q-connector-opening-bracket' data-encoded>(</span>`;
+  const connectorClosingBracket = `<span class='q-connector-closing' data-encoded>)</span>`;
+
+  asciiStr = asciiStr.replace(
+    /\)\s*(OR|AND)\s*\(/gi,
+    (_m, connector) =>
+      connectorClosingBracket
+      + `<span class='q-connector-${connector.toLowerCase()}' data-encoded>`
+      + '&nbsp;'
+      + connector.toUpperCase()
+      + '&nbsp;'
+      + `</span>`
+      + connectorOpeningBracket
+  );
+
+  /* ------------------------------------------------------------------ */
+  /* 5. Brackets with depth tracking                                    */
+
+  /* ------------------------------------------------------------------ */
+  function findUnmatchedBracketIndices(str) {
+    const stack = [];
+    const unmatched = new Set();
+
+    for (let i = 0; i < str.length; ++i) {
+      const ch = str[i];
+      if (ch === '(') {
+        stack.push(i);
+      } else if (ch === ')') {
+        if (stack.length) {
+          stack.pop();
+        } else {
+          // “)” without a matching “(”
+          unmatched.add(i);
+        }
+      }
+    }
+
+    stack.forEach(idx => unmatched.add(idx));
+    return unmatched;
   }
 
-  return htmlStr;
+  let bracketLevel = 0;
+  const unmatched = findUnmatchedBracketIndices(asciiStr);
+  if (unmatched.size) {
+    cache.queryValidated = false;
+  }
+
+  asciiStr = [...asciiStr]
+    .map((ch, i) => {
+      if (ch === '(') {
+        bracketLevel++;
+        const lvl = Math.min(bracketLevel, 5);
+        const cls = [
+          `q-bracket-open-lvl-${lvl}`,
+          unmatched.has(i) ? 'q-error-unmatched-opening-bracket' : ''
+        ].join(' ');
+        return `<span class='${cls.trim()}' data-encoded>(</span>`;
+      }
+
+      if (ch === ')') {
+        const lvl = Math.min(bracketLevel, 5);
+        const cls = [
+          `q-bracket-close-lvl-${lvl}`,
+          unmatched.has(i) ? 'q-error-unmatched-closing-bracket' : ''
+        ].join(' ');
+        const html = `<span class='${cls.trim()}' data-encoded>)</span>`;
+        bracketLevel = Math.max(bracketLevel - 1, 0);
+        return html;
+      }
+
+      return ch;
+    })
+    .join('');
+
+  // ------------------------------------------------------------------
+  // 6. wrap everything not already in a <span class='q-…'>…</span> as an error
+  // ------------------------------------------------------------------
+  asciiStr = asciiStr
+    // split out only the already‐encoded chunks vs everything else
+    .split(/(<span\b[^>]*data-encoded[^>]*>[\s\S]*?<\/span>)/g)
+    .map(chunk => {
+      // if it’s one of our data-encoded spans, keep it
+      if ((chunk.startsWith('<span') && chunk.includes('data-encoded'))
+        || chunk === "" || chunk === "</span> " || chunk === "</span>" || chunk === "[</span>") {
+        return chunk;
+      }
+
+      cache.queryValidated = false;
+      return chunk.replace(/\S+/g, txt =>
+        `<span class="q-error-unrecognized">${txt}</span>`
+      );
+    })
+    .join('');
+
+
+  const updateQueryBtn = document.getElementById("queryUpdateBtn");
+  if (cache.queryValidated) {
+    updateQueryBtn.classList.remove("disabled");
+  } else {
+    updateQueryBtn.classList.add("disabled");
+  }
+
+  return asciiStr;
 }
 
 function updateQueryTextArea() {
@@ -4132,7 +4242,7 @@ function updateQueryTextArea() {
         queryEntries.push(`${propID} IN [${[...fo.categories].map(cat => cat).join(",")}]`);
       } else {
         if (fo.isInverted) {
-          queryEntries.push(`${propID} LOWER THAN ${fo.lowerThreshold} AND ${propID} GREATER THAN ${fo.upperThreshold}`);
+          queryEntries.push(`${propID} LOWER THAN ${fo.lowerThreshold} AND GREATER THAN ${fo.upperThreshold}`);
         }
         queryEntries.push(`${propID} BETWEEN ${fo.lowerThreshold} AND ${fo.upperThreshold}`);
       }
@@ -4144,18 +4254,201 @@ function updateQueryTextArea() {
     tmp += queryEntries.join(") OR (");
     tmp += ")";
   }
-  query.innerHTML = encodeString(tmp);
+  query.innerHTML = encodeQuery(tmp);
 
 }
+
+function getCursorPosition() {
+  const sel = document.getSelection();
+  sel.modify("extend", "backward", "paragraphboundary");
+  const pos = sel.toString().length;
+  if (sel.anchorNode !== undefined) sel.collapseToEnd();
+
+  return pos;
+}
+
+function setCursorPosition(containerEl, charIndex) {
+  charIndex = Math.max(0, Math.min(charIndex, containerEl.textContent.length));
+
+  const range = document.createRange();
+  const walker = document.createTreeWalker(containerEl, NodeFilter.SHOW_TEXT, null, false);
+
+  let currentNode;
+  let remaining = charIndex;
+
+  while ((currentNode = walker.nextNode())) {
+    if (remaining <= currentNode.length) {
+      range.setStart(currentNode, remaining);
+      range.collapse(true);
+      break;
+    }
+    remaining -= currentNode.length;
+  }
+
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
 
 function handleQueryValidationEvent() {
   const query = document.getElementById("queryTextArea");
-  console.log(`Query Changed and needs to be validated: ${query.value}`);
+  const btn = document.getElementById("queryUpdateBtn");
+  const caretPosition = getCursorPosition();
+
+  query.innerHTML = encodeQuery(query.textContent);
+  setCursorPosition(query, caretPosition);
+  if (cache.queryValidated) {
+    btn.classList.remove("disabled");
+  } else {
+    btn.classList.add("disabled");
+  }
 }
 
-function handleQueryChangeEvent() {
-  const query = document.getElementById("queryTextArea");
+function handleQueryUpdateEvent() {
+  const query = document.getElementById("queryTextArea").innerHTML;
+  const instructions = decodeQuery(query);
+  updateUIFromQueryInstructions(instructions);
+  updateGraphFromQueryInstructions(instructions);
   console.log(`Query changed and needs to be transformed into code / updates: ${query.value}`);
+}
+
+/**
+ * Turn the HTML produced by `encodeQuery()` back into a nested data
+ * structure that mirrors the original logical expression.
+ *
+ * Returned format (simplified):
+ * [
+ *   {type: 'property', main:'Node filters', sub:'Label', prop:'name'},
+ *   {type: 'KW', value: 'BETWEEN'},
+ *   {type: 'NUM', value: 10},
+ *   {type: 'KW', value: 'AND'},
+ *   {type: 'NUM', value: 20},
+ *   'AND',
+ *   [                                    // ← nested group (brackets)
+ *     {type:'property', …},
+ *     'OR',
+ *     {type:'property', …}
+ *   ]
+ * ]
+ *
+ * The tree can afterwards be compiled into any instruction format you need.
+ */
+function decodeQuery(queryHTML) {
+  /* -------------------------------------------------------------
+   * 1.  DOM → token list
+   * ----------------------------------------------------------- */
+  const tokens = [];
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(`<div>${queryHTML}</div>`, 'text/html');
+  const root = doc.body.firstElementChild;        // wrapper <div>
+
+  // helper: map CSS classes → token factory
+  const classMap = {
+    // connectors
+    'q-connector-or': () => 'OR',
+    'q-connector-and': () => 'AND',
+
+    // brackets
+    'q-bracket-open-lvl-1': () => ({type: '(', value: '('}),
+    'q-bracket-open-lvl-2': () => ({type: '(', value: '('}),
+    'q-bracket-open-lvl-3': () => ({type: '(', value: '('}),
+    'q-bracket-open-lvl-4': () => ({type: '(', value: '('}),
+    'q-bracket-open-lvl-5': () => ({type: '(', value: '('}),
+    'q-bracket-close-lvl-1': () => ({type: ')', value: ')'}),
+    'q-bracket-close-lvl-2': () => ({type: ')', value: ')'}),
+    'q-bracket-close-lvl-3': () => ({type: ')', value: ')'}),
+    'q-bracket-close-lvl-4': () => ({type: ')', value: ')'}),
+    'q-bracket-close-lvl-5': () => ({type: ')', value: ')'}),
+
+    // numbers & keywords
+    'q-number': el => ({type: 'NUM', value: Number(el.textContent)}),
+    'q-kw-between': () => ({type: 'KW', value: 'BETWEEN'}),
+    'q-kw-between-and': () => ({type: 'KW', value: 'AND'}),
+    'q-lower-than': () => ({type: 'KW', value: 'LOWER THAN'}),
+    'q-and-greater-than': () => ({type: 'KW', value: 'AND GREATER THAN'}),
+
+    // category strings
+    'q-string': el => ({type: 'STR', value: el.textContent}),
+
+    // whole property path (“A::B::C”)
+    'q-property-wrapper': el => {
+      const [main, sub, prop] = el.textContent.split('::');
+      return {type: 'property', main, sub, prop};
+    }
+  };
+
+  // depth-first walk
+  function walk(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return;                         // ignore plain text / spaces
+    }
+
+    // if element => check if we have a known class
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      for (const cls of node.classList) {
+        if (classMap[cls]) {
+          const t = classMap[cls](node);
+          if (t !== undefined) tokens.push(t);
+          break;                      // stop after first recognised class
+        }
+      }
+    }
+
+    // children
+    node.childNodes.forEach(walk);
+  }
+
+  walk(root);
+
+  /* -------------------------------------------------------------
+   * 2.  Token list → nested groups     (recursive-descent)
+   * ----------------------------------------------------------- */
+  function readGroup(idx = 0) {
+    const group = [];
+
+    while (idx < tokens.length) {
+      const tok = tokens[idx];
+
+      if (tok.type === ')') {               // end of this group
+        return [group, idx + 1];
+      }
+
+      if (tok.type === '(') {               // begin sub-group
+        const [subGroup, next] = readGroup(idx + 1);
+        group.push(subGroup);
+        idx = next;
+        continue;
+      }
+
+      group.push(tok);
+      idx += 1;
+    }
+
+    return [group, idx];                    // top-level done
+  }
+
+  const [instructions] = readGroup();       // start at index 0
+  return instructions;
+}
+
+// function decodeQuery(queryHTML) {
+//   console.log("TODO");
+//
+//   // 1. form logical groups for the brackets ()
+//   // use the css classes: .q-bracket-open-lvl-1, .q-bracket-close-lvl-1 to .q-bracket-open-lvl-5, .q-bracket-close-lvl-5
+//   // use recursion for nested brackets
+//
+//   const instructions = [];
+//   return instructions;
+// }
+
+function updateUIFromQueryInstructions(instructions) {
+  console.log("TODO");
+}
+
+function updateGraphFromQueryInstructions(instructions) {
+  console.log("TODO");
 }
 
 function humanFileSize(size) {
