@@ -213,10 +213,6 @@
           font-weight: bold;
       }
 
-      .q-comma {
-          color: #8CA6D9;
-      }
-
       .q-string {
           color: #C33D35;
           font-weight: bold;
@@ -257,28 +253,32 @@
           margin: 1px;
       }
 
+      .q-comma {
+          color: #403C53;
+      }
+
       .q-kw-between {
-          color: #8CA6D9;
+          color: #403C53;
       }
 
       .q-kw-between-and {
-          color: #8CA6D9;
+          color: #403C53;
       }
 
       .q-lower-than {
-          color: #8CA6D9;
+          color: #403C53;
       }
 
       .q-and-greater-than {
-          color: #8CA6D9;
+          color: #403C53;
       }
 
       .q-in-cat-bracket-open {
-          color: #8CA6D9;
+          color: #403C53;
       }
 
       .q-cat-bracket-close {
-          color: #8CA6D9;
+          color: #403C53;
       }
 
       .q-connector-opening-bracket {
@@ -1538,6 +1538,7 @@
         </button>
         <button class="small-btn edit-btn" id="editBtn" onclick="toggleEditMode(this)" title="Enter Edit mode (E)">⚙
         </button>
+        <button class="small-btn green" onclick="fooDebug()">d</button>
         <br>
         <h5 class="purple">Shown:
           <span id="visibleNodes" class="red">0</span>/<span id="totalNodes">0</span> nodes,

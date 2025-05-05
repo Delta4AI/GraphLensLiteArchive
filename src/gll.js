@@ -2952,6 +2952,25 @@ function createCheckbox(propID, prop) {
   return wrapper;
 }
 
+function uncheckAllCheckboxes() {
+  for (const propID of cache.propIDs) {
+    checkCheckbox(propID, false);
+  }
+}
+
+function checkCheckbox(propID, enable = true) {
+  const checkbox = document.getElementById(`filter-${propID}-checkbox`);
+  const span = document.getElementById(`filter-${propID}-checkbox-inner`);
+  const wrapper = document.getElementById(`filter-${propID}-checkbox-wrapper`);
+
+  checkbox.checked = enable;
+  data.layouts[data.selectedLayout].filters.get(propID).active = enable;
+
+  enable ? cache.activeProps.add(propID) : cache.activeProps.delete(propID);
+  span.textContent = enable ? '✔' : '';
+  wrapper.title = `Click to ${enable ? 'hide' : 'show'} nodes and related edges that ${enable ? 'do not' : ''} have the property: ${propID}`;
+}
+
 class DropdownChecklist {
   constructor(propID) {
     this.propID = propID;
@@ -2959,6 +2978,7 @@ class DropdownChecklist {
     this.selectedCategories = data.layouts[data.selectedLayout].filters.get(propID).categories;
     this.isVisible = false;
     this.sortCategories();
+    cache.propIDToDropdownChecklists.set(propID, this);
   }
 
   sortCategories() {
@@ -3117,6 +3137,22 @@ class DropdownChecklist {
     });
   }
 
+  selectCategory(category) {
+    if (!this.categories.has(category)) {
+      warning(`Category "${category}" does not exist for ${this.propID}`);
+      return;
+    }
+
+    this.selectedCategories.add(category);
+
+    const checkbox = this.itemsList.querySelector(
+      `input[type="checkbox"][value="${CSS.escape(category)}"]`
+    );
+    checkbox.checked = true;
+    checkbox.nextElementSibling.classList.add("checked");
+    this.anchor.textContent = `${this.selectedCategories.size}/${this.categories.size} selected`;
+  }
+
   selectAllCategories() {
     this.categories.forEach(category => this.selectedCategories.add(category)); // Add all categories
     this.updateCheckboxStates(true);
@@ -3152,6 +3188,7 @@ class InvertibleRangeSlider {
       ? FILTER_STEP_SIZE_INTEGER
       : FILTER_STEP_SIZE_FLOAT;
     this.initializeIds();
+    cache.propIDToInvertibleRangeSliders.set(propID, this);
   }
 
   initializeIds() {
@@ -3377,6 +3414,16 @@ class InvertibleRangeSlider {
       this.sliderEndInput.value = primaryValue;
       this.currentMax = primaryValue;
     }
+  }
+
+  setTo(min, max, inverted) {
+    const clampedMin = Math.min(Math.max(min, this.sliderMin), this.sliderMax);
+    const clampedMax = Math.min(Math.max(max, this.sliderMin), this.sliderMax);
+
+    this.handleThresholdOnInputEvent(inverted ? clampedMax : clampedMin);
+    this.handleThresholdOnInputEvent(inverted ? clampedMin : clampedMax);
+
+    this.writeCurrentFilterSettings();
   }
 }
 
@@ -3820,6 +3867,7 @@ function createCache() {
   cache.edgeRef = new Map();
   cache.toolTips = new Map();
 
+  cache.propIDs = new Set();
   cache.activeProps = new Set();
   cache.nodeExclusiveProps = new Set();
   cache.edgeExclusiveProps = new Set();
@@ -3831,6 +3879,9 @@ function createCache() {
   cache.propToEdgeIDs = new Map();
   cache.nodeIDToEdgeIDs = new Map();
   cache.edgeIDToNodeIDs = new Map();
+
+  cache.propIDToDropdownChecklists = new Map();
+  cache.propIDToInvertibleRangeSliders = new Map();
 
   cache.initialNodePositions = new Map();
   cache.lastBubbleSetMembers = new Map();
@@ -3880,6 +3931,7 @@ function createCache() {
       cache.propToNodes.get(prop).add(node);
       cache.propToNodeIDs.get(prop).add(node.id);
       cache.nodeExclusiveProps.add(prop);
+      cache.propIDs.add(prop);
     }
   });
 
@@ -3898,6 +3950,7 @@ function createCache() {
       } else {
         cache.edgeExclusiveProps.add(prop);
       }
+      cache.propIDs.add(prop);
     }
 
     if (!cache.nodeIDToEdgeIDs.has(edge.source)) cache.nodeIDToEdgeIDs.set(edge.source, new Set());
@@ -4261,7 +4314,7 @@ function getCursorPosition() {
   const sel = document.getSelection();
   sel.modify("extend", "backward", "paragraphboundary");
   const pos = sel.toString().length;
-  if (sel.anchorNode !== undefined) sel.collapseToEnd();
+  if (sel.anchorNode !== null && sel.anchorNode !== undefined) sel.collapseToEnd();
 
   return pos;
 }
@@ -4308,6 +4361,8 @@ function handleQueryUpdateEvent() {
   const query = document.getElementById("queryTextArea").innerHTML;
   const instructions = decodeQuery(query);
   updateUIFromQueryInstructions(instructions);
+  console.log("TODO: The UI is partially updated; the sliders are not refreshed, and something triggers a refresh / redraw of some sort.")
+  console.log("might have to rethink the slider logic");
   updateGraphFromQueryInstructions(instructions);
   console.log(`Query changed and needs to be transformed into code / updates: ${query.value}`);
 }
@@ -4367,6 +4422,7 @@ function decodeQuery(queryHTML) {
     'q-kw-between-and': () => ({type: 'KW', value: 'AND'}),
     'q-lower-than': () => ({type: 'KW', value: 'LOWER THAN'}),
     'q-and-greater-than': () => ({type: 'KW', value: 'AND GREATER THAN'}),
+    'q-in-cat-bracket-open': () => ({type: 'KW', value: 'IN ['}),
 
     // category strings
     'q-string': el => ({type: 'STR', value: el.textContent}),
@@ -4374,14 +4430,15 @@ function decodeQuery(queryHTML) {
     // whole property path (“A::B::C”)
     'q-property-wrapper': el => {
       const [main, sub, prop] = el.textContent.split('::');
-      return {type: 'property', main, sub, prop};
+      return {type: 'property', main, sub, prop, propID: el.textContent};
     }
   };
 
   // depth-first walk
   function walk(node) {
+    // ignore plain text / spaces
     if (node.nodeType === Node.TEXT_NODE) {
-      return;                         // ignore plain text / spaces
+      return;
     }
 
     if (node.nodeType === Node.ELEMENT_NODE) {
@@ -4389,7 +4446,8 @@ function decodeQuery(queryHTML) {
         if (classMap[cls]) {
           const t = classMap[cls](node);
           if (t !== undefined) tokens.push(t);
-          break;                      // stop after first recognised class
+          // stop after first recognised class
+          break;
         }
       }
     }
@@ -4430,18 +4488,45 @@ function decodeQuery(queryHTML) {
   return instructions;
 }
 
-// function decodeQuery(queryHTML) {
-//   console.log("TODO");
-//
-//   // 1. form logical groups for the brackets ()
-//   // use the css classes: .q-bracket-open-lvl-1, .q-bracket-close-lvl-1 to .q-bracket-open-lvl-5, .q-bracket-close-lvl-5
-//   // use recursion for nested brackets
-//
-//   const instructions = [];
-//   return instructions;
-// }
-
 function updateUIFromQueryInstructions(instructions) {
+  function handleInstruction(obj) {
+    if (obj.constructor === Array) {
+      if (obj[0].constructor === Object && obj[0].type === "property") {
+        // normal slider
+        if (obj[1].type === "KW" && obj[1].value === "BETWEEN") {
+          checkCheckbox(obj[0].propID, true);
+          // TODO: this still triggers a refresh ..
+          // cache.propIDToInvertibleRangeSliders.get(obj[0].propID).setTo(obj[2].value, obj[4].value, false);
+        }
+        // inverted slider
+        else if (obj[1].type === "KW" && obj[1].value === "LOWER THAN") {
+          checkCheckbox(obj[0].propID, true);
+          // TODO: this still triggers a refresh ..
+          // cache.propIDToInvertibleRangeSliders.get(obj[0].propID).setTo(obj[2].value, obj[4].value, true);
+        }
+        // category
+        else if (obj[1].type === "KW" && obj[1].value === "IN [") {
+          checkCheckbox(obj[0].propID, true);
+          const dropdown = cache.propIDToDropdownChecklists.get(obj[0].propID);
+          dropdown.deselectAllCategories();
+          for (const dropdownElem of obj) {
+            if (dropdownElem.type === "STR")  {
+              dropdown.selectCategory(dropdownElem.value);
+            }
+          }
+        }
+      } else {
+        for (const nestedInst of obj) {
+          handleInstruction(nestedInst);
+        }
+      }
+    }
+  }
+
+  uncheckAllCheckboxes();
+  for (const inst of instructions) {
+    handleInstruction(inst);
+  }
   console.log("TODO");
 }
 
@@ -4671,4 +4756,11 @@ function success(message) {
 
 function debug(message) {
   logMessage(message, "grey");
+}
+
+function fooDebug() {
+  document.getElementById("queryTextArea").textContent = "(((Node filters::group A::my first numerical node property LOWER THAN 0.761051 AND GREATER THAN 0.426391) AND (Node filters::group A::my first categorical node property IN [bar])) OR (Node filters::group B::my second numerical node property BETWEEN -1 AND 2)) OR (Edge filters::group X::my first numerical edge property BETWEEN 0.5 AND 1.3)) AND (Edge filters::group Y::my second numerical edge property BETWEEN 0 AND 2)";
+  handleQueryValidationEvent();
+  handleQueryUpdateEvent();
+  console.log("DONE");
 }
