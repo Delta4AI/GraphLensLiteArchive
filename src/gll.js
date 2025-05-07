@@ -287,6 +287,134 @@ const DEFAULTS = {
   FILTER_STRATEGY: "OR",
 };
 
+
+class QueryFilter {
+  constructor(instructions) {
+    // keep original structure – no pre-processing necessary
+    this.instructions = instructions;
+  }
+
+  /* ===== public API =================================================== */
+  testNode(node) {
+    return this.#evalExpr(this.instructions, node, /*elemType*/ 'Node filters');
+  }
+
+  testEdge(edge) {
+    return this.#evalExpr(this.instructions, edge, /*elemType*/ 'Edge filters');
+  }
+
+  /* ===== internal helpers ============================================ */
+  /**
+   * Recursively evaluate any sub-expression.
+   * Implements “left-before-right” for chains of arbitrary length.
+   */
+  #evalExpr(expr, element, requestedMainGroup) {
+    if (!Array.isArray(expr)) return false;
+
+    /* ---------- 1. unwrap single-element containers --------------------- */
+    if (expr.length === 1) {
+      return this.#evalExpr(expr[0], element, requestedMainGroup);
+    }
+
+    /* ---------- 2. leaf detection --------------------------------------- */
+    const isLeaf =
+      expr.length > 0 &&
+      !Array.isArray(expr[0]) &&          // first item is NOT another list
+      typeof expr[0] === 'object' &&
+      expr[0]?.type === 'property';
+
+    if (isLeaf) {
+      return this.#evalLeaf(expr, element, requestedMainGroup);
+    }
+
+    /* ---------- 3. composite chain  (lhs OP rhs OP rhs2 …) -------------- */
+    if (expr.length >= 3 && typeof expr[1] === 'string') {
+      // evaluate first operand
+      let acc = this.#evalExpr(expr[0], element, requestedMainGroup);
+
+      // walk through the chain left-to-right
+      for (let i = 1; i < expr.length; i += 2) {
+        const op  = expr[i];           // "AND" | "OR" | "NOT"
+        const rhs = this.#evalExpr(expr[i + 1], element, requestedMainGroup);
+
+        switch (op) {
+          case 'AND':
+            acc = acc && rhs;
+            break;
+          case 'OR':
+            acc = acc || rhs;
+            break;
+          case 'NOT':
+            // “lhs NOT rhs”  :=  lhs && !rhs   (specification)
+            acc = acc && !rhs;
+            break;
+          default:
+            // should never occur with validated input
+            return false;
+        }
+      }
+      return acc;
+    }
+
+    /* ---------- 4. nothing matched  ------------------------------------ */
+    return false;   // fallback – shouldn’t be reached with valid input
+  }
+
+
+  // Evaluate a single property expression
+  #evalLeaf(tokens, element, requestedMainGroup) {
+    /*  token layout (guaranteed):
+          0: property
+          1: KW (BETWEEN | LOWER THAN | IN [)
+          2+: values / further KW
+    */
+    const propTok = tokens[0];
+    const opTok   = tokens[1];  // KW: "BETWEEN" | "LOWER THAN" | "IN [""]
+    const value   = this.#readValue(element, propTok);
+
+    if (value === undefined || value === null) return false;
+
+    // skip properties of the wrong main group (e.g. node property on an edge)
+    if (propTok.main !== requestedMainGroup) return false;
+
+    const propVal = this.#readValue(element, propTok);
+    if (propVal === undefined || propVal === null) return false;
+
+    const op = tokens[1].value;
+
+    // --- BETWEEN a AND b ------------------------------------------------
+    if (op === 'BETWEEN') {
+      const lower = tokens[2].value;
+      const upper = tokens[4].value;
+      return typeof propVal === 'number' && propVal >= lower && propVal <= upper;
+    }
+
+    // --- LOWER THAN a OR GREATER THAN b -------------------------------
+    if (op === 'LOWER THAN') {
+      const low  = tokens[2].value;  // a
+      const high = tokens[4].value;  // b
+      return typeof propVal === 'number' && (propVal <= low || propVal >= high);
+    }
+
+    // --- IN [ a, b, c ] -------------------------------------------------
+    if (op.startsWith('IN')) {
+      const set = tokens.slice(2).map(t => t.value);
+      return set.includes(propVal);
+    }
+
+    return false;
+  }
+
+  // Safely pull the data from the D4Data hierarchy
+  #readValue(element, { main, sub, prop }) {
+    try {
+      return element?.D4Data?.[main]?.[sub]?.[prop];
+    } catch {
+      return undefined;
+    }
+  }
+}
+
 function isString(value) {
   return typeof value === 'string' || value instanceof String;
 }
@@ -1678,6 +1806,7 @@ function parseExcelToJson(file) {
 
   const nodesSheet = workbook.Sheets['nodes'];
   const edgesSheet = workbook.Sheets['edges'];
+  const debugSheet = workbook.Sheets["debug"];
 
   if (!nodesSheet || !edgesSheet) {
     error('The Excel file must contain a "nodes" and "edges" sheet.');
@@ -1903,6 +2032,28 @@ function parseExcelToJson(file) {
 
     return edge;
   }).filter(edge => edge !== null);
+
+  if (debugSheet) {
+    const debugJson = XLSX.utils.sheet_to_json(debugSheet, {defval: null});
+
+    const header = Object.keys(debugJson[0]);
+    const expectedHeader = ["Query", "Valid Node IDs", "Valid Edge IDs"];
+    if (!arraysAreEqual(header, expectedHeader)) {
+      warning(`The 'debug' sheet must contain three columns: ${expectedHeader} (comma-separated IDs).`);
+      return;
+    }
+
+    const debugDiv = document.getElementById("debugDiv");
+
+    debugJson.map(row => {
+      const btn = document.createElement("button");
+      btn.onclick = () => debugQuery(row["Query"]);
+      btn.title = `Valid Node IDs: ${row["Valid Node IDs"]} | Valid Edge IDs: ${row["Valid Edge IDs"]}`;
+      btn.textContent = `${row.__rowNum__}`;
+      btn.className = "small-btn red";
+      debugDiv.appendChild(btn);
+    })
+  }
 
   return {
     nodes: parsedNodes,
@@ -2304,7 +2455,7 @@ function createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
   };
 }
 
-function preRenderEvent() {
+function preRenderEventLegacy() {
   /**
    * Determines the visibility of nodes and edges based on active properties and filter thresholds.
    * Updates the visibility cache and adjusts the graph visuals by hiding or showing nodes and edges.
@@ -2365,8 +2516,56 @@ function preRenderEvent() {
   const nodeIDsToBeHidden = [...cache.nodeRef.keys()].filter(nodeID => !cache.nodeIDsToBeShown.has(nodeID));
   const edgeIDsToBeHidden = [...cache.edgeRef.keys()].filter(edgeID => !cache.edgeIDsToBeShown.has(edgeID));
 
-  // TODO: skip rendering if no nodes/edges are visible
+  const idsToShow = [
+    ...cache.nodeIDsToBeShown,
+    ...cache.edgeIDsToBeShown
+  ];
 
+  const idsToHide = [
+    ...nodeIDsToBeHidden,
+    ...edgeIDsToBeHidden,
+    ...cache.hiddenDanglingNodeIDs,
+    ...cache.hiddenDanglingEdgeIDs
+  ];
+
+  graph.showElement(idsToShow).then(r => console.log(`${cache.nodeIDsToBeShown.size} nodes and ${cache.edgeIDsToBeShown.size} edges shown`));
+  graph.hideElement(idsToHide).then(r => console.log(`${nodeIDsToBeHidden.length} nodes and ${edgeIDsToBeHidden.length} edges hidden`));
+}
+
+function preRenderEvent() {
+  cache.nodeIDsToBeShown = new Set();
+  cache.propIDsToNodeIDsToBeShown = new Map();  // this is used by the bubble-grouping functionality after rendering
+  cache.edgeIDsToBeShown = new Set();
+  cache.propIDsToEdgeIDsToBeShown = new Map();
+  cache.remainingEdgeRelatedNodes = new Set();
+  resetFeatureIsWithinThresholdMaps();
+
+  const queryTextArea = document.getElementById("queryTextArea");
+  cache.instructions = decodeQuery(queryTextArea.innerHTML);
+  cache.queryFilter = new QueryFilter(cache.instructions);
+  const qf = cache.queryFilter;
+
+  for (const node of cache.nodeRef.values()) {
+    if (!qf || qf.testNode(node)) {
+      cache.nodeIDsToBeShown.add(node.id);
+    } else {
+      console.log(`Node ${node.id} did not fulfill filter!`);
+    }
+  }
+
+  for (const edge of cache.edgeRef.values()) {
+    const endsOk = cache.nodeIDsToBeShown.has(edge.source) &&
+      cache.nodeIDsToBeShown.has(edge.target);
+
+    if (endsOk && (!qf || qf.testEdge(edge))) {
+      cache.edgeIDsToBeShown.add(edge.id);
+    } else {
+      console.log(`Edge ${edge.id} did not fulfill filter!`);
+    }
+  }
+
+  const nodeIDsToBeHidden = [...cache.nodeRef.keys()].filter(nodeID => !cache.nodeIDsToBeShown.has(nodeID));
+  const edgeIDsToBeHidden = [...cache.edgeRef.keys()].filter(edgeID => !cache.edgeIDsToBeShown.has(edgeID));
 
   const idsToShow = [
     ...cache.nodeIDsToBeShown,
@@ -2675,7 +2874,7 @@ function buildFilterUI() {
       sectionsCreated.add(section);
     }
 
-    if (!subSectionsCreated.has(subSection)) {
+    if (!subSectionsCreated.has(`${section}::${subSection}`)) {
       const subHeaderDiv = document.createElement("div");
       subHeaderDiv.className = "sub-header-card";
 
@@ -2689,7 +2888,7 @@ function buildFilterUI() {
 
       div.appendChild(subHeaderDiv);
 
-      subSectionsCreated.add(subSection);
+      subSectionsCreated.add(`${section}::${subSection}`);
     }
 
     const row = document.createElement('div');
@@ -3159,10 +3358,12 @@ class DropdownChecklist {
     handleFilterEvent("Showing Elements", `Nodes and related edges for ${this.propID}`, this.propID);
   }
 
-  deselectAllCategories() {
+  deselectAllCategories(skipFilterEvent=false) {
     this.categories.forEach(category => this.selectedCategories.delete(category)); // Clear all categories
     this.updateCheckboxStates(false);
-    handleFilterEvent("Hiding Elements", `Nodes and related edges for ${this.propID}`, this.propID);
+    if (!skipFilterEvent) {
+      handleFilterEvent("Hiding Elements", `Nodes and related edges for ${this.propID}`, this.propID);
+    }
   }
 
   updateCheckboxStates(selectAll) {
@@ -3420,8 +3621,27 @@ class InvertibleRangeSlider {
     const clampedMin = Math.min(Math.max(min, this.sliderMin), this.sliderMax);
     const clampedMax = Math.min(Math.max(max, this.sliderMin), this.sliderMax);
 
-    this.handleThresholdOnInputEvent(inverted ? clampedMax : clampedMin);
-    this.handleThresholdOnInputEvent(inverted ? clampedMin : clampedMax);
+    if (!inverted && min >= max) {
+      error(`Cannot set min threshold to ${min} and max threshold to ${max} for ${this.propID}`);
+      return;
+    }
+    if (inverted && max <= min) {
+      error(`Cannot set threshold to LOWER THAN ${min} OR GREATER THAN ${max} for inverted ${this.propID}`);
+      return;
+    }
+
+    if (min < this.sliderMin) {
+      warning(`Minimum threshold for ${this.propID} corrected to ${clampedMin} (from ${min})`);
+    }
+    if (max > this.sliderMax) {
+      warning(`Maximum threshold for ${this.propID} corrected to ${clampedMax} (from ${max})`);
+    }
+
+    this.sliderStart.value = inverted ? clampedMax : clampedMin;
+    this.sliderEnd.value = inverted ? clampedMin : clampedMax;
+
+    this.handleThresholdOnInputEvent(true);
+    this.handleThresholdOnInputEvent(false);
 
     this.writeCurrentFilterSettings();
   }
@@ -3903,6 +4123,8 @@ function createCache() {
   cache.query = "";
   cache.uniquePropHierarchy = {};
   cache.queryValidated = false;
+  cache.queryFilter = null;
+  cache.instructions = null;
 
   function populateUniquePropGroups(propHash) {
     const [mainGroup, subGroup, prop] = decodePropHashId(propHash);
@@ -4145,15 +4367,15 @@ function encodeQuery(asciiStr) {
       + `<span class='q-number' data-encoded>${high}</span>`
   );
 
-  /* 5-2  "LOWER THAN X AND GREATER THAN Y" --------- */
+  /* 5-2  "LOWER THAN X OR GREATER THAN Y" --------- */
   asciiStr = asciiStr.replace(
-    /(LOWER THAN)\s+(-?\d+(?:\.\d+)?)\s+(AND GREATER THAN)\s+(-?\d+(?:\.\d+)?)/gi,
+    /(LOWER THAN)\s+(-?\d+(?:\.\d+)?)\s+(OR GREATER THAN)\s+(-?\d+(?:\.\d+)?)/gi,
     (_m, lowerThanKw, low, andGreaterThanKw, high) =>
       `<span class='q-lower-than' data-encoded>${lowerThanKw}</span>`
       + space
       + `<span class='q-number' data-encoded>${low}</span>`
       + space
-      + `<span class='q-and-greater-than' data-encoded>${andGreaterThanKw}</span>`
+      + `<span class='q-or-greater-than' data-encoded>${andGreaterThanKw}</span>`
       + space
       + `<span class='q-number' data-encoded>${high}</span>`
   );
@@ -4252,7 +4474,25 @@ function encodeQuery(asciiStr) {
     .join('');
 
   // ------------------------------------------------------------------
-  // 6. wrap everything not already in a <span class='q-…'>…</span> as an error
+  // 6. substitute &nbsp; with the space span (important for copy/paste)
+  // ------------------------------------------------------------------
+  asciiStr = asciiStr
+    // split into “already encoded” vs “plain” parts
+    .split(/(<span\b[^>]*data-encoded[^>]*>[\s\S]*?<\/span>)/g)
+    .map(chunk => {
+      // keep every part that is already marked as encoded
+      if (chunk.startsWith('<span') && chunk.includes('data-encoded')) {
+        return chunk;
+      }
+      // in all other chunks replace real blanks, NBSP (char 160) and “&nbsp;”
+      // with the standard encoded-space element
+      return chunk
+        .replace(/&nbsp;|\u00a0| /g, space);
+    })
+    .join('');
+
+  // ------------------------------------------------------------------
+  // 7. wrap everything not already in a <span class='q-…'>…</span> as an error
   // ------------------------------------------------------------------
   asciiStr = asciiStr
     // split out only the already‐encoded chunks vs everything else
@@ -4283,6 +4523,10 @@ function encodeQuery(asciiStr) {
 }
 
 function updateQueryTextArea() {
+  // TODO: make sure all updateQueryTextArea calls are proper
+  // 1. should be called once on graph load
+  // 2. should be modified when UI elements change
+  // 3. maybe its not necessary to call it from preRenderEvent ?
   const query = document.getElementById("queryTextArea");
   query.innerHTML = "";
   let tmp = "";
@@ -4292,10 +4536,9 @@ function updateQueryTextArea() {
     if (fo.active) {
       if (fo.isCategory) {
         queryEntries.push(`${propID} IN [${[...fo.categories].map(cat => cat).join(",")}]`);
+      } else if (fo.isInverted) {
+        queryEntries.push(`${propID} LOWER THAN ${fo.upperThreshold} OR GREATER THAN ${fo.lowerThreshold}`);
       } else {
-        if (fo.isInverted) {
-          queryEntries.push(`${propID} LOWER THAN ${fo.lowerThreshold} AND GREATER THAN ${fo.upperThreshold}`);
-        }
         queryEntries.push(`${propID} BETWEEN ${fo.lowerThreshold} AND ${fo.upperThreshold}`);
       }
     }
@@ -4342,7 +4585,6 @@ function setCursorPosition(containerEl, charIndex) {
   sel.addRange(range);
 }
 
-
 function handleQueryValidationEvent() {
   const query = document.getElementById("queryTextArea");
   const btn = document.getElementById("queryUpdateBtn");
@@ -4358,13 +4600,8 @@ function handleQueryValidationEvent() {
 }
 
 function handleQueryUpdateEvent() {
-  const query = document.getElementById("queryTextArea").innerHTML;
-  const instructions = decodeQuery(query);
-  updateUIFromQueryInstructions(instructions);
-  console.log("TODO: The UI is partially updated; the sliders are not refreshed, and something triggers a refresh / redraw of some sort.")
-  console.log("might have to rethink the slider logic");
-  updateGraphFromQueryInstructions(instructions);
-  console.log(`Query changed and needs to be transformed into code / updates: ${query.value}`);
+  handleFilterEvent("Updating Graph from Query", queryTextArea.textContent);
+  updateUIFromQueryInstructions();
 }
 
 /**
@@ -4421,7 +4658,7 @@ function decodeQuery(queryHTML) {
     'q-kw-between': () => ({type: 'KW', value: 'BETWEEN'}),
     'q-kw-between-and': () => ({type: 'KW', value: 'AND'}),
     'q-lower-than': () => ({type: 'KW', value: 'LOWER THAN'}),
-    'q-and-greater-than': () => ({type: 'KW', value: 'AND GREATER THAN'}),
+    'q-or-greater-than': () => ({type: 'KW', value: 'OR GREATER THAN'}),
     'q-in-cat-bracket-open': () => ({type: 'KW', value: 'IN ['}),
 
     // category strings
@@ -4488,34 +4725,36 @@ function decodeQuery(queryHTML) {
   return instructions;
 }
 
-function updateUIFromQueryInstructions(instructions) {
+function updateUIFromQueryInstructions() {
   function handleInstruction(obj) {
     if (obj.constructor === Array) {
       if (obj[0].constructor === Object && obj[0].type === "property") {
+
         // normal slider
         if (obj[1].type === "KW" && obj[1].value === "BETWEEN") {
           checkCheckbox(obj[0].propID, true);
-          // TODO: this still triggers a refresh ..
-          // cache.propIDToInvertibleRangeSliders.get(obj[0].propID).setTo(obj[2].value, obj[4].value, false);
+          cache.propIDToInvertibleRangeSliders.get(obj[0].propID).setTo(obj[2].value, obj[4].value, false);
         }
+
         // inverted slider
         else if (obj[1].type === "KW" && obj[1].value === "LOWER THAN") {
           checkCheckbox(obj[0].propID, true);
-          // TODO: this still triggers a refresh ..
-          // cache.propIDToInvertibleRangeSliders.get(obj[0].propID).setTo(obj[2].value, obj[4].value, true);
+          cache.propIDToInvertibleRangeSliders.get(obj[0].propID).setTo(obj[2].value, obj[4].value, true);
         }
+
         // category
         else if (obj[1].type === "KW" && obj[1].value === "IN [") {
           checkCheckbox(obj[0].propID, true);
           const dropdown = cache.propIDToDropdownChecklists.get(obj[0].propID);
-          dropdown.deselectAllCategories();
+          dropdown.deselectAllCategories(true);
           for (const dropdownElem of obj) {
-            if (dropdownElem.type === "STR")  {
+            if (dropdownElem.type === "STR") {
               dropdown.selectCategory(dropdownElem.value);
             }
           }
         }
       } else {
+        // nested instruction
         for (const nestedInst of obj) {
           handleInstruction(nestedInst);
         }
@@ -4524,14 +4763,9 @@ function updateUIFromQueryInstructions(instructions) {
   }
 
   uncheckAllCheckboxes();
-  for (const inst of instructions) {
+  for (const inst of cache.instructions) {
     handleInstruction(inst);
   }
-  console.log("TODO");
-}
-
-function updateGraphFromQueryInstructions(instructions) {
-  console.log("TODO");
 }
 
 function humanFileSize(size) {
@@ -4554,6 +4788,7 @@ function loadFileWrapper(event) {
         createCache();
         buildUI();
         createGraphInstance();
+        updateQueryTextArea();
 
         graph.render().then(r => {
           console.log("Initial graph rendered");
@@ -4758,9 +4993,25 @@ function debug(message) {
   logMessage(message, "grey");
 }
 
+
+function debugQuery(query) {
+  document.getElementById("queryTextArea").textContent = query;
+  handleQueryValidationEvent();
+  handleQueryUpdateEvent();
+}
+
 function fooDebug() {
-  document.getElementById("queryTextArea").textContent = "(((Node filters::group A::my first numerical node property LOWER THAN 0.761051 AND GREATER THAN 0.426391) AND (Node filters::group A::my first categorical node property IN [bar])) OR (Node filters::group B::my second numerical node property BETWEEN -1 AND 2)) OR (Edge filters::group X::my first numerical edge property BETWEEN 0.5 AND 1.3)) AND (Edge filters::group Y::my second numerical edge property BETWEEN 0 AND 2)";
+  document.getElementById("queryTextArea").textContent = "(((Node filters::group A::my first numerical node property LOWER THAN 0.261051 OR GREATER THAN 0.46391) AND (Node filters::group A::my first categorical node property IN [bar])) OR (Node filters::group B::my second numerical node property BETWEEN -0.5 AND 2)) OR ((Edge filters::group X::my first numerical edge property BETWEEN 0.5 AND 1.3) NOT (Edge filters::group Y::my second numerical edge property BETWEEN 0 AND 2))";
   handleQueryValidationEvent();
   handleQueryUpdateEvent();
   console.log("DONE");
+}
+
+function debugPrintPropMaps() {
+  for (const [k, v] of cache.propToNodeIDs.entries()) {
+    console.log(`Node Property: "${k}" || Nodes: "${[...v].join('","')}"`);
+  }
+  for (const [k, v] of cache.propToEdgeIDs.entries()) {
+    console.log(`Edge Property: "${k}" || Edges: "${[...v].join('","')}"`);
+  }
 }
