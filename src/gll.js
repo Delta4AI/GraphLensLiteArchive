@@ -14,11 +14,11 @@ const {
 
 class CustomForceLayout extends BaseLayout {
   id = 'custom-force-layout';
-
+  
   async execute(data) {
-    const {nodes = []} = data;
+  const {nodes = []} = data;
     const myNodes = nodes
-      .filter(n => cache.selectedNodes.includes(n.id))
+    .filter(n => cache.selectedNodes.includes(n.id))
       .map((node, index) => ({
         id: node.id,
         style: {
@@ -46,6 +46,7 @@ register(ExtensionCategory.LAYOUT, 'custom', CustomForceLayout);
 /* @type {import('@antv/g6').Graph","null} */
 let graph = null;  // The G6 graph object
 let data = {};  // Stores data that can be serialized as json file
+let query = {validated: false, str: "", ast: null};  // Stores query elements, instructions, status
 let cache = {initialized: false};  // Stores references to map IDs to node/edge objects that cannot be serialized to a json file
 let didShowAnyStatusMessage = false;
 
@@ -288,9 +289,8 @@ const DEFAULTS = {
 };
 
 
-class QueryFilter {
+class QueryAST {
   constructor(instructions) {
-    // keep original structure – no pre-processing necessary
     this.instructions = instructions;
   }
 
@@ -382,27 +382,29 @@ class QueryFilter {
 
     const op = tokens[1].value;
 
+    let validated = false;
     // --- BETWEEN a AND b ------------------------------------------------
     if (op === 'BETWEEN') {
       const lower = tokens[2].value;
       const upper = tokens[4].value;
-      return typeof propVal === 'number' && propVal >= lower && propVal <= upper;
+      validated = typeof propVal === 'number' && propVal >= lower && propVal <= upper;
     }
 
     // --- LOWER THAN a OR GREATER THAN b -------------------------------
     if (op === 'LOWER THAN') {
       const low  = tokens[2].value;  // a
       const high = tokens[4].value;  // b
-      return typeof propVal === 'number' && (propVal <= low || propVal >= high);
+      validated = typeof propVal === 'number' && (propVal <= low || propVal >= high);
     }
 
     // --- IN [ a, b, c ] -------------------------------------------------
     if (op.startsWith('IN')) {
       const set = tokens.slice(2).map(t => t.value);
-      return set.includes(propVal);
+      validated = set.includes(propVal);
     }
 
-    return false;
+    element.featureIsWithinThreshold.set(tokens[0].propID, validated);
+    return validated;
   }
 
   // Safely pull the data from the D4Data hierarchy
@@ -1688,23 +1690,38 @@ function toggleSelectionByNeighbors(mode) {
   update();
 }
 
-function persistPositionsUpdateDataAndReDrawGraph() {
-  // the timeout is necessary since otherwise, when calling this directly after rendering, the layout is not fully
-  // finished and the recorded nodes are misplaced slightly
-  setTimeout(() => {
-    let ld = data.layouts[data.selectedLayout];
-    if (!ld.isCustom && ld.positions.size === 0) {
-      console.log(`Initially persisting coordinates of default layout ${data.selectedLayout} ..`);
-      persistNodePositions();
-    }
+// function persistPositionsUpdateDataAndReDrawGraph() {
+//   // the timeout is necessary since otherwise, when calling this directly after rendering, the layout is not fully
+//   // finished and the recorded nodes are misplaced slightly
+//   setTimeout(() => {
+//     let ld = data.layouts[data.selectedLayout];
+//     if (!ld.isCustom && ld.positions.size === 0) {
+//       console.log(`Initially persisting coordinates of default layout ${data.selectedLayout} ..`);
+//       persistNodePositions();
+//     }
+//
+//     // cache is written on app start or layout change every time IF no data exists yet, no matter if it is a custom layout or not
+//     if (!cache.initialNodePositions.has(data.selectedLayout)) {
+//       cache.initialNodePositions.set(data.selectedLayout, new Map());
+//       console.log(`Caching coordinates of layout ${data.selectedLayout} to be used by reset feature ..`);
+//       persistNodePositions(cache.initialNodePositions.get(data.selectedLayout));
+//     }
+//   }, 100);
+// }
 
-    // cache is written on app start or layout change every time IF no data exists yet, no matter if it is a custom layout or not
-    if (!cache.initialNodePositions.has(data.selectedLayout)) {
-      cache.initialNodePositions.set(data.selectedLayout, new Map());
-      console.log(`Caching coordinates of layout ${data.selectedLayout} to be used by reset feature ..`);
-      persistNodePositions(cache.initialNodePositions.get(data.selectedLayout));
-    }
-  }, 100);
+function conditionallyPersistNodePositions() {
+  let ld = data.layouts[data.selectedLayout];
+  if (!ld.isCustom && ld.positions.size === 0) {
+    console.log(`Initially persisting coordinates of default layout ${data.selectedLayout} ..`);
+    persistNodePositions();
+  }
+
+  // cache is written on app start or layout change every time IF no data exists yet, no matter if it is a custom layout or not
+  if (!cache.initialNodePositions.has(data.selectedLayout)) {
+    cache.initialNodePositions.set(data.selectedLayout, new Map());
+    console.log(`Caching coordinates of layout ${data.selectedLayout} to be used by reset feature ..`);
+    persistNodePositions(cache.initialNodePositions.get(data.selectedLayout));
+  }
 }
 
 function persistNodePositions(targetMap = data.layouts[data.selectedLayout].positions) {
@@ -2148,21 +2165,26 @@ function createGraphInstance() {
     graph.on(GraphEvent.AFTER_DRAW, (ev) => {
       // TODO: fired quite often.. better alternative?
       updateSelectedNodesAndEdges();
+      hideLoading();
     });
 
     graph.on(GraphEvent.BEFORE_RENDER, () => {
-      preRenderEvent();
+      showLoading("Rendering", "Rendering graph ..");
     });
 
     graph.on(GraphEvent.AFTER_RENDER, () => {
-      showLoading("Preparing View", "Restoring Positions and Groups");
       afterRenderEvent();
       updateNodeConnectivityMetrics();
-      // TODO: Without this update and redraw after 200ms, positions are not restored
       restorePositions();
-      // refreshUI();
-      updateQueryTextArea();
+      hideLoading();
     });
+
+    // after initial rendering when loading a file; this is called prior to the regular after render event
+    graph.once(GraphEvent.AFTER_RENDER, () => {
+      conditionallyPersistNodePositions();
+      saveFiltersToStash(false);
+      registerHotkeyEvents();
+    })
 
     let layout = data.layouts[data.selectedLayout];
     if (!layout.isCustom) {
@@ -2374,16 +2396,18 @@ function updateBubbleSet(group, members) {
   const plugin = graph.getPluginInstance("bubbleSetPlugin-" + group);
   let empty = !members || members.size === 0;
   const membersAsArray = [...members];
+
+  function getMembers() {
+    return AVOID_NON_BUBBLE_GROUP_MEMBERS ?
+        [...cache.nodeRef.keys()].filter(nodeID => !membersAsArray.includes(nodeID)) : [];
+  }
+
   plugin.update({
     members: empty ? [] : membersAsArray,
-    avoidMembers: empty ?
-      [] : AVOID_NON_BUBBLE_GROUP_MEMBERS ?
-        [...cache.nodeRef.keys()].filter(nodeID => !membersAsArray.includes(nodeID)) : [],
+    avoidMembers: empty ? [] : getMembers(),
     fillOpacity: empty ? 0 : DEFAULTS.BUBBLE_SET_STYLE[group].fillOpacity,
     strokeOpacity: empty ? 0 : DEFAULTS.BUBBLE_SET_STYLE[group].strokeOpacity,
   });
-  // graph.draw();
-  // plugin.drawBubbleSets();
 }
 
 function setsAreEqual(setA, setB) {
@@ -2532,6 +2556,12 @@ function preRenderEventLegacy() {
   graph.hideElement(idsToHide).then(r => console.log(`${nodeIDsToBeHidden.length} nodes and ${edgeIDsToBeHidden.length} edges hidden`));
 }
 
+function decodeQueryAndBuildAST() {
+  const queryTextArea = document.getElementById("queryTextArea");
+  const instructions = decodeQuery(queryTextArea.innerHTML);
+  query.ast = new QueryAST(instructions);
+}
+
 function preRenderEvent() {
   cache.nodeIDsToBeShown = new Set();
   cache.propIDsToNodeIDsToBeShown = new Map();  // this is used by the bubble-grouping functionality after rendering
@@ -2539,29 +2569,48 @@ function preRenderEvent() {
   cache.propIDsToEdgeIDsToBeShown = new Map();
   cache.remainingEdgeRelatedNodes = new Set();
   resetFeatureIsWithinThresholdMaps();
+  cache.bubbleSetChanged = false;
+  decodeQueryAndBuildAST();
 
   const queryTextArea = document.getElementById("queryTextArea");
-  cache.instructions = decodeQuery(queryTextArea.innerHTML);
-  cache.queryFilter = new QueryFilter(cache.instructions);
-  const qf = cache.queryFilter;
+  const instructions = decodeQuery(queryTextArea.innerHTML);
+  query.ast = new QueryAST(instructions);
 
   for (const node of cache.nodeRef.values()) {
-    if (!qf || qf.testNode(node)) {
+    if (query.ast.testNode(node)) {
       cache.nodeIDsToBeShown.add(node.id);
-    } else {
-      console.log(`Node ${node.id} did not fulfill filter!`);
+      node.featureIsWithinThreshold.forEach((v, k) => {
+        if (v === true) {
+          if (!cache.propIDsToNodeIDsToBeShown.has(k)) {
+            cache.propIDsToNodeIDsToBeShown.set(k, new Set());
+          }
+          cache.propIDsToNodeIDsToBeShown.get(k).add(node.id);
+        }
+      });
     }
+    // else {
+    //   console.log(`Node ${node.id} did not fulfill filter!`);
+    // }
   }
 
   for (const edge of cache.edgeRef.values()) {
     const endsOk = cache.nodeIDsToBeShown.has(edge.source) &&
       cache.nodeIDsToBeShown.has(edge.target);
 
-    if (endsOk && (!qf || qf.testEdge(edge))) {
+    if (endsOk && (query.ast.testEdge(edge))) {
       cache.edgeIDsToBeShown.add(edge.id);
-    } else {
-      console.log(`Edge ${edge.id} did not fulfill filter!`);
+      edge.featureIsWithinThreshold.forEach((v, k) => {
+        if (v === true) {
+          if (!cache.propIDsToEdgeIDsToBeShown.has(k)) {
+            cache.propIDsToEdgeIDsToBeShown.set(k, new Set());
+          }
+          cache.propIDsToEdgeIDsToBeShown.get(k).add(edge.id);
+        }
+      });
     }
+    // else {
+    //   console.log(`Edge ${edge.id} did not fulfill filter!`);
+    // }
   }
 
   const nodeIDsToBeHidden = [...cache.nodeRef.keys()].filter(nodeID => !cache.nodeIDsToBeShown.has(nodeID));
@@ -2579,8 +2628,10 @@ function preRenderEvent() {
     ...cache.hiddenDanglingEdgeIDs
   ];
 
-  graph.showElement(idsToShow).then(r => console.log(`${cache.nodeIDsToBeShown.size} nodes and ${cache.edgeIDsToBeShown.size} edges shown`));
-  graph.hideElement(idsToHide).then(r => console.log(`${nodeIDsToBeHidden.length} nodes and ${edgeIDsToBeHidden.length} edges hidden`));
+  graph.showElement(idsToShow);
+  graph.hideElement(idsToHide);
+
+  updateBubbleSetIfChanged();
 }
 
 function performANDFilterLogic() {
@@ -2772,7 +2823,9 @@ function afterRenderEvent() {
    * Updates the cache with the latest members for consistency.
    */
 
-  // update bubble sets
+}
+
+function updateBubbleSetIfChanged() {
   for (let group of traverseBubbleSets()) {
     let propsInGroup = data.layouts[data.selectedLayout][`${group}Props`];
 
@@ -2788,6 +2841,7 @@ function afterRenderEvent() {
     if (!setsAreEqual(lastSetMembers, newSetMembers)) {
       updateBubbleSet(group, newSetMembers);
       cache.lastBubbleSetMembers.set(group, newSetMembers);
+      cache.bubbleSetChanged = true;
     }
   }
 }
@@ -2800,8 +2854,6 @@ function restorePositions() {
     } else {
       console.log("Graph is in sync, no re-draw necessary");
     }
-
-    hideLoading();
   }, 200);
 }
 
@@ -3729,23 +3781,40 @@ function createAddOrRemoveToSelectionButton(propID, shouldAdd) {
   return btn;
 }
 
+function decideToRenderOrDraw(forceRender=false) {
+  console.log("Check whether bubble groups changed here");
+  preRenderEvent();
+
+  if (cache.bubbleSetChanged || forceRender) {
+    return graph.render();
+  } else {
+    return graph.draw();
+  }
+}
+
 function handleFilterEvent(header, text, propID = null) {
+  updateQueryTextArea();
+
   // skip rendering if property is not active
   if (propID !== null && !data.layouts[data.selectedLayout].filters.get(propID).active) {
     return;
   }
 
-  showLoading(header, text);
-  setTimeout(() => {
-    graph.render().then(r => console.log(`Graph updated after filter event with message ${header} ${text}`));
-  }, 25);
+  requestAnimationFrame(() => {
+    showLoading(header, text);
+    requestAnimationFrame(() => {
+      decideToRenderOrDraw().then(r => console.log(`Graph updated after filter event with message ${header} ${text}`));
+    });
+  });
 }
 
 function handleStyleChangeLoadingEvent(header, text) {
-  showLoading(header, text);
-  setTimeout(() => {
-    graph.render().then(r => console.log(`Graph updated after style event with message ${header} ${text}`));
-  }, 25);
+  requestAnimationFrame(() => {
+    showLoading(header, text);
+    requestAnimationFrame(() => {
+      decideToRenderOrDraw().then(r => console.log(`Graph updated after style event with message ${header} ${text}`));
+    });
+  });
 }
 
 function showUI(show) {
@@ -3767,8 +3836,8 @@ async function changeLayout() {
     clearActivePropsCacheOnLayoutChange();
 
     setTimeout(() => {
-      graph.render().then(r => {
-        persistPositionsUpdateDataAndReDrawGraph();
+      decideToRenderOrDraw(true).then(r => {
+        conditionallyPersistNodePositions();
         console.log(`Switched to layout: ${data.selectedLayout}`);
       });
     }, 25);
@@ -3805,7 +3874,7 @@ function addLayout() {
 
   buildDropdownOptions();
   document.getElementById('layout').value = layoutName;
-  changeLayout();
+  changeLayout().then(r => console.log("Changed to new layout"));
 }
 
 function removeSelectedLayout() {
@@ -4004,14 +4073,13 @@ function preProcessData(fileData) {
       cache.nodePositionsFromExcelImport.set(node.id, {x: node.style.x, y: node.style.y});
     }
 
-    const nodie = {
+    return {
       ...node,
       ...getNodeStyleOrDefaults(node),
       features: nodeFeatures,
       featureValues: nodeFeatureValues,
       featureIsWithinThreshold: nodeFeatureWithinThreshold,
     };
-    return nodie;
   });
 
   data.edges = fileData.edges.map((edge) => {
@@ -4080,7 +4148,7 @@ function preProcessData(fileData) {
   console.log("Done pre-processing data");
 }
 
-function createCache() {
+function initCache() {
   cache.initialized = true;
 
   cache.nodeRef = new Map();
@@ -4099,12 +4167,15 @@ function createCache() {
   cache.propToEdgeIDs = new Map();
   cache.nodeIDToEdgeIDs = new Map();
   cache.edgeIDToNodeIDs = new Map();
+  cache.nodeIDToPropIDs = new Map();
+  cache.edgeIDToPropIDs = new Map();
 
   cache.propIDToDropdownChecklists = new Map();
   cache.propIDToInvertibleRangeSliders = new Map();
 
   cache.initialNodePositions = new Map();
   cache.lastBubbleSetMembers = new Map();
+  cache.bubbleSetChanged = false;
 
   cache.nodeIDsToBeShown = new Set();
   cache.propIDsToNodeIDsToBeShown = new Map();
@@ -4120,11 +4191,11 @@ function createCache() {
   cache.hiddenDanglingNodeIDs = new Set();
   cache.hiddenDanglingEdgeIDs = new Set();
 
-  cache.query = "";
+  // cache.query = "";
   cache.uniquePropHierarchy = {};
-  cache.queryValidated = false;
-  cache.queryFilter = null;
-  cache.instructions = null;
+  // cache.queryValidated = false;
+  // cache.queryFilter = null;
+  // cache.instructions = null;
 
   function populateUniquePropGroups(propHash) {
     const [mainGroup, subGroup, prop] = decodePropHashId(propHash);
@@ -4146,6 +4217,7 @@ function createCache() {
   data.nodes.forEach((node) => {
     cache.nodeRef.set(node.id, node);
     cache.toolTips.set(node.id, buildToolTipText(node.id, false));
+    cache.nodeIDToPropIDs.set(node.id, new Set());
     for (let prop of node.features) {
       populateUniquePropGroups(prop);
       if (!cache.propToNodes.has(prop)) cache.propToNodes.set(prop, new Set());
@@ -4154,12 +4226,14 @@ function createCache() {
       cache.propToNodeIDs.get(prop).add(node.id);
       cache.nodeExclusiveProps.add(prop);
       cache.propIDs.add(prop);
+      cache.nodeIDToPropIDs.get(node.id).add(prop);
     }
   });
 
   data.edges.forEach((edge) => {
     cache.edgeRef.set(edge.id, edge);
     cache.toolTips.set(edge.id, buildToolTipText(edge.id, true));
+    cache.edgeIDToPropIDs.set(edge.id, new Set());
     for (let prop of edge.features) {
       populateUniquePropGroups(prop);
       if (!cache.propToEdges.has(prop)) cache.propToEdges.set(prop, new Set());
@@ -4173,6 +4247,7 @@ function createCache() {
         cache.edgeExclusiveProps.add(prop);
       }
       cache.propIDs.add(prop);
+      cache.edgeIDToPropIDs.get(edge.id).add(prop);
     }
 
     if (!cache.nodeIDToEdgeIDs.has(edge.source)) cache.nodeIDToEdgeIDs.set(edge.source, new Set());
@@ -4323,7 +4398,7 @@ function buildToolTipText(nodeOrEdgeID, isEdge) {
 }
 
 function encodeQuery(asciiStr) {
-  cache.queryValidated = true;
+  query.validated = true;
 
   const space = `<span class='q-space' data-encoded> </span>`
 
@@ -4443,7 +4518,7 @@ function encodeQuery(asciiStr) {
   let bracketLevel = 0;
   const unmatched = findUnmatchedBracketIndices(asciiStr);
   if (unmatched.size) {
-    cache.queryValidated = false;
+    query.validated = false;
   }
 
   asciiStr = [...asciiStr]
@@ -4504,7 +4579,7 @@ function encodeQuery(asciiStr) {
         return chunk;
       }
 
-      cache.queryValidated = false;
+      query.validated = false;
       return chunk.replace(/\S+/g, txt =>
         `<span class="q-error-unrecognized">${txt}</span>`
       );
@@ -4513,7 +4588,7 @@ function encodeQuery(asciiStr) {
 
 
   const updateQueryBtn = document.getElementById("queryUpdateBtn");
-  if (cache.queryValidated) {
+  if (query.validated) {
     updateQueryBtn.classList.remove("disabled");
   } else {
     updateQueryBtn.classList.add("disabled");
@@ -4523,10 +4598,6 @@ function encodeQuery(asciiStr) {
 }
 
 function updateQueryTextArea() {
-  // TODO: make sure all updateQueryTextArea calls are proper
-  // 1. should be called once on graph load
-  // 2. should be modified when UI elements change
-  // 3. maybe its not necessary to call it from preRenderEvent ?
   const query = document.getElementById("queryTextArea");
   query.innerHTML = "";
   let tmp = "";
@@ -4586,22 +4657,16 @@ function setCursorPosition(containerEl, charIndex) {
 }
 
 function handleQueryValidationEvent() {
-  const query = document.getElementById("queryTextArea");
-  const btn = document.getElementById("queryUpdateBtn");
+  const queryTextArea = document.getElementById("queryTextArea");
   const caretPosition = getCursorPosition();
 
-  query.innerHTML = encodeQuery(query.textContent);
-  setCursorPosition(query, caretPosition);
-  if (cache.queryValidated) {
-    btn.classList.remove("disabled");
-  } else {
-    btn.classList.add("disabled");
-  }
+  queryTextArea.innerHTML = encodeQuery(queryTextArea.textContent);
+  setCursorPosition(queryTextArea, caretPosition);
 }
 
 function handleQueryUpdateEvent() {
-  handleFilterEvent("Updating Graph from Query", queryTextArea.textContent);
   updateUIFromQueryInstructions();
+  handleFilterEvent("Updating Graph from Query", queryTextArea.textContent);
 }
 
 /**
@@ -4726,7 +4791,7 @@ function decodeQuery(queryHTML) {
 }
 
 function updateUIFromQueryInstructions() {
-  function handleInstruction(obj) {
+  function refreshUIFromASTInstruction(obj) {
     if (obj.constructor === Array) {
       if (obj[0].constructor === Object && obj[0].type === "property") {
 
@@ -4756,15 +4821,17 @@ function updateUIFromQueryInstructions() {
       } else {
         // nested instruction
         for (const nestedInst of obj) {
-          handleInstruction(nestedInst);
+          refreshUIFromASTInstruction(nestedInst);
         }
       }
     }
   }
 
   uncheckAllCheckboxes();
-  for (const inst of cache.instructions) {
-    handleInstruction(inst);
+  decodeQueryAndBuildAST();
+
+  for (const inst of query.ast.instructions) {
+    refreshUIFromASTInstruction(inst);
   }
 }
 
@@ -4776,40 +4843,35 @@ function humanFileSize(size) {
 function loadFileWrapper(event) {
   let file = event.target.files[0];
   showLoading("Loading", `Loading ${file.name} (${file.type} with ${humanFileSize(file.size)})`);
-  setTimeout(() => {
-    loadFile(event)
-      .then((fileData) => {
-        if (!fileData) {
-          hideLoading();
-          return;
-        }
-
-        preProcessData(fileData);
-        createCache();
-        buildUI();
-        createGraphInstance();
-        updateQueryTextArea();
-
-        graph.render().then(r => {
-          console.log("Initial graph rendered");
-          persistPositionsUpdateDataAndReDrawGraph();
-          saveFiltersToStash(false);
-          hideLoading();
-        });
-
-        registerHotkeyEvents();
-      })
-      .catch((error) => {
-        alert(`Error loading graph: ${error}`);
+  loadFile(event)
+    .then((fileData) => {
+      if (!fileData) {
+        alert("File data is empty.");
         hideLoading();
-      })
-      .finally(() => {
+        return;
+      }
+
+      preProcessData(fileData);
+      initCache();
+      buildUI();
+      createGraphInstance();
+      updateQueryTextArea();
+
+      if (!graph) {
+        alert("Graph not initialized, aborting.");
         hideLoading();
+        return;
+      }
+
+      graph.render().then(() => {
+        console.log("Initial graph rendered.");
       });
-  }, 20);
-
+    })
+    .catch((error) => {
+      alert(`Error loading graph: ${error}`);
+      hideLoading();
+    });
 }
-
 function registerHotkeyEvents() {
   document.addEventListener('keydown', (event) => {
     const activeElement = document.activeElement;
@@ -4858,7 +4920,8 @@ function resetLayout() {
   if (!layout.isCustom) {
     graph.setLayout({type: data.selectedLayout, ...layout.internals});
   }
-  graph.render().then(r => console.log(`Resetted layout ${data.selectedLayout}`));
+
+  decideToRenderOrDraw(true).then(r => console.log(`Reset layout ${data.selectedLayout}`));
 }
 
 function exportPNG() {
@@ -4882,28 +4945,20 @@ function exportPNG() {
 function showLoading(header, text = "", invisible = false, autoFade = false) {
   const overlay = document.getElementById('loadingOverlay');
   overlay.style.display = 'flex';
-
-  // timeout is required to trigger transition; otherwise, because of style.display='flex', the transition is skipped
-  setTimeout(() => {
-    overlay.style.opacity = invisible ? '0' : '1';
-  }, 5);
+  overlay.style.opacity = invisible ? '0' : '1';
 
   document.getElementById('loadingHeader').textContent = header;
   document.getElementById('loadingText').textContent = text;
 
-  setTimeout(() => {
-    let logInfo = header;
-    if (text) logInfo += `: ${text}`;
-    console.log(logInfo);
-  }, 25);
+  let logInfo = header;
+  if (text) logInfo += `: ${text}`;
+  console.log(logInfo);
 
   if (autoFade) {
     setTimeout(() => {
       hideLoading();
     }, 1000);
   }
-
-  // refreshUI();
 }
 
 function hideLoading() {
