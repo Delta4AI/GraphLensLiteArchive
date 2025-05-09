@@ -3792,8 +3792,10 @@ function decideToRenderOrDraw(forceRender=false) {
   }
 }
 
-function handleFilterEvent(header, text, propID = null) {
-  updateQueryTextArea();
+function handleFilterEvent(header, text, propID = null, shouldUpdateQueryTextArea=true) {
+  if (shouldUpdateQueryTextArea) {
+    updateQueryTextArea();
+  }
 
   // skip rendering if property is not active
   if (propID !== null && !data.layouts[data.selectedLayout].filters.get(propID).active) {
@@ -4666,7 +4668,7 @@ function handleQueryValidationEvent() {
 
 function handleQueryUpdateEvent() {
   updateUIFromQueryInstructions();
-  handleFilterEvent("Updating Graph from Query", queryTextArea.textContent);
+  handleFilterEvent("Updating Graph from Query", queryTextArea.textContent, null, false);
 }
 
 /**
