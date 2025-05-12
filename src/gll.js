@@ -458,6 +458,7 @@ function createDefaultLayout(key) {
     filters: structuredClone(data.filterDefaults),
     isCustom: false,
     filterStrategy: DEFAULTS.FILTER_STRATEGY,
+    query: undefined
   };
 
   for (const [nodeID, positions] of cache.nodePositionsFromExcelImport) {
@@ -495,6 +496,7 @@ function parseLayouts(jsonLayouts) {
       },])),
       isCustom: layout.isCustom || false,
       filterStrategy: layout.filterStrategy || DEFAULTS.FILTER_STRATEGY,
+      query: layout["query"] || undefined
     };
 
     for (let group of traverseBubbleSets()) {
@@ -2173,7 +2175,6 @@ function createGraphInstance() {
     });
 
     graph.on(GraphEvent.AFTER_RENDER, () => {
-      afterRenderEvent();
       updateNodeConnectivityMetrics();
       restorePositions();
       hideLoading();
@@ -2184,7 +2185,7 @@ function createGraphInstance() {
       conditionallyPersistNodePositions();
       saveFiltersToStash(false);
       registerHotkeyEvents();
-      handleQueryValidationEvent();
+      // handleQueryValidationEvent();
       registerGlobalEventListeners();
     })
 
@@ -2814,17 +2815,6 @@ function allRelatedNodesAreVisible(edgeID) {
   return true;
 }
 
-function afterRenderEvent() {
-  /**
-   * Updates and redraws bubble sets after each graph rendering.
-   *
-   * For each bubble set group, it calculates the current members (nodes),
-   * compares them with the previous members, and redraws the set if changes are detected.
-   * Updates the cache with the latest members for consistency.
-   */
-
-}
-
 function updateBubbleSetIfChanged() {
   for (let group of traverseBubbleSets()) {
     let propsInGroup = data.layouts[data.selectedLayout][`${group}Props`];
@@ -2876,9 +2866,6 @@ function formatNumber(value, precision) {
 }
 
 function buildUI() {
-  buildDropdownOptions();
-  buildFilterUI();
-  showUI(true);
   query.text = document.getElementById("queryTextArea");
   query.overlay = document.getElementById("queryOverlay");
   query.caret = document.getElementById("queryCaret");
@@ -2886,6 +2873,9 @@ function buildUI() {
     query.overlay.scrollTop = query.text.scrollTop;
     query.overlay.scrollLeft = query.text.scrollLeft;
   });
+  buildDropdownOptions();
+  buildFilterUI();
+  showUI(true);
 }
 
 function buildDropdownOptions() {
@@ -2991,8 +2981,10 @@ function buildFilterUI() {
   if (ENABLE_NODE_CONNECTIVITY_SECTION) {
     div.appendChild(buildNodeConnectivitySection());
   }
+
   manageDynamicWidgets();
   handleEditModeUIChanges();
+  updateQueryTextArea();
 }
 
 function buildNodeConnectivitySection() {
@@ -3070,6 +3062,7 @@ function saveFiltersToStash(manualTriggered = false) {
   data.stash = {
     filters: structuredClone(data.layouts[data.selectedLayout].filters),
     filterStrategy: structuredClone(data.layouts[data.selectedLayout].filterStrategy),
+    query: structuredClone(data.layouts[data.selectedLayout]["query"]),
     triggered: manualTriggered
   };
   showLoading("Saving filter", "Saving filter settings to stash", false, true);
@@ -3078,6 +3071,7 @@ function saveFiltersToStash(manualTriggered = false) {
 function loadFiltersFromStash() {
   data.layouts[data.selectedLayout].filters = structuredClone(data.stash.filters);
   data.layouts[data.selectedLayout].filterStrategy = structuredClone(data.stash.filterStrategy);
+  data.layouts[data.selectedLayout]["query"] = structuredClone(data.stash["query"]);
   buildFilterUI();
   handleFilterEvent("Restoring filter", "Restoring filter settings from stash");
 }
@@ -4611,28 +4605,30 @@ function encodeQuery(asciiStr) {
 }
 
 function updateQueryTextArea() {
-  let queryStr = "";
+  let queryStr = data.layouts[data.selectedLayout]["query"] || "";
 
-  let queryEntries = [];
-  for (const [propID, fo] of data.layouts[data.selectedLayout].filters.entries()) {
-    if (fo.active) {
-      if (fo.isCategory) {
-        queryEntries.push(`${propID} IN [${[...fo.categories].map(cat => cat).join(",")}]`);
-      } else if (fo.isInverted) {
-        queryEntries.push(`${propID} LOWER THAN ${fo.upperThreshold} OR GREATER THAN ${fo.lowerThreshold}`);
-      } else {
-        queryEntries.push(`${propID} BETWEEN ${fo.lowerThreshold} AND ${fo.upperThreshold}`);
+  if (!queryStr) {
+    let queryEntries = [];
+    for (const [propID, fo] of data.layouts[data.selectedLayout].filters.entries()) {
+      if (fo.active) {
+        if (fo.isCategory) {
+          queryEntries.push(`${propID} IN [${[...fo.categories].map(cat => cat).join(",")}]`);
+        } else if (fo.isInverted) {
+          queryEntries.push(`${propID} LOWER THAN ${fo.upperThreshold} OR GREATER THAN ${fo.lowerThreshold}`);
+        } else {
+          queryEntries.push(`${propID} BETWEEN ${fo.lowerThreshold} AND ${fo.upperThreshold}`);
+        }
       }
+    }
+
+    if (queryEntries.length) {
+      queryStr = `(${queryEntries.join(") OR (")})`;
     }
   }
 
-  if (queryEntries.length) {
-    queryStr = `(${queryEntries.join(") OR (")})`;
-  }
 
   query.text.textContent = queryStr;
   query.overlay.innerHTML = encodeQuery(queryStr);
-
 }
 
 function getCursorPosition() {
@@ -4705,6 +4701,12 @@ function handleQueryValidationEvent() {
   query.overlay.innerHTML = encodeQuery(query.text.textContent);
   query.overlay.scrollTop = query.text.scrollTop;
   query.overlay.scrollLeft = query.text.scrollLeft;
+
+  if (query.valid) {
+    data.layouts[data.selectedLayout]["query"] = query.text.textContent;
+  } else {
+    data.layouts[data.selectedLayout]["query"] = undefined;
+  }
 
   requestAnimationFrame(() => {
     setCursorPosition(caretPosition);
@@ -4838,37 +4840,41 @@ function decodeQuery() {
 }
 
 function updateUIFromQueryInstructions() {
-  function refreshUIFromASTInstruction(obj) {
+
+  function setFilter(obj) {
+    // normal slider
+    if (obj[1].type === "KW" && obj[1].value === "BETWEEN") {
+      checkCheckbox(obj[0].propID, true);
+      cache.propIDToInvertibleRangeSliders.get(obj[0].propID).setTo(obj[2].value, obj[4].value, false);
+    }
+
+    // inverted slider
+    else if (obj[1].type === "KW" && obj[1].value === "LOWER THAN") {
+      checkCheckbox(obj[0].propID, true);
+      cache.propIDToInvertibleRangeSliders.get(obj[0].propID).setTo(obj[2].value, obj[4].value, true);
+    }
+
+    // category
+    else if (obj[1].type === "KW" && obj[1].value === "IN [") {
+      checkCheckbox(obj[0].propID, true);
+      const dropdown = cache.propIDToDropdownChecklists.get(obj[0].propID);
+      dropdown.deselectAllCategories(true);
+      for (const dropdownElem of obj) {
+        if (dropdownElem.type === "STR") {
+          dropdown.selectCategory(dropdownElem.value);
+        }
+      }
+    }
+  }
+
+  function refreshUI(obj) {
     if (obj.constructor === Array) {
       if (obj[0].constructor === Object && obj[0].type === "property") {
-
-        // normal slider
-        if (obj[1].type === "KW" && obj[1].value === "BETWEEN") {
-          checkCheckbox(obj[0].propID, true);
-          cache.propIDToInvertibleRangeSliders.get(obj[0].propID).setTo(obj[2].value, obj[4].value, false);
-        }
-
-        // inverted slider
-        else if (obj[1].type === "KW" && obj[1].value === "LOWER THAN") {
-          checkCheckbox(obj[0].propID, true);
-          cache.propIDToInvertibleRangeSliders.get(obj[0].propID).setTo(obj[2].value, obj[4].value, true);
-        }
-
-        // category
-        else if (obj[1].type === "KW" && obj[1].value === "IN [") {
-          checkCheckbox(obj[0].propID, true);
-          const dropdown = cache.propIDToDropdownChecklists.get(obj[0].propID);
-          dropdown.deselectAllCategories(true);
-          for (const dropdownElem of obj) {
-            if (dropdownElem.type === "STR") {
-              dropdown.selectCategory(dropdownElem.value);
-            }
-          }
-        }
+        setFilter(obj);
       } else {
         // nested instruction
         for (const nestedInst of obj) {
-          refreshUIFromASTInstruction(nestedInst);
+          refreshUI(nestedInst);
         }
       }
     }
@@ -4878,7 +4884,7 @@ function updateUIFromQueryInstructions() {
   decodeQueryAndBuildAST();
 
   for (const inst of query.ast.instructions) {
-    refreshUIFromASTInstruction(inst);
+    refreshUI(inst);
   }
 }
 
@@ -4902,7 +4908,7 @@ function loadFileWrapper(event) {
       initCache();
       buildUI();
       createGraphInstance();
-      updateQueryTextArea();
+      // updateQueryTextArea();
 
       if (!graph) {
         alert("Graph not initialized, aborting.");
