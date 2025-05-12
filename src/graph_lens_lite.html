@@ -87,22 +87,63 @@
           align-items: center;
       }
 
-      #queryTextArea {
-          /*width: 100%;*/
-          font-family: sans-serif;
-          color: #403C53;
+      #queryEditor {
+          position: relative;
           flex: 0 0 90%;
           height: 100%;
-          box-sizing: border-box;
-          overflow-y: auto;
-          overflow-x: hidden;
-          resize: none;
-          background: white;
           border: 1px solid #403C53;
           border-radius: 5px;
-          padding: 5px;
+      }
+
+      #queryTextArea,
+      #queryOverlay {
+          font-family: "Courier New", monospace;
           font-size: 12px;
           line-height: 1.5;
+          /*white-space: pre-wrap;*/
+          word-wrap: break-word;
+          padding: 5px;
+          tab-size: 4;
+          margin: 0;
+          inset: 0;
+          overflow-y: auto;
+          overflow-x: hidden;
+      }
+
+      #queryOverlay {
+          position: absolute;
+          pointer-events: none;
+          z-index: 0;
+      }
+
+      #queryTextArea {
+          position: relative;
+          height: 100%;
+          box-sizing: border-box;
+          resize: none;
+          outline: none;
+          background: transparent;
+          color: transparent;
+          caret-color: transparent;
+          z-index: 1;
+      }
+
+      #queryEditor .custom-caret {
+          position: absolute;
+          width: 2px;
+          background: red;
+          animation: blink 1s steps(1) infinite;
+          pointer-events: none;
+          z-index: 2;
+      }
+
+      @keyframes blink {
+          0%, 100% {
+              opacity: 1;
+          }
+          50% {
+              opacity: 0;
+          }
       }
 
       #queryUpdateBtn {
@@ -124,7 +165,6 @@
       #outerGraphContainer {
           flex: 1 1 auto;
           min-width: 0;
-          /*padding: 2px;*/
       }
 
       #innerGraphContainer {
@@ -172,36 +212,26 @@
       }
 
       .q-space {
-
       }
 
       .q-property-wrapper {
           color: black;
-          font-weight: 500;
-          font-size: 0.9em;
-          border: 1px solid #403C53;
-          border-radius: 999rem;
-          margin-left: 0.1em;
-          margin-right: 0.1em;
-          white-space: nowrap;
           box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          outline: 1px solid rgba(0, 0, 0, 0.75);
+          outline-offset: 0;
+          border-radius: 3px;
       }
 
       .q-maingroup {
           background-color: #EDD9A366;
-          padding-left: 0.3em;
-          padding-right: 0.1em;
       }
 
       .q-subgroup {
           background-color: #F79C7966;
-          padding: 0 0.1em;
       }
 
       .q-property {
           background-color: #F2637F66;
-          padding-left: 0.1em;
-          padding-right: 0.3em;
       }
 
       .q-prop-group-separator {
@@ -218,39 +248,32 @@
           font-weight: bold;
       }
 
+      .q-bracket-open-lvl-1, .q-bracket-close-lvl-1,
+      .q-bracket-open-lvl-2, .q-bracket-close-lvl-2,
+      .q-bracket-open-lvl-3, .q-bracket-close-lvl-3,
+      .q-bracket-open-lvl-4, .q-bracket-close-lvl-4,
+      .q-bracket-open-lvl-5, .q-bracket-close-lvl-5 {
+          font-weight: bold;
+      }
+
       .q-bracket-open-lvl-1, .q-bracket-close-lvl-1 {
           color: #C33D35;
-          font-weight: bold;
-          font-size: 12px;
-          margin: 1px;
       }
 
       .q-bracket-open-lvl-2, .q-bracket-close-lvl-2 {
           color: #482173;
-          font-weight: bold;
-          font-size: 12px;
-          margin: 1px;
       }
 
       .q-bracket-open-lvl-3, .q-bracket-close-lvl-3 {
           color: #2E6F8E;
-          font-weight: bold;
-          font-size: 12px;
-          margin: 1px;
       }
 
       .q-bracket-open-lvl-4, .q-bracket-close-lvl-4 {
           color: #29AF7F;
-          font-weight: bold;
-          font-size: 12px;
-          margin: 1px;
       }
 
       .q-bracket-open-lvl-5, .q-bracket-close-lvl-5 {
           color: #BDDF26;
-          font-weight: bold;
-          font-size: 12px;
-          margin: 1px;
       }
 
       .q-comma {
@@ -289,40 +312,26 @@
 
       }
 
-      .q-connector-or {
-          font-size: 0.9em;
-          margin-left: 0.2em;
-          padding-left: 0.2em;
-          margin-right: 0.2em;
-          padding-right: 0.2em;
+      .q-connector-or,
+      .q-connector-and,
+      .q-connector-not {
           font-weight: 600;
-          background-color: #379f44;
           color: white;
           border-radius: 999rem;
+          z-index: -1;
+          /*white-space: nowrap;*/
+      }
+
+      .q-connector-or {
+          background: #379f44;
       }
 
       .q-connector-and {
-          font-size: 0.9em;
-          margin-left: 0.2em;
-          padding-left: 0.2em;
-          margin-right: 0.2em;
-          padding-right: 0.2em;
-          font-weight: 600;
-          background-color: #31708f;
-          color: white;
-          border-radius: 999rem;
+          background: #31708f;
       }
 
       .q-connector-not {
-          font-size: 0.9em;
-          margin-left: 0.2em;
-          padding-left: 0.2em;
-          margin-right: 0.2em;
-          padding-right: 0.2em;
-          font-weight: 600;
-          background-color: #c7254e;
-          color: white;
-          border-radius: 999rem;
+          background: #c7254e;
       }
 
       .q-error-unrecognized {
@@ -1570,7 +1579,11 @@
   </div>
 </div>
 <div id="bottomBar">
-  <div id="queryTextArea" contenteditable="true" spellcheck="false" oninput="handleQueryValidationEvent();"></div>
+  <div id="queryEditor">
+    <div id="queryOverlay" aria-hidden="true"></div>
+    <div id="queryTextArea" contenteditable="true" spellcheck="false" oninput="handleQueryValidationEvent();"></div>
+    <div id="queryCaret" class="custom-caret"></div>
+  </div>
   <button id="queryUpdateBtn" class="disabled" onclick="handleQueryUpdateEvent()">Update</button>
 </div>
 </body>

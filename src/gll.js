@@ -46,7 +46,7 @@ register(ExtensionCategory.LAYOUT, 'custom', CustomForceLayout);
 /* @type {import('@antv/g6').Graph","null} */
 let graph = null;  // The G6 graph object
 let data = {};  // Stores data that can be serialized as json file
-let query = {validated: false, str: "", ast: null};  // Stores query elements, instructions, status
+let query = {valid: false, ast: null, text: null, overlay: null, caret: null};  // Stores query elements, instructions, status
 let cache = {initialized: false};  // Stores references to map IDs to node/edge objects that cannot be serialized to a json file
 let didShowAnyStatusMessage = false;
 
@@ -2184,6 +2184,8 @@ function createGraphInstance() {
       conditionallyPersistNodePositions();
       saveFiltersToStash(false);
       registerHotkeyEvents();
+      handleQueryValidationEvent();
+      registerGlobalEventListeners();
     })
 
     let layout = data.layouts[data.selectedLayout];
@@ -2557,8 +2559,7 @@ function preRenderEventLegacy() {
 }
 
 function decodeQueryAndBuildAST() {
-  const queryTextArea = document.getElementById("queryTextArea");
-  const instructions = decodeQuery(queryTextArea.innerHTML);
+  const instructions = decodeQuery();
   query.ast = new QueryAST(instructions);
 }
 
@@ -2572,8 +2573,7 @@ function preRenderEvent() {
   cache.bubbleSetChanged = false;
   decodeQueryAndBuildAST();
 
-  const queryTextArea = document.getElementById("queryTextArea");
-  const instructions = decodeQuery(queryTextArea.innerHTML);
+  const instructions = decodeQuery();
   query.ast = new QueryAST(instructions);
 
   for (const node of cache.nodeRef.values()) {
@@ -2879,6 +2879,13 @@ function buildUI() {
   buildDropdownOptions();
   buildFilterUI();
   showUI(true);
+  query.text = document.getElementById("queryTextArea");
+  query.overlay = document.getElementById("queryOverlay");
+  query.caret = document.getElementById("queryCaret");
+  query.text.addEventListener("scroll", () => {
+    query.overlay.scrollTop = query.text.scrollTop;
+    query.overlay.scrollLeft = query.text.scrollLeft;
+  });
 }
 
 function buildDropdownOptions() {
@@ -4193,11 +4200,7 @@ function initCache() {
   cache.hiddenDanglingNodeIDs = new Set();
   cache.hiddenDanglingEdgeIDs = new Set();
 
-  // cache.query = "";
   cache.uniquePropHierarchy = {};
-  // cache.queryValidated = false;
-  // cache.queryFilter = null;
-  // cache.instructions = null;
 
   function populateUniquePropGroups(propHash) {
     const [mainGroup, subGroup, prop] = decodePropHashId(propHash);
@@ -4400,7 +4403,7 @@ function buildToolTipText(nodeOrEdgeID, isEdge) {
 }
 
 function encodeQuery(asciiStr) {
-  query.validated = true;
+  query.valid = true;
 
   const space = `<span class='q-space' data-encoded> </span>`
 
@@ -4485,9 +4488,9 @@ function encodeQuery(asciiStr) {
     (_m, connector) =>
       connectorClosingBracket
       + `<span class='q-connector-${connector.toLowerCase()}' data-encoded>`
-      + '&nbsp;'
+      + ' '
       + connector.toUpperCase()
-      + '&nbsp;'
+      + ' '
       + `</span>`
       + connectorOpeningBracket
   );
@@ -4520,7 +4523,7 @@ function encodeQuery(asciiStr) {
   let bracketLevel = 0;
   const unmatched = findUnmatchedBracketIndices(asciiStr);
   if (unmatched.size) {
-    query.validated = false;
+    query.valid = false;
   }
 
   asciiStr = [...asciiStr]
@@ -4581,16 +4584,24 @@ function encodeQuery(asciiStr) {
         return chunk;
       }
 
-      query.validated = false;
+      query.valid = false;
       return chunk.replace(/\S+/g, txt =>
         `<span class="q-error-unrecognized">${txt}</span>`
       );
     })
     .join('');
 
+  // ------------------------------------------------------------------
+  // 8. further validation
+  //   - instructions without a filter (e.g. "(Edge filters::group X::prop A)" )
+  //   - empty instructions ( "()" )
+  //   - no connecting ") AND (" ") OR (" or ") NOT (" in between instructions
+  //   - empty query
+  // ------------------------------------------------------------------
+
 
   const updateQueryBtn = document.getElementById("queryUpdateBtn");
-  if (query.validated) {
+  if (query.valid) {
     updateQueryBtn.classList.remove("disabled");
   } else {
     updateQueryBtn.classList.add("disabled");
@@ -4600,9 +4611,7 @@ function encodeQuery(asciiStr) {
 }
 
 function updateQueryTextArea() {
-  const query = document.getElementById("queryTextArea");
-  query.innerHTML = "";
-  let tmp = "";
+  let queryStr = "";
 
   let queryEntries = [];
   for (const [propID, fo] of data.layouts[data.selectedLayout].filters.entries()) {
@@ -4617,12 +4626,12 @@ function updateQueryTextArea() {
     }
   }
 
-  if (queryEntries.length > 0) {
-    tmp += "(";
-    tmp += queryEntries.join(") OR (");
-    tmp += ")";
+  if (queryEntries.length) {
+    queryStr = `(${queryEntries.join(") OR (")})`;
   }
-  query.innerHTML = encodeQuery(tmp);
+
+  query.text.textContent = queryStr;
+  query.overlay.innerHTML = encodeQuery(queryStr);
 
 }
 
@@ -4635,11 +4644,11 @@ function getCursorPosition() {
   return pos;
 }
 
-function setCursorPosition(containerEl, charIndex) {
-  charIndex = Math.max(0, Math.min(charIndex, containerEl.textContent.length));
+function setCursorPosition(charIndex) {
+  charIndex = Math.max(0, Math.min(charIndex, query.text.textContent.length));
 
   const range = document.createRange();
-  const walker = document.createTreeWalker(containerEl, NodeFilter.SHOW_TEXT, null, false);
+  const walker = document.createTreeWalker(query.text, NodeFilter.SHOW_TEXT, null, false);
 
   let currentNode;
   let remaining = charIndex;
@@ -4658,17 +4667,42 @@ function setCursorPosition(containerEl, charIndex) {
   sel.addRange(range);
 }
 
+function moveCaret() {
+  const sel = getSelection();
+  if (!sel || !sel.rangeCount) return;
+
+  const range = sel.getRangeAt(0).cloneRange();
+  range.collapse(true);
+
+  const rect = range.getClientRects()[0];
+  if (!rect) {
+    query.caret.style.display = 'none';
+    return;
+  }
+
+  const parentRect = query.text.getBoundingClientRect();
+
+  query.caret.style.display = 'block';
+  query.caret.style.left = `${rect.left - parentRect.left + query.text.scrollLeft}px`;
+  query.caret.style.top = `${rect.top - parentRect.top + query.text.scrollTop}px`;
+  query.caret.style.height = `${rect.height}px`;
+}
+
 function handleQueryValidationEvent() {
-  const queryTextArea = document.getElementById("queryTextArea");
   const caretPosition = getCursorPosition();
 
-  queryTextArea.innerHTML = encodeQuery(queryTextArea.textContent);
-  setCursorPosition(queryTextArea, caretPosition);
+  query.overlay.innerHTML = encodeQuery(query.text.textContent);
+  query.overlay.scrollTop = query.text.scrollTop;
+  query.overlay.scrollLeft = query.text.scrollLeft;
+
+  requestAnimationFrame(() => {
+    setCursorPosition(caretPosition);
+  });
 }
 
 function handleQueryUpdateEvent() {
   updateUIFromQueryInstructions();
-  handleFilterEvent("Updating Graph from Query", queryTextArea.textContent, null, false);
+  handleFilterEvent("Updating Graph from Query", query.text.textContent, null, false);
 }
 
 /**
@@ -4692,13 +4726,13 @@ function handleQueryUpdateEvent() {
  *
  * The tree can afterwards be compiled into any instruction format you need.
  */
-function decodeQuery(queryHTML) {
+function decodeQuery() {
   /* -------------------------------------------------------------
    * 1.  DOM → token list
    * ----------------------------------------------------------- */
   const tokens = [];
   const parser = new DOMParser();
-  const doc = parser.parseFromString(`<div>${queryHTML}</div>`, 'text/html');
+  const doc = parser.parseFromString(`<div>${query.text.innerHTML}</div>`, 'text/html');
   const root = doc.body.firstElementChild;        // wrapper <div>
 
   // helper: map CSS classes → token factory
@@ -4910,6 +4944,12 @@ function registerHotkeyEvents() {
   });
 }
 
+function registerGlobalEventListeners() {
+  ['input', 'keydown', 'keyup', 'mousedown', 'mouseup', 'focus', 'blur', 'scroll'].forEach(evt =>
+    query.text.addEventListener(evt, moveCaret)
+  );
+}
+
 function resetLayout() {
   if (data.layouts[data.selectedLayout].isCustom) {
     alert("Cannot reset custom layout.");
@@ -5052,13 +5092,13 @@ function debug(message) {
 
 
 function debugQuery(query) {
-  document.getElementById("queryTextArea").textContent = query;
+  query.text.textContent = query;
   handleQueryValidationEvent();
   handleQueryUpdateEvent();
 }
 
 function fooDebug() {
-  document.getElementById("queryTextArea").textContent = "(((Node filters::group A::my first numerical node property LOWER THAN 0.261051 OR GREATER THAN 0.46391) AND (Node filters::group A::my first categorical node property IN [bar])) OR (Node filters::group B::my second numerical node property BETWEEN -0.5 AND 2)) OR ((Edge filters::group X::my first numerical edge property BETWEEN 0.5 AND 1.3) NOT (Edge filters::group Y::my second numerical edge property BETWEEN 0 AND 2))";
+  query.text.textContent = "(((Node filters::group A::my first numerical node property LOWER THAN 0.261051 OR GREATER THAN 0.46391) AND (Node filters::group A::my first categorical node property IN [bar])) OR (Node filters::group B::my second numerical node property BETWEEN -0.5 AND 2)) OR ((Edge filters::group X::my first numerical edge property BETWEEN 0.5 AND 1.3) NOT (Edge filters::group Y::my second numerical edge property BETWEEN 0 AND 2))";
   handleQueryValidationEvent();
   handleQueryUpdateEvent();
   console.log("DONE");
