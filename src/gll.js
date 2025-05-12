@@ -4669,7 +4669,10 @@ function setCursorPosition(charIndex) {
 
 function moveCaret() {
   const sel = getSelection();
-  if (!sel || !sel.rangeCount) return;
+  if (!sel || !sel.rangeCount) {
+    query.caret.style.display = 'none';
+    return;
+  }
 
   const range = sel.getRangeAt(0).cloneRange();
   range.collapse(true);
@@ -4682,9 +4685,17 @@ function moveCaret() {
 
   const parentRect = query.text.getBoundingClientRect();
 
+  const overlapsVert  = rect.bottom > parentRect.top  && rect.top    < parentRect.bottom;
+  const overlapsHoriz = rect.right  > parentRect.left && rect.left   < parentRect.right;
+
+  if (!(overlapsVert && overlapsHoriz)) {         // caret outside the box → hide it
+    query.caret.style.display = 'none';
+    return;
+  }
+
   query.caret.style.display = 'block';
-  query.caret.style.left = `${rect.left - parentRect.left + query.text.scrollLeft}px`;
-  query.caret.style.top = `${rect.top - parentRect.top + query.text.scrollTop}px`;
+  query.caret.style.left = `${rect.left - parentRect.left}px`;
+  query.caret.style.top = `${rect.top - parentRect.top}px`;
   query.caret.style.height = `${rect.height}px`;
 }
 
@@ -4732,7 +4743,7 @@ function decodeQuery() {
    * ----------------------------------------------------------- */
   const tokens = [];
   const parser = new DOMParser();
-  const doc = parser.parseFromString(`<div>${query.text.innerHTML}</div>`, 'text/html');
+  const doc = parser.parseFromString(`<div>${query.overlay.innerHTML}</div>`, 'text/html');
   const root = doc.body.firstElementChild;        // wrapper <div>
 
   // helper: map CSS classes → token factory
@@ -4945,7 +4956,7 @@ function registerHotkeyEvents() {
 }
 
 function registerGlobalEventListeners() {
-  ['input', 'keydown', 'keyup', 'mousedown', 'mouseup', 'focus', 'blur', 'scroll'].forEach(evt =>
+  ['input', 'keydown', 'keyup', 'mousedown', 'mouseup', 'focus', 'blur', 'scroll', 'selectionchange'].forEach(evt =>
     query.text.addEventListener(evt, moveCaret)
   );
 }
