@@ -66,9 +66,6 @@ const FILTER_STEP_SIZE_FLOAT = 0.000001;
 // Specifies the slider thumb- and tooltip-values (only visually); internally, the full float precision is used
 const FILTER_VISUAL_FLOAT_PRECISION = 3;
 
-// If true, all node and edge filters are enabled on initial model load; disabled on large graphs
-let FILTERS_ACTIVE_PER_DEFAULT = true;
-
 // If true, filters in the side-panel are sorted alphabetically
 const SORT_FILTERS = false;
 
@@ -1851,6 +1848,28 @@ function parseExcelToJson(file) {
     }
   }
 
+  function removeEmptyColumns(sheetJson, sheetDescriptor) {
+    const IGNORE = /^__EMPTY/;
+    const allCols = Object.keys(sheetJson[0]).filter(c => !IGNORE.test(c));
+
+    const emptyCols = allCols.filter(col =>
+      sheetJson.every(row => {
+        const v = row[col];
+        return v === null || v.toString().trim() === "";
+      })
+    );
+
+    if (emptyCols.length) {
+      for (const col of emptyCols) {
+        warning(`Column "${col}" in "${sheetDescriptor}" sheet is empty and will be removed.`);
+      }
+    }
+
+    sheetJson.forEach(row =>
+      emptyCols.forEach(col => delete row[col])
+    );
+  }
+
   const nodesData = XLSX.utils.sheet_to_json(nodesSheet, {defval: null});
   const edgesData = XLSX.utils.sheet_to_json(edgesSheet, {defval: null});
 
@@ -1863,6 +1882,9 @@ function parseExcelToJson(file) {
     error('The "edges" sheet is empty or invalid.');
     return;
   }
+
+  removeEmptyColumns(nodesData, "nodes");
+  removeEmptyColumns(edgesData, "edges");
 
   const firstNodeRowKeys = Object.keys(nodesData[0])
     .map(k => k.toLowerCase().trim());
@@ -2381,11 +2403,7 @@ function handleEditModeUIChanges() {
   });
 
   sidebar.style.minWidth = editModeActive ? "600px" : "360px";
-  status.style.maxWidth = editModeActive ? "600px" : "360px";
-
-  // if (didShowAnyStatusMessage) {
-  //   status.style.height = "8%;"
-  // }
+  status.style.maxWidth = editModeActive ? `${container.offsetWidth}px` : "360px";
 }
 
 function* traverseBubbleSets() {
@@ -3987,7 +4005,7 @@ function preProcessData(fileData) {
 
   function getDefaultFilterObject() {
     let obj = {
-      active: FILTERS_ACTIVE_PER_DEFAULT,
+      active: true,
       lowerThreshold: Infinity,
       upperThreshold: -Infinity,
       isInverted: false,
@@ -4033,8 +4051,7 @@ function preProcessData(fileData) {
   cache.nodePositionsFromExcelImport = new Map();
 
   if (!cache.showNodeLabelsAndHoverEffect) {
-    warning(`Large graph with ${fileData.nodes.length} nodes detected. Labels and hover effects are disabled to improve performance. The network is hidden by default - toggle filters to display the nodes.`);
-    FILTERS_ACTIVE_PER_DEFAULT = false;
+    warning(`Large graph with ${fileData.nodes.length} nodes detected. Labels and hover effects are disabled to improve performance.`);
   }
 
   // takes excel header and pre-populates data.filterDefaults to maintain order
@@ -5051,11 +5068,15 @@ function refreshUI() {
   document.getElementById("totalEdges").innerHTML = `${data.edges.length}`;
 }
 
-// window.addEventListener('resize', () => {
-//   if (graph !== null) {
-//
-//   }
-// })
+window.addEventListener('resize', () => {
+  if (graph !== null) {
+    const editModeActive = document.getElementById("editBtn").classList.contains("active");
+    const sidebarContentContainer = document.getElementById("sidebarContentContainer");
+    const status = document.getElementById("sidebarStatusContainer");
+
+    status.style.maxWidth = editModeActive ? `${sidebarContentContainer.offsetWidth}px` : "360px";
+  }
+})
 
 function logMessage(text, colorClass, bold = false) {
   if (!didShowAnyStatusMessage) didShowAnyStatusMessage = true;
