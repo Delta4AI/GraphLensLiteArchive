@@ -14,11 +14,11 @@ const {
 
 class CustomForceLayout extends BaseLayout {
   id = 'custom-force-layout';
-  
+
   async execute(data) {
-  const {nodes = []} = data;
+    const {nodes = []} = data;
     const myNodes = nodes
-    .filter(n => cache.selectedNodes.includes(n.id))
+      .filter(n => cache.selectedNodes.includes(n.id))
       .map((node, index) => ({
         id: node.id,
         style: {
@@ -79,7 +79,7 @@ const TOOLTIP_MAX_COLUMNS = 1;
 const TOOLTIP_HIDE_NULL_VALUES = false;
 
 // Node count threshold beyond which labels and hover effects are disabled to keep the application responsive
-const MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT = 300;
+const MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT = 3;
 
 // If true, bubble groups avoid all non-bubble group members per default
 const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
@@ -91,7 +91,7 @@ const INVISIBLE_CHARACTER = "\u200B";
 const MAX_SELECTION_MEMORY = 10;
 
 // If true, an additional "Node Connectivity" section is displayed in the UI
-const ENABLE_NODE_CONNECTIVITY_SECTION = false;
+const ENABLE_NODE_CONNECTIVITY_METRICS = false;
 
 /**
  *  Excel-model import related properties
@@ -113,7 +113,7 @@ const EXCEL_NODE_PROPERTIES = [
   {column: "ID", type: "str", required: true},
   {column: "Label", type: "str", apply: (n, v) => {
     n.label = v;
-    n.style.label = DEFAULTS.NODE.LABEL.ENABLED;
+    n.style.label = false;
     n.style.labelText = v;
     n.style.labelFontSize = DEFAULTS.NODE.FONT_SIZE;
     n.style.labelFill = DEFAULTS.NODE.FOREGROUND_COLOR;
@@ -148,7 +148,7 @@ const EXCEL_EDGE_PROPERTIES = [
   {column: "Target ID", type: "str", required: true},
   {column: "Label", type: "str", apply: (e, v) => {
     e.label = v;
-    e.style.label = true;
+    e.style.label = false;
     e.style.labelText = v;
     e.style.labelFontSize = DEFAULTS.EDGE.LABEL.FONT_SIZE;
     e.style.labelFill = DEFAULTS.EDGE.LABEL.FOREGROUND_COLOR;
@@ -199,16 +199,20 @@ const DEFAULTS = {
       FONT_SIZE: 8, COLOR: "#C33D35"
     },
     LABEL: {
-      ENABLED: true, FOREGROUND_COLOR: "#000000", BACKGROUND: false, BACKGROUND_COLOR: null, BACKGROUND_RADIUS: 5,
-      PADDING: 2, PLACEMENT: "bottom", FONT_SIZE: 12
+      FOREGROUND_COLOR: "#000000", BACKGROUND: false, BACKGROUND_COLOR: null, BACKGROUND_RADIUS: 5,
+      PADDING: 2, PLACEMENT: "bottom", FONT_SIZE: 12, CURSOR: "default", LINE_SPACING: 0, MAX_LINES: 1,
+      MAX_WIDTH: "200%", TEXT_ALIGN: "middle", WORD_WRAP: false, Z_INDEX: 0, OFFSET_X: 0, OFFSET_Y: 0,
     },
   },
   EDGE: {
     COLOR: "#403C5390", LINE_WIDTH: 0.75, LINE_DASH: 0, TYPE: "line",
     ARROWS: {START: false, END: false, START_SIZE: 8, START_TYPE: "triangle", END_SIZE: 8, END_TYPE: "triangle"},
     LABEL: {
-      ENABLED: false, TEXT: null, FOREGROUND_COLOR: "#000000", BACKGROUND: false, BACKGROUND_COLOR: null,
-      PLACEMENT: "center", FONT_SIZE: 12, AUTO_ROTATE: false, OFFSET_X: 0, OFFSET_Y: 0
+      TEXT: null, FOREGROUND_COLOR: "#000000", BACKGROUND: false, BACKGROUND_COLOR: null,
+      BACKGROUND_CURSOR: "default", BACKGROUND_FILL_OPACITY: 1, BACKGROUND_RADIUS: 0, BACKGROUND_STROKE_OPACITY: 1,
+      CURSOR: "default", FILL_OPACITY: 1, FONT_WEIGHT: "normal", MAX_LINES: 1, MAX_WIDTH: "80%", PADDING: 0,
+      PLACEMENT: "center", FONT_SIZE: 12, AUTO_ROTATE: false, OFFSET_X: 4, OFFSET_Y: 0, TEXT_ALIGN: "left",
+      TEXT_BASE_LINE: "middle", TEXT_OVERFLOW: "ellipsis", VISIBILITY: "visible", WORD_WRAP: false, OPACITY: 1,
     },
     HALO: {
       ENABLED: false, COLOR: "#403C53", WIDTH: 3,
@@ -331,7 +335,7 @@ class QueryAST {
 
       // walk through the chain left-to-right
       for (let i = 1; i < expr.length; i += 2) {
-        const op  = expr[i];           // "AND" | "OR" | "NOT"
+        const op = expr[i];           // "AND" | "OR" | "NOT"
         const rhs = this.#evalExpr(expr[i + 1], element, requestedMainGroup);
 
         switch (op) {
@@ -366,8 +370,8 @@ class QueryAST {
           2+: values / further KW
     */
     const propTok = tokens[0];
-    const opTok   = tokens[1];  // KW: "BETWEEN" | "LOWER THAN" | "IN [""]
-    const value   = this.#readValue(element, propTok);
+    const opTok = tokens[1];  // KW: "BETWEEN" | "LOWER THAN" | "IN [""]
+    const value = this.#readValue(element, propTok);
 
     if (value === undefined || value === null) return false;
 
@@ -389,7 +393,7 @@ class QueryAST {
 
     // --- LOWER THAN a OR GREATER THAN b -------------------------------
     if (op === 'LOWER THAN') {
-      const low  = tokens[2].value;  // a
+      const low = tokens[2].value;  // a
       const high = tokens[4].value;  // b
       validated = typeof propVal === 'number' && (propVal <= low || propVal >= high);
     }
@@ -405,7 +409,7 @@ class QueryAST {
   }
 
   // Safely pull the data from the D4Data hierarchy
-  #readValue(element, { main, sub, prop }) {
+  #readValue(element, {main, sub, prop}) {
     try {
       return element?.D4Data?.[main]?.[sub]?.[prop];
     } catch {
@@ -447,14 +451,12 @@ function isHexColor(value) {
   return hexRegex.test(value.trim());
 }
 
-
 function createDefaultLayout(key) {
   const defLayout = {
     internals: DEFAULTS.LAYOUT_INTERNALS[key] || null,
     positions: new Map(),
     filters: structuredClone(data.filterDefaults),
     isCustom: false,
-    filterStrategy: DEFAULTS.FILTER_STRATEGY,
     query: undefined
   };
 
@@ -492,7 +494,6 @@ function parseLayouts(jsonLayouts) {
         ...value, ...parseGroups(value),
       },])),
       isCustom: layout.isCustom || false,
-      filterStrategy: layout.filterStrategy || DEFAULTS.FILTER_STRATEGY,
       query: layout["query"] || undefined
     };
 
@@ -1017,7 +1018,7 @@ function createStyleDiv() {
   }
 
   function createLabelControls(parent, property, isNode = null) {
-    const labelInput = createInput(true, `Enter Custom ${property}`,
+    const labelInput = createInput(120, `Enter Custom ${property}`,
       `Set the label of the selected ${isNode ? "nodes" : "edges"} to a custom label.`, undefined, () => {
         isNode ? updateNodes({
           style: {
@@ -1055,7 +1056,7 @@ function createStyleDiv() {
 
     parent.appendChild(labelInput);
     parent.appendChild(setToIDButton);
-    if (isNode) parent.appendChild(setToLabelButton);
+    parent.appendChild(setToLabelButton);
     parent.appendChild(clearLabelButton);
   }
 
@@ -1078,15 +1079,15 @@ function createStyleDiv() {
     parent.appendChild(btn);
   }
 
-  function createInput(large = true, placeholder = undefined, title = undefined,
+  function createInput(widthInPx = 80, placeholder = undefined, title = undefined,
                        defaultValue = undefined, callback = undefined) {
     const input = document.createElement("input");
     input.type = "text";
     input.placeholder = placeholder;
     input.title = title;
     input.classList.add("style-input");
+    input.style.width = `${widthInPx}px`;
     input.value = defaultValue || "";
-    if (large) input.classList.add("style-input-lg");
     if (callback) {
       input.addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
@@ -1096,12 +1097,6 @@ function createStyleDiv() {
       });
     }
     return input;
-  }
-
-  function appendInput(parent, large = true, placeholder = undefined, title = undefined,
-                       defaultValue = undefined, callback = undefined) {
-    const input = createInput(large, placeholder, title, defaultValue, callback);
-    parent.appendChild(input);
   }
 
   function createNodeShapeControls(parent) {
@@ -1119,7 +1114,7 @@ function createStyleDiv() {
   }
 
   function createNodeBadgeControls(parent) {
-    const badgeInput = createInput(true, "Enter Badge Text",
+    const badgeInput = createInput(120, "Enter Badge Text",
       "Enter the text of the badge to add to the selected nodes.", undefined, undefined);
     parent.appendChild(badgeInput);
 
@@ -1185,7 +1180,7 @@ function createStyleDiv() {
     appendLabel(rowTwo, "Select by Node ID(s)",
       "Enter comma-separated node IDs to add to selection.");
     const topTwoNodeIDs = data?.nodes?.slice(0, 2).map(n => n.id).join(',') || 'Node1,Node2';
-    const nodeIDsInput = createInput(true, topTwoNodeIDs, "Enter comma-separated list of node IDs to add to selection.",
+    const nodeIDsInput = createInput(242, topTwoNodeIDs, "Enter comma-separated list of node IDs to add to selection.",
       undefined, (val) => {
         addNodeOrEdgeIDsToSelection(val, true);
       });
@@ -1194,7 +1189,7 @@ function createStyleDiv() {
     appendVerticalRule(rowTwo, "Select by Edge ID(s)",
       "Enter comma-separated edge IDs (SourceID::TargetID) to add to selection.");
     const topTwoEdgeIDs = data?.edges?.slice(0, 2).map(e => e.id).join(',') || 'Node1::Node2,Node1::Node3';
-    const edgeIDsInput = createInput(true, topTwoEdgeIDs,
+    const edgeIDsInput = createInput(242, topTwoEdgeIDs,
       "Enter comma-separated edge IDs (SourceID::TargetID) to add to selection.", undefined, (val) => {
         addNodeOrEdgeIDsToSelection(val, false);
       });
@@ -1363,6 +1358,10 @@ function updateEdges(overrides = {}, commands = []) {
       if (command === "label_set_to_id") {
         edge.style.label = true;
         edge.style.labelText = edge.id;
+      }
+      if (command === "label_set_to_label") {
+        edge.style.label = true;
+        edge.style.labelText = edge.label;
       }
     }
 
@@ -1849,8 +1848,7 @@ function parseExcelToJson(file) {
   }
 
   function removeEmptyColumns(sheetJson, sheetDescriptor) {
-    const IGNORE = /^__EMPTY/;
-    const allCols = Object.keys(sheetJson[0]).filter(c => !IGNORE.test(c));
+    const allCols = Object.keys(sheetJson[0]).filter(c => !c.startsWith("__EMPTY"));
 
     const emptyCols = allCols.filter(col =>
       sheetJson.every(row => {
@@ -2113,7 +2111,7 @@ function createGraphInstance() {
       {type: 'drag-element', cursor: {default: 'default', grab: 'default', grabbing: 'default'},},
     ];
 
-    if (cache.showNodeLabelsAndHoverEffect) {
+    if (cache.showLabelsAndEnableHoverEffect) {
       behaviors.push(
         {
           type: 'hover-activate',
@@ -2187,7 +2185,6 @@ function createGraphInstance() {
     });
 
     graph.on(GraphEvent.AFTER_DRAW, (ev) => {
-      // TODO: fired quite often.. better alternative?
       updateSelectedNodesAndEdges();
       hideLoading();
     });
@@ -2197,7 +2194,9 @@ function createGraphInstance() {
     });
 
     graph.on(GraphEvent.AFTER_RENDER, () => {
-      updateNodeConnectivityMetrics();
+      if (ENABLE_NODE_CONNECTIVITY_METRICS) {
+        updateNodeConnectivityMetrics();
+      }
       restorePositions();
       hideLoading();
     });
@@ -2207,8 +2206,9 @@ function createGraphInstance() {
       conditionallyPersistNodePositions();
       saveFiltersToStash(false);
       registerHotkeyEvents();
-      // handleQueryValidationEvent();
       registerGlobalEventListeners();
+      // to initially fill caches related to the query/filters, preRenderEvent is called without rendering afterwards
+      preRenderEvent();
     })
 
     let layout = data.layouts[data.selectedLayout];
@@ -2320,7 +2320,7 @@ function toggleEditMode(ev) {
     {type: 'drag-element', cursor: {default: 'default', grab: 'default', grabbing: 'default'}},
   ];
 
-  if (cache.showNodeLabelsAndHoverEffect) {
+  if (cache.showLabelsAndEnableHoverEffect) {
     nonEditBehaviors.push({
       type: 'hover-activate', degree: 1, state: 'highlight', inactiveState: 'dim',
       enable: (event) => {
@@ -2420,7 +2420,7 @@ function updateBubbleSet(group, members) {
 
   function getMembers() {
     return AVOID_NON_BUBBLE_GROUP_MEMBERS ?
-        [...cache.nodeRef.keys()].filter(nodeID => !membersAsArray.includes(nodeID)) : [];
+      [...cache.nodeRef.keys()].filter(nodeID => !membersAsArray.includes(nodeID)) : [];
   }
 
   plugin.update({
@@ -2500,83 +2500,6 @@ function createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
   };
 }
 
-function preRenderEventLegacy() {
-  /**
-   * Determines the visibility of nodes and edges based on active properties and filter thresholds.
-   * Updates the visibility cache and adjusts the graph visuals by hiding or showing nodes and edges.
-   * Supports both "OR" and "AND" filtering strategies
-   * "AND" filtering strategy:
-   *   - The node fulfills the node-related conditions **AND**
-   *   - The edge fulfills the edge-related conditions **AND**
-   *   - The edge connects nodes that are not filtered out by the node filters.
-   * "OR" filtering strategy:
-   *   - Any element fulfills at least one condition
-   */
-  cache.nodeIDsToBeShown = new Set();
-  cache.propIDsToNodeIDsToBeShown = new Map();  // this is used by the bubble-grouping functionality after rendering
-  cache.edgeIDsToBeShown = new Set();
-  cache.propIDsToEdgeIDsToBeShown = new Map();
-  cache.remainingEdgeRelatedNodes = new Set();
-  resetFeatureIsWithinThresholdMaps();
-
-  for (let propID of cache.activeProps) {
-    let fd = data.layouts[data.selectedLayout].filters.get(propID);
-    cache.propIDsToNodeIDsToBeShown.set(propID, new Set());
-
-    for (let node of cache.propToNodes.get(propID) || []) {
-      if (isWithinThreshold(fd, node.featureValues.get(propID))) {
-        // this node has an active property and is within the defined thresholds, so we can consider showing it
-        cache.nodeIDsToBeShown.add(node.id);
-        cache.propIDsToNodeIDsToBeShown.get(propID).add(node.id);
-        node.featureIsWithinThreshold.set(propID, true);
-      } else {
-        node.featureIsWithinThreshold.set(propID, false);
-      }
-    }
-  }
-
-  // we need two iterations over all activated props, otherwise we might miss node ids to be shown
-  for (let propID of cache.activeProps) {
-    let fd = data.layouts[data.selectedLayout].filters.get(propID);
-    cache.propIDsToEdgeIDsToBeShown.set(propID, new Set());
-
-    for (let edge of cache.propToEdges.get(propID) || []) {
-      if (isWithinThreshold(fd, edge.featureValues.get(propID)) && allRelatedNodesAreVisible(edge.id)) {
-        // this edge has an active property, is within the defined thresholds, and all of its related nodes are visible,
-        // so we can also consider to show the edge itself
-        cache.edgeIDsToBeShown.add(edge.id);
-        cache.propIDsToEdgeIDsToBeShown.get(propID).add(edge.id);
-        edge.featureIsWithinThreshold.set(propID, true);
-      } else {
-        edge.featureIsWithinThreshold.set(propID, false);
-      }
-    }
-  }
-
-  // in the "OR" filtering logic, we already have all to be considered nodes (at least one property is within threshold)
-  if (data.layouts[data.selectedLayout].filterStrategy === "AND") {
-    performANDFilterLogic();
-  }
-
-  const nodeIDsToBeHidden = [...cache.nodeRef.keys()].filter(nodeID => !cache.nodeIDsToBeShown.has(nodeID));
-  const edgeIDsToBeHidden = [...cache.edgeRef.keys()].filter(edgeID => !cache.edgeIDsToBeShown.has(edgeID));
-
-  const idsToShow = [
-    ...cache.nodeIDsToBeShown,
-    ...cache.edgeIDsToBeShown
-  ];
-
-  const idsToHide = [
-    ...nodeIDsToBeHidden,
-    ...edgeIDsToBeHidden,
-    ...cache.hiddenDanglingNodeIDs,
-    ...cache.hiddenDanglingEdgeIDs
-  ];
-
-  graph.showElement(idsToShow).then(r => console.log(`${cache.nodeIDsToBeShown.size} nodes and ${cache.edgeIDsToBeShown.size} edges shown`));
-  graph.hideElement(idsToHide).then(r => console.log(`${nodeIDsToBeHidden.length} nodes and ${edgeIDsToBeHidden.length} edges hidden`));
-}
-
 function decodeQueryAndBuildAST() {
   const instructions = decodeQuery();
   query.ast = new QueryAST(instructions);
@@ -2592,9 +2515,6 @@ function preRenderEvent() {
   cache.bubbleSetChanged = false;
   decodeQueryAndBuildAST();
 
-  const instructions = decodeQuery();
-  query.ast = new QueryAST(instructions);
-
   for (const node of cache.nodeRef.values()) {
     if (query.ast.testNode(node)) {
       cache.nodeIDsToBeShown.add(node.id);
@@ -2607,9 +2527,7 @@ function preRenderEvent() {
         }
       });
     }
-    // else {
-    //   console.log(`Node ${node.id} did not fulfill filter!`);
-    // }
+    // else console.log(`Node ${node.id} did not fulfill filter!`);
   }
 
   for (const edge of cache.edgeRef.values()) {
@@ -2627,9 +2545,7 @@ function preRenderEvent() {
         }
       });
     }
-    // else {
-    //   console.log(`Edge ${edge.id} did not fulfill filter!`);
-    // }
+    // else console.log(`Edge ${edge.id} did not fulfill filter!`);
   }
 
   const nodeIDsToBeHidden = [...cache.nodeRef.keys()].filter(nodeID => !cache.nodeIDsToBeShown.has(nodeID));
@@ -2802,37 +2718,6 @@ function getPropertiesNotWithinThresholds(nodeID = null, edgeID = null) {
   return keysWithFalse;
 }
 
-function isWithinThreshold(filterData, nodeOrEdgeValue) {
-  return filterData.isCategory
-    ? evaluateCategoricalThreshold(filterData, nodeOrEdgeValue)
-    : evaluateNumericalThreshold(filterData, nodeOrEdgeValue);
-}
-
-function evaluateCategoricalThreshold(filterData, nodeOrEdgeValue) {
-  if (data.layouts[data.selectedLayout].filterStrategy === "AND") {
-    // element must fulfill all checked categories
-    return setsAreEqual(filterData.categories, nodeOrEdgeValue);
-  } else {
-    // the element must have at least one active category
-    return setsIntersect(filterData.categories, nodeOrEdgeValue);
-  }
-}
-
-function evaluateNumericalThreshold(filterData, nodeOrEdgeValue) {
-  return filterData.isInverted
-    ? (nodeOrEdgeValue <= filterData.upperThreshold || nodeOrEdgeValue >= filterData.lowerThreshold)
-    : (filterData.lowerThreshold <= nodeOrEdgeValue && nodeOrEdgeValue <= filterData.upperThreshold);
-}
-
-function allRelatedNodesAreVisible(edgeID) {
-  for (let nodeID of cache.edgeIDToNodeIDs.get(edgeID) || []) {
-    if (!cache.nodeIDsToBeShown.has(nodeID)) {
-      return false;
-    }
-  }
-  return true;
-}
-
 function updateBubbleSetIfChanged() {
   for (let group of traverseBubbleSets()) {
     let propsInGroup = data.layouts[data.selectedLayout][`${group}Props`];
@@ -2909,8 +2794,6 @@ function buildFilterUI() {
   const div = document.getElementById("filterContainer");
   div.innerHTML = "";
 
-  div.appendChild(createFilterStrategyToggleSwitch());
-
   let sectionsCreated = new Set();
   let subSectionsCreated = new Set();
 
@@ -2927,17 +2810,18 @@ function buildFilterUI() {
         div.appendChild(document.createElement("hr"));
       }
       const headerDiv = document.createElement("div");
-      headerDiv.classList.add("container-vertical-aligned");
+      headerDiv.className = "header-card";
 
-      const header = document.createElement("h3");
+      const header = document.createElement("h4");
       header.textContent = section;
-      header.classList.add("inline");
+      header.className = "m-0 white";
       headerDiv.appendChild(header);
 
       headerDiv.appendChild(createSectionToggleButton(true, section));
       headerDiv.appendChild(createSectionToggleButton(false, section));
 
       div.appendChild(headerDiv);
+      div.appendChild(document.createElement("br"));
       sectionsCreated.add(section);
     }
 
@@ -2996,7 +2880,7 @@ function buildFilterUI() {
   staticStyleDiv.innerHTML = "";
   staticStyleDiv.appendChild(createStyleDiv());
 
-  if (ENABLE_NODE_CONNECTIVITY_SECTION) {
+  if (ENABLE_NODE_CONNECTIVITY_METRICS) {
     div.appendChild(buildNodeConnectivitySection());
   }
 
@@ -3079,7 +2963,6 @@ function updateNodeConnectivityMetrics() {
 function saveFiltersToStash(manualTriggered = false) {
   data.stash = {
     filters: structuredClone(data.layouts[data.selectedLayout].filters),
-    filterStrategy: structuredClone(data.layouts[data.selectedLayout].filterStrategy),
     query: structuredClone(data.layouts[data.selectedLayout]["query"]),
     triggered: manualTriggered
   };
@@ -3088,48 +2971,9 @@ function saveFiltersToStash(manualTriggered = false) {
 
 function loadFiltersFromStash() {
   data.layouts[data.selectedLayout].filters = structuredClone(data.stash.filters);
-  data.layouts[data.selectedLayout].filterStrategy = structuredClone(data.stash.filterStrategy);
   data.layouts[data.selectedLayout]["query"] = structuredClone(data.stash["query"]);
   buildFilterUI();
   handleFilterEvent("Restoring filter", "Restoring filter settings from stash");
-}
-
-function createFilterStrategyToggleSwitch() {
-  function updateText() {
-    text.innerHTML = `Filter Strategy: <span class='red'>${data.layouts[data.selectedLayout].filterStrategy}</span>`;
-    text.title = data.layouts[data.selectedLayout].filterStrategy === "AND" ? "Applies all active filters at the same time. Only items that satisfy all conditions will be displayed." : "Items that satisfy any condition will be displayed.";
-  }
-
-  let currentStrat = data.layouts[data.selectedLayout].filterStrategy;
-
-  const div = document.createElement("div");
-  div.className = "container-vertical-aligned";
-
-  const text = document.createElement("h5");
-  text.className = "inline";
-  updateText();
-
-  const label = document.createElement("label");
-  label.className = "switch inline";
-
-  const input = document.createElement("input");
-  input.type = "checkbox";
-  input.checked = currentStrat === "AND";
-  input.addEventListener("change", () => {
-    data.layouts[data.selectedLayout].filterStrategy = data.layouts[data.selectedLayout].filterStrategy === "AND" ? "OR" : "AND";
-    updateText();
-    handleFilterEvent("Filter Strategy", "Filter Strategy changed to " + data.layouts[data.selectedLayout].filterStrategy);
-  });
-
-  const span = document.createElement("span");
-  span.className = "slider round";
-
-  label.appendChild(input);
-  label.appendChild(span);
-  div.appendChild(label);
-  div.appendChild(text);
-
-  return div;
 }
 
 function manageDynamicWidgets() {
@@ -3429,7 +3273,7 @@ class DropdownChecklist {
     handleFilterEvent("Showing Elements", `Nodes and related edges for ${this.propID}`, this.propID);
   }
 
-  deselectAllCategories(skipFilterEvent=false) {
+  deselectAllCategories(skipFilterEvent = false) {
     this.categories.forEach(category => this.selectedCategories.delete(category)); // Clear all categories
     this.updateCheckboxStates(false);
     if (!skipFilterEvent) {
@@ -3800,18 +3644,22 @@ function createAddOrRemoveToSelectionButton(propID, shouldAdd) {
   return btn;
 }
 
-function decideToRenderOrDraw(forceRender=false) {
-  console.log("Check whether bubble groups changed here");
+function decideToRenderOrDraw(forceRender = false) {
   preRenderEvent();
 
-  if (cache.bubbleSetChanged || forceRender) {
+  if (cache.bubbleSetChanged || cache.styleChanged || forceRender) {
+    if (cache.styleChanged) {
+      graph.updateData(createSimplifiedDataForGraphObject());
+      cache.styleChanged = false;
+      cache.labelStyleChanged = false;
+    }
     return graph.render();
   } else {
     return graph.draw();
   }
 }
 
-function handleFilterEvent(header, text, propID = null, shouldUpdateQueryTextArea=true) {
+function handleFilterEvent(header, text, propID = null, shouldUpdateQueryTextArea = true) {
   if (shouldUpdateQueryTextArea) {
     updateQueryTextArea();
   }
@@ -3833,7 +3681,10 @@ function handleStyleChangeLoadingEvent(header, text) {
   requestAnimationFrame(() => {
     showLoading(header, text);
     requestAnimationFrame(() => {
-      decideToRenderOrDraw().then(r => console.log(`Graph updated after style event with message ${header} ${text}`));
+      cache.styleChanged = true;
+      decideToRenderOrDraw().then(r => {
+        console.log(`Graph updated after style event with message ${header} ${text}`);
+      });
     });
   });
 }
@@ -3886,7 +3737,6 @@ function addLayout() {
     internals: null,
     positions: structuredClone(currentLayout.positions),
     filters: structuredClone(currentLayout.filters),
-    filterStrategy: structuredClone(currentLayout.filterStrategy),
     isCustom: true
   };
   for (let group of traverseBubbleSets()) {
@@ -3914,63 +3764,118 @@ function removeSelectedLayout() {
 }
 
 function getNodeStyleOrDefaults(node) {
-  const nodeObj = {
-    type: node.type || DEFAULTS.NODE.TYPE,
+  const src = node.style ?? {};
+  const d = DEFAULTS.NODE;
+
+  // ----- basic style -------------------------------------------------------
+  /* @formatter:off */
+  const defaultNode = {
+    type : node.type ?? d.TYPE,
     style: {
-      labelFontSize: node.style?.labelFontSize || DEFAULTS.NODE.LABEL.FONT_SIZE,
-      labelPlacement: node.style?.labelPlacement || DEFAULTS.NODE.LABEL.PLACEMENT,
-      labelFill: node.style?.labelFill || DEFAULTS.NODE.LABEL.FOREGROUND_COLOR,
-      labelBackgroundFill: node.style?.labelBackgroundFill || DEFAULTS.NODE.LABEL.BACKGROUND_COLOR,
-      labelBackground: node.style?.labelBackground || DEFAULTS.NODE.LABEL.BACKGROUND,
-      labelBackgroundRadius: DEFAULTS.NODE.LABEL.BACKGROUND_RADIUS,
-      labelPadding: DEFAULTS.NODE.LABEL.PADDING,
-      size: node.style?.size || DEFAULTS.NODE.SIZE,
-      fill: node.style?.fill || DEFAULTS.NODE.FILL_COLOR,
-      stroke: node.style?.stroke || DEFAULTS.NODE.STROKE_COLOR,
-      lineWidth: node.style?.lineWidth || DEFAULTS.NODE.LINE_WIDTH,
-      badge: node.style?.badge || false,
-      badges: node.style?.badges || [],
-      badgePalette: node.style?.badgePalette || [],
-      badgeFontSize: DEFAULTS.NODE.BADGE.FONT_SIZE,
+      size         : src.size          ?? d.SIZE,
+      fill         : src.fill          ?? d.FILL_COLOR,
+      stroke       : src.stroke        ?? d.STROKE_COLOR,
+      lineWidth    : src.lineWidth     ?? d.LINE_WIDTH,
+
+      badge        : src.badge         ?? false,
+      badges       : src.badges        ?? [],
+      badgePalette : src.badgePalette  ?? [],
+      badgeFontSize: src.badgeFontSize ?? d.BADGE.FONT_SIZE,
     }
   };
 
-  if (cache.showNodeLabelsAndHoverEffect) {
-    nodeObj.style.label = true;
-    nodeObj.style.labelText = node.style?.labelText || node.label || node.id;
-    nodeObj.style.labelFontSize = node.style?.labelFontSize || DEFAULTS.STYLES.NODE_LABEL_FONT_SIZES.md;
+  // ----- label style ------------------------------------------------------
+  if (cache.showLabelsAndEnableHoverEffect || src.label) {
+    const l = DEFAULTS.NODE.LABEL;
+
+    Object.assign(defaultNode.style, {
+      label                 : true,
+      labelText             : src.labelText,
+      labelBackgroundFill   : src.labelBackgroundFill   ?? l.BACKGROUND_COLOR,
+      labelBackground       : src.labelBackground       ?? l.BACKGROUND,
+      labelBackgroundRadius : src.labelBackgroundRadius ?? l.BACKGROUND_RADIUS,
+      labelCursor           : src.labelCursor           ?? l.CURSOR,
+      labelFill             : src.labelFill             ?? l.FOREGROUND_COLOR,
+      labelFontSize         : src.labelFontSize         ?? l.FONT_SIZE,
+      labelLeading          : src.labelLeading          ?? l.LINE_SPACING,
+      labelMaxLines         : src.labelMaxLines         ?? l.MAX_LINES,
+      labelMaxWidth         : src.labelMaxWidth         ?? l.MAX_WIDTH,
+      labelOffsetX          : src.labelOffsetX          ?? l.OFFSET_X,
+      labelOffsetY          : src.labelOffsetY          ?? l.OFFSET_Y,
+      labelPadding          : src.labelPadding          ?? l.PADDING,
+      labelPlacement        : src.labelPlacement        ?? l.PLACEMENT,
+      labelTextAlign        : src.labelTextAlign        ?? l.TEXT_ALIGN,
+      labelWordWrap         : src.labelWordWrap         ?? l.WORD_WRAP,
+      labelZIndex           : src.labelZIndex           ?? l.Z_INDEX,
+    });
   }
-  return nodeObj;
+  /* @formatter:on */
+
+  return defaultNode;
 }
 
 function getEdgeStyleOrDefaults(edge) {
-  return {
-    type: edge.type || DEFAULTS.EDGE.TYPE,
+  const src = edge.style ?? {};
+  const d = DEFAULTS.EDGE;
+
+  // ---- core edge style ----------------------------------------------------
+  /* @formatter:off */
+  const defaultEdge = {
+    type : edge.type ?? d.TYPE,
     style: {
-      startArrow: edge.style?.startArrow || DEFAULTS.EDGE.ARROWS.START,
-      startArrowSize: edge.style?.startArrowSize || DEFAULTS.EDGE.ARROWS.START_SIZE,
-      startArrowType: edge.style?.startArrowType || DEFAULTS.EDGE.ARROWS.START_TYPE,
-      endArrow: edge.style?.endArrow || DEFAULTS.EDGE.ARROWS.END,
-      endArrowSize: edge.style?.endArrowSize || DEFAULTS.EDGE.ARROWS.END_SIZE,
-      endArrowType: edge.style?.endArrowType || DEFAULTS.EDGE.ARROWS.END_TYPE,
-      lineWidth: edge.style?.lineWidth || DEFAULTS.EDGE.LINE_WIDTH,
-      lineDash: edge.style?.lineDash || DEFAULTS.EDGE.LINE_DASH,
-      label: edge.style?.label || DEFAULTS.EDGE.LABEL.ENABLED,
-      labelText: edge.style?.labelText || DEFAULTS.EDGE.LABEL.TEXT,
-      labelFill: edge.style?.labelFill || DEFAULTS.EDGE.LABEL.FOREGROUND_COLOR,
-      labelFontSize: edge.style?.labelFontSize || DEFAULTS.EDGE.LABEL.FONT_SIZE,
-      labelPlacement: edge.style?.labelPlacement || DEFAULTS.EDGE.LABEL.PLACEMENT,
-      labelOffsetX: edge.style?.labelOffsetX || DEFAULTS.EDGE.LABEL.OFFSET_X,
-      labelOffsetY: edge.style?.labelOffsetY || DEFAULTS.EDGE.LABEL.OFFSET_Y,
-      labelBackground: edge.style?.labelBackground || DEFAULTS.EDGE.LABEL.BACKGROUND,
-      labelBackgroundFill: edge.style?.labelBackgroundFill || DEFAULTS.EDGE.LABEL.BACKGROUND_COLOR,
-      labelAutoRotate: edge.style?.labelAutoRotate || DEFAULTS.EDGE.LABEL.AUTO_ROTATE,
-      stroke: edge.style?.stroke || DEFAULTS.EDGE.COLOR,
-      halo: edge.style?.halo || DEFAULTS.EDGE.HALO.ENABLED,
-      haloStroke: edge.style?.haloStroke || DEFAULTS.EDGE.HALO.COLOR,
-      haloLineWidth: edge.style?.haloLineWidth || DEFAULTS.EDGE.HALO.WIDTH,
+      startArrow     : src.startArrow     ?? d.ARROWS.START,
+      startArrowSize : src.startArrowSize ?? d.ARROWS.START_SIZE,
+      startArrowType : src.startArrowType ?? d.ARROWS.START_TYPE,
+      endArrow       : src.endArrow       ?? d.ARROWS.END,
+      endArrowSize   : src.endArrowSize   ?? d.ARROWS.END_SIZE,
+      endArrowType   : src.endArrowType   ?? d.ARROWS.END_TYPE,
+
+      lineWidth      : src.lineWidth      ?? d.LINE_WIDTH,
+      lineDash       : src.lineDash       ?? d.LINE_DASH,
+      stroke         : src.stroke         ?? d.COLOR,
+
+      halo           : src.halo           ?? d.HALO.ENABLED,
+      haloStroke     : src.haloStroke     ?? d.HALO.COLOR,
+      haloLineWidth  : src.haloLineWidth  ?? d.HALO.WIDTH,
     }
+  };
+
+  // ---- label style ------------------------------------------------------
+  if (cache.showLabelsAndEnableHoverEffect || src.label) {
+    const l = DEFAULTS.EDGE.LABEL;
+
+    Object.assign(defaultEdge.style, {
+      label                        : true,
+      labelAutoRotate              : src.labelAutoRotate              ?? l.AUTO_ROTATE,
+      labelBackground              : src.labelBackground              ?? l.BACKGROUND,
+      labelBackgroundFill          : src.labelBackgroundFill          ?? l.BACKGROUND_COLOR,
+      labelBackgroundCursor        : src.labelBackgroundCursor        ?? l.BACKGROUND_CURSOR,
+      labelBackgroundFillOpacity   : src.labelBackgroundFillOpacity   ?? l.BACKGROUND_FILL_OPACITY,
+      labelBackgroundRadius        : src.labelBackgroundRadius        ?? l.BACKGROUND_RADIUS,
+      labelBackgroundStrokeOpacity : src.labelBackgroundStrokeOpacity ?? l.BACKGROUND_STROKE_OPACITY,
+      labelCursor                  : src.labelCursor                  ?? l.CURSOR,
+      labelFill                    : src.labelFill                    ?? l.FOREGROUND_COLOR,
+      labelFillOpacity             : src.labelFillOpacity             ?? l.FILL_OPACITY,
+      labelFontSize                : src.labelFontSize                ?? l.FONT_SIZE,
+      labelFontWeight              : src.labelFontWeight              ?? l.FONT_WEIGHT,
+      labelMaxLines                : src.labelMaxLines                ?? l.MAX_LINES,
+      labelMaxWidth                : src.labelMaxWidth                ?? l.MAX_WIDTH,
+      labelOffsetX                 : src.labelOffsetX                 ?? l.OFFSET_X,
+      labelOffsetY                 : src.labelOffsetY                 ?? l.OFFSET_Y,
+      labelOpacity                 : src.labelOpacity                 ?? l.OPACITY,
+      labelPlacement               : src.labelPlacement               ?? l.PLACEMENT,
+      labelPadding                 : src.labelPadding                 ?? l.PADDING,
+      labelText                    : src.labelText                    ?? l.TEXT,
+      labelTextAlign               : src.labelTextAlign               ?? l.TEXT_ALIGN,
+      labelTextBaseLine            : src.labelTextBaseLine            ?? l.TEXT_BASE_LINE,
+      labelTextOverflow            : src.labelTextOverflow            ?? l.TEXT_OVERFLOW,
+      labelVisibility              : src.labelVisibility              ?? l.VISIBILITY,
+      labelWordWrap                : src.labelWordWrap                ?? l.WORD_WRAP,
+    });
+    /* @formatter:on */
   }
+
+  return defaultEdge;
 }
 
 function exportGraphAsJSON() {
@@ -3979,23 +3884,28 @@ function exportGraphAsJSON() {
     return false;
   }
 
+  // helper for JSON.stringify to serialize Maps to plain objects and Sets to arrays
   function replacer(key, value) {
-    /**
-     * Custom replacer function for JSON.stringify to serialize Maps and Sets.
-     * Converts Maps to plain objects and Sets to arrays.
-     */
     if (value instanceof Map) return Object.fromEntries(value);
     if (value instanceof Set) return [...value];
     return value;
   }
 
-  const blob = new Blob([JSON.stringify(data, replacer)], {type: "application/json"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "graph.json";
-  a.click();
-  URL.revokeObjectURL(url);
+  requestAnimationFrame(() => {
+    showLoading("Exporting graph ..");
+
+    requestAnimationFrame(() => {
+      const blob = new Blob([JSON.stringify(data, replacer)], {type: "application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "graph.json";
+      a.click();
+      URL.revokeObjectURL(url);
+
+      hideLoading();
+    })
+  })
 }
 
 function preProcessData(fileData) {
@@ -4047,10 +3957,10 @@ function preProcessData(fileData) {
     data.filterDefaults.get(propHash).upperThreshold = Math.max(nodeOrEdgeValue, data.filterDefaults.get(propHash).upperThreshold);
   }
 
-  cache.showNodeLabelsAndHoverEffect = fileData.nodes.length <= MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT;
+  cache.showLabelsAndEnableHoverEffect = fileData.nodes.length <= MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT;
   cache.nodePositionsFromExcelImport = new Map();
 
-  if (!cache.showNodeLabelsAndHoverEffect) {
+  if (!cache.showLabelsAndEnableHoverEffect) {
     warning(`Large graph with ${fileData.nodes.length} nodes detected. Labels and hover effects are disabled to improve performance.`);
   }
 
@@ -4212,6 +4122,9 @@ function initCache() {
   cache.hiddenDanglingEdgeIDs = new Set();
 
   cache.uniquePropHierarchy = {};
+
+  cache.styleChanged = false;
+  cache.labelStyleChanged = false;
 
   function populateUniquePropGroups(propHash) {
     const [mainGroup, subGroup, prop] = decodePropHashId(propHash);
@@ -4508,6 +4421,7 @@ function encodeQuery(asciiStr) {
 
   /* ------------------------------------------------------------------ */
   /* 5. Brackets with depth tracking                                    */
+
   /* ------------------------------------------------------------------ */
   function findUnmatchedBracketIndices(str) {
     const stack = [];
@@ -4698,8 +4612,8 @@ function moveCaret() {
 
   const parentRect = query.text.getBoundingClientRect();
 
-  const overlapsVert  = rect.bottom > parentRect.top  && rect.top    < parentRect.bottom;
-  const overlapsHoriz = rect.right  > parentRect.left && rect.left   < parentRect.right;
+  const overlapsVert = rect.bottom > parentRect.top && rect.top < parentRect.bottom;
+  const overlapsHoriz = rect.right > parentRect.left && rect.left < parentRect.right;
 
   if (!(overlapsVert && overlapsHoriz)) {         // caret outside the box → hide it
     query.caret.style.display = 'none';
@@ -4942,6 +4856,7 @@ function loadFileWrapper(event) {
       hideLoading();
     });
 }
+
 function registerHotkeyEvents() {
   document.addEventListener('keydown', (event) => {
     const activeElement = document.activeElement;
@@ -4990,32 +4905,42 @@ function resetLayout() {
     return false;
   }
 
-  data.layouts[data.selectedLayout]?.positions?.clear();
-  graph.updateData(createSimplifiedDataForGraphObject(true));
-  let layout = data.layouts[data.selectedLayout];
-  if (!layout.isCustom) {
-    graph.setLayout({type: data.selectedLayout, ...layout.internals});
-  }
+  requestAnimationFrame(() => {
+    showLoading("Resetting", "Resetting layout to default ..");
 
-  decideToRenderOrDraw(true).then(r => console.log(`Reset layout ${data.selectedLayout}`));
+    requestAnimationFrame(() => {
+      data.layouts[data.selectedLayout]?.positions?.clear();
+      graph.updateData(createSimplifiedDataForGraphObject(true));
+      let layout = data.layouts[data.selectedLayout];
+      if (!layout.isCustom) {
+        graph.setLayout({type: data.selectedLayout, ...layout.internals});
+      }
+
+      decideToRenderOrDraw(true).then(r => console.log(`Reset layout ${data.selectedLayout}`));
+    });
+  });
 }
 
 function exportPNG() {
   // https://g6.antv.antgroup.com/en/api/reference/g6/dataurloptions#properties
-  showLoading("Loading", "Generating picture data");
+  requestAnimationFrame(() => {
+    showLoading("Loading", "Generating picture data");
 
-  graph.toDataURL({
-    type: "image/png", mode: "viewport"
-  }).then((imageData) => {
-    const link = document.createElement('a');
-    link.href = imageData;
-    link.download = 'graph.png';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    requestAnimationFrame(() => {
+      graph.toDataURL({
+        type: "image/png", mode: "viewport"
+      }).then((imageData) => {
+        const link = document.createElement('a');
+        link.href = imageData;
+        link.download = 'graph.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+
+      hideLoading();
+    });
   });
-
-  hideLoading();
 }
 
 function showLoading(header, text = "", invisible = false, autoFade = false) {
