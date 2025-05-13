@@ -79,7 +79,7 @@ const TOOLTIP_MAX_COLUMNS = 1;
 const TOOLTIP_HIDE_NULL_VALUES = false;
 
 // Node count threshold beyond which labels and hover effects are disabled to keep the application responsive
-const MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT = 3;
+const MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT = 300;
 
 // If true, bubble groups avoid all non-bubble group members per default
 const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
@@ -3961,7 +3961,7 @@ function preProcessData(fileData) {
   cache.nodePositionsFromExcelImport = new Map();
 
   if (!cache.showLabelsAndEnableHoverEffect) {
-    warning(`Large graph with ${fileData.nodes.length} nodes detected. Labels and hover effects are disabled to improve performance.`);
+    warning(`Large graph with more than ${MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT} nodes (${fileData.nodes.length}) detected. Labels and hover effects are disabled to improve performance.`);
   }
 
   // takes excel header and pre-populates data.filterDefaults to maintain order
@@ -4329,10 +4329,43 @@ function buildToolTipText(nodeOrEdgeID, isEdge) {
 function encodeQuery(asciiStr) {
   query.valid = true;
 
-  const space = `<span class='q-space' data-encoded> </span>`
+  const space = `<span class='q-space' data-encoded> </span>`;
+
+  // ------------------------------------------------------------------
+  // 1. Check for empty query
+  // ------------------------------------------------------------------
+  if (!asciiStr) {
+    query.valid = false;
+  }
+
+  // ------------------------------------------------------------------
+  // 2. Check for empty instructions "()"
+  // ------------------------------------------------------------------
+  asciiStr = asciiStr.replace(
+    /\(\s*\)/g,
+    match => {
+      query.valid = false;
+      return `<span class="q-error-empty-instruction" data-encoded>${match}</span>`;
+    }
+  );
+
+  // ------------------------------------------------------------------
+  // 3. Check for missing connectors between instructions ")("
+  // ------------------------------------------------------------------
+  asciiStr = asciiStr.replace(
+    /\)\s*\(/g,
+    match => {
+      query.valid = false;
+      return (
+        `<span class="q-error-missing-connector" data-encoded>` +
+        match +
+        `</span>`
+      );
+    }
+  );
 
   /* ------------------------------------------------------------------ */
-  /* 1. Property names (main group::sub group::property)                */
+  /* 4. Encode Property names (main group::sub group::property)                */
   /* ------------------------------------------------------------------ */
   asciiStr = asciiStr.replace(
     /(Node filters|Edge filters)::([^:]+)::([^:]+)(?=\s(?:IN|BETWEEN|LOWER\sTHAN|\)))/g,
@@ -4355,10 +4388,10 @@ function encodeQuery(asciiStr) {
   );
 
   /* ------------------------------------------------------------------ */
-  /* 2. Keyword highlighting and encapsulated numbers                   */
+  /* 5. Encode filters in instructions                                  */
   /* ------------------------------------------------------------------ */
 
-  /* 5-1  "BETWEEN X AND Y" --------- */
+  /* 5-1 Numerical Values (Slider): "BETWEEN X AND Y" --------- */
   asciiStr = asciiStr.replace(
     /(BETWEEN)\s+(-?\d+(?:\.\d+)?)\s+(AND)\s+(-?\d+(?:\.\d+)?)/gi,
     (_m, betweenKw, low, andKw, high) =>
@@ -4371,7 +4404,7 @@ function encodeQuery(asciiStr) {
       + `<span class='q-number' data-encoded>${high}</span>`
   );
 
-  /* 5-2  "LOWER THAN X OR GREATER THAN Y" --------- */
+  /* 5-2 Inverted Numerical Values (Slider): "LOWER THAN X OR GREATER THAN Y" ------ */
   asciiStr = asciiStr.replace(
     /(LOWER THAN)\s+(-?\d+(?:\.\d+)?)\s+(OR GREATER THAN)\s+(-?\d+(?:\.\d+)?)/gi,
     (_m, lowerThanKw, low, andGreaterThanKw, high) =>
@@ -4384,9 +4417,7 @@ function encodeQuery(asciiStr) {
       + `<span class='q-number' data-encoded>${high}</span>`
   );
 
-  /* ------------------------------------------------------------------ */
-  /* 3. List-Categories after "IN [" up to "]"                          */
-  /* ------------------------------------------------------------------ */
+  /* 5-3 Categorical Values (Dropdown): "IN [" up to "]"  --------- */
   asciiStr = asciiStr.replace(/IN\s*\[([^\]]*?)]/g, (_match, list) => {
       const encodedCategories = list
         .split(",")
@@ -4402,7 +4433,7 @@ function encodeQuery(asciiStr) {
   );
 
   /* ------------------------------------------------------------------ */
-  /* 4.  Top-level connectors  ") OR ("  /  ") AND ("  /  ") NOT ("     */
+  /* 6.  Top-level connectors  ") OR ("  /  ") AND ("  /  ") NOT ("     */
   /* ------------------------------------------------------------------ */
   const connectorOpeningBracket = `<span class='q-connector-opening-bracket' data-encoded>(</span>`;
   const connectorClosingBracket = `<span class='q-connector-closing' data-encoded>)</span>`;
@@ -4420,7 +4451,7 @@ function encodeQuery(asciiStr) {
   );
 
   /* ------------------------------------------------------------------ */
-  /* 5. Brackets with depth tracking                                    */
+  /* 7. Brackets with depth tracking                                    */
 
   /* ------------------------------------------------------------------ */
   function findUnmatchedBracketIndices(str) {
@@ -4479,7 +4510,7 @@ function encodeQuery(asciiStr) {
     .join('');
 
   // ------------------------------------------------------------------
-  // 6. substitute &nbsp; with the space span (important for copy/paste)
+  // 8. substitute &nbsp; with the space span (important for copy/paste)
   // ------------------------------------------------------------------
   asciiStr = asciiStr
     // split into “already encoded” vs “plain” parts
@@ -4497,7 +4528,20 @@ function encodeQuery(asciiStr) {
     .join('');
 
   // ------------------------------------------------------------------
-  // 7. wrap everything not already in a <span class='q-…'>…</span> as an error
+  // 9. Check for instructions without filters (no "IN|BETWEEN|LOWER THAN after property)
+  // TODO: not working
+  // ------------------------------------------------------------------
+
+  // asciiStr = asciiStr.replace(
+  //   /\(([^)]+?::[^)]+?::[^)]+?)(?=\s*\))/g,
+  //   (match, prop) => {
+  //     query.valid = false;
+  //     return `<span class="q-error-missing-filter" data-encoded>${match}</span>`;
+  //   }
+  // );
+
+  // ------------------------------------------------------------------
+  // 10. wrap everything not already in a <span class='q-…'>…</span> as an error
   // ------------------------------------------------------------------
   asciiStr = asciiStr
     // split out only the already‐encoded chunks vs everything else
@@ -4515,15 +4559,6 @@ function encodeQuery(asciiStr) {
       );
     })
     .join('');
-
-  // ------------------------------------------------------------------
-  // 8. further validation
-  //   - instructions without a filter (e.g. "(Edge filters::group X::prop A)" )
-  //   - empty instructions ( "()" )
-  //   - no connecting ") AND (" ") OR (" or ") NOT (" in between instructions
-  //   - empty query
-  // ------------------------------------------------------------------
-
 
   const updateQueryBtn = document.getElementById("queryUpdateBtn");
   if (query.valid) {
@@ -5003,7 +5038,7 @@ window.addEventListener('resize', () => {
   }
 })
 
-function logMessage(text, colorClass, bold = false) {
+function logMessage(text, colorClass, bold = false, iconPrefix = "") {
   if (!didShowAnyStatusMessage) didShowAnyStatusMessage = true;
 
   const now = new Date();
@@ -5023,6 +5058,13 @@ function logMessage(text, colorClass, bold = false) {
   spanTime.classList.add("grey");
   p.appendChild(spanTime);
 
+  if (iconPrefix) {
+    const spanIcon = document.createElement('span');
+    spanIcon.textContent = iconPrefix;
+    spanIcon.classList.add("mr");
+    p.appendChild(spanIcon);
+  }
+
   const spanText = document.createElement('span');
   spanText.classList.add(colorClass);
   spanText.style.fontWeight = bold ? "bold" : "normal";
@@ -5034,23 +5076,23 @@ function logMessage(text, colorClass, bold = false) {
 }
 
 function info(message) {
-  logMessage(message, "black");
+  logMessage(message, "black", false);
 }
 
 function warning(message) {
-  logMessage(message, "orange");
+  logMessage(message, "orange", false, "⚠️");
 }
 
 function error(message) {
-  logMessage(message, "red", true);
+  logMessage(message, "red", true, "⛔");
 }
 
 function success(message) {
-  logMessage(message, "green");
+  logMessage(message, "green", false);
 }
 
 function debug(message) {
-  logMessage(message, "grey");
+  logMessage(message, "grey", false);
 }
 
 
