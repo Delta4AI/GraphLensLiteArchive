@@ -753,11 +753,11 @@ function createStyleDiv() {
     return row;
   }
 
-  function appendVerticalRule(parent, label = undefined, tooltip = undefined) {
+  function appendVerticalRule(parent, label = undefined, tooltip = undefined, id=undefined) {
     const verticalRule = document.createElement("div");
     verticalRule.className = "vr";
     parent.appendChild(verticalRule);
-    appendLabel(parent, label, tooltip);
+    appendLabel(parent, label, tooltip, id);
   }
 
   function createLabel(labelText, tooltip = undefined) {
@@ -772,8 +772,9 @@ function createStyleDiv() {
     return null;
   }
 
-  function appendLabel(parent, labelText, tooltip = undefined) {
+  function appendLabel(parent, labelText, tooltip = undefined, id=undefined) {
     const label = createLabel(labelText, tooltip);
+    if (id) label.id = id;
     if (label) parent.appendChild(label);
   }
 
@@ -786,6 +787,27 @@ function createStyleDiv() {
     return card;
   }
 
+  function createSwitch(callback = undefined, inputId = undefined) {
+    const label = document.createElement('label');
+    label.className = 'switch';
+
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+
+    const span = document.createElement('span');
+    span.className = 'slider round';
+
+    if (callback) {
+      input.addEventListener('change', callback);
+    }
+
+    if (inputId) {
+      input.id = inputId;
+    }
+
+    label.append(input, span);
+    return label;
+  }
 
   function handleStyleChangeEvent(property, value) {
     switch (property) {
@@ -1195,20 +1217,31 @@ function createStyleDiv() {
       () => toggleSelectionByNeighbors("reduce-neighbors"));
 
     const rowTwo = createNewRow(selDiv);
-    appendLabel(rowTwo, "Select by Node ID(s)",
-      "Enter comma-separated node IDs to add to selection.");
+    const nodeIDsInputSwitch = createSwitch(e => {
+      document.getElementById('selectByNodeIDsLabel').textContent = !e.target.checked
+        ? 'Include Node ID(s)' : 'Exclude Node ID(s)';
+    }, "selectByNodeIDsSwitch");
+    rowTwo.appendChild(nodeIDsInputSwitch);
+    const nodeIDsTT = "Enter comma-separated list of node IDs to add/remove to/from selection\nConfirm with Enter";
+    appendLabel(rowTwo, "Include Node ID(s)", nodeIDsTT, "selectByNodeIDsLabel");
     const topTwoNodeIDs = data?.nodes?.slice(0, 2).map(n => n.id).join(',') || 'Node1,Node2';
-    const nodeIDsInput = createInput(242, topTwoNodeIDs, "Enter comma-separated list of node IDs to add to selection.",
-      undefined, (val) => {
+    const nodeIDsInput = createInput(220, topTwoNodeIDs, nodeIDsTT, undefined,
+      (val) => {
         addNodeOrEdgeIDsToSelection(val, true);
       });
     nodeIDsInput.id = "selectByNodeIDsInput";
     rowTwo.appendChild(nodeIDsInput);
-    appendVerticalRule(rowTwo, "Select by Edge ID(s)",
-      "Enter comma-separated edge IDs (SourceID::TargetID) to add to selection.");
+
+    const edgeIDsTT = "Enter comma-separated list of edge IDs (SourceID::TargetID) to add/remove to/from selection\nConfirm with Enter";
+    appendVerticalRule(rowTwo, "Include Edge ID(s)", edgeIDsTT, "selectByEdgeIDsLabel");
+    const edgeIDsInputSwitch = createSwitch(e => {
+      document.getElementById('selectByEdgeIDsLabel').textContent = !e.target.checked
+        ? 'Include Edge ID(s)' : 'Exclude Edge ID(s)';
+    }, "selectByEdgeIDsSwitch");
+    rowTwo.appendChild(edgeIDsInputSwitch);
     const topTwoEdgeIDs = data?.edges?.slice(0, 2).map(e => e.id).join(',') || 'Node1::Node2,Node1::Node3';
-    const edgeIDsInput = createInput(242, topTwoEdgeIDs,
-      "Enter comma-separated edge IDs (SourceID::TargetID) to add to selection.", undefined, (val) => {
+    const edgeIDsInput = createInput(220, topTwoEdgeIDs, edgeIDsTT, undefined,
+      (val) => {
         addNodeOrEdgeIDsToSelection(val, false);
       });
     edgeIDsInput.id = "selectByEdgeIDsInput";
@@ -1466,11 +1499,11 @@ function toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(enable) {
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleNode(enable) {
-  toggleStyleElements(["Select by Node ID(s)", "selectByNodeIDsInput"], enable);
+  toggleStyleElements(["selectByNodeIDsInput"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleEdge(enable) {
-  toggleStyleElements(["Select by Edge ID(s)", "selectByEdgeIDsInput"], enable);
+  toggleStyleElements(["selectByEdgeIDsInput"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(enable) {
@@ -1493,40 +1526,26 @@ function toggleStyleElements(headingLabels, enable) {
 }
 
 function updateSelectedState(elemData, enable) {
-  for (const item of elemData) {
-    if (!item.states) {
-      item.states = [];
-    }
-
-    if (enable) {
-      if (!item.states.includes("selected")) {
-        item.states.push("selected");
+  requestAnimationFrame(() => {
+    showLoading(enable ? "Selecting" : "Deselecting", `Modifying selection of ${elemData.length} elements`);
+    requestAnimationFrame(() => {
+      for (const item of elemData) {
+        graph.setElementState(item.id, enable ? 'selected' : '');
       }
-    } else {
-      const index = item.states.indexOf("selected");
-      if (index > -1) {
-        item.states.splice(index, 1);
-      }
-    }
-  }
-}
+    });
+  });
 
-function updateSelectionLoadingAndRenderEvent(header = "Selection", text = "Updating Selection", propID = null) {
-  handleFilterEvent(header, text, propID);
+  hideLoading();
 }
 
 function toggleSelectionForAllNodes(enable) {
   const nodes = graph.getNodeData();
   updateSelectedState(nodes, enable);
-  graph.updateNodeData(nodes);
-  updateSelectionLoadingAndRenderEvent();
 }
 
 function toggleSelectionForAllEdges(enable) {
   const edges = graph.getEdgeData();
   updateSelectedState(edges, enable);
-  graph.updateEdgeData(edges);
-  updateSelectionLoadingAndRenderEvent();
 }
 
 function syncSelectionCacheAndElementStates() {
@@ -1550,8 +1569,6 @@ function syncSelectionCacheAndElementStates() {
   updateSelectedState(nodesToHide, false);
   updateSelectedState(edgesToShow, true);
   updateSelectedState(edgesToHide, false);
-
-  updateSelectionLoadingAndRenderEvent();
 }
 
 function undoSelection() {
@@ -1573,10 +1590,12 @@ function redoSelection() {
 }
 
 function addNodeOrEdgeIDsToSelection(elementIDs, isNode) {
-  if (!elementIDs) return;
+  const shouldAdd = isNode
+    ? !document.getElementById("selectByNodeIDsSwitch").checked
+    : !document.getElementById("selectByEdgeIDsSwitch").checked;
 
   const elemDescription = isNode ? "Node" : "Edge";
-  const idArray = elementIDs.split(",");
+  const idArray = elementIDs ? elementIDs.split(",") : [];
 
   const visibleElements = isNode ? cache.nodeIDsToBeShown : cache.edgeIDsToBeShown;
   const existingElements = isNode ? cache.nodeRef.keys().toArray() : cache.edgeRef.keys().toArray();
@@ -1590,18 +1609,17 @@ function addNodeOrEdgeIDsToSelection(elementIDs, isNode) {
     }
 
     if (!visibleElements.has(elemID)) {
-      warning(`Cannot select ${elemDescription} with ID: '${elemID}' as it is not visible.`);
+      warning(`Cannot update selection of ${elemDescription} with ID: '${elemID}' as it is not visible.`);
       continue;
     }
 
     const elementsToUpdate = [];
-    if (!selectedElements.includes(elemID)) {
+    if (!selectedElements.includes(elemID) || !shouldAdd) {
       elementsToUpdate.push(ref.get(elemID));
     }
 
     if (elementsToUpdate.length > 0) {
-      updateSelectedState(elementsToUpdate, true);
-      updateSelectionLoadingAndRenderEvent();
+      updateSelectedState(elementsToUpdate, shouldAdd);
     }
   }
 }
@@ -1637,17 +1655,6 @@ function toggleSelectionByNeighbors(mode) {
     if (edgesToHide.length > 0) updateSelectedState(edgesToHide, false);
     if (nodesToShow.length > 0) updateSelectedState(nodesToShow, true);
     if (nodesToHide.length > 0) updateSelectedState(nodesToHide, false);
-
-    const edgesChanged = edgesToShow.length > 0 || edgesToHide.length > 0;
-    const nodesChanged = nodesToShow.length > 0 || nodesToHide.length > 0;
-    const graphChanged = edgesChanged || nodesChanged;
-
-    if (edgesChanged) graph.updateEdgeData([...edgesToShow, ...edgesToHide]);
-    if (nodesChanged) graph.updateNodeData([...nodesToShow, ...nodesToHide]);
-
-    if (graphChanged) {
-      updateSelectionLoadingAndRenderEvent();
-    }
   }
 
   switch (mode) {
@@ -3711,28 +3718,16 @@ function createAddOrRemoveToSelectionButton(propID, shouldAdd) {
   btn.textContent = shouldAdd ? "+" : "-";
   btn.title = shouldAdd ? "Add to selection" : "Remove from selection";
   btn.addEventListener("click", () => {
-    let triggerRender = false;
-
     const nodeIDs = cache.propIDsToNodeIDsToBeShown.get(propID) || [];
     if (nodeIDs.size > 0) {
       const nodes = graph.getNodeData([...nodeIDs]);
       updateSelectedState(nodes, shouldAdd);
-      graph.updateNodeData(nodes);
-      triggerRender = true;
     }
 
     const edgeIDs = cache.propIDsToEdgeIDsToBeShown.get(propID) || [];
     if (edgeIDs.size > 0) {
       const edges = graph.getEdgeData([...edgeIDs]);
       updateSelectedState(edges, shouldAdd);
-      graph.updateEdgeData(edges);
-      triggerRender = true;
-    }
-
-    if (triggerRender) {
-      const addRemove = shouldAdd ? "Adding" : "Removing";
-      const filler = shouldAdd ? "to" : "from";
-      updateSelectionLoadingAndRenderEvent(`${addRemove} ${filler} Selection`, `${addRemove} ${propID} ${filler} selection`, propID);
     }
   });
   return btn;
