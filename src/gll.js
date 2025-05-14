@@ -46,7 +46,7 @@ register(ExtensionCategory.LAYOUT, 'custom', CustomForceLayout);
 /* @type {import('@antv/g6').Graph","null} */
 let graph = null;  // The G6 graph object
 let data = {};  // Stores data that can be serialized as json file
-let query = {valid: false, ast: null, text: null, overlay: null, caret: null};  // Stores query elements, instructions, status
+let query = {valid: false, ast: null, text: null, overlay: null, caret: null, editorDiv: null, lastGoodWidth: 0, sizeObserver: null, sizeChangeLocked: false};  // Stores query elements, instructions, status
 let cache = {initialized: false};  // Stores references to map IDs to node/edge objects that cannot be serialized to a json file
 let didShowAnyStatusMessage = false;
 
@@ -2768,17 +2768,112 @@ function formatNumber(value, precision) {
   return isInteger(value) ? value : parseFloat(value).toFixed(precision);
 }
 
+function countLines(el) {
+  if (!el.firstChild) return 0;
+  const r     = document.createRange();
+  r.selectNodeContents(el);
+  const tops  = new Set(Array.from(r.getClientRects()).map(rc => Math.round(rc.top)));
+  return tops.size;
+}
+
+function getLineMetrics(el) {
+  if (!el || !el.firstChild) {
+    return { lines: 0, lastLineWidth: 0 };
+  }
+
+  const range = document.createRange();
+  range.selectNodeContents(el);
+
+  // All rectangles created by the text flow.
+  const rects = Array.from(range.getClientRects());
+
+  // Group by the rectangle's top coordinate (≈ line-id).
+  // Using a rounded value avoids sub-pixel duplicates.
+  const groups = new Map(); // top -> [rects]
+
+  rects.forEach(rc => {
+    const key = Math.round(rc.top);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(rc);
+  });
+
+  // Number of distinct "top" positions ⇒ line count.
+  const lines = groups.size;
+  if (lines === 0) return { lines: 0, lastLineWidth: 0 };
+
+  // Get rects belonging to the last (visually lowest) line.
+  const lastTop = Math.max(...groups.keys());
+  const lastRects = groups.get(lastTop);
+
+  // Combine segments to obtain total visual width of that line.
+  // (If inline spans break the line into pieces, merge them.)
+  const left  = Math.min(...lastRects.map(r => r.left));
+  const right = Math.max(...lastRects.map(r => r.right));
+  const lastLineWidth = Math.round(right - left);
+
+  return { lines, lastLineWidth };
+}
+
+
+function validateAlignment() {
+  // read real widths of the two layers
+  const textWidth    = query.text.offsetWidth;
+  const overlayWidth = query.overlay.offsetWidth;
+
+  const mText    = getLineMetrics(query.text);
+  const mOverlay = getLineMetrics(query.overlay);
+
+  const linesMatch     = mText.lines        === mOverlay.lines;
+  // const lastWidthMatch = mText.lastLineWidth === mOverlay.lastLineWidth;
+  const lastWidthMatch = Math.abs(mText.lastLineWidth - mOverlay.lastLineWidth) <= 1;  // 1 pixel tolerance
+
+
+  if (linesMatch && lastWidthMatch) {
+    if (query.sizeChangeLocked) {
+      // let flexbox resize again
+    query.text.style.removeProperty('width');
+    query.overlay.style.removeProperty('width');
+      query.sizeChangeLocked = false;
+      console.info("Alignment restored, width unlocked");
+    }
+
+    query.lastGoodWidth = query.text.offsetWidth;
+    return;
+  }
+
+  // freeze both layers at the last known good width
+  if (!query.sizeChangeLocked && query.lastGoodWidth > 0) {             // guard against first run
+      console.warn(
+    `Mismatch — lines: ${mText.lines}/${mOverlay.lines}, ` +
+    `last width: ${mText.lastLineWidth}/${mOverlay.lastLineWidth}. ` +
+    `Locking at ${query.lastGoodWidth}px`
+  );
+    query.text.style.width    = `${query.lastGoodWidth}px`;
+    query.overlay.style.width = `${query.lastGoodWidth}px`;
+    query.sizeChangeLocked = true;
+  }
+}
+
 function buildUI() {
   query.text = document.getElementById("queryTextArea");
   query.overlay = document.getElementById("queryOverlay");
   query.caret = document.getElementById("queryCaret");
+  query.editorDiv = document.getElementById("queryEditor");
+
+  query.sizeObserver = new ResizeObserver(() => requestAnimationFrame(validateAlignment));
+  query.sizeObserver.observe(query.editorDiv);
+
   query.text.addEventListener("scroll", () => {
     query.overlay.scrollTop = query.text.scrollTop;
     query.overlay.scrollLeft = query.text.scrollLeft;
   });
+
   buildDropdownOptions();
   buildFilterUI();
   showUI(true);
+
+  query.lastGoodWidth = query.editorDiv.offsetWidth;
+  validateAlignment();
 }
 
 function buildDropdownOptions() {
