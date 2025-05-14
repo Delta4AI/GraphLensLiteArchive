@@ -72,8 +72,6 @@
           height: 0;
           width: 100%;
           display: none;
-          /*overflow-y: auto;*/
-          /*overflow-x: hidden;*/
           overflow: hidden;
           box-sizing: border-box;
       }
@@ -145,20 +143,38 @@
           }
       }
 
-      #queryUpdateBtn {
+      .query-buttons {
+          display: flex;
+          flex-direction: column;
           flex: 0 0 8%;
-          margin-left: 10px;
-          margin-right: 10px;
+          margin: 0 10px;
+      }
+
+      .query-buttons button {
           height: 2.5em;
           cursor: pointer;
           border-radius: 5px;
+          color: #fff;
+          border: 1px solid black;
+      }
+
+      #queryUpdateBtn {
           background-color: #403C53;
-          color: white;
       }
 
       #queryUpdateBtn:hover {
           border-color: #C33D35;
-          color: #E4E3EA;
+          border-width: 2px;
+      }
+
+      #queryResetBtn {
+          background-color: #C33D35;
+          margin-top: 0.5em;
+      }
+
+      #queryResetBtn:hover {
+          border-color: black;
+          border-width: 2px;
       }
 
       #outerGraphContainer {
@@ -173,11 +189,11 @@
       }
 
       #innerGraphContainer .g6-minimap {
-          position: absolute !important; /* re-enforce absolute */
-          bottom: 10px !important; /* 10px up from bottom */
-          right: 10px !important; /* 10px in from right */
-          top: auto !important; /* clear out inline top */
-          left: auto !important; /* clear out inline left */
+          position: absolute !important;
+          bottom: 10px !important;
+          right: 10px !important;
+          top: auto !important;
+          left: auto !important;
       }
 
 
@@ -210,8 +226,7 @@
           margin-left: 0.4em;
       }
 
-      .q-space {
-      }
+      .q-space {}
 
       .q-property-wrapper {
           color: black;
@@ -222,23 +237,18 @@
       }
 
       .q-maingroup {
-          /*background-color: #EDD9A366;*/
           background-color: #C33D3525;
       }
 
       .q-subgroup {
-          /*background-color: #F79C7966;*/
           background-color: #403C5325;
       }
 
       .q-property {
-          /*background-color: #F2637F66;*/
           background-color: #015C0C25;
       }
 
-      .q-prop-group-separator {
-
-      }
+      .q-prop-group-separator {}
 
       .q-number {
           color: #C33D35;
@@ -306,13 +316,9 @@
           color: #403C53;
       }
 
-      .q-connector-opening-bracket {
+      .q-connector-opening-bracket {}
 
-      }
-
-      .q-connector-closing-bracket {
-
-      }
+      .q-connector-closing-bracket {}
 
       .q-connector-or,
       .q-connector-and,
@@ -321,7 +327,6 @@
           color: white;
           border-radius: 999rem;
           z-index: -1;
-          /*white-space: nowrap;*/
       }
 
       .q-connector-or {
@@ -1628,7 +1633,12 @@
     <div id="queryTextArea" contenteditable="true" spellcheck="false" oninput="handleQueryValidationEvent();"></div>
     <div id="queryCaret" class="custom-caret"></div>
   </div>
-  <button id="queryUpdateBtn" class="disabled" onclick="handleQueryUpdateEvent()">Update</button>
+  <div class="query-buttons">
+    <button id="queryUpdateBtn" class="disabled" onclick="handleQueryUpdateEvent()"
+            title="Apply changes from query to the graph">Update
+    </button>
+    <button id="queryResetBtn" class="red" onclick="resetQuery();" title="Reset query to match UI">Reset</button>
+  </div>
 </div>
 </body>
 </html>

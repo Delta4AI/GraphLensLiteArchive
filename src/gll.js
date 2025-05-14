@@ -44,11 +44,29 @@ register(ExtensionCategory.LAYOUT, 'custom', CustomForceLayout);
  *  Essential objects
  */
 /* @type {import('@antv/g6').Graph","null} */
-let graph = null;  // The G6 graph object
-let data = {};  // Stores data that can be serialized as json file
-let query = {valid: false, ast: null, text: null, overlay: null, caret: null, editorDiv: null, lastGoodWidth: 0, sizeObserver: null, sizeChangeLocked: false};  // Stores query elements, instructions, status
-let cache = {initialized: false};  // Stores references to map IDs to node/edge objects that cannot be serialized to a json file
-let didShowAnyStatusMessage = false;
+// The G6 graph object
+let graph = null;
+
+// Stores json serializable data that is essential to reconstruct the graph
+let data = {};
+
+// Stores query related elements (text & overlay), AST, status about validity, widths, ..
+let query = {
+  valid: false,
+  ast: null,
+  text: null,
+  overlay: null,
+  caret: null,
+  editorDiv: null,
+  lastGoodWidth: 0,
+  sizeObserver: null,
+  sizeChangeLocked: false
+};
+
+// Stores references to map IDs to node/edge objects that cannot (or are not necessary to) serialized to a json file
+let cache = {
+  initialized: false
+};
 
 /**
  *  GLL configuration parameters
@@ -1673,39 +1691,12 @@ function toggleSelectionByNeighbors(mode) {
       }
       break;
 
-    // case "only-outer-layer":
-    //   console.log("Select only the next outer layer of connected nodes from the currently selected nodes");
-    //   break;
-    //
-    // case "only-inner-layer":
-    //   console.log("Select only the inner layer (excluding outermost nodes) of the currently selected nodes");
-    //   break;
-
     default:
       break;
   }
 
   update();
 }
-
-// function persistPositionsUpdateDataAndReDrawGraph() {
-//   // the timeout is necessary since otherwise, when calling this directly after rendering, the layout is not fully
-//   // finished and the recorded nodes are misplaced slightly
-//   setTimeout(() => {
-//     let ld = data.layouts[data.selectedLayout];
-//     if (!ld.isCustom && ld.positions.size === 0) {
-//       console.log(`Initially persisting coordinates of default layout ${data.selectedLayout} ..`);
-//       persistNodePositions();
-//     }
-//
-//     // cache is written on app start or layout change every time IF no data exists yet, no matter if it is a custom layout or not
-//     if (!cache.initialNodePositions.has(data.selectedLayout)) {
-//       cache.initialNodePositions.set(data.selectedLayout, new Map());
-//       console.log(`Caching coordinates of layout ${data.selectedLayout} to be used by reset feature ..`);
-//       persistNodePositions(cache.initialNodePositions.get(data.selectedLayout));
-//     }
-//   }, 100);
-// }
 
 function conditionallyPersistNodePositions() {
   let ld = data.layouts[data.selectedLayout];
@@ -3399,6 +3390,8 @@ class InvertibleRangeSlider {
       ? FILTER_STEP_SIZE_INTEGER
       : FILTER_STEP_SIZE_FLOAT;
     this.initializeIds();
+    this.inputStart = null;
+    this.inputEnd = null;
     cache.propIDToInvertibleRangeSliders.set(propID, this);
   }
 
@@ -3491,20 +3484,20 @@ class InvertibleRangeSlider {
     const colLeft = document.createElement('div');
     colLeft.classList.add('show-on-edit');
     colLeft.style.transition = 'width 0.2s ease';
-    const leftElem = this.createSliderInput(this.sliderIdStartInput, this.currentMin, this.sliderIdStart);
-    colLeft.appendChild(leftElem);
+    this.inputStart = this.createSliderInput(this.sliderIdStartInput, this.currentMin, this.sliderIdStart);
+    colLeft.appendChild(this.inputStart);
 
     const colRight = document.createElement('div');
     colRight.classList.add('show-on-edit');
     colRight.style.transition = 'width 0.2s ease';
-    const rightElem = this.createSliderInput(this.sliderIdEndInput, this.currentMax, this.sliderIdEnd);
-    colRight.appendChild(rightElem);
+    this.inputEnd = this.createSliderInput(this.sliderIdEndInput, this.currentMax, this.sliderIdEnd);
+    colRight.appendChild(this.inputEnd);
 
     const div = document.createElement("div");
     div.innerHTML = this.createDivInnerHTML();
     const slider = div.firstElementChild;
     slider.style.width = '100%';
-    slider.title = `Set minimum & maximum thresholds for ${this.propID}.\nDouble-click to reset.`;
+    slider.title = `Thresholds for ${this.propID}.\n  - Move handles to set min/max (≥ min ∧ ≤ max).\n  - Swap handles to invert (≤ min ∨ ≥ max).\n  - Double-click to reset.`;
 
     parent.appendChild(div);
     parent.appendChild(colLeft);
@@ -3595,6 +3588,9 @@ class InvertibleRangeSlider {
 
       this.labelStart.parentElement.classList.add("flipped");
       this.labelEnd.parentElement.classList.add("flipped");
+
+      this.inputStart.classList.add("red");
+      this.inputEnd.classList.add("red");
     } else {
       const leftPos = this.calcPercentage(isLower ? primaryValue : secondaryValue);
       const rightPos = 100 - this.calcPercentage(isLower ? secondaryValue : primaryValue);
@@ -3614,6 +3610,9 @@ class InvertibleRangeSlider {
 
       this.labelStart.parentElement.classList.remove("flipped");
       this.labelEnd.parentElement.classList.remove("flipped");
+
+      this.inputStart.classList.remove("red");
+      this.inputEnd.classList.remove("red");
     }
 
     if (isLower) {
@@ -3679,14 +3678,14 @@ function createCircleGroupButtonWithQuadrants(propID) {
         handleFilterEvent(`Reduce Group`, `Removing ${propID} from ${group}`, propID);
       } else {
         data.layouts[data.selectedLayout][`${group}Props`].add(propID);
-        quadrant.title = `Add ${propID} to ${group}`;
+        quadrant.title = `Highlight ${propID} and add to bubble-group (${group})`;
         members.add(propID);
         quadrant.classList.add("active");
         handleFilterEvent(`Add to Group`, `Adding ${propID} to ${group}`, propID);
       }
     });
 
-    quadrant.title = `Add ${propID} to ${group}.`;
+    quadrant.title = `Highlight ${propID} and add to bubble-group (${group})`;
     circleButton.appendChild(quadrant);
   }
 
@@ -4547,7 +4546,6 @@ function encodeQuery(asciiStr) {
 
   /* ------------------------------------------------------------------ */
   /* 7. Brackets with depth tracking                                    */
-
   /* ------------------------------------------------------------------ */
   function findUnmatchedBracketIndices(str) {
     const stack = [];
@@ -4605,7 +4603,7 @@ function encodeQuery(asciiStr) {
     .join('');
 
   // ------------------------------------------------------------------
-  // 8. substitute &nbsp; with the space span (important for copy/paste)
+  // 8. substitute &nbsp; with space span (important for copy/paste)
   // ------------------------------------------------------------------
   asciiStr = asciiStr
     // split into “already encoded” vs “plain” parts
@@ -4686,7 +4684,6 @@ function updateQueryTextArea() {
       queryStr = `(${queryEntries.join(") OR (")})`;
     }
   }
-
 
   query.text.textContent = queryStr;
   query.overlay.innerHTML = encodeQuery(queryStr);
@@ -4949,6 +4946,33 @@ function updateUIFromQueryInstructions() {
   }
 }
 
+function moveCaretToEnd() {
+  const el = query.text;               // the editable element
+  if (!el) return;
+
+  /* -------- textarea / input ---------- */
+  if ('selectionStart' in el) {        // true for <input> / <textarea>
+    el.selectionStart = el.selectionEnd = el.value.length;
+    el.focus();
+    return;
+  }
+
+  /* -------- contenteditable ----------- */
+  const range = document.createRange();
+  range.selectNodeContents(el);        // select the whole content
+  range.collapse(false);               // collapse to the end
+
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  el.focus();
+}
+
+function resetQuery() {
+  updateQueryTextArea();
+  moveCaretToEnd();
+}
+
 function humanFileSize(size) {
   let i = size === 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
   return +((size / Math.pow(1024, i)).toFixed(2)) + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
@@ -4957,6 +4981,11 @@ function humanFileSize(size) {
 function loadFileWrapper(event) {
   let file = event.target.files[0];
   showLoading("Loading", `Loading ${file.name} (${file.type} with ${humanFileSize(file.size)})`);
+
+  if (graph) {
+    destroyGraphAndRollBackUI();
+  }
+
   loadFile(event)
     .then((fileData) => {
       if (!fileData) {
@@ -4969,7 +4998,6 @@ function loadFileWrapper(event) {
       initCache();
       buildUI();
       createGraphInstance();
-      // updateQueryTextArea();
 
       if (!graph) {
         alert("Graph not initialized, aborting.");
@@ -4985,6 +5013,15 @@ function loadFileWrapper(event) {
       alert(`Error loading graph: ${error}`);
       hideLoading();
     });
+}
+
+function destroyGraphAndRollBackUI() {
+  graph.destroy();
+  graph = null;
+
+  const status = document.getElementById("sidebarStatusContainer");
+  status.innerHTML = "";
+  status.style.height = "0";
 }
 
 function registerHotkeyEvents() {
@@ -5134,8 +5171,6 @@ window.addEventListener('resize', () => {
 })
 
 function logMessage(text, colorClass, bold = false, iconPrefix = "") {
-  if (!didShowAnyStatusMessage) didShowAnyStatusMessage = true;
-
   const now = new Date();
   const hh = String(now.getHours()).padStart(2, '0');
   const mm = String(now.getMinutes()).padStart(2, '0');
@@ -5190,25 +5225,8 @@ function debug(message) {
   logMessage(message, "grey", false);
 }
 
-
 function debugQuery(query) {
   query.text.textContent = query;
   handleQueryValidationEvent();
   handleQueryUpdateEvent();
-}
-
-function fooDebug() {
-  query.text.textContent = "(((Node filters::group A::my first numerical node property LOWER THAN 0.261051 OR GREATER THAN 0.46391) AND (Node filters::group A::my first categorical node property IN [bar])) OR (Node filters::group B::my second numerical node property BETWEEN -0.5 AND 2)) OR ((Edge filters::group X::my first numerical edge property BETWEEN 0.5 AND 1.3) NOT (Edge filters::group Y::my second numerical edge property BETWEEN 0 AND 2))";
-  handleQueryValidationEvent();
-  handleQueryUpdateEvent();
-  console.log("DONE");
-}
-
-function debugPrintPropMaps() {
-  for (const [k, v] of cache.propToNodeIDs.entries()) {
-    console.log(`Node Property: "${k}" || Nodes: "${[...v].join('","')}"`);
-  }
-  for (const [k, v] of cache.propToEdgeIDs.entries()) {
-    console.log(`Edge Property: "${k}" || Edges: "${[...v].join('","')}"`);
-  }
 }
