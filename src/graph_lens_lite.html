@@ -7,6 +7,7 @@
   <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text x='4' y='24' font-size='24'>🔍</text></svg>"
         type="image/svg+xml">
+<!-- @antv/g6 version 5.0.46 -->
   <script src="g6.min.js"></script>
   <script src="xlsx.full.min.js"></script>
   <script src="gll.js"></script>
@@ -1552,6 +1553,87 @@
           background-color: white;
           transition: background-color 0.3s ease;
       }
+
+      /*************************
+       network metrics
+       **************************/
+      .nw-root {
+          margin-right: 10px;
+          max-width: 350px;
+          overflow: hidden;
+          max-height: 0;
+          opacity: 0;
+          transition: max-height 0.3s ease-in-out,
+          opacity 0.3s ease-in-out;
+      }
+
+      .nw-root.open {
+          max-height: 999px;
+          opacity: 1;
+      }
+
+      .nw-header {
+          font-size: 16px;
+          margin-top: 0.8em;
+          margin-bottom: 0.8em;
+          font-weight: bold;
+      }
+
+      .nw-subheader {
+          font-size: 14px;
+          font-weight: bold;
+          margin-top: 0.8em;
+          margin-bottom: 0.8em;
+      }
+
+      .nw-div {
+          margin-top: 16px;
+      }
+
+      .nw-button {
+          margin: 1px;
+          font-size: 12px;
+      }
+
+      .nw-metric-select {
+          width: 100%;
+          margin-bottom: 0.5em;
+      }
+
+      .nw-node-multiselect {
+          width: 100%;
+          min-height: 120px;
+          overflow-y: auto;
+          margin-bottom: 0.5em;
+          border: 1px solid #ccc;
+      }
+
+      .nw-graph-metrics-table {
+          border-collapse: collapse;
+          width:100%;
+          font-size: 13px;
+      }
+
+      .nw-graph-metrics-table tr:hover {
+          background-color: #E4E3EA;
+      }
+
+      .nw-graph-metrics-table td {
+          border-bottom: 1px solid #E4E3EA;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+      }
+
+      .nw-graph-metrics-table td:first-child {
+          width: 80%;
+      }
+
+      .nw-graph-metrics-table td:last-child {
+          width: 20%;
+          text-align: right;
+      }
+
   </style>
 </head>
 <body>
@@ -1594,6 +1676,7 @@
         <button class="small-btn red" onclick="toggleCleanUpDanglingElements(this)"
                 title="Hide all nodes and edges that are not connected to any other node or edge.">🚫
         </button>
+        <span id="metricsBtnPlaceholder"></span>
         <button class="small-btn edit-btn" id="editBtn" onclick="toggleEditMode(this)" title="Enter Edit mode (E)">⚙
         </button>
         <div id="debugDiv" style="display: inline;"></div>
@@ -1615,12 +1698,11 @@
           <div id="staticStyleDiv"></div>
           <hr>
         </div>
+        <div id="metricsContainer"></div>
         <div id="filterContainer"></div>
       </div>
     </div>
-    <div id="sidebarStatusContainer">
-
-    </div>
+    <div id="sidebarStatusContainer"></div>
   </div>
   <div id="outerGraphContainer">
     <div id="innerGraphContainer"></div>

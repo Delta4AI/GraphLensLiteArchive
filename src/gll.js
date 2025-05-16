@@ -68,6 +68,16 @@ let cache = {
   initialized: false
 };
 
+// Stores available network metrics and their calculation function references
+const metrics = {
+  centrality: {id: "centrality", label: "Degree Centrality", calculate: calculateDegreeCentrality},
+  betweenness: {id: "betweenness", label: "Betweenness Centrality", calculate: calculateBetweennessCentrality},
+  closeness: {id: "closeness", label: "Closeness Centrality", calculate: calculateClosenessCentrality},
+  eigenvector: {id: "eigenvector", label: "Eigenvector Centrality", calculate: calculateEigenvectorCentrality},
+  pagerank: {id: "pagerank", label: "PageRank", calculate: calculatePageRank},
+  clustering: {id: "clustering", label: "Clustering Coefficient", calculate: calculateClusteringCoefficient}
+};
+
 /**
  *  GLL configuration parameters
  */
@@ -109,7 +119,7 @@ const INVISIBLE_CHARACTER = "\u200B";
 const MAX_SELECTION_MEMORY = 10;
 
 // If true, an additional "Node Connectivity" section is displayed in the UI
-const ENABLE_NODE_CONNECTIVITY_METRICS = false;
+const ENABLE_NODE_CONNECTIVITY_METRICS = true;
 
 /**
  *  Excel-model import related properties
@@ -307,6 +317,232 @@ const DEFAULTS = {
   FILTER_STRATEGY: "OR",
 };
 
+
+class NetworkMetrics {
+  constructor() {
+    this.selected = 'centrality';
+    this.multiselect = null;
+    this.table = null;
+    this.m = metrics;
+    this.collapsed = false;
+
+    this.selectBtns = {
+      'Add to Selection': () => this.updateSelectedNodes(true),
+      'Remove from Selection': () => this.updateSelectedNodes(false)
+    };
+  }
+
+  toggleUI() {
+    const panel = document.getElementById('networkMetricsContainer');
+    const willOpen = panel.classList.toggle('open');
+    const fullHeight = panel.scrollHeight + 'px';
+    panel.style.maxHeight = fullHeight;
+
+    const btn = document.getElementById('metricsToggleBtn');
+
+    requestAnimationFrame(() => {
+      panel.style.maxHeight = willOpen ? fullHeight : '0';
+    });
+
+    if (willOpen) {
+      panel.addEventListener(
+        'transitionend',
+        () => (panel.style.maxHeight = 'none'),
+        {once: true}
+      );
+      btn.classList.add("highlight");
+    } else {
+      btn.classList.remove("highlight");
+    }
+
+    this.collapsed = !willOpen;
+  }
+
+  updateUI() {
+    if (!ENABLE_NODE_CONNECTIVITY_METRICS) return;
+
+    const metricResult = this.m[this.selected]?.calculate();
+
+    /* multiselect */
+    this.multiselect.innerHTML = '';
+    for (const ns of metricResult.scores) {
+      const opt = document.createElement('option');
+      opt.value = ns.id;
+      opt.textContent = ns.text;
+      this.multiselect.appendChild(opt);
+    }
+
+    /* graph-level table */
+    this.table.innerHTML = '';
+    Object.entries(metricResult.graphLevelMetrics).forEach(([label, value]) => {
+      const row        = document.createElement('tr');
+      const labelCell  = document.createElement('td');
+      labelCell.textContent = label;
+      const valueCell  = document.createElement('td');
+      valueCell.textContent = `${value}`;
+      row.append(labelCell, valueCell);
+      this.table.appendChild(row);
+    });
+  }
+
+  buildUI() {
+    const container = document.createElement('div');
+    container.className = 'nw-root';
+    container.id = 'networkMetricsContainer';
+
+    const div = document.createElement('div');
+    div.className = 'nw-div';
+
+    /* header ------------------------------------------------------- */
+    const header = document.createElement('div');
+    header.className = 'nw-header';
+    header.textContent = 'Network Metrics';
+    div.appendChild(header);
+
+    /* metric dropdown --------------------------------------------- */
+    const dropdown = document.createElement('select');
+    dropdown.className = 'nw-metric-select';
+    Object.values(this.m).forEach(metric => {
+      const opt = document.createElement('option');
+      opt.value = metric.id;
+      opt.textContent = metric.label;
+      opt.selected = metric.id === this.selected;
+      dropdown.appendChild(opt);
+    });
+    dropdown.addEventListener('change', e => {
+      this.selected = e.target.value;
+      this.updateUI();
+    });
+    div.appendChild(dropdown);
+
+    /* node multiselect -------------------------------------------- */
+    this.multiselect = document.createElement('select');
+    this.multiselect.className = 'nw-node-multiselect';
+    this.multiselect.multiple = true;
+    this.multiselect.id = 'metricsMultiselect';
+    div.appendChild(this.multiselect);
+
+    /* buttons ------------------------------------------------------ */
+    const buttonRow = document.createElement('div');
+    Object.entries(this.selectBtns).forEach(([text, cb]) => {
+      const btn = document.createElement('button');
+      btn.textContent = text;
+      btn.className = 'nw-button';
+      btn.onclick = cb;
+      buttonRow.appendChild(btn);
+    });
+    div.appendChild(buttonRow);
+
+    div.appendChild(document.createElement('hr'));
+
+    /* graph-level metrics table ------------------------------------ */
+    const tHeader = document.createElement('p');
+    tHeader.className = 'nw-subheader';
+    tHeader.textContent = 'Graph Level Metrics';
+    div.appendChild(tHeader);
+
+    this.table = document.createElement('table');
+    this.table.className = 'nw-graph-metrics-table';
+    div.appendChild(this.table);
+
+    div.appendChild(document.createElement('hr'));
+
+    container.appendChild(div);
+    return container;
+  }
+
+  updateSelectedNodes(add) {
+    const ids = Array.from(
+      this.multiselect.selectedOptions,
+      opt => opt.value
+    );
+    if (ids.length) {
+      const nodeData = graph.getNodeData(ids);
+      updateSelectedState(nodeData, add);
+    }
+  }
+}
+
+function calculateDegreeCentrality() {
+  const {nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef} = cache;
+
+  const n = nodes.size;
+  if (n === 0) {
+    return {scores: [], graphLevelMetrics: {}};
+  }
+
+  // 1. Degree accumulation
+  const degree = new Map();
+  for (const id of nodes) degree.set(id, 0);
+
+  for (const edgeId of edges) {
+    const {source, target} = edgeRef.get(edgeId);
+    if (degree.has(source)) degree.set(source, degree.get(source) + 1);
+    if (degree.has(target)) degree.set(target, degree.get(target) + 1);
+  }
+
+  // 2. Centrality + statistics
+  const scores = [];
+  let sum = 0, min = Infinity, max = -Infinity;
+
+  for (const [id, d] of degree) {
+    const c = d / (n - 1);                // Freeman degree centrality
+    scores.push({id, degree: d, centrality: c});
+    sum += c;
+    if (c < min) min = c;
+    if (c > max) max = c;
+  }
+
+  scores.sort((a, b) => b.centrality - a.centrality);
+  const median = scores[Math.floor(n / 2)].centrality;
+  const mean = sum / n;
+
+  // Freeman network centralization (undirected)
+  const centralization = (n > 2)
+    ? scores.reduce((acc, s) => acc + (max - s.centrality), 0) /
+    ((n - 1) * (n - 2))
+    : 0;
+
+  return {
+    scores: scores.map(s => ({
+      id: s.id,
+      text: `${s.id} | Degree ${s.degree} | Centrality ${s.centrality.toFixed(4)} (${Math.round((s.centrality / max) * 100)} %)`
+    })),
+    graphLevelMetrics: {
+      "Maximum Degree": max * (n - 1),
+      "Minimum Degree": min * (n - 1),
+      "Average Degree": +(mean * (n - 1)).toFixed(2),
+      "Median Degree": +(median * (n - 1)).toFixed(2),
+      "Graph Density": +(sum / n).toFixed(4),
+      "Degree Centralization": +centralization.toFixed(4)
+    }
+  };
+}
+
+function calculateBetweennessCentrality() {
+  // TODO: implement
+  return {scores: [], graphLevelMetrics: {}};
+}
+
+function calculateClosenessCentrality() {
+  // TODO: implement
+  return {scores: [], graphLevelMetrics: {}};
+}
+
+function calculateEigenvectorCentrality() {
+  // TODO: implement
+  return {scores: [], graphLevelMetrics: {}};
+}
+
+function calculatePageRank() {
+  // TODO: implement
+  return {scores: [], graphLevelMetrics: {}};
+}
+
+function calculateClusteringCoefficient() {
+  // TODO: implement
+  return {scores: [], graphLevelMetrics: {}};
+}
 
 class QueryAST {
   constructor(instructions) {
@@ -1738,6 +1974,12 @@ function* traverseD4Data(nodeOrEdge) {
   }
 }
 
+function* iterateConnectivityMetrics() {
+  for (const metric of Object.values(cache.connectivity)) {
+    yield metric;
+  }
+}
+
 function generatePropHashId(section, subSection, prop) {
   return `${section}::${subSection}::${prop}`;
 }
@@ -2192,9 +2434,6 @@ function createGraphInstance() {
     });
 
     graph.on(GraphEvent.AFTER_RENDER, () => {
-      if (ENABLE_NODE_CONNECTIVITY_METRICS) {
-        updateNodeConnectivityMetrics();
-      }
       restorePositions();
       hideLoading();
     });
@@ -2207,6 +2446,7 @@ function createGraphInstance() {
       registerGlobalEventListeners();
       // to initially fill caches related to the query/filters, preRenderEvent is called without rendering afterwards
       preRenderEvent();
+      cache.metrics.updateUI();
     })
 
     let layout = data.layouts[data.selectedLayout];
@@ -2400,8 +2640,13 @@ function handleEditModeUIChanges() {
     }
   });
 
-  sidebar.style.minWidth = editModeActive ? "600px" : "360px";
-  status.style.maxWidth = editModeActive ? `${container.offsetWidth}px` : "360px";
+  sidebar.style.maxWidth = editModeActive ? "100%" : "unset";
+  status.style.maxWidth = editModeActive ? `${container.offsetWidth}px` : "100%";
+
+  if (ENABLE_NODE_CONNECTIVITY_METRICS) {
+    const metricsContainer = document.getElementById("networkMetricsContainer");
+    metricsContainer.style.maxWidth = editModeActive ? `${container.offsetWidth}px` : "350px";
+  }
 }
 
 function* traverseBubbleSets() {
@@ -2867,6 +3112,7 @@ function buildUI() {
   });
 
   buildDropdownOptions();
+  insertMetricsButtonAndBuildMetricsUI()
   buildFilterUI();
   showUI(true);
 
@@ -2973,84 +3219,28 @@ function buildFilterUI() {
   staticStyleDiv.innerHTML = "";
   staticStyleDiv.appendChild(createStyleDiv());
 
-  if (ENABLE_NODE_CONNECTIVITY_METRICS) {
-    div.appendChild(buildNodeConnectivitySection());
-  }
-
   manageDynamicWidgets();
   handleEditModeUIChanges();
   updateQueryTextArea();
 }
 
-function buildNodeConnectivitySection() {
-  const container = document.createElement("div");
-  container.style.marginTop = "1.5em";
+function insertMetricsButtonAndBuildMetricsUI() {
+  if (!ENABLE_NODE_CONNECTIVITY_METRICS) return;
 
-  const header = document.createElement("h3");
-  header.textContent = "Node Connectivity";
-  header.classList.add("inline");
-  container.appendChild(header);
+  const placeholder = document.getElementById("metricsBtnPlaceholder");
 
-  const hr = document.createElement("hr");
-  container.appendChild(hr);
+  const btn = document.createElement("button");
+  btn.className = "small-btn";
+  btn.title = "Show / hide connectivity-metric panel";
+  btn.textContent = "📊";
+  btn.onclick = cache.metrics.toggleUI;
+  btn.id = "metricsToggleBtn";
 
-  const metrics = [
-    {name: "Betweenness", id: "betweenness", type: "slider", min: 0, max: 1, step: 0.01},
-    {name: "Closeness Centrality", id: "closenessCentrality", type: "slider", min: 0, max: 1, step: 0.01},
-  ];
+  placeholder.replaceWith(btn);
 
-  metrics.forEach(metric => {
-    data.filterDefaults.set(metric.id, {
-      isCategory: false,
-      lowerThreshold: 0,
-      upperThreshold: 1,
-      step: 0.01
-    });
-
-    const row = document.createElement("div");
-    row.className = "filter-row";
-
-    const col1 = document.createElement("div");
-    col1.className = "filter-row-col1";
-    const metricLabel = document.createElement("label");
-    metricLabel.textContent = metric.name;
-    col1.appendChild(metricLabel);
-    row.appendChild(col1);
-
-    const col2 = document.createElement("div");
-    col2.className = "filter-row-col2";
-    col2.style.marginRight = "28px";
-    if (metric.type === "slider") {
-      const slider = new InvertibleRangeSlider(metric.id);
-      slider.appendTo(col2);
-    } else if (metric.type === "checkbox") {
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.id = metric.id;
-      col2.appendChild(checkbox);
-    }
-    row.appendChild(col2);
-
-    container.appendChild(row);
-  });
-
-  return container;
-}
-
-function updateNodeConnectivityMetrics() {
-  // Recompute connectivity metrics here based on visible nodes/edges
-  // Access the graph, data, or cache objects as needed.
-  // For example, using a graph library to compute betweenness or closeness for each node:
-
-  /*
-  for (let node of data.nodes) {
-    // Hypothetical: use a centrality function from your library
-    node.betweenness = computeBetweenness(node, graph);
-    node.closenessCentrality = computeCloseness(node, graph);
-    // etc.
-  }
-  */
-  console.log("!!TODO: Node connectivity metrics updated!");
+  const div = document.getElementById("metricsContainer");
+  div.innerHTML = "";
+  div.appendChild(cache.metrics.buildUI());
 }
 
 function saveFiltersToStash(manualTriggered = false) {
@@ -3735,6 +3925,7 @@ function createAddOrRemoveToSelectionButton(propID, shouldAdd) {
 
 function decideToRenderOrDraw(forceRender = false) {
   preRenderEvent();
+  cache.metrics.updateUI();
 
   if (cache.bubbleSetChanged || cache.styleChanged || forceRender) {
     if (cache.styleChanged) {
@@ -4214,6 +4405,8 @@ function initCache() {
 
   cache.styleChanged = false;
   cache.labelStyleChanged = false;
+
+  cache.metrics = new NetworkMetrics();
 
   function populateUniquePropGroups(propHash) {
     const [mainGroup, subGroup, prop] = decodePropHashId(propHash);
