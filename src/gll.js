@@ -75,7 +75,6 @@ const metrics = {
   closeness: {id: "closeness", label: "Closeness Centrality", calculate: calculateClosenessCentrality},
   eigenvector: {id: "eigenvector", label: "Eigenvector Centrality", calculate: calculateEigenvectorCentrality},
   pagerank: {id: "pagerank", label: "PageRank", calculate: calculatePageRank},
-  clustering: {id: "clustering", label: "Clustering Coefficient", calculate: calculateClusteringCoefficient}
 };
 
 /**
@@ -112,14 +111,13 @@ const MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT = 300;
 // If true, bubble groups avoid all non-bubble group members per default
 const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
 
-// Used for "clearing" labels
-const INVISIBLE_CHARACTER = "\u200B";
-
 // Maximum capacity of selection memory
 const MAX_SELECTION_MEMORY = 10;
 
 // If true, an additional "Node Connectivity" section is displayed in the UI
 const ENABLE_NODE_CONNECTIVITY_METRICS = true;
+
+const NODE_CONNECTIVITY_METRICS_PRECISION = 4;
 
 /**
  *  Excel-model import related properties
@@ -383,6 +381,11 @@ class NetworkMetrics {
       row.append(labelCell, valueCell);
       this.table.appendChild(row);
     });
+
+    /* tooltip */
+    document.getElementById("metricInfoBtn").onclick = () => {
+      cache.popup = new Popup(metricResult.popupContent);
+    };
   }
 
   buildUI() {
@@ -400,6 +403,9 @@ class NetworkMetrics {
     div.appendChild(header);
 
     /* metric dropdown --------------------------------------------- */
+    const dropdownContainer = document.createElement("div");
+    dropdownContainer.className = "nw-metric-select-container";
+
     const dropdown = document.createElement('select');
     dropdown.className = 'nw-metric-select';
     Object.values(this.m).forEach(metric => {
@@ -413,7 +419,14 @@ class NetworkMetrics {
       this.selected = e.target.value;
       this.updateUI();
     });
-    div.appendChild(dropdown);
+    dropdownContainer.appendChild(dropdown);
+
+    const infoBtn = document.createElement("button");
+    infoBtn.className = "info-btn";
+    infoBtn.textContent = "🛈";
+    infoBtn.id = "metricInfoBtn";
+    dropdownContainer.appendChild(infoBtn);
+    div.append(dropdownContainer);
 
     /* node multiselect -------------------------------------------- */
     this.multiselect = document.createElement('select');
@@ -506,42 +519,574 @@ function calculateDegreeCentrality() {
   return {
     scores: scores.map(s => ({
       id: s.id,
-      text: `${s.id} | Degree ${s.degree} | Centrality ${s.centrality.toFixed(4)} (${Math.round((s.centrality / max) * 100)} %)`
+      text: `${s.id} | Degree ${s.degree} | Centrality ${s.centrality.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.centrality / max) * 100)} %)`
     })),
     graphLevelMetrics: {
-      "Maximum Degree": max * (n - 1),
-      "Minimum Degree": min * (n - 1),
-      "Average Degree": +(mean * (n - 1)).toFixed(2),
-      "Median Degree": +(median * (n - 1)).toFixed(2),
-      "Graph Density": +(sum / n).toFixed(4),
-      "Degree Centralization": +centralization.toFixed(4)
-    }
+      "Maximum Degree Centrality": max * (n - 1),
+      "Minimum Degree Centrality": min * (n - 1),
+      "Average Degree Centrality": +(mean * (n - 1)).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Median Degree": +(median * (n - 1)).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Graph Density": +(sum / n).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Centralization": +centralization.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
+    },
+    popupContent: `<div>
+<h1>Degree Centrality</h1>
+<hr>
+<p>Degree centrality is a measure of the number of connections a node has in a network.
+Nodes with more connections are considered more central and receive a higher score (up to 1.0).
+<a href="https://doi.org/10.2307%2F3033543">Freeman, 1977</a>
+</p>
+<svg width="300" height="200" viewBox="0 0 300 200">
+  <!-- Edges (drawn first so they appear behind nodes) -->
+  <!-- Central node (3) connections -->
+  <line x1="150" y1="100" x2="50" y2="50" stroke="#666" stroke-width="2"/>
+  <line x1="150" y1="100" x2="250" y2="50" stroke="#666" stroke-width="2"/>
+  <line x1="150" y1="100" x2="50" y2="150" stroke="#666" stroke-width="2"/>
+  <line x1="150" y1="100" x2="250" y2="150" stroke="#666" stroke-width="2"/>
+  
+  <!-- Nodes -->
+  <!-- Central node with degree 4 -->
+  <circle cx="150" cy="100" r="25" fill="#C33D35"/>
+  <text x="150" y="105" text-anchor="middle" fill="white" font-size="14">4</text>
+  
+  <!-- End nodes (degree 1) -->
+  <circle cx="50" cy="50" r="20" fill="#403C53"/>
+  <text x="50" y="55" text-anchor="middle" fill="white" font-size="14">1</text>
+  
+  <circle cx="250" cy="50" r="20" fill="#403C53"/>
+  <text x="250" y="55" text-anchor="middle" fill="white" font-size="14">1</text>
+  
+  <circle cx="50" cy="150" r="20" fill="#403C53"/>
+  <text x="50" y="155" text-anchor="middle" fill="white" font-size="14">1</text>
+  
+  <circle cx="250" cy="150" r="20" fill="#403C53"/>
+  <text x="250" y="155" text-anchor="middle" fill="white" font-size="14">1</text>
+</svg>
+<hr>
+<p><strong>Degree Centrality:</strong> Normalised number of neighbours a node possesses.</p>
+<p><strong>Graph Density:</strong> Fraction of realised edges out of all possible edges (0&nbsp;–&nbsp;1).</p>
+<p><strong>Centralization:</strong> Freeman degree-centralization — how strongly the network is dominated by its most connected node (0&nbsp;=&nbsp;even, 1&nbsp;=&nbsp;perfect star).</p>
+</div>`
   };
 }
 
 function calculateBetweennessCentrality() {
-  // TODO: implement
-  return {scores: [], graphLevelMetrics: {}};
+  const {nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef} = cache;
+
+  const n = nodes.size;
+  if (n === 0) {
+    return {scores: [], graphLevelMetrics: {}};
+  }
+
+  function findShortestPaths(start, end, adjacencyMap) {
+    const paths = [];
+    const visited = new Set();
+    const queue = [[start]];
+    let shortestLength = Infinity;
+
+    while (queue.length > 0) {
+      const path = queue.shift();
+      const node = path[path.length - 1];
+
+      if (path.length > shortestLength) continue;
+
+      if (node === end) {
+        shortestLength = path.length;
+        paths.push(path);
+        continue;
+      }
+
+      for (const neighbor of adjacencyMap.get(node)) {
+        if (!path.includes(neighbor)) {
+          queue.push([...path, neighbor]);
+        }
+      }
+    }
+
+    return paths;
+  }
+
+  const adjacencyMap = new Map();
+  for (const id of nodes) adjacencyMap.set(id, new Set());
+
+  for (const edgeId of edges) {
+    const {source, target} = edgeRef.get(edgeId);
+    if (adjacencyMap.has(source)) adjacencyMap.get(source).add(target);
+    if (adjacencyMap.has(target)) adjacencyMap.get(target).add(source);
+  }
+
+  const betweenness = new Map();
+  for (const id of nodes) betweenness.set(id, 0);
+
+  // For each pair of nodes
+  const nodeArray = Array.from(nodes);
+  for (let i = 0; i < nodeArray.length; i++) {
+    for (let j = i + 1; j < nodeArray.length; j++) {
+      const start = nodeArray[i];
+      const end = nodeArray[j];
+
+      // Find shortest paths using BFS
+      const paths = findShortestPaths(start, end, adjacencyMap);
+      if (paths.length === 0) continue;
+
+      // For each node that appears in shortest paths
+      const intermediateNodes = new Map();
+      for (const path of paths) {
+        for (let k = 1; k < path.length - 1; k++) {
+          const node = path[k];
+          intermediateNodes.set(node, (intermediateNodes.get(node) || 0) + 1 / paths.length);
+        }
+      }
+
+      // Add to betweenness scores
+      for (const [node, count] of intermediateNodes) {
+        betweenness.set(node, betweenness.get(node) + count);
+      }
+    }
+  }
+
+  // 3. Normalize scores and prepare results
+  const scores = [];
+  let max = -Infinity;
+  const normalizationFactor = ((n - 1) * (n - 2)) / 2; // Maximum possible betweenness
+
+  for (const [id, score] of betweenness) {
+    const normalizedScore = score / normalizationFactor;
+    scores.push({id, score: normalizedScore});
+    if (normalizedScore > max) max = normalizedScore;
+  }
+
+  scores.sort((a, b) => b.score - a.score);
+
+  // graph level metrics
+  const centralityValues = scores.map(s => s.score);
+  const sum = centralityValues.reduce((a, b) => a + b, 0);
+  const mean = sum / n;
+  const min = Math.min(...centralityValues);
+  const centralization = scores.reduce((acc, s) => acc + (max - s.score), 0) / ((n - 1) * (n - 2) / 2);
+
+  return {
+    scores: scores.map(s => ({
+      id: s.id,
+      text: `${s.id} | Score: ${s.score.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.score / max) * 100)}%)`
+    })),
+    graphLevelMetrics: {
+      "Maximum Betweenness Centrality": +max.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Minimum Betweenness Centrality": +min.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Average Betweenness Centrality": +mean.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Centralization": +centralization.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+    },
+    popupContent: `<div>
+<h1>Betweenness Centrality</h1>
+<hr>
+<p>Betweenness centrality measures how often a node acts as a bridge along the shortest path between two other nodes.
+Nodes with high betweenness centrality are important controllers of information flow in the network.
+<a href="https://doi.org/10.2307%2F3033543">Freeman, 1977</a>
+</p>
+<svg width="300" height="200" viewBox="0 0 300 200">
+  <!-- Edges -->
+  <line x1="50" y1="100" x2="150" y2="100" stroke="#666" stroke-width="2"/>
+  <line x1="150" y1="100" x2="250" y2="100" stroke="#666" stroke-width="2"/>
+  <line x1="150" y1="100" x2="150" y2="50" stroke="#666" stroke-width="2"/>
+  <line x1="150" y1="100" x2="150" y2="150" stroke="#666" stroke-width="2"/>
+  
+  <!-- Nodes -->
+  <circle cx="150" cy="100" r="25" fill="#C33D35"/> <!-- Bridge node -->
+  <text x="150" y="105" text-anchor="middle" fill="white" font-size="14">1.0</text>
+  
+  <circle cx="50" cy="100" r="20" fill="#403C53"/>
+  <text x="50" y="105" text-anchor="middle" fill="white" font-size="14">0</text>
+  
+  <circle cx="250" cy="100" r="20" fill="#403C53"/>
+  <text x="250" y="105" text-anchor="middle" fill="white" font-size="14">0</text>
+  
+  <circle cx="150" cy="50" r="20" fill="#403C53"/>
+  <text x="150" y="55" text-anchor="middle" fill="white" font-size="14">0</text>
+  
+  <circle cx="150" cy="150" r="20" fill="#403C53"/>
+  <text x="150" y="155" text-anchor="middle" fill="white" font-size="14">0</text>
+</svg>
+<hr>
+<p><strong>Centralization:</strong> 0 when paths are evenly shared, 1 when a single hub monopolises shortest paths (star-like topology).</p>
+</div>`
+  };
 }
 
 function calculateClosenessCentrality() {
-  // TODO: implement
-  return {scores: [], graphLevelMetrics: {}};
+  const {nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef} = cache;
+
+  const n = nodes.size;
+  if (n === 0) return {scores: [], graphLevelMetrics: {}};
+
+  // Build adjacency list
+  const graph = new Map();
+  for (const id of nodes) graph.set(id, new Set());
+
+  for (const edgeId of edges) {
+    const {source, target} = edgeRef.get(edgeId);
+    if (graph.has(source) && graph.has(target)) {
+      graph.get(source).add(target);
+      graph.get(target).add(source);
+    }
+  }
+
+  // Calculate shortest paths using BFS
+  function bfs(start) {
+    const distances = new Map();
+    const queue = [[start, 0]];
+    distances.set(start, 0);
+
+    while (queue.length > 0) {
+      const [node, dist] = queue.shift();
+      for (const neighbor of graph.get(node)) {
+        if (!distances.has(neighbor)) {
+          distances.set(neighbor, dist + 1);
+          queue.push([neighbor, dist + 1]);
+        }
+      }
+    }
+    return distances;
+  }
+
+  const scores = [];
+  let sum = 0, min = Infinity, max = -Infinity;
+
+  for (const nodeId of nodes) {
+    const distances = bfs(nodeId);
+    const totalDistance = Array.from(distances.values()).reduce((a, b) => a + b, 0);
+    const closeness = distances.size === n ? (n - 1) / totalDistance : 0;
+
+    scores.push({id: nodeId, closeness});
+    sum += closeness;
+    if (closeness < min) min = closeness;
+    if (closeness > max) max = closeness;
+  }
+
+  scores.sort((a, b) => b.closeness - a.closeness);
+  const mean = sum / n;
+
+  return {
+    scores: scores.map(s => ({
+      id: s.id,
+      text: `${s.id} | Score: ${s.closeness.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.closeness / max) * 100)}%)`
+    })),
+    graphLevelMetrics: {
+      "Maximum Closeness Centrality": +max.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Minimum Closeness Centrality": +min.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Average Closeness Centrality": +mean.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Centralization": +((n * max - sum) / ((n - 1) * (n - 2) / (2 * n - 3))).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
+    },
+    popupContent: `<div>
+<h1>Closeness Centrality</h1>
+<hr>
+<p>Closeness centrality measures how near a node is to all others via shortest paths. A higher score (up to 1.0)
+ indicates shorter average distance to every node.  
+<a href="https://psycnet.apa.org/doi/10.1121/1.1906679">Bavelas, 1950</a>
+</p>
+<svg width="300" height="200" viewBox="0 0 300 200">
+  <line x1="150" y1="100" x2="75" y2="100" stroke="#666" stroke-width="2"/>
+  <line x1="150" y1="100" x2="225" y2="100" stroke="#666" stroke-width="2"/>
+  <line x1="75" y1="100" x2="75" y2="150" stroke="#666" stroke-width="2"/>
+  <line x1="225" y1="100" x2="225" y2="150" stroke="#666" stroke-width="2"/>
+  
+  <circle cx="150" cy="100" r="25" fill="#C33D35"/>
+  <text x="150" y="105" text-anchor="middle" fill="white" font-size="14">1.0</text>
+  
+  <circle cx="75" cy="100" r="20" fill="#403C53"/>
+  <text x="75" y="105" text-anchor="middle" fill="white" font-size="14">0.6</text>
+  
+  <circle cx="225" cy="100" r="20" fill="#403C53"/>
+  <text x="225" y="105" text-anchor="middle" fill="white" font-size="14">0.6</text>
+  
+  <circle cx="75" cy="150" r="20" fill="#403C53"/>
+  <text x="75" y="155" text-anchor="middle" fill="white" font-size="14">0.4</text>
+  
+  <circle cx="225" cy="150" r="20" fill="#403C53"/>
+  <text x="225" y="155" text-anchor="middle" fill="white" font-size="14">0.4</text>
+</svg>
+<hr>
+<p>
+<strong>Centralization:</strong> Freeman closeness-centralization — degree to which one node is, on average, closer to all others than the rest of the network.
+</p>
+</div>`
+  };
 }
 
 function calculateEigenvectorCentrality() {
-  // TODO: implement
-  return {scores: [], graphLevelMetrics: {}};
+  const {nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef} = cache;
+
+  const n = nodes.size;
+  if (n === 0) return {scores: [], graphLevelMetrics: {}};
+
+  // Initialize adjacency matrix and eigenvector
+  const matrix = Array(n).fill().map(() => Array(n).fill(0));
+  const nodeArray = Array.from(nodes);
+  const nodeIndex = new Map(nodeArray.map((id, i) => [id, i]));
+
+  // Build adjacency matrix
+  for (const edgeId of edges) {
+    const {source, target} = edgeRef.get(edgeId);
+    if (nodeIndex.has(source) && nodeIndex.has(target)) {
+      const i = nodeIndex.get(source), j = nodeIndex.get(target);
+      matrix[i][j] = matrix[j][i] = 1;
+    }
+  }
+
+  // Power iteration method
+  let eigenVector = Array(n).fill(1/n);
+  let prevEigenVector;
+  const maxIterations = 100;
+  const tolerance = 1e-6;
+
+  for (let iter = 0; iter < maxIterations; iter++) {
+    prevEigenVector = [...eigenVector];
+    eigenVector = Array(n).fill(0);
+
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        eigenVector[i] += matrix[i][j] * prevEigenVector[j];
+      }
+    }
+
+    // Normalize
+    const norm = Math.sqrt(eigenVector.reduce((sum, x) => sum + x * x, 0));
+    eigenVector = eigenVector.map(x => x / norm);
+
+    // Check convergence
+    if (eigenVector.every((x, i) => Math.abs(x - prevEigenVector[i]) < tolerance)) break;
+  }
+
+  // Prepare scores
+  const scores = eigenVector.map((score, i) => ({
+    id: nodeArray[i],
+    centrality: score
+  }));
+
+  scores.sort((a, b) => b.centrality - a.centrality);
+  const max = scores[0].centrality;
+  const min = scores[scores.length - 1].centrality;
+
+  const mean = eigenVector.reduce((a, b) => a + b) / n;
+  const variance = eigenVector.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n;
+
+  return {
+    scores: scores.map(s => ({
+      id: s.id,
+      text: `${s.id} | Score: ${s.centrality.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.centrality / max) * 100)}%)`
+    })),
+    graphLevelMetrics: {
+      "Maximum Eigenvector Centrality": +max.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Minimum Eigenvector Centrality": +min.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Average Eigenvector Centrality": +mean.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Variance Eigenvector Centrality": +variance.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Centralization": +(scores.reduce((acc, s) => acc + (max - s.centrality), 0) / (n - 1)).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
+    },
+    popupContent: `<div>
+<h1>Eigenvector Centrality</h1>
+<hr>
+<p>Eigenvector centrality scores nodes by connecting to other high-scoring nodes: 
+links to influential neighbours matter more than links to peripheral ones.
+<a href="https://doi.org/10.1093/oso/9780198805090.003.0006">Newman, 2010</a>
+</p>
+<p>
+<strong>Parameters:</strong>
+<ul>
+  <li>Tolerance: 1e-6</li>
+  <li>Max iterations: 100</li>
+</ul>
+</p>
+<svg width="300" height="200" viewBox="0 0 300 200">
+  <line x1="150" y1="100" x2="50" y2="50" stroke="#666" stroke-width="2"/>
+  <line x1="150" y1="100" x2="250" y2="50" stroke="#666" stroke-width="2"/>
+  <line x1="250" y1="50" x2="250" y2="150" stroke="#666" stroke-width="2"/>
+  <line x1="50" y1="50" x2="50" y2="150" stroke="#666" stroke-width="2"/>
+  
+  <circle cx="150" cy="100" r="25" fill="#C33D35"/>
+  <text x="150" y="105" text-anchor="middle" fill="white" font-size="14">1.00</text>
+  
+  <circle cx="50" cy="50" r="20" fill="#403C53"/>
+  <text x="50" y="55" text-anchor="middle" fill="white" font-size="12">0.52</text>
+  
+  <circle cx="250" cy="50" r="20" fill="#403C53"/>
+  <text x="250" y="55" text-anchor="middle" fill="white" font-size="12">0.52</text>
+  
+  <circle cx="50" cy="150" r="20" fill="#666"/>
+  <text x="50" y="155" text-anchor="middle" fill="white" font-size="12">0.27</text>
+  
+  <circle cx="250" cy="150" r="20" fill="#666"/>
+  <text x="250" y="155" text-anchor="middle" fill="white" font-size="12">0.27</text>
+</svg>
+<hr>
+<p><strong>Centralization:</strong> Measures how much the network centrality is dominated by a single node.</p>
+</div>`
+
+  };
 }
 
 function calculatePageRank() {
-  // TODO: implement
-  return {scores: [], graphLevelMetrics: {}};
-}
+  const {nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef} = cache;
 
-function calculateClusteringCoefficient() {
-  // TODO: implement
-  return {scores: [], graphLevelMetrics: {}};
+  const n = nodes.size;
+  if (n === 0) return {scores: [], graphLevelMetrics: {}};
+
+  const nodeArray = Array.from(nodes);
+  const nodeIndex = new Map(nodeArray.map((id, i) => [id, i]));
+  const matrix = Array(n).fill().map(() => Array(n).fill(0));
+  const outDegrees = Array(n).fill(0);
+
+  for (const edgeId of edges) {
+    const {source, target} = edgeRef.get(edgeId);
+    if (nodeIndex.has(source) && nodeIndex.has(target)) {
+      const i = nodeIndex.get(source), j = nodeIndex.get(target);
+      matrix[j][i] = 1;
+      outDegrees[i]++;
+    }
+  }
+
+  for (let i = 0; i < n; i++) {
+    if (outDegrees[i] > 0) {
+      for (let j = 0; j < n; j++) {
+        matrix[j][i] = matrix[j][i] / outDegrees[i];
+      }
+    } else {
+      for (let j = 0; j < n; j++) {
+        matrix[j][i] = 1/n;
+      }
+    }
+  }
+
+  const d = 0.85;
+  let scores = Array(n).fill(1/n);
+  let prevScores;
+  const maxIter = 100;
+  const tolerance = 1e-6;
+
+  for (let iter = 0; iter < maxIter; iter++) {
+    prevScores = [...scores];
+    scores = Array(n).fill((1-d)/n);
+
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        scores[i] += d * matrix[i][j] * prevScores[j];
+      }
+    }
+
+    if (scores.every((x, i) => Math.abs(x - prevScores[i]) < tolerance)) break;
+  }
+
+  const sortedScores = scores.map((score, i) => ({
+    id: nodeArray[i],
+    score
+  })).sort((a, b) => b.score - a.score);
+
+  const maxScore = sortedScores[0].score;
+  const minScore = sortedScores[sortedScores.length - 1].score;
+  const meanScore = scores.reduce((a, b) => a + b) / n;
+  const minDegree = Math.min(...outDegrees);
+  const maxDegree = Math.max(...outDegrees);
+  const avgDegree = outDegrees.reduce((a, b) => a + b) / n;
+
+  return {
+    scores: sortedScores.map(s => ({
+      id: s.id,
+      text: `${s.id} | Score: ${s.score.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.score / maxScore) * 100)}%)`
+    })),
+    graphLevelMetrics: {
+      "Maximum PageRank Score": +maxScore.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Minimum PageRank Score": +minScore.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Mean PageRank Score": +meanScore.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Maximum PageRank Degree": maxDegree,
+      "Minimum PageRank Degree": minDegree,
+      "Mean PageRank Degree": +avgDegree.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
+    },
+    popupContent: `<div>
+<h1>PageRank</h1>
+<hr>
+<p>PageRank measures node importance based on the number and quality of incoming links. 
+A node is important if it receives many links from other important nodes.
+<a href="https://doi.org/10.1016/S0169-7552(98)00110-X">Brin & Page, 1998</a>
+</p>
+<svg width="300" height="300" viewBox="0 0 400 300">
+  <defs>
+    <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5"
+        markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#999"/>
+    </marker>
+  </defs>
+  
+  <!-- Directed edges -->
+  <g stroke="#999" stroke-width="2" fill="none" marker-end="url(#arrowhead)">
+    <!-- Hub node connections -->
+    <line x1="200" y1="150" x2="120" y2="100"/>
+    <line x1="200" y1="150" x2="280" y2="100"/>
+    <line x1="200" y1="150" x2="200" y2="80"/>
+    <line x1="200" y1="150" x2="120" y2="200"/>
+    <line x1="200" y1="150" x2="280" y2="200"/>
+    
+    <!-- Secondary connections -->
+    <line x1="120" y1="100" x2="200" y2="80"/>
+    <line x1="280" y1="100" x2="200" y2="80"/>
+    <line x1="120" y1="200" x2="50" y2="150"/>
+    <line x1="280" y1="200" x2="350" y2="150"/>
+    <line x1="50" y1="150" x2="120" y2="100"/>
+    <line x1="350" y1="150" x2="280" y2="100"/>
+    <line x1="120" y1="200" x2="280" y2="200"/>
+    <line x1="200" y1="80" x2="200" y2="30"/>
+    <line x1="200" y1="30" x2="280" y2="100"/>
+  </g>
+  
+  <!-- Nodes -->
+  <g>
+    <!-- Central hub -->
+    <circle cx="200" cy="150" r="25" fill="#e74c3c"/>
+    <text x="200" y="155" text-anchor="middle" fill="white" font-family="Arial" font-size="14">35%</text>
+    
+    <!-- Top tier nodes -->
+    <circle cx="200" cy="80" r="20" fill="#34495e"/>
+    <text x="200" y="85" text-anchor="middle" fill="white" font-family="Arial" font-size="12">15%</text>
+    
+    <circle cx="120" cy="100" r="20" fill="#34495e"/>
+    <text x="120" y="105" text-anchor="middle" fill="white" font-family="Arial" font-size="12">12%</text>
+    
+    <circle cx="280" cy="100" r="20" fill="#34495e"/>
+    <text x="280" y="105" text-anchor="middle" fill="white" font-family="Arial" font-size="12">12%</text>
+    
+    <!-- Secondary nodes -->
+    <circle cx="120" cy="200" r="18" fill="#7f8c8d"/>
+    <text x="120" y="205" text-anchor="middle" fill="white" font-family="Arial" font-size="11">7%</text>
+    
+    <circle cx="280" cy="200" r="18" fill="#7f8c8d"/>
+    <text x="280" y="205" text-anchor="middle" fill="white" font-family="Arial" font-size="11">7%</text>
+    
+    <circle cx="50" cy="150" r="18" fill="#7f8c8d"/>
+    <text x="50" y="155" text-anchor="middle" fill="white" font-family="Arial" font-size="11">4%</text>
+    
+    <circle cx="350" cy="150" r="18" fill="#7f8c8d"/>
+    <text x="350" y="155" text-anchor="middle" fill="white" font-family="Arial" font-size="11">4%</text>
+    
+    <!-- Top node -->
+    <circle cx="200" cy="30" r="18" fill="#7f8c8d"/>
+    <text x="200" y="35" text-anchor="middle" fill="white" font-family="Arial" font-size="11">2%</text>
+    
+    <!-- Isolated node with fewer connections -->
+    <circle cx="350" cy="50" r="15" fill="#95a5a6"/>
+    <text x="350" y="55" text-anchor="middle" fill="white" font-family="Arial" font-size="10">2%</text>
+  </g>
+</svg>
+<hr>
+<p>
+<strong>Parameters:</strong>
+<ul>
+  <li>Damping factor (d): 0.85</li>
+  <li>Tolerance: 1e-6</li>
+  <li>Max iterations: 100</li>
+</ul>
+</p>
+<hr>
+<p><strong>PageRank Score:</strong> Probability that a random walker lands on the node.</p>
+<p><strong>PageRank Degree:</strong> In-degree used internally while computing PageRank.</p>
+</div>`
+  };
 }
 
 class QueryAST {
@@ -1310,7 +1855,7 @@ function createStyleDiv() {
         const sharedOverride = {
           style: {
             label: false,
-            labelText: INVISIBLE_CHARACTER
+            labelText: undefined
           }
         };
         isNode ? updateNodes(sharedOverride) : updateEdges(sharedOverride);
@@ -1335,7 +1880,6 @@ function createStyleDiv() {
     parent.appendChild(setToLabelButton);
     parent.appendChild(clearLabelButton);
   }
-
 
   function createButton(label, tooltip, callback) {
     const btn = document.createElement("button");
@@ -2641,7 +3185,7 @@ function handleEditModeUIChanges() {
   });
 
   sidebar.style.maxWidth = editModeActive ? "100%" : "unset";
-  status.style.maxWidth = editModeActive ? `${container.offsetWidth}px` : "100%";
+  status.style.maxWidth = editModeActive ? `${container.offsetWidth}px` : "375px";
 
   if (ENABLE_NODE_CONNECTIVITY_METRICS) {
     const metricsContainer = document.getElementById("networkMetricsContainer");
@@ -3231,7 +3775,7 @@ function insertMetricsButtonAndBuildMetricsUI() {
 
   const btn = document.createElement("button");
   btn.className = "small-btn";
-  btn.title = "Show / hide connectivity-metric panel";
+  btn.title = "Toggle network metrics panel";
   btn.textContent = "📊";
   btn.onclick = cache.metrics.toggleUI;
   btn.id = "metricsToggleBtn";
@@ -3889,17 +4433,183 @@ function createCircleGroupButtonWithQuadrants(propID) {
   return circleButton;
 }
 
-function createStyleToggleButton(propID) {
-  const btn = document.createElement("button");
-  btn.classList.add("ml-2", "style-icon-button", "show-on-edit");
-  btn.textContent = "🎨";
-  btn.title = "Control style for this property";
+class Popup {
+  /**
+   * // Simple text popup
+   * const popup1 = new Popup("Hello, I'm a simple popup!");
+   *
+   * // Popup with HTML content
+   * const popup2 = new Popup(`
+   *     <h2>Welcome!</h2>
+   *     <p>This is a popup with <strong>HTML</strong> content.</p>
+   *     <button onclick="alert('Button clicked!')">Click me</button>
+   * `);
+   *
+   * // Popup with custom options
+   * const popup3 = new Popup("Custom positioned popup!", {
+   *     width: '400px',
+   *     position: { x: 100, y: 100 },
+   *     closeOnClickOutside: false,
+   *     onClose: () => console.log('Popup closed!')
+   * });
+   */
+    constructor(content, options = {}) {
+        this.options = {
+            width: '300px',
+            height: 'auto',
+            position: 'center',
+            lineHeight: 'normal',
+            closeOnClickOutside: true,
+            onClose: null,
+            showFullscreenButton: true,
+            ...options
+        };
 
-  btn.addEventListener("click", () => {
-    document.getElementById(`style-row-${propID}`).classList.toggle("show");
-  });
+        this.popup = null;
+        this.overlay = null;
+        this.closeBtn = null;
+        this.fullscreenBtn = null;
+        this.isFullscreen = false;
+        this.originalStyles = null;
 
-  return btn;
+        this.init(content);
+    }
+
+    init(content) {
+        this.createPopup(content);
+        this.setupCloseHandlers();
+        if (this.options.showFullscreenButton) {
+            this.setupFullscreenButton();
+        }
+        this.show();
+    }
+
+    createPopup(content) {
+        this.popup = document.createElement('div');
+        this.popup.className = 'p-custom';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'p-header';
+
+        if (this.options.showFullscreenButton) {
+            this.fullscreenBtn = document.createElement('button');
+            this.fullscreenBtn.className = 'p-btn';
+            this.fullscreenBtn.innerHTML = '⛶';
+            this.fullscreenBtn.title = 'Toggle fullscreen';
+            headerDiv.appendChild(this.fullscreenBtn);
+        }
+
+        this.closeBtn = document.createElement('button');
+        this.closeBtn.className = 'p-btn';
+        this.closeBtn.innerHTML = '×';
+        this.closeBtn.title = 'Close popup';
+        headerDiv.appendChild(this.closeBtn);
+
+        const popupContent = document.createElement('div');
+        popupContent.className = 'popup-content';
+        popupContent.style.marginTop = '20px';
+
+        if (typeof content === 'string') {
+            popupContent.innerHTML = content;
+        } else {
+            popupContent.appendChild(content);
+        }
+
+        this.popup.appendChild(headerDiv);
+        this.popup.appendChild(popupContent);
+
+        this.overlay = document.createElement('div');
+        this.overlay.className = 'p-overlay';
+
+        document.body.appendChild(this.overlay);
+        document.body.appendChild(this.popup);
+
+        this.popup.style.width = this.options.width;
+        if (this.options.height !== 'auto') {
+            this.popup.style.height = this.options.height;
+        }
+
+        if (this.options.lineHeight !== 'normal') {
+          this.popup.style.lineHeight = this.options.lineHeight;
+        }
+
+        this.setPosition();
+        this.storeOriginalStyles();
+    }
+
+    storeOriginalStyles() {
+      this.originalStyles = {
+        width: this.popup.style.width,
+        height: this.popup.style.height,
+        top: this.popup.style.top,
+        left: this.popup.style.left,
+        transform: this.popup.style.transform,
+        borderRadius: this.popup.style.borderRadius,
+        margin: this.popup.style.margin,
+        position: this.popup.style.position
+      };
+    }
+
+    setupFullscreenButton() {
+        this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+    }
+
+    toggleFullscreen() {
+        this.isFullscreen = !this.isFullscreen;
+
+        if (this.isFullscreen) {
+            this.popup.style.width = '100%';
+            this.popup.style.height = '100%';
+            this.popup.style.top = '0';
+            this.popup.style.left = '0';
+            this.popup.style.transform = 'none';
+            this.popup.style.position = 'fixed';
+
+            this.fullscreenBtn.innerHTML = '⧉';
+            this.fullscreenBtn.title = 'Exit fullscreen';
+        } else {
+            Object.assign(this.popup.style, this.originalStyles);
+
+            this.fullscreenBtn.innerHTML = '⛶';
+            this.fullscreenBtn.title = 'Fullscreen';
+        }
+    }
+
+    setPosition() {
+        if (!this.isFullscreen) {
+            if (this.options.position === 'center') {
+                this.popup.style.top = '50%';
+                this.popup.style.left = '50%';
+                this.popup.style.transform = 'translate(-50%, -50%)';
+            } else {
+                this.popup.style.top = `${this.options.position.y}px`;
+                this.popup.style.left = `${this.options.position.x}px`;
+                this.popup.style.transform = 'none';
+            }
+        }
+    }
+
+    setupCloseHandlers() {
+        this.closeBtn.addEventListener('click', () => this.close());
+
+        if (this.options.closeOnClickOutside) {
+            this.overlay.addEventListener('click', () => this.close());
+        }
+    }
+
+    show() {
+        this.popup.style.display = 'block';
+        this.overlay.style.display = 'block';
+    }
+
+    close() {
+        if (this.options.onClose) {
+            this.options.onClose();
+        }
+        this.popup.remove();
+        this.overlay.remove();
+        cache.popup = null;
+    }
 }
 
 function createAddOrRemoveToSelectionButton(propID, shouldAdd) {
@@ -3941,7 +4651,8 @@ function decideToRenderOrDraw(forceRender = false) {
 
 function handleFilterEvent(header, text, propID = null, shouldUpdateQueryTextArea = true) {
   if (shouldUpdateQueryTextArea) {
-    updateQueryTextArea();
+    resetQuery();
+    // updateQueryTextArea();
   }
 
   // skip rendering if property is not active
@@ -4407,6 +5118,7 @@ function initCache() {
   cache.labelStyleChanged = false;
 
   cache.metrics = new NetworkMetrics();
+  cache.popup = null;
 
   function populateUniquePropGroups(propHash) {
     const [mainGroup, subGroup, prop] = decodePropHashId(propHash);
@@ -5157,8 +5869,73 @@ function moveCaretToEnd() {
 }
 
 function resetQuery() {
+  delete data.layouts[data.selectedLayout]["query"];
+  query.text.textContent = "";
+  query.overlay.innerHTML = "";
   updateQueryTextArea();
   moveCaretToEnd();
+}
+
+function showQueryHelp() {
+  cache.popup = new Popup(`
+<h3>Query Editor</h3>
+The query editor allows you to directly manipulate the graph and apply nested filtering with AND/OR/NOT.
+The query is validated after typing. 
+In case the query is valid and applied to the graph, the query will also be saved to the model.json in case of an export.
+Modifying the graph through the UI will reset the query and remove custom brackets and AND/NOT conditions.
+Modifying the query will update the UI accordingly.
+Malformed parts of the query are <span class="q-error-unrecognized">highlighted</span>.
+<hr>
+<h3>Query Structure Explained</h3>
+<div class="popupQueryContainer">
+  <span class="q-bracket-open-lvl-1">(</span>
+  <span class="q-property-wrapper"><span class="q-maingroup">${EXCEL_NODE_HEADER}</span><span class="q-prop-group-separator">::</span><span class="q-subgroup">group A</span><span class="q-prop-group-separator">::</span><span class="q-property">prop X</span></span>
+  <span class="q-kw-between">BETWEEN</span>
+  <span class="q-number">0</span>
+  <span class="q-kw-between-and">AND</span>
+  <span class="q-number">1.3</span>
+  <span class="q-connector-closing"><span class="q-bracket-close-lvl-1">)</span></span>
+  <span class="q-connector-or">&nbsp;OR&nbsp;</span>
+  <span class="q-connector-opening-bracket"><span class="q-bracket-open-lvl-1">(</span></span>
+  <span class="q-property-wrapper"><span class="q-maingroup">${EXCEL_NODE_HEADER}</span><span class="q-prop-group-separator">::</span><span class="q-subgroup">group A</span><span class="q-prop-group-separator">::</span><span class="q-property">prop Y</span></span>
+  <span class="q-in-cat-bracket-open">IN<span class="q-space"> </span>[</span>
+  <span class="q-string">foo</span>
+  <span class="q-comma">,</span>
+  <span class="q-string">bar</span>
+  <span class="q-cat-bracket-close">]</span>
+  <span class="q-connector-closing"><span class="q-bracket-close-lvl-1">)</span></span>
+</div>
+<ul>
+<li><span class="q-bracket-open-lvl-1">(</span>&nbsp;<span class="q-bracket-close-lvl-1">)</span>: Parentheses collect several conditions into one logical unit 
+  <ul>
+    <li>Groups can be nested to any depth</li>
+    <li>Up to five levels of nested brackets are colour-coded: <span class="q-bracket-open-lvl-1">(</span><span class="q-bracket-open-lvl-2">(</span><span class="q-bracket-open-lvl-3">(</span><span class="q-bracket-open-lvl-4">(</span><span class="q-bracket-open-lvl-5">(</span><span class="q-bracket-close-lvl-5">)</span><span class="q-bracket-close-lvl-4">)</span><span class="q-bracket-close-lvl-3">)</span><span class="q-bracket-close-lvl-2">)</span><span class="q-bracket-close-lvl-1">)</span></li>
+    <li>Unmatched brackets are highlighted: <span class="q-bracket-close-lvl-0 q-error-unmatched-closing-bracket">)</span></li>
+  </ul>
+</li>
+<li><span class="q-property-wrapper"><span class="q-maingroup">${EXCEL_NODE_HEADER}</span><span class="q-prop-group-separator">::</span><span class="q-subgroup">group A</span><span class="q-prop-group-separator">::</span><span class="q-property">prop X</span></span>: selects property <strong>prop X [group A]</strong> from the <strong>node</strong> sheet 
+  <ul>
+    <li>Properties always have <strong>3 levels</strong>, separated by <span class="q-property-wrapper"><span class="q-prop-group-separator">::</span></span></li>
+    <li>Node properties start with <span class="q-property-wrapper"><span class="q-maingroup">${EXCEL_NODE_HEADER}</span><span class="q-prop-group-separator">::</span></span> while edge properties start with <span class="q-property-wrapper"><span class="q-maingroup">${EXCEL_EDGE_HEADER}</span><span class="q-prop-group-separator">::</span></span></li>
+    <li>If no groups are defined in a column of the input file, the default group <span class="q-property-wrapper"><span class="q-subgroup">${EXCEL_UNCATEGORIZED_SUBHEADER}</span></span> is used</li>
+  </ul> 
+</li>
+<li>Properties must be followed by a <strong>filter instruction</strong>. Three different instructions exist: </strong>
+  <ul>
+    <li><span class="q-kw-between">BETWEEN</span>&nbsp;<span class="q-number">0</span>&nbsp;<span class="q-kw-between-and">AND</span>&nbsp;<span class="q-number">1.3</span>: keeps numerical values from 0 to 1.3 (inclusive)</li>
+    <li><span class="q-lower-than">LOWER THAN</span>&nbsp;<span class="q-number">0.2</span>&nbsp;<span class="q-or-greater-than">OR GREATER THAN</span>&nbsp;<span class="q-number">0.8</span>: keeps numerical values ≤ 0.2 or ≥ 0.8</li>
+    <li><span class="q-in-cat-bracket-open">IN<span class="q-space">&nbsp;</span>[</span>&nbsp;<span class="q-string">foo</span><span class="q-comma">,</span> <span class="q-string">bar</span>&nbsp;<span class="q-cat-bracket-close">]</span>: keeps categorical values 'foo' or 'bar'</li>  
+  </ul>
+</li>
+<li><span class="q-connector-or">&nbsp;OR&nbsp;</span>: one of three logical operators that links two conditions or groups. Left prevails over right, otherwise all three operators are treated equally.
+  <ul>
+    <li><span class="q-connector-or">&nbsp;OR&nbsp;</span> results in true if at least one of the linked parts is true</li>
+    <li><span class="q-connector-and">&nbsp;AND&nbsp;</span> results in true if both linked parts are true</li>
+    <li><span class="q-connector-not">&nbsp;NOT&nbsp;</span> results in true part A is true while part B is not</li>
+  </ul>
+</li>
+</ul>
+`, {width: '66vw', height: '50vh', lineHeight: '1.5em'});
 }
 
 function humanFileSize(size) {
@@ -5418,3 +6195,8 @@ function debugQuery(query) {
   handleQueryValidationEvent();
   handleQueryUpdateEvent();
 }
+
+// DOM loaded event
+document.addEventListener('DOMContentLoaded', () => {
+  showQueryHelp();
+});
