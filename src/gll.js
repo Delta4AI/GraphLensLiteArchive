@@ -26,8 +26,8 @@ class CustomForceLayout extends BaseLayout {
           y: 50 * index + 25,
         },
       }));
-    graph.updateNodeData(myNodes);
-    persistNodePositions();
+    await graph.updateNodeData(myNodes);
+    await persistNodePositions();
     return {
       nodes: myNodes,
     };
@@ -325,8 +325,8 @@ class NetworkMetrics {
     this.collapsed = false;
 
     this.selectBtns = {
-      'Add to Selection': () => this.updateSelectedNodes(true),
-      'Remove from Selection': () => this.updateSelectedNodes(false)
+      'Add to Selection': async () => this.updateSelectedNodes(true),
+      'Remove from Selection': async () => this.updateSelectedNodes(false)
     };
   }
 
@@ -464,14 +464,14 @@ class NetworkMetrics {
     return container;
   }
 
-  updateSelectedNodes(add) {
+  async updateSelectedNodes(add) {
     const ids = Array.from(
       this.multiselect.selectedOptions,
       opt => opt.value
     );
     if (ids.length) {
-      const nodeData = graph.getNodeData(ids);
-      updateSelectedState(nodeData, add);
+      const nodeData = await graph.getNodeData(ids);
+      await updateSelectedState(nodeData, add);
     }
   }
 }
@@ -719,14 +719,14 @@ function calculateClosenessCentrality() {
   if (n === 0) return {scores: [], graphLevelMetrics: {}};
 
   // Build adjacency list
-  const graph = new Map();
-  for (const id of nodes) graph.set(id, new Set());
+  const graphMap = new Map();
+  for (const id of nodes) graphMap.set(id, new Set());
 
   for (const edgeId of edges) {
     const {source, target} = edgeRef.get(edgeId);
-    if (graph.has(source) && graph.has(target)) {
-      graph.get(source).add(target);
-      graph.get(target).add(source);
+    if (graphMap.has(source) && graphMap.has(target)) {
+      graphMap.get(source).add(target);
+      graphMap.get(target).add(source);
     }
   }
 
@@ -738,7 +738,7 @@ function calculateClosenessCentrality() {
 
     while (queue.length > 0) {
       const [node, dist] = queue.shift();
-      for (const neighbor of graph.get(node)) {
+      for (const neighbor of graphMap.get(node)) {
         if (!distances.has(neighbor)) {
           distances.set(neighbor, dist + 1);
           queue.push([neighbor, dist + 1]);
@@ -1332,15 +1332,15 @@ function getTargetEdges(propID) {
   );
 }
 
-function layoutSelectedNodes(action) {
+async function layoutSelectedNodes(action) {
   if (cache.selectedNodes.length === 0) return;
 
-  function getSelectedNodes() {
-    return graph.getNodeData().filter((node) => cache.selectedNodes.includes(node.id));
+  async function getSelectedNodes() {
+    return await graph.getNodeData().filter((node) => cache.selectedNodes.includes(node.id));
   }
 
-  function groupOrSpreadSelectedNodes(scale) {
-    for (const node of getSelectedNodes()) {
+  async function groupOrSpreadSelectedNodes(scale) {
+    for (const node of await getSelectedNodes()) {
       const oldX = node.style.x;
       const oldY = node.style.y;
 
@@ -1349,12 +1349,12 @@ function layoutSelectedNodes(action) {
     }
   }
 
-  function arrangeNodesInCircle(radius) {
+  async function arrangeNodesInCircle(radius) {
     const numNodes = cache.selectedNodes.length;
     let angleStep = (2 * Math.PI) / numNodes;
 
     let i = 0;
-    for (const node of getSelectedNodes()) {
+    for (const node of await getSelectedNodes()) {
       const angle = i * angleStep;
       node.style.x = avgX + radius * Math.cos(angle);
       node.style.y = avgY + radius * Math.sin(angle);
@@ -1362,7 +1362,7 @@ function layoutSelectedNodes(action) {
     }
   }
 
-  function applyForceLayout(iterations) {
+  async function applyForceLayout(iterations) {
     // -----------------------------
     // Updated parameters
     // -----------------------------
@@ -1409,7 +1409,7 @@ function layoutSelectedNodes(action) {
       }
 
       // 2) Spring forces (edges)
-      for (const edge of graph.getEdgeData()) {
+      for (const edge of await graph.getEdgeData()) {
         const {source, target} = edge;
         if (cache.selectedNodes.includes(source) && cache.selectedNodes.includes(target)) {
           const nodeA = nodes.find((n) => n.id === source);
@@ -1456,8 +1456,8 @@ function layoutSelectedNodes(action) {
     }
   }
 
-  function applyGridLayout() {
-    const nodes = getSelectedNodes();
+  async function applyGridLayout() {
+    const nodes = await getSelectedNodes();
     if (nodes.length === 0) return;
 
     const count = nodes.length;
@@ -1480,8 +1480,8 @@ function layoutSelectedNodes(action) {
     }
   }
 
-  function applyRandomLayout() {
-    for (const node of getSelectedNodes()) {
+  async function applyRandomLayout() {
+    for (const node of await getSelectedNodes()) {
       node.style.x = minX + Math.random() * xDistance;
       node.style.y = minY + Math.random() * yDistance;
     }
@@ -1519,9 +1519,9 @@ function layoutSelectedNodes(action) {
     "random": () => applyRandomLayout(),
   }
 
-  layoutActions[action]();
-  persistNodePositions();
-  handleFilterEvent(action, eventLabels[action]);
+  await layoutActions[action]();
+  await persistNodePositions();
+  await handleFilterEvent(action, eventLabels[action]);
 }
 
 function createStyleDiv() {
@@ -1590,91 +1590,91 @@ function createStyleDiv() {
     return label;
   }
 
-  function handleStyleChangeEvent(property, value) {
+  async function handleStyleChangeEvent(property, value) {
     switch (property) {
       case "Node Size":
-        updateNodes({style: {size: value}});
+        await updateNodes({style: {size: value}});
         break;
       case "Node Border Size":
-        updateNodes({style: {lineWidth: value}});
+        await updateNodes({style: {lineWidth: value}});
         break;
       case "Node Label Font Size":
-        updateNodes({style: {labelFontSize: value}});
+        await updateNodes({style: {labelFontSize: value}});
         break;
       case "Node Label Font Color":
-        updateNodes({style: {labelFill: value}});
+        await updateNodes({style: {labelFill: value}});
         break;
       case "Node Label Background Color":
-        updateNodes({style: {labelBackground: true, labelBackgroundFill: value}});
+        await updateNodes({style: {labelBackground: true, labelBackgroundFill: value}});
         break;
       case "Node Fill Color":
-        updateNodes({style: {fill: value}});
+        await updateNodes({style: {fill: value}});
         break;
       case "Node Border Color":
-        updateNodes({style: {stroke: value}});
+        await updateNodes({style: {stroke: value}});
         break;
       case "Node Label Color":
-        updateNodes({style: {labelFill: value}});
+        await updateNodes({style: {labelFill: value}});
         break;
       case "Node Label Placement":
-        updateNodes({style: {labelPlacement: value}});
+        await updateNodes({style: {labelPlacement: value}});
         break;
       case "Edge Color":
-        updateEdges({style: {stroke: value}});
+        await updateEdges({style: {stroke: value}});
         break;
       case "Edge Width":
-        updateEdges({style: {lineWidth: value}});
+        await updateEdges({style: {lineWidth: value}});
         break;
       case "Edge Dash":
-        updateEdges({style: {lineDash: value}});
+        await updateEdges({style: {lineDash: value}});
         break;
       case "Edge Label Font Size":
-        updateEdges({style: {labelFontSize: value}});
+        await updateEdges({style: {labelFontSize: value}});
         break;
       case "Edge Label Offset X":
-        updateEdges({style: {labelOffsetX: value}});
+        await updateEdges({style: {labelOffsetX: value}});
         break;
       case "Edge Label Offset Y":
-        updateEdges({style: {labelOffsetY: value}});
+        await updateEdges({style: {labelOffsetY: value}});
         break;
       case "Edge Label Placement":
-        updateEdges({style: {labelPlacement: value}});
+        await updateEdges({style: {labelPlacement: value}});
         break;
       case "Edge Label Font Color":
-        updateEdges({style: {labelFill: value}});
+        await updateEdges({style: {labelFill: value}});
         break;
       case "Edge Label Background Color":
-        updateEdges({style: {labelBackground: true, labelBackgroundFill: value}});
+        await updateEdges({style: {labelBackground: true, labelBackgroundFill: value}});
         break;
       case "Edge Label Auto Rotate":
-        updateEdges({style: {labelAutoRotate: value}});
+        await updateEdges({style: {labelAutoRotate: value}});
         break;
       case "Edge Start Arrow":
-        updateEdges({style: {startArrow: value}});
+        await updateEdges({style: {startArrow: value}});
         break;
       case "Edge End Arrow":
-        updateEdges({style: {endArrow: value}});
+        await updateEdges({style: {endArrow: value}});
         break;
       case "Edge Start Arrow Size":
-        updateEdges({style: {startArrowSize: value}});
+        await updateEdges({style: {startArrowSize: value}});
         break;
       case "Edge End Arrow Size":
-        updateEdges({style: {endArrowSize: value}});
+        await updateEdges({style: {endArrowSize: value}});
         break;
       case "Edge Start Arrow Type":
-        updateEdges({style: {startArrowType: value}});
+        await updateEdges({style: {startArrowType: value}});
         break;
       case "Edge End Arrow Type":
-        updateEdges({style: {endArrowType: value}});
+        await updateEdges({style: {endArrowType: value}});
         break;
       case "Edge Halo":
-        updateEdges({style: {halo: value}});
+        await updateEdges({style: {halo: value}});
         break;
       case "Edge Halo Width":
-        updateEdges({style: {haloLineWidth: value}});
+        await updateEdges({style: {haloLineWidth: value}});
         break;
       case "Edge Halo Color":
-        updateEdges({style: {haloStroke: value}});
+        await updateEdges({style: {haloStroke: value}});
         break;
       default:
         break;
@@ -1685,8 +1685,8 @@ function createStyleDiv() {
     const onBtn = document.createElement("button");
     onBtn.textContent = "On";
     onBtn.classList.add("style-inner-button");
-    onBtn.onclick = () => {
-      handleStyleChangeEvent(property, true);
+    onBtn.onclick = async () => {
+      await handleStyleChangeEvent(property, true);
     }
     if (tooltip) onBtn.title = tooltip;
     parent.appendChild(onBtn);
@@ -1694,8 +1694,8 @@ function createStyleDiv() {
     const offBtn = document.createElement("button");
     offBtn.textContent = "Off";
     offBtn.classList.add("style-inner-button");
-    offBtn.onclick = () => {
-      handleStyleChangeEvent(property, false);
+    offBtn.onclick = async () => {
+      await handleStyleChangeEvent(property, false);
     }
     if (tooltip) offBtn.title = tooltip;
     parent.appendChild(offBtn);
@@ -1712,8 +1712,8 @@ function createStyleDiv() {
       option.value = value;
       option.textContent = value;
       dropdown.appendChild(option);
-      dropdown.onchange = () => {
-        handleStyleChangeEvent(property, dropdown.value);
+      dropdown.onchange = async () => {
+        await handleStyleChangeEvent(property, dropdown.value);
       };
     });
 
@@ -1759,13 +1759,13 @@ function createStyleDiv() {
       valueInput.value = slider.value;
     };
 
-    slider.onchange = () => {
-      handleStyleChangeEvent(property, parseValue(slider.value));
+    slider.onchange = async () => {
+      await handleStyleChangeEvent(property, parseValue(slider.value));
     };
 
-    valueInput.onchange = () => {
+    valueInput.onchange = async () => {
       slider.value = valueInput.value;
-      handleStyleChangeEvent(property, parseValue(valueInput.value));
+      await handleStyleChangeEvent(property, parseValue(valueInput.value));
     };
 
     container.appendChild(slider);
@@ -1800,9 +1800,9 @@ function createStyleDiv() {
         colorButton.style.maxWidth = "12px";
       }
 
-      colorButton.onclick = () => {
+      colorButton.onclick = async () => {
         colorInput.value = value;
-        handleStyleChangeEvent(property, value);
+        await handleStyleChangeEvent(property, value);
       };
       colorButtonDiv.appendChild(colorButton);
     }
@@ -1816,8 +1816,8 @@ function createStyleDiv() {
       colorInput.value = colorPicker.value;
     };
 
-    colorPicker.onchange = () => {
-      handleStyleChangeEvent(property, colorPicker.value);
+    colorPicker.onchange = async () => {
+      await handleStyleChangeEvent(property, colorPicker.value);
     }
 
     const colorInput = document.createElement("input");
@@ -1827,10 +1827,10 @@ function createStyleDiv() {
     colorInput.title = `Set ${property} of the selected elements to a color of choice (RGBA hex color code).`;
     colorInput.placeholder = `Enter Color`;
 
-    colorInput.addEventListener("keypress", function (event) {
+    colorInput.addEventListener("keypress", async function (event) {
       if (event.key === "Enter") {
         event.preventDefault();
-        handleStyleChangeEvent(property, colorInput.value);
+        await handleStyleChangeEvent(property, colorInput.value);
       }
     });
 
@@ -1840,17 +1840,18 @@ function createStyleDiv() {
 
   function createLabelControls(parent, property, isNode = null) {
     const labelInput = createInput(120, `Enter Custom ${property}`,
-      `Set the label of the selected ${isNode ? "nodes" : "edges"} to a custom label.`, undefined, () => {
-        isNode ? updateNodes({
+      `Set the label of the selected ${isNode ? "nodes" : "edges"} to a custom label.`, undefined,
+      async () => {
+        isNode ? await updateNodes({
           style: {
             label: true,
             labelText: labelInput.value.trim()
           }
-        }) : updateEdges({style: {label: true, labelText: labelInput.value.trim()}});
+        }) : await updateEdges({style: {label: true, labelText: labelInput.value.trim()}});
       });
 
     const clearLabelButton = createButton("Clear",
-      `Clear the label of the selected ${isNode ? "nodes" : "edges"}.`, () => {
+      `Clear the label of the selected ${isNode ? "nodes" : "edges"}.`, async () => {
         labelInput.value = "";
         const sharedOverride = {
           style: {
@@ -1858,21 +1859,21 @@ function createStyleDiv() {
             labelText: undefined
           }
         };
-        isNode ? updateNodes(sharedOverride) : updateEdges(sharedOverride);
+        isNode ? await updateNodes(sharedOverride) : await updateEdges(sharedOverride);
         labelInput.value = "";
       });
 
     const setToIDButton = createButton("Set to ID",
-      `Set the label of the selected ${isNode ? "nodes" : "edges"} to their predefined IDs.`, () => {
+      `Set the label of the selected ${isNode ? "nodes" : "edges"} to their predefined IDs.`, async () => {
         labelInput.value = "";
         const sharedCommands = ["label_set_to_id"];
-        isNode ? updateNodes(undefined, sharedCommands) : updateEdges(undefined, sharedCommands);
+        isNode ? await updateNodes(undefined, sharedCommands) : await updateEdges(undefined, sharedCommands);
       });
     const setToLabelButton = createButton("Set to Label",
-      `Set the label of the selected ${isNode ? "nodes" : "edges"} to their predefined labels.`, () => {
+      `Set the label of the selected ${isNode ? "nodes" : "edges"} to their predefined labels.`, async () => {
         labelInput.value = "";
         const sharedCommands = ["label_set_to_label"];
-        isNode ? updateNodes(undefined, sharedCommands) : updateEdges(undefined, sharedCommands);
+        isNode ? await updateNodes(undefined, sharedCommands) : await updateEdges(undefined, sharedCommands);
       });
 
     parent.appendChild(labelInput);
@@ -1922,14 +1923,14 @@ function createStyleDiv() {
   function createNodeShapeControls(parent) {
     for (const [label, value] of Object.entries(DEFAULTS.STYLES.NODE_FORM)) {
       appendButton(parent, label, value,
-        () => updateNodes({type: value})
+        async () => await updateNodes({type: value})
       );
     }
   }
 
   function createEdgeTypeControls(parent) {
     for (const label of DEFAULTS.STYLES.EDGE_TYPES) {
-      appendButton(parent, label, label, () => updateEdges({type: label}));
+      appendButton(parent, label, label, async () => await updateEdge({type: label}));
     }
   }
 
@@ -1951,8 +1952,8 @@ function createStyleDiv() {
     });
     parent.appendChild(badgePlacementDropdown);
 
-    appendButton(parent, "Add", "Add a badge to the selected nodes.", () => {
-      updateNodes({
+    appendButton(parent, "Add", "Add a badge to the selected nodes.", async () => {
+      await updateNodes({
           style: {
             badges: [{
               text: badgeInput.value.trim(),
@@ -1963,8 +1964,8 @@ function createStyleDiv() {
         }, ["badge_add"]
       );
     });
-    appendButton(parent, "Clear", "Clear all badges from the selected nodes.", () => {
-      updateNodes({}, ["badge_clear"]);
+    appendButton(parent, "Clear", "Clear all badges from the selected nodes.", async () => {
+      await updateNodes({}, ["badge_clear"]);
     });
   }
 
@@ -1973,28 +1974,28 @@ function createStyleDiv() {
 
     const rowOne = createNewRow(selDiv);
     appendButton(rowOne, "All Nodes", "Select all visible nodes",
-      () => toggleSelectionForAllNodes(true));
+      async () => await toggleSelectionForAllNodes(true));
     appendButton(rowOne, "No Nodes", "Deselect all visible nodes",
-      () => toggleSelectionForAllNodes(false));
+      async () => await toggleSelectionForAllNodes(false));
     appendVerticalRule(rowOne);
     appendButton(rowOne, "All Edges", "Select all visible edges",
-      () => toggleSelectionForAllEdges(true));
+      async () => await toggleSelectionForAllEdges(true));
     appendButton(rowOne, "No Edges", "Deselect all visible edges",
-      () => toggleSelectionForAllEdges(false));
+      async () => await toggleSelectionForAllEdges(false));
     appendVerticalRule(rowOne);
     appendButton(rowOne, "Expand Edges",
       "Add all edges connected to the currently selected nodes to the selection",
-      () => toggleSelectionByNeighbors("expand-edges"));
+      async () => await toggleSelectionByNeighbors("expand-edges"));
     appendButton(rowOne, "Reduce Edges",
       "Remove edges that do not connect two selected nodes",
-      () => toggleSelectionByNeighbors("reduce-edges"));
+      async () => await toggleSelectionByNeighbors("reduce-edges"));
     appendVerticalRule(rowOne);
     appendButton(rowOne, "Expand Neighbors",
       "Add all directly connected neighbor nodes (and their edges) to the current selection",
-      () => toggleSelectionByNeighbors("expand-neighbors"));
+      async () => await toggleSelectionByNeighbors("expand-neighbors"));
     appendButton(rowOne, "Reduce Neighbors",
       "Remove the outermost layer of selected neighbor nodes (and their edges) from the ",
-      () => toggleSelectionByNeighbors("reduce-neighbors"));
+      async () => await toggleSelectionByNeighbors("reduce-neighbors"));
 
     const rowTwo = createNewRow(selDiv);
     const nodeIDsInputSwitch = createSwitch(e => {
@@ -2006,8 +2007,8 @@ function createStyleDiv() {
     appendLabel(rowTwo, "Include Node ID(s)", nodeIDsTT, "selectByNodeIDsLabel");
     const topTwoNodeIDs = data?.nodes?.slice(0, 2).map(n => n.id).join(',') || 'Node1,Node2';
     const nodeIDsInput = createInput(220, topTwoNodeIDs, nodeIDsTT, undefined,
-      (val) => {
-        addNodeOrEdgeIDsToSelection(val, true);
+      async (val) => {
+        await addNodeOrEdgeIDsToSelection(val, true);
       });
     nodeIDsInput.id = "selectByNodeIDsInput";
     rowTwo.appendChild(nodeIDsInput);
@@ -2021,8 +2022,8 @@ function createStyleDiv() {
     rowTwo.appendChild(edgeIDsInputSwitch);
     const topTwoEdgeIDs = data?.edges?.slice(0, 2).map(e => e.id).join(',') || 'Node1::Node2,Node1::Node3';
     const edgeIDsInput = createInput(220, topTwoEdgeIDs, edgeIDsTT, undefined,
-      (val) => {
-        addNodeOrEdgeIDsToSelection(val, false);
+      async (val) => {
+        await addNodeOrEdgeIDsToSelection(val, false);
       });
     edgeIDsInput.id = "selectByEdgeIDsInput";
     rowTwo.appendChild(edgeIDsInput);
@@ -2181,7 +2182,7 @@ function createStyleDiv() {
   return root;
 }
 
-function updateEdges(overrides = {}, commands = []) {
+async function updateEdges(overrides = {}, commands = []) {
   for (const edgeID of cache.selectedEdges) {
     const edge = cache.edgeRef.get(edgeID);
 
@@ -2201,7 +2202,7 @@ function updateEdges(overrides = {}, commands = []) {
     cache.edgeRef.set(edgeID, edge);
   }
 
-  handleStyleChangeLoadingEvent("Style", "Updating Edge Styles");
+  await handleStyleChangeLoadingEvent("Style", "Updating Edge Styles");
 }
 
 /**
@@ -2228,7 +2229,7 @@ function isObject(obj) {
   return obj !== null && typeof obj === "object" && !Array.isArray(obj);
 }
 
-function updateNodes(overrides = {}, commands = []) {
+async function updateNodes(overrides = {}, commands = []) {
   for (const nodeID of cache.selectedNodes) {
     const node = cache.nodeRef.get(nodeID);
 
@@ -2261,7 +2262,7 @@ function updateNodes(overrides = {}, commands = []) {
     deepMerge(node, overrides);
     cache.nodeRef.set(nodeID, node);
   }
-  handleStyleChangeLoadingEvent("Style", `Updating Node Styles`);
+  await handleStyleChangeLoadingEvent("Style", `Updating Node Styles`);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneSelectedNode(enable) {
@@ -2305,30 +2306,25 @@ function toggleStyleElements(headingLabels, enable) {
   }
 }
 
-function updateSelectedState(elemData, enable) {
-  requestAnimationFrame(() => {
-    showLoading(enable ? "Selecting" : "Deselecting", `Modifying selection of ${elemData.length} elements`);
-    requestAnimationFrame(() => {
-      for (const item of elemData) {
-        graph.setElementState(item.id, enable ? 'selected' : '');
-      }
-    });
-  });
-
-  hideLoading();
+async function updateSelectedState(elemData, enable) {
+  await showLoading(enable ? "Selecting" : "Deselecting", `Modifying selection of ${elemData.length} elements`);
+  for (const item of elemData) {
+    await graph.setElementState(item.id, enable ? 'selected' : '');
+  }
+  await hideLoading();
 }
 
-function toggleSelectionForAllNodes(enable) {
-  const nodes = graph.getNodeData();
-  updateSelectedState(nodes, enable);
+async function toggleSelectionForAllNodes(enable) {
+  const nodes = await graph.getNodeData();
+  await updateSelectedState(nodes, enable);
 }
 
-function toggleSelectionForAllEdges(enable) {
-  const edges = graph.getEdgeData();
-  updateSelectedState(edges, enable);
+async function toggleSelectionForAllEdges(enable) {
+  const edges = await graph.getEdgeData();
+  await updateSelectedState(edges, enable);
 }
 
-function syncSelectionCacheAndElementStates() {
+async function syncSelectionCacheAndElementStates() {
   const nodesToShow = [];
   const nodesToHide = [];
   const edgesToShow = [];
@@ -2345,10 +2341,10 @@ function syncSelectionCacheAndElementStates() {
   for (const edge of graph.getEdgeData()) {
     snapshot.edges.includes(edge.id) ? edgesToShow.push(edge) : edgesToHide.push(edge);
   }
-  updateSelectedState(nodesToShow, true);
-  updateSelectedState(nodesToHide, false);
-  updateSelectedState(edgesToShow, true);
-  updateSelectedState(edgesToHide, false);
+  await updateSelectedState(nodesToShow, true);
+  await updateSelectedState(nodesToHide, false);
+  await updateSelectedState(edgesToShow, true);
+  await updateSelectedState(edgesToHide, false);
 }
 
 function undoSelection() {
@@ -2369,7 +2365,7 @@ function redoSelection() {
   }
 }
 
-function addNodeOrEdgeIDsToSelection(elementIDs, isNode) {
+async function addNodeOrEdgeIDsToSelection(elementIDs, isNode) {
   const shouldAdd = isNode
     ? !document.getElementById("selectByNodeIDsSwitch").checked
     : !document.getElementById("selectByEdgeIDsSwitch").checked;
@@ -2399,12 +2395,12 @@ function addNodeOrEdgeIDsToSelection(elementIDs, isNode) {
     }
 
     if (elementsToUpdate.length > 0) {
-      updateSelectedState(elementsToUpdate, shouldAdd);
+      await updateSelectedState(elementsToUpdate, shouldAdd);
     }
   }
 }
 
-function toggleSelectionByNeighbors(mode) {
+async function toggleSelectionByNeighbors(mode) {
   const edgesToShow = [];
   const edgesToHide = [];
   const nodesToShow = [];
@@ -2430,11 +2426,11 @@ function toggleSelectionByNeighbors(mode) {
     return neighborsInSelection <= 1;
   }
 
-  function update() {
-    if (edgesToShow.length > 0) updateSelectedState(edgesToShow, true);
-    if (edgesToHide.length > 0) updateSelectedState(edgesToHide, false);
-    if (nodesToShow.length > 0) updateSelectedState(nodesToShow, true);
-    if (nodesToHide.length > 0) updateSelectedState(nodesToHide, false);
+  async function update() {
+    if (edgesToShow.length > 0) await updateSelectedState(edgesToShow, true);
+    if (edgesToHide.length > 0) await updateSelectedState(edgesToHide, false);
+    if (nodesToShow.length > 0) await updateSelectedState(nodesToShow, true);
+    if (nodesToHide.length > 0) await updateSelectedState(nodesToHide, false);
   }
 
   switch (mode) {
@@ -2482,26 +2478,26 @@ function toggleSelectionByNeighbors(mode) {
       break;
   }
 
-  update();
+  await update();
 }
 
-function conditionallyPersistNodePositions() {
+async function conditionallyPersistNodePositions() {
   let ld = data.layouts[data.selectedLayout];
   if (!ld.isCustom && ld.positions.size === 0) {
     console.log(`Initially persisting coordinates of default layout ${data.selectedLayout} ..`);
-    persistNodePositions();
+    await persistNodePositions();
   }
 
   // cache is written on app start or layout change every time IF no data exists yet, no matter if it is a custom layout or not
   if (!cache.initialNodePositions.has(data.selectedLayout)) {
     cache.initialNodePositions.set(data.selectedLayout, new Map());
     console.log(`Caching coordinates of layout ${data.selectedLayout} to be used by reset feature ..`);
-    persistNodePositions(cache.initialNodePositions.get(data.selectedLayout));
+    await persistNodePositions(cache.initialNodePositions.get(data.selectedLayout));
   }
 }
 
-function persistNodePositions(targetMap = data.layouts[data.selectedLayout].positions) {
-  for (const node of graph.getNodeData()) {
+async function persistNodePositions(targetMap = data.layouts[data.selectedLayout].positions) {
+  for (const node of await graph.getNodeData()) {
     targetMap.set(node.id, {x: node.style.x, y: node.style.y});
   }
 }
@@ -2886,7 +2882,7 @@ function parseExcelToJson(file) {
   };
 }
 
-function createGraphInstance() {
+async function createGraphInstance() {
   if (graph === null) {
 
     const behaviors = [
@@ -2963,39 +2959,39 @@ function createGraphInstance() {
       plugins: plugins,
     });
 
-    graph.on(NodeEvent.DRAG_END, (event) => {
+    graph.on(NodeEvent.DRAG_END, async (event) => {
       // persist all node positions
-      persistNodePositions();
+      await persistNodePositions();
     });
 
-    graph.on(GraphEvent.AFTER_DRAW, (ev) => {
-      updateSelectedNodesAndEdges();
-      hideLoading();
+    graph.on(GraphEvent.AFTER_DRAW, async () => {
+      await updateSelectedNodesAndEdges();
+      await hideLoading();
     });
 
-    graph.on(GraphEvent.BEFORE_RENDER, () => {
-      showLoading("Rendering", "Rendering graph ..");
+    graph.on(GraphEvent.BEFORE_RENDER, async () => {
+      await showLoading("Rendering", "Rendering graph ..");
     });
 
-    graph.on(GraphEvent.AFTER_RENDER, () => {
-      restorePositions();
-      hideLoading();
+    graph.on(GraphEvent.AFTER_RENDER, async () => {
+      await restorePositions();
+      await hideLoading();
     });
 
     // after initial rendering when loading a file; this is called prior to the regular after render event
-    graph.once(GraphEvent.AFTER_RENDER, () => {
-      conditionallyPersistNodePositions();
-      saveFiltersToStash(false);
+    graph.once(GraphEvent.AFTER_RENDER, async () => {
+      await conditionallyPersistNodePositions();
+      await saveFiltersToStash(false);
       registerHotkeyEvents();
       registerGlobalEventListeners();
       // to initially fill caches related to the query/filters, preRenderEvent is called without rendering afterwards
-      preRenderEvent();
+      await preRenderEvent();
       cache.metrics.updateUI();
     })
 
     let layout = data.layouts[data.selectedLayout];
     if (!layout.isCustom) {
-      graph.setLayout({type: data.selectedLayout, ...layout.internals});
+      await graph.setLayout({type: data.selectedLayout, ...layout.internals});
     }
   }
 }
@@ -3063,11 +3059,11 @@ function updateEnabledStateUndoRedoSelectionButtons() {
   canRedo ? redoButton.classList.remove("disabled") : redoButton.classList.add("disabled");
 }
 
-function updateSelectedNodesAndEdges() {
-  cache.selectedNodes = graph.getNodeData()
+async function updateSelectedNodesAndEdges() {
+  cache.selectedNodes = await graph.getNodeData()
     .filter((n) => n.states?.includes("selected") && cache.nodeIDsToBeShown.has(n.id))
     .map((n) => n.id);
-  cache.selectedEdges = graph.getEdgeData()
+  cache.selectedEdges = await graph.getEdgeData()
     .filter((e) => e.states?.includes("selected") && cache.edgeIDsToBeShown.has(e.id))
     .map((e) => e.id);
 
@@ -3093,7 +3089,7 @@ function updateSelectedNodesAndEdges() {
   updateEnabledStateUndoRedoSelectionButtons();
 }
 
-function toggleEditMode(ev) {
+async function toggleEditMode(ev) {
   let editModeActive = ev.classList.contains("active");
   editModeActive ? ev.classList.remove("active") : ev.classList.add("active");
 
@@ -3118,14 +3114,14 @@ function toggleEditMode(ev) {
   ];
 
   // reduce behaviors to clean up existing edit/non-edit behaviors
-  let behaviors = graph.getBehaviors()
+  let behaviors = await graph.getBehaviors()
     .filter(b => ![...nonEditBehaviors.map(b => b.type), ...editBehaviors.map(b => b.type)].includes(b.type));
 
   // re-add behaviors for current mode
-  graph.setBehaviors([...behaviors, ...editModeActive ? nonEditBehaviors : editBehaviors]);
+  await graph.setBehaviors([...behaviors, ...editModeActive ? nonEditBehaviors : editBehaviors]);
 
   // control tooltip plugin
-  graph.updatePlugin({key: 'tooltip', enable: editModeActive});
+  await graph.updatePlugin({key: 'tooltip', enable: editModeActive});
 
   handleEditModeUIChanges();
 }
@@ -3199,9 +3195,9 @@ function* traverseBubbleSets() {
   }
 }
 
-function updateBubbleSet(group, members) {
+async function updateBubbleSet(group, members) {
   console.log(`Updating bubble set ${group} ..`);
-  const plugin = graph.getPluginInstance("bubbleSetPlugin-" + group);
+  const plugin = await graph.getPluginInstance("bubbleSetPlugin-" + group);
   let empty = !members || members.size === 0;
   const membersAsArray = [...members];
 
@@ -3210,7 +3206,7 @@ function updateBubbleSet(group, members) {
       [...cache.nodeRef.keys()].filter(nodeID => !membersAsArray.includes(nodeID)) : [];
   }
 
-  plugin.update({
+  await plugin.update({
     members: empty ? [] : membersAsArray,
     avoidMembers: empty ? [] : getMembers(),
     fillOpacity: empty ? 0 : DEFAULTS.BUBBLE_SET_STYLE[group].fillOpacity,
@@ -3292,7 +3288,7 @@ function decodeQueryAndBuildAST() {
   query.ast = new QueryAST(instructions);
 }
 
-function preRenderEvent() {
+async function preRenderEvent() {
   cache.nodeIDsToBeShown = new Set();
   cache.propIDsToNodeIDsToBeShown = new Map();  // this is used by the bubble-grouping functionality after rendering
   cache.edgeIDsToBeShown = new Set();
@@ -3350,10 +3346,22 @@ function preRenderEvent() {
     ...cache.hiddenDanglingEdgeIDs
   ];
 
-  graph.showElement(idsToShow);
-  graph.hideElement(idsToHide);
+  await updateElementVisibility(idsToShow, idsToHide);
+  await updateBubbleSetIfChanged();
+}
 
-  updateBubbleSetIfChanged();
+async function updateElementVisibility(idsToShow, idsToHide) {
+  const { nodes, edges } = await graph.getData();
+  const { visible, hidden } = [...nodes, ...edges].reduce((acc, item) => {
+      acc[item.style.visibility === "visible" ? 'visible' : 'hidden'].push(item.id);
+      return acc;
+  }, { visible: [], hidden: [] });
+
+  const showElementsDiff = idsToShow.filter(id => hidden.includes(id));
+  const hideElementsDiff = idsToHide.filter(id => visible.includes(id));
+
+  if (showElementsDiff.length > 0) await graph.showElement(showElementsDiff);
+  if (hideElementsDiff.length > 0) await graph.hideElement(hideElementsDiff);
 }
 
 function performANDFilterLogic() {
@@ -3381,7 +3389,7 @@ function performANDFilterLogic() {
   }
 }
 
-function toggleCleanUpDanglingElements(btn) {
+async function toggleCleanUpDanglingElements(btn) {
   const shouldEnable = btn.classList.contains("red");
 
   if (shouldEnable) {
@@ -3389,13 +3397,13 @@ function toggleCleanUpDanglingElements(btn) {
     btn.classList.add("green", "highlight");
     btn.title = "Show all nodes and edges, irrespectively of their connectedness.";
     btn.textContent = "👁";
-    hideDanglingElements();
+    await hideDanglingElements();
   } else {
     btn.classList.remove("green", "highlight");
     btn.classList.add("red");
     btn.title = "Hide all nodes and edges that are not connected to any other node or edge.";
     btn.textContent = "🚫";
-    showDanglingElements();
+    await showDanglingElements();
   }
 }
 
@@ -3418,7 +3426,7 @@ function edgeIsConnectedToTwoVisibleNodes(edgeID) {
   return true;
 }
 
-function hideDanglingElements() {
+async function hideDanglingElements() {
   let changes;
 
   do {
@@ -3440,14 +3448,14 @@ function hideDanglingElements() {
 
   } while (changes);
 
-  handleFilterEvent("Hiding Elements", "Hiding nodes and edges that are not connected to any other node or edge.");
+  await handleFilterEvent("Hiding Elements", "Hiding nodes and edges that are not connected to any other node or edge.");
 }
 
-function showDanglingElements() {
+async function showDanglingElements() {
   cache.hiddenDanglingNodeIDs.clear();
   cache.hiddenDanglingEdgeIDs.clear();
 
-  handleFilterEvent("Showing Elements",
+  await handleFilterEvent("Showing Elements",
     "Showing all previously hidden nodes and edges that are not connected to any other node or edge.");
 }
 
@@ -3505,7 +3513,7 @@ function getPropertiesNotWithinThresholds(nodeID = null, edgeID = null) {
   return keysWithFalse;
 }
 
-function updateBubbleSetIfChanged() {
+async function updateBubbleSetIfChanged() {
   for (let group of traverseBubbleSets()) {
     let propsInGroup = data.layouts[data.selectedLayout][`${group}Props`];
 
@@ -3519,26 +3527,25 @@ function updateBubbleSetIfChanged() {
     }
 
     if (!setsAreEqual(lastSetMembers, newSetMembers)) {
-      updateBubbleSet(group, newSetMembers);
+      await updateBubbleSet(group, newSetMembers);
       cache.lastBubbleSetMembers.set(group, newSetMembers);
       cache.bubbleSetChanged = true;
     }
   }
 }
 
-function restorePositions() {
-  setTimeout(() => {
-    if (!nodePositionsAreInSyncWithPersistedPositions()) {
-      graph.updateData(createSimplifiedDataForGraphObject());
-      graph.draw();
-    } else {
-      console.log("Graph is in sync, no re-draw necessary");
-    }
-  }, 200);
+async function restorePositions() {
+  if (!(await nodePositionsAreInSyncWithPersistedPositions())) {
+    console.log("Restoring positions from persisted positions.");
+    await graph.draw();
+    console.log("Graph positions restored.");
+  } else {
+    console.log("Graph positions in sync - no redraw necessary.");
+  }
 }
 
-function nodePositionsAreInSyncWithPersistedPositions() {
-  for (let node of graph.getNodeData()) {
+async function nodePositionsAreInSyncWithPersistedPositions() {
+  for (let node of await graph.getNodeData()) {
     const persistedPosition = data.layouts[data.selectedLayout].positions.get(node.id);
     if (node.style.x !== persistedPosition?.x || node.style.y !== persistedPosition?.y) {
       return false;
@@ -3787,20 +3794,20 @@ function insertMetricsButtonAndBuildMetricsUI() {
   div.appendChild(cache.metrics.buildUI());
 }
 
-function saveFiltersToStash(manualTriggered = false) {
+async function saveFiltersToStash(manualTriggered = false) {
   data.stash = {
     filters: structuredClone(data.layouts[data.selectedLayout].filters),
     query: structuredClone(data.layouts[data.selectedLayout]["query"]),
     triggered: manualTriggered
   };
-  showLoading("Saving filter", "Saving filter settings to stash", false, true);
+  await showLoading("Saving filter", "Saving filter settings to stash");
 }
 
-function loadFiltersFromStash() {
+async function loadFiltersFromStash() {
   data.layouts[data.selectedLayout].filters = structuredClone(data.stash.filters);
   data.layouts[data.selectedLayout]["query"] = structuredClone(data.stash["query"]);
   buildFilterUI();
-  handleFilterEvent("Restoring filter", "Restoring filter settings from stash");
+  await handleFilterEvent("Restoring filter", "Restoring filter settings from stash");
 }
 
 function manageDynamicWidgets() {
@@ -4407,7 +4414,7 @@ function createCircleGroupButtonWithQuadrants(propID) {
     quadrant.classList.add(quadrantPosition);
     data.layouts[data.selectedLayout].filters.get(propID)[`${group}Members`].size === 0 ? quadrant.classList.remove("active") : quadrant.classList.add("active");
 
-    quadrant.addEventListener('click', () => {
+    quadrant.addEventListener('click', async () => {
       let shouldShowRemove = quadrant.classList.contains("active");
       let members = data.layouts[data.selectedLayout].filters.get(propID)[`${group}Members`];
 
@@ -4416,13 +4423,13 @@ function createCircleGroupButtonWithQuadrants(propID) {
         quadrant.title = `Remove ${propID} from ${group}.`;
         members.delete(propID);
         quadrant.classList.remove("active");
-        handleFilterEvent(`Reduce Group`, `Removing ${propID} from ${group}`, propID);
+        await handleFilterEvent(`Reduce Group`, `Removing ${propID} from ${group}`, propID);
       } else {
         data.layouts[data.selectedLayout][`${group}Props`].add(propID);
         quadrant.title = `Highlight ${propID} and add to bubble-group (${group})`;
         members.add(propID);
         quadrant.classList.add("active");
-        handleFilterEvent(`Add to Group`, `Adding ${propID} to ${group}`, propID);
+        await handleFilterEvent(`Add to Group`, `Adding ${propID} to ${group}`, propID);
       }
     });
 
@@ -4617,42 +4624,48 @@ function createAddOrRemoveToSelectionButton(propID, shouldAdd) {
   btn.classList.add("plus-minus-button", "show-on-edit");
   btn.textContent = shouldAdd ? "+" : "-";
   btn.title = shouldAdd ? "Add to selection" : "Remove from selection";
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", async () => {
     const nodeIDs = cache.propIDsToNodeIDsToBeShown.get(propID) || [];
     if (nodeIDs.size > 0) {
       const nodes = graph.getNodeData([...nodeIDs]);
-      updateSelectedState(nodes, shouldAdd);
+      await updateSelectedState(nodes, shouldAdd);
     }
 
     const edgeIDs = cache.propIDsToEdgeIDsToBeShown.get(propID) || [];
     if (edgeIDs.size > 0) {
       const edges = graph.getEdgeData([...edgeIDs]);
-      updateSelectedState(edges, shouldAdd);
+      await updateSelectedState(edges, shouldAdd);
     }
   });
   return btn;
 }
 
-function decideToRenderOrDraw(forceRender = false) {
-  preRenderEvent();
-  cache.metrics.updateUI();
+async function decideToRenderOrDraw(forceRender = false) {
+  await preRenderEvent();
+  await cache.metrics.updateUI();
 
-  if (cache.bubbleSetChanged || cache.styleChanged || forceRender) {
-    if (cache.styleChanged) {
-      graph.updateData(createSimplifiedDataForGraphObject());
-      cache.styleChanged = false;
-      cache.labelStyleChanged = false;
+  try {
+    if (cache.bubbleSetChanged || cache.styleChanged || forceRender) {
+      if (cache.styleChanged) {
+        await graph.updateData(createSimplifiedDataForGraphObject());
+        cache.styleChanged = false;
+        cache.labelStyleChanged = false;
+      }
+      return await graph.render();
+    } else {
+      return await graph.draw();
     }
-    return graph.render();
-  } else {
-    return graph.draw();
+  } catch (errorMsg) {
+    error(errorMsg);
+    return false;
+  } finally {
+    await hideLoading();
   }
 }
 
-function handleFilterEvent(header, text, propID = null, shouldUpdateQueryTextArea = true) {
-  if (shouldUpdateQueryTextArea) {
+async function handleFilterEvent(header, text, propID = null, shouldResetQuery = true) {
+  if (shouldResetQuery) {
     resetQuery();
-    // updateQueryTextArea();
   }
 
   // skip rendering if property is not active
@@ -4660,24 +4673,14 @@ function handleFilterEvent(header, text, propID = null, shouldUpdateQueryTextAre
     return;
   }
 
-  requestAnimationFrame(() => {
-    showLoading(header, text);
-    requestAnimationFrame(() => {
-      decideToRenderOrDraw().then(r => console.log(`Graph updated after filter event with message ${header} ${text}`));
-    });
-  });
+  await showLoading(header, text);
+  await decideToRenderOrDraw();
 }
 
-function handleStyleChangeLoadingEvent(header, text) {
-  requestAnimationFrame(() => {
-    showLoading(header, text);
-    requestAnimationFrame(() => {
-      cache.styleChanged = true;
-      decideToRenderOrDraw().then(r => {
-        console.log(`Graph updated after style event with message ${header} ${text}`);
-      });
-    });
-  });
+async function handleStyleChangeLoadingEvent(header, text) {
+  await showLoading(header, text);
+  await decideToRenderOrDraw();
+  console.log(`Graph updated after style event with message ${header} ${text}`);
 }
 
 function showUI(show) {
@@ -4689,24 +4692,16 @@ function showUI(show) {
 
 async function changeLayout() {
   data.selectedLayout = document.getElementById('layout').value;
-  showLoading("Switching layout", data.selectedLayout);
-  setTimeout(() => {
-    let layout = data.layouts[data.selectedLayout];
-    if (!layout.isCustom) {
-      graph.setLayout({type: data.selectedLayout, ...layout.internals});
-    }
-    buildFilterUI();
-    clearActivePropsCacheOnLayoutChange();
-
-    setTimeout(() => {
-      decideToRenderOrDraw(true).then(r => {
-        conditionallyPersistNodePositions();
-        console.log(`Switched to layout: ${data.selectedLayout}`);
-      });
-    }, 25);
-
-
-  }, 25);
+  await showLoading("Switching layout", data.selectedLayout);
+  let layout = data.layouts[data.selectedLayout];
+  if (!layout.isCustom) {
+    await graph.setLayout({type: data.selectedLayout, ...layout.internals});
+  }
+  buildFilterUI();
+  clearActivePropsCacheOnLayoutChange();
+  await decideToRenderOrDraw(true);
+  await conditionallyPersistNodePositions();
+  console.log(`Switched to layout: ${data.selectedLayout}`);
 }
 
 function addLayout() {
@@ -4869,7 +4864,7 @@ function getEdgeStyleOrDefaults(edge) {
   return defaultEdge;
 }
 
-function exportGraphAsJSON() {
+async function exportGraphAsJSON() {
   if (data === null) {
     alert("No graph data to save.");
     return false;
@@ -4882,21 +4877,15 @@ function exportGraphAsJSON() {
     return value;
   }
 
-  requestAnimationFrame(() => {
-    showLoading("Exporting graph ..");
-
-    requestAnimationFrame(() => {
-      const blob = new Blob([JSON.stringify(data, replacer)], {type: "application/json"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "graph.json";
-      a.click();
-      URL.revokeObjectURL(url);
-
-      hideLoading();
-    })
-  })
+  await showLoading("Exporting graph ..");
+  const blob = new Blob([JSON.stringify(data, replacer)], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "graph.json";
+  a.click();
+  URL.revokeObjectURL(url);
+  await hideLoading();
 }
 
 function preProcessData(fileData) {
@@ -5879,12 +5868,14 @@ function resetQuery() {
 function showQueryHelp() {
   cache.popup = new Popup(`
 <h3>Query Editor</h3>
-The query editor allows you to directly manipulate the graph and apply nested filtering with AND/OR/NOT.
-The query is validated after typing. 
-In case the query is valid and applied to the graph, the query will also be saved to the model.json in case of an export.
-Modifying the graph through the UI will reset the query and remove custom brackets and AND/NOT conditions.
-Modifying the query will update the UI accordingly.
-Malformed parts of the query are <span class="q-error-unrecognized">highlighted</span>.
+The query editor allows filtering of the graph using nested AND, OR and NOT expressions.
+
+<ul>
+  <li>The query is validated during typing</li>
+  <li>Valid queries are stored per view and exported to a model.json upon export</li>
+  <li>Changes in the UI updates the query and resets custom AND/NOT logics and nested brackets</li>
+  <li>Invalid syntax is <span class="q-error-unrecognized">highlighted</span></li>
+</ul>
 <hr>
 <h3>Query Structure Explained</h3>
 <div class="popupQueryContainer">
@@ -5943,45 +5934,48 @@ function humanFileSize(size) {
   return +((size / Math.pow(1024, i)).toFixed(2)) + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
 }
 
-function loadFileWrapper(event) {
+async function loadFileWrapper(event) {
   let file = event.target.files[0];
-  showLoading("Loading", `Loading ${file.name} (${file.type} with ${humanFileSize(file.size)})`);
+  await showLoading("Loading", `Loading ${file.name} (${file.type} with ${humanFileSize(file.size)})`);
 
   if (graph) {
-    destroyGraphAndRollBackUI();
+    await destroyGraphAndRollBackUI();
   }
 
   loadFile(event)
-    .then((fileData) => {
+    .then(async (fileData) => {
       if (!fileData) {
         alert("File data is empty.");
-        hideLoading();
+        await hideLoading();
         return;
       }
 
       preProcessData(fileData);
       initCache();
       buildUI();
-      createGraphInstance();
+      await createGraphInstance();
 
       if (!graph) {
         alert("Graph not initialized, aborting.");
-        hideLoading();
+        await hideLoading();
         return;
       }
 
-      graph.render().then(() => {
+      await graph.render().then(() => {
         console.log("Initial graph rendered.");
       });
     })
-    .catch((error) => {
+    .catch(async (error) => {
       alert(`Error loading graph: ${error}`);
-      hideLoading();
+      await hideLoading();
+    })
+    .finally(async () => {
+      await hideLoading();
     });
 }
 
-function destroyGraphAndRollBackUI() {
-  graph.destroy();
+async function destroyGraphAndRollBackUI() {
+  await graph.destroy();
   graph = null;
 
   const status = document.getElementById("sidebarStatusContainer");
@@ -5990,7 +5984,7 @@ function destroyGraphAndRollBackUI() {
 }
 
 function registerHotkeyEvents() {
-  document.addEventListener('keydown', (event) => {
+  document.addEventListener('keydown', async (event) => {
     const activeElement = document.activeElement;
 
     // Skip hotkeys if currently focused on an input, textarea, or select element
@@ -6005,16 +5999,16 @@ function registerHotkeyEvents() {
 
     switch (event.key) {
       case "p":
-        exportPNG();
+        await exportPNG();
         break;
       case "s":
-        exportGraphAsJSON();
+        await exportGraphAsJSON();
         break;
       case "r":
         resetLayout();
         break;
       case "f":
-        graph.fitView();
+        await graph.fitView();
         break;
       case "e":
         document.getElementById('editBtn').click();
@@ -6031,54 +6025,51 @@ function registerGlobalEventListeners() {
   );
 }
 
-function resetLayout() {
+async function resetLayout() {
   if (data.layouts[data.selectedLayout].isCustom) {
     alert("Cannot reset custom layout.");
     return false;
   }
 
-  requestAnimationFrame(() => {
-    showLoading("Resetting", "Resetting layout to default ..");
+  await showLoading("Resetting", "Resetting layout to default ..");
+  data.layouts[data.selectedLayout]?.positions?.clear();
 
-    requestAnimationFrame(() => {
-      data.layouts[data.selectedLayout]?.positions?.clear();
-      graph.updateData(createSimplifiedDataForGraphObject(true));
-      let layout = data.layouts[data.selectedLayout];
-      if (!layout.isCustom) {
-        graph.setLayout({type: data.selectedLayout, ...layout.internals});
-      }
+  await graph.updateData(createSimplifiedDataForGraphObject(true));
+  let layout = data.layouts[data.selectedLayout];
+  if (!layout.isCustom) {
+    await graph.setLayout({type: data.selectedLayout, ...layout.internals});
+  }
 
-      decideToRenderOrDraw(true).then(r => console.log(`Reset layout ${data.selectedLayout}`));
-    });
-  });
+  await decideToRenderOrDraw(true).then(r => console.log(`Reset layout ${data.selectedLayout}`));
 }
 
-function exportPNG() {
+async function exportPNG() {
   // https://g6.antv.antgroup.com/en/api/reference/g6/dataurloptions#properties
-  requestAnimationFrame(() => {
-    showLoading("Loading", "Generating picture data");
 
-    requestAnimationFrame(() => {
-      graph.toDataURL({
-        type: "image/png", mode: "viewport"
-      }).then((imageData) => {
-        const link = document.createElement('a');
-        link.href = imageData;
-        link.download = 'graph.png';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      });
-
-      hideLoading();
+  try {
+    await showLoading("Loading", "Generating picture data");
+    const imageData = graph.toDataURL({
+      type: "image/png", mode: "viewport"
     });
-  });
+
+    const link = document.createElement('a');
+    link.href = imageData;
+    link.download = 'graph.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    await hideLoading();
+  } catch (errorMsg) {
+    await hideLoading();
+    error(errorMsg);
+  }
 }
 
-function showLoading(header, text = "", invisible = false, autoFade = false) {
+async function showLoading(header, text = "") {
   const overlay = document.getElementById('loadingOverlay');
   overlay.style.display = 'flex';
-  overlay.style.opacity = invisible ? '0' : '1';
+  overlay.style.opacity = '1';
 
   document.getElementById('loadingHeader').textContent = header;
   document.getElementById('loadingText').textContent = text;
@@ -6087,27 +6078,27 @@ function showLoading(header, text = "", invisible = false, autoFade = false) {
   if (text) logInfo += `: ${text}`;
   console.log(logInfo);
 
-  if (autoFade) {
-    setTimeout(() => {
-      hideLoading();
-    }, 1000);
-  }
+  // Force reflow
+  overlay.getBoundingClientRect();
+
+  // Wait for next frame to ensure the UI has updated
+  return new Promise(resolve => requestAnimationFrame(resolve));
 }
 
-function hideLoading() {
+async function hideLoading() {
   const overlay = document.getElementById('loadingOverlay');
   overlay.style.opacity = '0';
 
-  setTimeout(() => {
-    overlay.style.display = 'none';
-  }, 200);
+  // Wait for the opacity transition to complete
+  await new Promise(resolve => {
+    const transitionDuration = getComputedStyle(overlay).transitionDuration;
+    const durationInMs = parseFloat(transitionDuration) * (transitionDuration.includes('ms') ? 1 : 1000);
+    setTimeout(resolve, durationInMs);
+  });
 
+  overlay.style.display = 'none';
   refreshUI();
 }
-
-document.addEventListener('DOMContentLoaded', async () => {
-  hideLoading();
-});
 
 function refreshUI() {
   if (!cache.initialized) return;
