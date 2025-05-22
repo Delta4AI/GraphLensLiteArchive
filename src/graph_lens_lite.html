@@ -7,6 +7,7 @@
   <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text x='4' y='24' font-size='24'>🔍</text></svg>"
         type="image/svg+xml">
+<!-- @antv/g6 version 5.0.46 -->
   <script src="g6.min.js"></script>
   <script src="xlsx.full.min.js"></script>
   <script src="gll.js"></script>
@@ -21,7 +22,10 @@
       #mainContent {
           display: flex;
           flex-direction: row;
-          height: 100vh;
+          height: 100%;
+          width: 100%;
+          overflow: hidden;
+          transition: height 0.3s ease-in-out;
       }
 
       .inline {
@@ -32,15 +36,169 @@
           min-width: 360px;
           background-color: #f4f4f4;
           padding-left: 10px;
-          padding-right: 15px;
           overflow-y: auto;
           overflow-x: hidden;
           transition: min-width 0.2s ease-in-out;
+          display: flex;
+          flex-direction: column;
+          flex-shrink: 0;
+      }
+
+      #sidebarContentContainer {
+          flex: 1;
+          overflow-y: auto;
+          overflow-x: hidden;
+      }
+
+      #sidebarStatusContainer {
+          display: flex;
+          align-items: flex-start;
+          flex-direction: column;
+          flex: none;
+          height: 0;
+
+          transition: height 0.3s ease-in-out;
+
+          width: 100%;
+          max-width: 360px;
+          overflow-y: auto;
+          overflow-x: hidden;
+          border-top: 1px solid #ccc;
+          font-size: 0.8rem;
+          white-space: pre-wrap;
+          word-wrap: break-word;
+      }
+
+      #bottomBar {
+          height: 0;
+          width: 100%;
+          display: none;
+          overflow: hidden;
+          box-sizing: border-box;
+      }
+
+      #bottomBar.active {
+          background-color: #f4f4f4;
+          padding: 10px;
+          border-top: 1px solid #403C53;
+          display: flex;
+          align-items: center;
+      }
+
+      .popupQueryContainer {
+          outline: 1px solid #403C53;
+          border-radius: 5px;
+          font-family: "Courier New", monospace;
+          padding: 5px;
+      }
+
+      .popupQueryContainer span {
+          /*display: inline-block;*/
+          /*margin: 0.25em;*/
+      }
+
+      #queryEditor {
+          position: relative;
+          flex: 0 0 90%;
+          height: 100%;
+          outline: 1px solid #403C53;
+          outline-offset: 4px;
+          border-radius: 5px;
+          box-sizing: border-box;
+      }
+
+      #queryTextArea,
+      #queryOverlay {
+          font-family: "Courier New", monospace;
+          font-size: 12px;
+          line-height: 1.5;
+          word-wrap: break-word;
+          tab-size: 4;
+          margin: 0;
+          inset: 0;
+          overflow-y: auto;
+          overflow-x: hidden;
+      }
+
+      #queryOverlay {
+          position: absolute;
+          pointer-events: none;
+          z-index: 0;
+      }
+
+      #queryTextArea {
+          position: relative;
+          height: 100%;
+          box-sizing: border-box;
+          resize: none;
+          outline: none;
+          background: transparent;
+          color: transparent;
+          caret-color: transparent;
+          z-index: 1;
+      }
+
+      #queryEditor .custom-caret {
+          position: absolute;
+          width: 2px;
+          background: red;
+          animation: blink 1s steps(1) infinite;
+          pointer-events: none;
+          z-index: 2;
+      }
+
+      @keyframes blink {
+          0%, 100% {
+              opacity: 1;
+          }
+          50% {
+              opacity: 0;
+          }
+      }
+
+      .query-buttons {
+          display: flex;
+          flex-direction: column;
+          flex: 0 0 6%;
+          margin: 0 10px;
+      }
+
+      .query-help-icon {
+          display: flex;
+          flex-direction: column;
+          flex: 0 0 2%;
+      }
+
+      .query-buttons button {
+          height: 2.5em;
+          cursor: pointer;
+          border-radius: 5px;
+          color: #fff;
+          border: 1px solid black;
+      }
+
+      #queryUpdateBtn {
+          background-color: #403C53;
+      }
+
+      #queryUpdateBtn:hover {
+          border-color: #C33D35;
+          border-width: 2px;
+      }
+
+      #queryResetBtn {
+          background-color: #C33D35;
+          margin-top: 0.5em;
+      }
+
+      #queryResetBtn:hover {
+          border-color: black;
+          border-width: 2px;
       }
 
       #outerGraphContainer {
-          flex: 1;
-          padding: 2px;
+          flex: 1 1 auto;
+          min-width: 0;
       }
 
       #innerGraphContainer {
@@ -48,6 +206,19 @@
           height: 100%;
           border: 1px solid #ccc;
       }
+
+      #innerGraphContainer .g6-minimap {
+          position: absolute !important;
+          bottom: 10px !important;
+          right: 10px !important;
+          top: auto !important;
+          left: auto !important;
+      }
+
+      #selectView {
+          margin-bottom: 10px;
+      }
+
 
       h4 {
           margin: 0.2rem;
@@ -78,23 +249,274 @@
           margin-left: 0.4em;
       }
 
-      .vr {
-          width: 1px;
-          height: 100%;
+      .q-space {}
+
+      .q-property-wrapper {
+          color: black;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          outline: 1px solid rgba(0, 0, 0, 0.75);
+          outline-offset: 1px;
+          border-radius: 3px;
+      }
+
+      .q-maingroup {
+          background-color: #C33D3525;
+      }
+
+      .q-subgroup {
+          background-color: #403C5325;
+      }
+
+      .q-property {
+          background-color: #015C0C25;
+      }
+
+      .q-prop-group-separator {}
+
+      .q-number {
+          color: #C33D35;
+          font-weight: bold;
+      }
+
+      .q-string {
+          color: #C33D35;
+          font-weight: bold;
+      }
+
+      .q-bracket-open-lvl-1, .q-bracket-close-lvl-1,
+      .q-bracket-open-lvl-2, .q-bracket-close-lvl-2,
+      .q-bracket-open-lvl-3, .q-bracket-close-lvl-3,
+      .q-bracket-open-lvl-4, .q-bracket-close-lvl-4,
+      .q-bracket-open-lvl-5, .q-bracket-close-lvl-5 {
+          font-weight: bold;
+      }
+
+      .q-bracket-open-lvl-1, .q-bracket-close-lvl-1 {
+          color: #C33D35;
+      }
+
+      .q-bracket-open-lvl-2, .q-bracket-close-lvl-2 {
+          color: #482173;
+      }
+
+      .q-bracket-open-lvl-3, .q-bracket-close-lvl-3 {
+          color: #2E6F8E;
+      }
+
+      .q-bracket-open-lvl-4, .q-bracket-close-lvl-4 {
+          color: #29AF7F;
+      }
+
+      .q-bracket-open-lvl-5, .q-bracket-close-lvl-5 {
+          color: #BDDF26;
+      }
+
+      .q-comma {
+          color: #403C53;
+      }
+
+      .q-kw-between {
+          color: #403C53;
+      }
+
+      .q-kw-between-and {
+          color: #403C53;
+      }
+
+      .q-lower-than {
+          color: #403C53;
+      }
+
+      .q-or-greater-than {
+          color: #403C53;
+      }
+
+      .q-in-cat-bracket-open {
+          color: #403C53;
+      }
+
+      .q-cat-bracket-close {
+          color: #403C53;
+      }
+
+      .q-connector-opening-bracket {}
+
+      .q-connector-closing-bracket {}
+
+      .q-connector-or,
+      .q-connector-and,
+      .q-connector-not {
+          font-weight: 600;
+          color: white;
+          border-radius: 999rem;
+          z-index: -1;
+      }
+
+      .q-connector-or {
+          background: #379f44;
+      }
+
+      .q-connector-and {
+          background: #31708f;
+      }
+
+      .q-connector-not {
+          background: #c7254e;
+      }
+
+      .q-error-unrecognized {
+          color: red;
+          font-weight: bold;
+          text-decoration-color: red;
+          text-decoration-line: underline;
+          text-decoration-style: wavy;
+      }
+
+      .q-error-empty-query {
+          color: red;
+          font-weight: bold;
+          text-decoration-color: red;
+          text-decoration-line: underline;
+          text-decoration-style: wavy;
+      }
+
+      .q-error-empty-instruction {
+          color: red;
+          font-weight: bold;
+          text-decoration-color: red;
+          text-decoration-line: underline;
+          text-decoration-style: wavy;
+      }
+
+      .q-error-missing-filter {
+          color: red;
+          font-weight: bold;
+          text-decoration-color: red;
+          text-decoration-line: underline;
+          text-decoration-style: wavy;
+      }
+
+      .q-error-missing-connector {
+          color: red;
+          font-weight: bold;
+          text-decoration-color: red;
+          text-decoration-line: underline;
+          text-decoration-style: wavy;
+      }
+
+      .q-error-unmatched-opening-bracket,
+      .q-error-unmatched-closing-bracket {
+          color: red;
+          font-weight: 700;
+          position: relative;
+          text-shadow: 0 0 2px rgba(0, 0, 0, .25);
+          z-index: 2;
+      }
+
+      /* little arrow pointing at the bracket */
+      .q-error-unmatched-opening-bracket::before,
+      .q-error-unmatched-closing-bracket::before {
+          content: '';
+          position: absolute;
+          top: -8px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 0;
+          height: 0;
+          border-left: 4px solid transparent;
+          border-right: 4px solid transparent;
+          border-top: 8px solid red;
+          filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .35));
+          pointer-events: none;
+      }
+
+
+      .header-card {
           background-color: #C33D35;
-          display: inline-block;
-          margin-left: 0.2em;
-          margin-right: 0.2em;
+          border: 1px solid black;
+          border-radius: 5px;
+          color: white;
+          padding-right: 4px;
+          margin-bottom: 2px;
+          display: inline-flex;
+          align-items: center;
+      }
+
+      .sub-header-card {
+          background-color: #403C53;
+          border: 1px solid black;
+          border-radius: 5px;
+          color: white;
+          padding-right: 4px;
+          margin-bottom: 2px;
+          display: inline-flex;
+          align-items: center;
       }
 
       #selectedNodes, #selectedEdges {
           display: inline !important;
       }
 
+      /* use with: <div class="card-labeled" data-label="My Header">{CONTENT}</div> */
+      .card-labeled {
+          position: relative;
+          border: 1px solid #403C53;
+          padding: 20px 4px 4px;
+          border-radius: 5px;
+          margin-top: 8px;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+          background-color: #E4E3EA80;
+          transition: opacity 0.1s ease-in-out;
+          text-align: center;
+      }
+
+      .card-labeled::before {
+          content: attr(data-label);
+          position: absolute;
+          top: 0;
+          left: 50%;
+          height: 16px;
+          padding-left: 10px;
+          padding-right: 10px;
+          font-size: 13px;
+          transform: translateX(-50%) translateY(0%);
+          border-radius: 0 0 6px 6px;
+          font-weight: bold;
+          pointer-events: none;
+          background-color: #403C53;
+          color: white;
+      }
+
+      .card-row {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 2px;
+          margin-top: 4px;
+      }
+
+      .vr {
+          width: 1px;
+          background-color: #C33D35;
+          margin-left: 0.2em;
+          margin-right: 0.2em;
+          align-self: stretch;
+      }
+
+      .vr-label {
+          color: white;
+          background-color: #878996;
+          border-radius: 5px;
+          padding: 2px;
+          font-size: 11px;
+      }
+
       #loadingOverlay {
           /* Initially shown */
           flex-direction: column;
           position: fixed;
+          opacity: 0;
+          display: none;
           top: 0;
           left: 0;
           width: 100%;
@@ -132,11 +554,11 @@
       }
 
       .filter-row-col1 {
-          width: 66%;
+          width: 55%;
       }
 
       .filter-row-col2 {
-          width: 33%;
+          width: 45%;
           margin-right: 10px;
       }
 
@@ -187,10 +609,10 @@
 
       .tooltip {
           font-family: sans-serif !important;
-          max-width: 640px !important;
+          max-width: 360px !important;
+          max-height: 400px !important;
+          overflow: auto !important;
           border: 1px solid black;
-          /*width: auto;*/
-          /*white-space: normal;*/
       }
 
       .tooltip hr {
@@ -214,6 +636,11 @@
           font-size: 10px;
       }
 
+      .tooltip li {
+          line-height: 0.8rem;
+          font-size: 10px;
+      }
+
       .tooltip ul li .red {
           font-size: 11px;
       }
@@ -231,9 +658,26 @@
           flex: 1;
       }
 
+      .tooltip-section {
+
+      }
+
+      .tooltip-sub-section {
+          background-color: #403C53;
+          border: 1px solid black;
+          border-radius: 5px;
+          color: white;
+          padding: 1px 4px;
+          margin-bottom: 4px !important;
+      }
+
+      .tooltip-description {
+          margin: 1px;
+      }
+
       .checkboxWrapper {
           display: flex;
-          align-items: flex-start;
+          align-items: center;
           gap: 4px;
           cursor: pointer;
       }
@@ -257,6 +701,10 @@
           font-size: 12px;
       }
 
+      .black {
+          color: #000000;
+      }
+
       .brown {
           color: #773901;
           border: 1px solid #773901;
@@ -266,13 +714,44 @@
           color: #015C0C;
       }
 
+      .grey {
+          color: #878996;
+      }
+
+      .orange {
+          color: #E57B3C;
+      }
+
       .red {
           color: #C33D35;
+      }
+
+      .white {
+          color: white;
       }
 
       .red-border {
           border: 1px solid #C33D35 !important;
           border-radius: 3px;
+      }
+
+      .checkbox-red {
+          color: #C33D35;
+          border: 1px solid #C33D35;
+          border-radius: 3px;
+      }
+
+      .checkbox-red:hover {
+          border-color: black;
+      }
+
+      input:not(:checked) + .checkbox-red:hover::after {
+          content: "✔";
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          opacity: 50%;
       }
 
       .purple {
@@ -306,10 +785,71 @@
           border-radius: 3px;
           cursor: pointer;
           padding: 0;
+          transition: box-shadow 0.2s ease-in-out;
+      }
+
+      .medium-btn {
+          width: 22px;
+          height: 22px;
+          font-size: 14px;
+          line-height: 22px;
+          padding: 0;
+          display: inline-flex;
+          justify-content: center;
+          align-items: center;
+          cursor: pointer;
+          border: none;
+          background: transparent;
+      }
+
+      .medium-btn:hover {
+
+          background: #C33D3580;
+          border: 1px solid #C33D35;
+          border-radius: 6px;
+      }
+
+      .button-group {
+          display: inline-flex;
+          background: #403C5320;
+          outline: 1px solid #403C53;
+          border-radius: 6px;
+          margin-right: 6px;
+          gap: 1px;
+      }
+
+      .info-btn {
+          height: 18px;
+          width: 18px;
+          cursor: pointer;
+          border: none;
+          padding: 0;
+          line-height: 18px;
+          font-size: 18px;
+          color: #588ae5;
+          transition: color 0.2s ease-in-out;
+      }
+
+      .info-btn:hover {
+          color: #C33D35;
+      }
+
+      .toggle-section-btn {
+          background: #E4E3EA;
+      }
+
+      .toggle-section-btn:hover {
+          border-color: #C33D35;
+          color: #C33D35;
       }
 
       .small-btn.red:hover {
           border: 1px solid #403C53 !important;
+      }
+
+      .small-text {
+          font-size: 12px;
+          line-height: 19px;
       }
 
       .extra-small {
@@ -352,6 +892,11 @@
           box-shadow: 0 0 5px #C33D35;
       }
 
+      .highlight {
+          box-shadow: 0 0 5px #C33D35;
+          border-radius: 6px;
+      }
+
       .edit-container {
           height: auto !important;
       }
@@ -362,10 +907,8 @@
 
       .show-on-edit.show {
           display: inline-block;
-          /*width: 100%;*/
           width: auto;
           height: auto;
-          transition: width 0.2s ease-in-out, height 0.2s ease-in-out;
       }
 
       /*************************
@@ -374,16 +917,16 @@
       .plus-minus-button {
           width: 14px;
           height: 18px;
-          padding: 1px;
+          padding: 1px 2px 1px;
           font-size: 14px;
           line-height: 14px;
-          border: 1px solid transparent;
+          border: 1px solid #403C53;
           border-radius: 3px;
           margin-left: 2px;
       }
 
       .plus-minus-button:hover {
-          border: 1px solid #403C53;
+          border-color: #C33D35;
           cursor: pointer;
       }
 
@@ -445,12 +988,15 @@
           align-items: center;
           height: 18px;
           text-align: center;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
           line-height: 18px;
           font-size: 12px;
           border: 1px solid black;
           border-radius: 3px;
           cursor: pointer;
-          transition: border 0.2s ease-in-out, color 0.2s ease-in-out;
+          transition: border 0.2s ease-in-out, color 0.2s ease-in-out, opacity 0.1s ease-in-out;
       }
 
       .style-inner-button:hover {
@@ -458,20 +1004,99 @@
           border: 1px solid #C33D35;
       }
 
+      .style-color-button-container {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 1px;
+      }
+
+      .style-color-button {
+          padding-left: 5px;
+          padding-right: 5px;
+      }
+
       .style-input {
           width: 80px;
           height: 18px;
           box-sizing: border-box;
+          font-size: 12px;
       }
 
-      .style-input-lg {
-          width: 160px;
+      .style-input-sm {
+          width: 46px;
+          height: 18px;
+          box-sizing: border-box;
+          font-size: 12px;
       }
 
       .style-separator {
           grid-column: 1 / -1;
           height: 0.02em;
           background-color: #c33d35;
+      }
+
+      .style-line-break {
+          display: block;
+          width: 100%;
+          height: 0;
+      }
+
+      .style-vr {
+          background-color: #C33D35;
+      }
+
+      .style-vr-label {
+          color: #E4E3EA;
+          background-color: #403C53;
+          border-radius: 3px;
+
+      }
+
+      .style-slider-container {
+          height: 19px;
+          vertical-align: middle;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+      }
+
+      .style-slider {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 60px;
+          height: 8px;
+          background: #403C53;
+          outline: none;
+          border-radius: 5px
+      }
+
+      .style-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+          background: #EEEEEE;
+          cursor: pointer;
+          transition: background 0.2s ease-in-out;
+      }
+
+      .style-slider::-webkit-slider-thumb:hover {
+          background: #C33D35;
+      }
+
+      .style-slider::-moz-range-thumb {
+          width: 14px;
+          height: 14px;
+          background: #EEEEEE;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+          border-radius: 50%;
+          cursor: pointer;
+      }
+
+      .style-slider::-moz-range-thumb:hover {
+          background: #C33D35;
       }
 
       /*************************
@@ -785,9 +1410,9 @@
       }
 
       .circle-button:hover {
-          transform: scale(2.5);
+          transform: translateX(-75%) scale(2.5);
           cursor: pointer;
-          z-index: 1;
+          z-index: 99;
       }
 
       .quadrant {
@@ -1000,6 +1625,147 @@
           background-color: white;
           transition: background-color 0.3s ease;
       }
+
+      /*************************
+       network metrics
+       **************************/
+      .nw-root {
+          margin-right: 10px;
+          max-width: 350px;
+          overflow: hidden;
+          max-height: 0;
+          opacity: 0;
+          transition: max-height 0.3s ease-in-out,
+          opacity 0.3s ease-in-out;
+      }
+
+      .nw-root.open {
+          max-height: 999px;
+          opacity: 1;
+      }
+
+      .nw-header {
+          font-size: 16px;
+          margin-top: 0.8em;
+          margin-bottom: 0.8em;
+          font-weight: bold;
+      }
+
+      .nw-subheader {
+          font-size: 14px;
+          font-weight: bold;
+          margin-top: 0.8em;
+          margin-bottom: 0.8em;
+      }
+
+      .nw-div {
+          margin-top: 16px;
+      }
+
+      .nw-button {
+          margin: 1px;
+          font-size: 12px;
+      }
+
+      .nw-metric-select-container {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          margin-bottom: 0.5em;
+      }
+
+      .nw-metric-select {
+          width: 100%;
+          height: 18px;
+      }
+
+      .nw-node-multiselect {
+          width: 100%;
+          min-height: 120px;
+          overflow-y: auto;
+          margin-bottom: 0.5em;
+          border: 1px solid #ccc;
+      }
+
+      .nw-graph-metrics-table {
+          border-collapse: collapse;
+          width:100%;
+          font-size: 13px;
+      }
+
+      .nw-graph-metrics-table tr:hover {
+          background-color: #E4E3EA;
+      }
+
+      .nw-graph-metrics-table td {
+          border-bottom: 1px solid #E4E3EA;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+      }
+
+      .nw-graph-metrics-table td:first-child {
+          width: 80%;
+      }
+
+      .nw-graph-metrics-table td:last-child {
+          width: 20%;
+          text-align: right;
+      }
+
+      /*************************
+       popup
+       **************************/
+      .p-header {
+          position: absolute;
+          top: 2px;
+          right: 2px;
+          display: flex;
+          gap: 6px;
+          z-index: 1;
+      }
+
+      .p-custom {
+          position: fixed;
+          background: white;
+          border-radius: 8px;
+          padding: 20px;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+          z-index: 1000;
+          max-width: 90vw;
+          max-height: 90vh;
+          overflow: auto;
+          min-width: 200px;
+          min-height: 100px;
+          transition: all 0.3s ease;
+      }
+
+      .p-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+          z-index: 999;
+      }
+
+      .p-btn {
+          border: none;
+          background: none;
+          font-size: 24px;
+          cursor: pointer;
+          padding: 2px;
+          width: 24px;
+          height: 24px;
+          line-height: 24px;
+          text-align: center;
+      }
+
+      .p-btn:hover {
+          color: #C33D35;
+      }
+
   </style>
 </head>
 <body>
@@ -1012,49 +1778,72 @@
 </div>
 <div id="mainContent">
   <div id="sidebar">
-    <h3>Load Model</h3>
-    <input type="file" id="fileInput" name="fileInput" onchange="loadFileWrapper(event);"
-           accept=".json, .xls, .xlsx, .csv, .tab"/>
-    <button id="exportModel" class="showOnLoad" onclick="exportGraphAsJSON()" title="Save Model (S)">💾</button>
-    <button id="exportImage" class="showOnLoad" onclick="exportPNG()" title="Save Image (P)">📷️</button>
-    <div class="showOnLoad">
-      <hr>
-      <h3>Network Options</h3>
-      <label for="layout">Network View:</label>
-      <select name="layout" id="layout" onchange="changeLayout()" style="margin-bottom:10px;"></select>
-      <button class="small-btn" id="resetLayoutButton" onclick="resetLayout()" title="Reset View Arrangement (R)">⭯
-      </button>
-      <button class="small-btn" onclick="graph.fitView()" title="Fit View in Viewport (F)">⛶</button>
-      <button class="small-btn green" onclick="addLayout()" title="Create New View">✚</button>
-      <button class="small-btn red disabled" onclick="removeSelectedLayout()" id="removeSelectedLayoutButton"
-              title="Remove Layout">✗
-      </button>
-      <button class="small-btn show-on-edit" title="Save filter settings to stash (to be reapplied in different view)"
-              onclick="saveFiltersToStash()">📥
-      </button>
-      <button class="small-btn show-on-edit" title="Load filter settings from stash" onclick="loadFiltersFromStash()">
-        📤
-      </button>
-      <button class="small-btn edit-btn" id="editBtn" onclick="toggleEditMode(this)" title="Enter Edit mode (E)">⚙
-      </button>
-      <br>
-      <div class="edit-container show-on-edit">
-        <div>
-          <h5 class="purple">Selected nodes: <span class="red" id="selectedNodes">0</span> | Selected edges: <span
-                  class="red" id="selectedEdges">0</span></h5>
-        </div>
-        <div id="staticStyleDiv"></div>
+    <div id="sidebarContentContainer">
+      <h3>Graph Lens Lite</h3>
+      <input type="file" id="fileInput" name="fileInput" onchange="loadFileWrapper(event);"
+             accept=".json, .xls, .xlsx, .csv, .tab"/>
+      <div class="showOnLoad button-group">
+        <button id="exportModel" class="showOnLoad medium-btn" onclick="exportGraphAsJSON()" title="Save Model (S)">💾</button>
+        <button id="exportImage" class="showOnLoad medium-btn" onclick="exportPNG()" title="Save Image (P)">📷️</button>
+        <button id="metricsToggleBtn" class="showOnLoad medium-btn" title="Toggle network metrics panel (M)" onclick="cache.metrics.toggleUI()">📊</button>
+        <button id="queryToggleBtn" class="showOnLoad medium-btn" title="Toggle query editor (Q)" onclick="toggleQueryEditor()">📝</button>
+        <button id="editBtn" class="showOnLoad medium-btn" title="Toggle Edit mode (E)" onclick="toggleEditMode()">⚙️</button>
       </div>
-      <h5 class="purple">
-        <span id="visibleNodes" class="red">0</span>/<span id="totalNodes">0</span> nodes |
-        <span id="visibleEdges" class="red">0</span>/<span id="totalEdges">0</span> edges active
-      </h5>
-      <hr>
-      <div id="filterContainer"></div>
+      <div class="showOnLoad">
+        <hr>
+        <h3>View Options</h3>
+        <label for="selectView">Network View:</label>
+        <select name="selectView" id="selectView" onchange="changeLayout()"></select>
+        <button class="small-btn" id="resetLayoutButton" title="Reset View (R)" onclick="resetLayout()">⭯</button>
+        <button class="small-btn" title="Fit View (F)" onclick="graph.fitView()">⛶</button>
+        <button class="small-btn red" title="Hide all nodes and edges that are not connected to any other node or edge" onclick="toggleCleanUpDanglingElements(this)">🚫</button>
+        <button class="small-btn green show-on-edit" title="Create New View" onclick="addLayout()" >&nbsp;✚&nbsp;</button>
+        <button class="small-btn red show-on-edit disabled" id="removeSelectedLayoutButton" title="Remove View" onclick="removeSelectedLayout()">&nbsp;✗&nbsp;</button>
+        <button class="small-btn show-on-edit" title="Save filter settings to stash (to be reapplied in different view)" onclick="saveFiltersToStash(true)">📥</button>
+        <button class="small-btn show-on-edit disabled" id="loadFromStashBtn" title="Load filter settings from stash" onclick="loadFiltersFromStash()">📤</button>
+        <div id="debugDiv" class="inline"></div>
+        <br>
+        <h5 class="purple">Shown:
+          <span id="visibleNodes" class="red">0</span>/<span id="totalNodes">0</span> nodes,
+          <span id="visibleEdges" class="red">0</span>/<span id="totalEdges">0</span> edges
+          <span class="show-on-edit"> | Selection:
+            <span class="red" id="selectedNodes">0</span> nodes,
+            <span class="red" id="selectedEdges">0</span> edges |
+            <button class="small-btn disabled" title="Undo Selection" id="undoSelectionBtn"
+                    onclick="undoSelection()">↩</button>
+            <button class="small-btn disabled" title="Redo Selection" id="redoSelectionButton"
+                    onclick="redoSelection()">↪</button>
+          </span>
+        </h5>
+        <hr>
+        <div id="metricsContainer"></div>
+        <div class="edit-container show-on-edit">
+          <div id="staticStyleDiv"></div>
+          <hr>
+        </div>
+        <div id="filterContainer"></div>
+      </div>
     </div>
+    <div id="sidebarStatusContainer"></div>
   </div>
   <div id="outerGraphContainer">
     <div id="innerGraphContainer"></div>
+  </div>
+</div>
+<div id="bottomBar">
+  <div id="queryEditor">
+    <div id="queryOverlay" aria-hidden="true"></div>
+    <div id="queryTextArea" contenteditable="true" spellcheck="false" oninput="handleQueryValidationEvent();"></div>
+    <div id="queryCaret" class="custom-caret"></div>
+  </div>
+  <div class="query-buttons">
+    <button id="queryUpdateBtn" class="disabled" onclick="handleQueryUpdateEvent()"
+            title="Apply changes from query to the graph">Update
+    </button>
+    <button id="queryResetBtn" class="red" onclick="resetQuery();" title="Reset query to match UI">Reset</button>
+  </div>
+  <div class="query-help-icon">
+    <button id="foo" class="info-btn" title="Display help" onclick="showQueryHelp();">🛈</button>
   </div>
 </div>
 </body>
