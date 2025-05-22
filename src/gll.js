@@ -367,21 +367,24 @@ class NetworkMetrics {
     const metricResult = this.m[this.selected]?.calculate();
 
     /* multiselect */
+    const selectedValues = Array.from(this.multiselect.selectedOptions, opt => opt.value);
+
     this.multiselect.innerHTML = '';
     for (const ns of metricResult.scores) {
       const opt = document.createElement('option');
       opt.value = ns.id;
       opt.textContent = ns.text;
+      opt.selected = selectedValues.includes(ns.id);
       this.multiselect.appendChild(opt);
     }
 
     /* graph-level table */
     this.table.innerHTML = '';
     Object.entries(metricResult.graphLevelMetrics).forEach(([label, value]) => {
-      const row        = document.createElement('tr');
-      const labelCell  = document.createElement('td');
+      const row = document.createElement('tr');
+      const labelCell = document.createElement('td');
       labelCell.textContent = label;
-      const valueCell  = document.createElement('td');
+      const valueCell = document.createElement('td');
       valueCell.textContent = `${value}`;
       row.append(labelCell, valueCell);
       this.table.appendChild(row);
@@ -476,6 +479,12 @@ class NetworkMetrics {
     if (ids.length) {
       const nodeData = await graph.getNodeData(ids);
       await updateSelectedState(nodeData, add);
+      // workaround since selected nodes where missing after adding them through network metrics
+      if (add) {
+        cache.selectedNodes = [...new Set([...cache.selectedNodes, ...ids])];
+      } else {
+        cache.selectedNodes = cache.selectedNodes.filter(id => !ids.includes(id));
+      }
     }
   }
 }
@@ -2234,6 +2243,14 @@ function isObject(obj) {
 }
 
 async function updateNodes(overrides = {}, commands = []) {
+  // for (const node of await graph.getNodeData()) {
+  //   if (!node.states?.includes("selected")) continue;
+  //   const nodeID = node.id;
+
+  // TODO: bug
+  // 1. select a couple of nodes via network metrics
+  // 2. cache.selectedNodes does not hold all of them at the time updateNodes() is called, probably race condition
+
   for (const nodeID of cache.selectedNodes) {
     const node = cache.nodeRef.get(nodeID);
 
