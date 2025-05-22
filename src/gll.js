@@ -114,9 +114,6 @@ const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
 // Maximum capacity of selection memory
 const MAX_SELECTION_MEMORY = 10;
 
-// If true, an additional "Node Connectivity" section is displayed in the UI
-const ENABLE_NODE_CONNECTIVITY_METRICS = true;
-
 const NODE_CONNECTIVITY_METRICS_PRECISION = 4;
 
 /**
@@ -367,8 +364,6 @@ class NetworkMetrics {
   }
 
   updateUI() {
-    if (!ENABLE_NODE_CONNECTIVITY_METRICS) return;
-
     const metricResult = this.m[this.selected]?.calculate();
 
     /* multiselect */
@@ -3032,6 +3027,10 @@ async function createGraphInstance() {
   }
 }
 
+function fakeMove() {
+  data.layouts[data.selectedLayout].positions.set("A", {x: 150, y: 250});
+}
+
 function arraysAreEqual(a, b) {
   if (a === b) return true;       // Same reference
   if (!a || !b) return false;     // One is undefined/null
@@ -3125,9 +3124,23 @@ async function updateSelectedNodesAndEdges() {
   updateEnabledStateUndoRedoSelectionButtons();
 }
 
-async function toggleEditMode(ev) {
-  let editModeActive = ev.classList.contains("active");
-  editModeActive ? ev.classList.remove("active") : ev.classList.add("active");
+function toggleQueryEditor() {
+  const btn = document.getElementById("queryToggleBtn");
+  let shouldEnable = !btn.classList.contains("highlight");
+
+  const mainContent = document.getElementById("mainContent");
+  const bottomBar = document.getElementById("bottomBar");
+
+  mainContent.style.height = shouldEnable ? "90%" : "100%";
+  bottomBar.style.height = shouldEnable ? "10%" : "0";
+  bottomBar.classList.toggle("active", shouldEnable);
+  btn.classList.toggle("highlight", shouldEnable);
+}
+
+async function toggleEditMode() {
+  const editBtn = document.getElementById("editBtn");
+  let editModeActive = editBtn.classList.contains("active");
+  editModeActive ? editBtn.classList.remove("active") : editBtn.classList.add("active");
 
   const nonEditBehaviors = [
     {type: 'drag-canvas', key: 'drag-canvas'},
@@ -3138,7 +3151,6 @@ async function toggleEditMode(ev) {
     nonEditBehaviors.push({
       type: 'hover-activate', degree: 1, state: 'highlight', inactiveState: 'dim',
       enable: (event) => {
-        // console.log(event.targetType);
         return event.targetType === 'node' || event.targetType === 'edge';
       },
     });
@@ -3163,19 +3175,16 @@ async function toggleEditMode(ev) {
 }
 
 function handleEditModeUIChanges() {
-  const editModeActive = document.getElementById("editBtn").classList.contains("active");
-
-  const mainContent = document.getElementById("mainContent");
+  const editBtn = document.getElementById("editBtn");
   const container = document.getElementById("sidebarContentContainer");
   const sidebar = document.getElementById("sidebar");
   const status = document.getElementById("sidebarStatusContainer");
-  const bottomBar = document.getElementById("bottomBar");
+
+  const editModeActive = editBtn.classList.contains("active");
+
+  editModeActive ? editBtn.classList.add("highlight") : editBtn.classList.remove("highlight");
 
   container.style.paddingRight = editModeActive ? "6px" : "0";
-
-  mainContent.style.height = editModeActive ? "90%" : "100%";
-  bottomBar.style.height = editModeActive ? "10%" : "0";
-  bottomBar.classList.toggle("active", editModeActive);
 
   // handle all edit elements
   const editElements = document.querySelectorAll('.show-on-edit');
@@ -3219,10 +3228,8 @@ function handleEditModeUIChanges() {
   sidebar.style.maxWidth = editModeActive ? "100%" : "unset";
   status.style.maxWidth = editModeActive ? `${container.offsetWidth}px` : "375px";
 
-  if (ENABLE_NODE_CONNECTIVITY_METRICS) {
-    const metricsContainer = document.getElementById("networkMetricsContainer");
-    metricsContainer.style.maxWidth = editModeActive ? `${container.offsetWidth}px` : "350px";
-  }
+  const metricsContainer = document.getElementById("networkMetricsContainer");
+  metricsContainer.style.maxWidth = editModeActive ? `${container.offsetWidth}px` : "350px";
 }
 
 function* traverseBubbleSets() {
@@ -3721,7 +3728,7 @@ function buildUI() {
   });
 
   buildDropdownOptions();
-  insertMetricsButtonAndBuildMetricsUI()
+  buildMetricsUI();
   buildFilterUI();
   showUI(true);
 
@@ -3833,20 +3840,7 @@ function buildFilterUI() {
   updateQueryTextArea();
 }
 
-function insertMetricsButtonAndBuildMetricsUI() {
-  if (!ENABLE_NODE_CONNECTIVITY_METRICS) return;
-
-  const placeholder = document.getElementById("metricsBtnPlaceholder");
-
-  const btn = document.createElement("button");
-  btn.className = "small-btn";
-  btn.title = "Toggle network metrics panel";
-  btn.textContent = "📊";
-  btn.onclick = cache.metrics.toggleUI;
-  btn.id = "metricsToggleBtn";
-
-  placeholder.replaceWith(btn);
-
+function buildMetricsUI() {
   const div = document.getElementById("metricsContainer");
   div.innerHTML = "";
   div.appendChild(cache.metrics.buildUI());
@@ -4757,14 +4751,25 @@ async function changeLayout() {
   data.selectedLayout = document.getElementById('layout').value;
   await showLoading("Switching layout", data.selectedLayout);
   let layout = data.layouts[data.selectedLayout];
+
+  let skipConsecutiveRender = false;
   if (!layout.isCustom) {
     await graph.setLayout({type: data.selectedLayout, ...layout.internals});
+    await graph.render();
+    skipConsecutiveRender = true;
   }
+
   buildFilterUI();
   clearActivePropsCacheOnLayoutChange();
-  await decideToRenderOrDraw(true);
+
   await conditionallyPersistNodePositions();
-  console.log(`Switched to layout: ${data.selectedLayout}`);
+  cache.metrics.updateUI();
+
+  if (!skipConsecutiveRender) {
+    await decideToRenderOrDraw(true);
+  }
+
+  info(`Switched to view: ${data.selectedLayout}`);
 }
 
 function addLayout() {
@@ -6068,13 +6073,19 @@ function registerHotkeyEvents() {
         await exportGraphAsJSON();
         break;
       case "r":
-        resetLayout();
+        await resetLayout();
         break;
       case "f":
         await graph.fitView();
         break;
       case "e":
-        document.getElementById('editBtn').click();
+        await toggleEditMode();
+        break;
+      case "q":
+        toggleQueryEditor();
+        break;
+      case "m":
+        cache.metrics.toggleUI();
         break;
       default:
         break;
