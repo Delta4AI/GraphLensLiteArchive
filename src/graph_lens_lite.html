@@ -793,6 +793,25 @@
           display: inline-flex;
           justify-content: center;
           align-items: center;
+          cursor: pointer;
+          border: none;
+          background: transparent;
+      }
+
+      .medium-btn:hover {
+
+          background: #C33D3580;
+          border: 1px solid #C33D35;
+          border-radius: 6px;
+      }
+
+      .button-group {
+          display: inline-flex;
+          background: #403C5320;
+          outline: 1px solid #403C53;
+          border-radius: 6px;
+          margin-right: 6px;
+          gap: 1px;
       }
 
       .info-btn {
@@ -871,6 +890,7 @@
 
       .highlight {
           box-shadow: 0 0 5px #C33D35;
+          border-radius: 6px;
       }
 
       .edit-container {
@@ -966,6 +986,9 @@
           align-items: center;
           height: 18px;
           text-align: center;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
           line-height: 18px;
           font-size: 12px;
           border: 1px solid black;
@@ -1757,9 +1780,13 @@
       <h3>Graph Lens Lite</h3>
       <input type="file" id="fileInput" name="fileInput" onchange="loadFileWrapper(event);"
              accept=".json, .xls, .xlsx, .csv, .tab"/>
-      <button id="exportModel" class="showOnLoad medium-btn" onclick="exportGraphAsJSON()" title="Save Model (S)">💾</button>
-      <button id="exportImage" class="showOnLoad medium-btn" onclick="exportPNG()" title="Save Image (P)">📷️</button>
-      <button class="showOnLoad medium-btn"></button>
+      <div class="showOnLoad button-group">
+        <button id="exportModel" class="showOnLoad medium-btn" onclick="exportGraphAsJSON()" title="Save Model (S)">💾</button>
+        <button id="exportImage" class="showOnLoad medium-btn" onclick="exportPNG()" title="Save Image (P)">📷️</button>
+        <button id="metricsToggleBtn" class="showOnLoad medium-btn" title="Toggle network metrics panel (M)" onclick="cache.metrics.toggleUI()">📊</button>
+        <button id="queryToggleBtn" class="showOnLoad medium-btn" title="Toggle query editor (Q)" onclick="toggleQueryEditor()">📝</button>
+        <button id="editBtn" class="showOnLoad medium-btn" title="Toggle Edit mode (E)" onclick="toggleEditMode()">⚙️</button>
+      </div>
       <div class="showOnLoad">
         <hr>
         <h3>Network Options</h3>
@@ -1768,25 +1795,11 @@
         <button class="small-btn" id="resetLayoutButton" onclick="resetLayout()" title="Reset View Arrangement (R)">⭯
         </button>
         <button class="small-btn" onclick="graph.fitView()" title="Fit View in Viewport (F)">⛶</button>
-        <button class="small-btn green show-on-edit" onclick="addLayout()" title="Create New View">&nbsp;✚&nbsp;
-        </button>
-        <button class="small-btn red show-on-edit disabled" onclick="removeSelectedLayout()"
-                id="removeSelectedLayoutButton"
-                title="Remove Layout">&nbsp;✗&nbsp;
-        </button>
-        <button class="small-btn show-on-edit" title="Save filter settings to stash (to be reapplied in different view)"
-                onclick="saveFiltersToStash(true)">📥
-        </button>
-        <button class="small-btn show-on-edit disabled" title="Load filter settings from stash" id="loadFromStashBtn"
-                onclick="loadFiltersFromStash()">
-          📤
-        </button>
-        <button class="small-btn red" onclick="toggleCleanUpDanglingElements(this)"
-                title="Hide all nodes and edges that are not connected to any other node or edge.">🚫
-        </button>
-        <span id="metricsBtnPlaceholder"></span>
-        <button class="small-btn edit-btn" id="editBtn" onclick="toggleEditMode(this)" title="Enter Edit mode (E)">⚙
-        </button>
+        <button class="small-btn red" onclick="toggleCleanUpDanglingElements(this)" title="Hide all nodes and edges that are not connected to any other node or edge.">🚫</button>
+        <button class="small-btn green show-on-edit" onclick="addLayout()" title="Create New View">&nbsp;✚&nbsp;</button>
+        <button class="small-btn red show-on-edit disabled" onclick="removeSelectedLayout()" id="removeSelectedLayoutButton" title="Remove Layout">&nbsp;✗&nbsp;</button>
+        <button class="small-btn show-on-edit" title="Save filter settings to stash (to be reapplied in different view)" onclick="saveFiltersToStash(true)">📥</button>
+        <button class="small-btn show-on-edit disabled" title="Load filter settings from stash" id="loadFromStashBtn" onclick="loadFiltersFromStash()">📤</button>
         <div id="debugDiv" style="display: inline;"></div>
         <br>
         <h5 class="purple">Shown:
