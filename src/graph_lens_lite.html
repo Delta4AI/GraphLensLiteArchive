@@ -784,6 +784,17 @@
           transition: box-shadow 0.2s ease-in-out;
       }
 
+      .medium-btn {
+          width: 22px;
+          height: 22px;
+          font-size: 14px;
+          line-height: 22px;
+          padding: 0;
+          display: inline-flex;
+          justify-content: center;
+          align-items: center;
+      }
+
       .info-btn {
           height: 18px;
           width: 18px;
@@ -1746,8 +1757,9 @@
       <h3>Graph Lens Lite</h3>
       <input type="file" id="fileInput" name="fileInput" onchange="loadFileWrapper(event);"
              accept=".json, .xls, .xlsx, .csv, .tab"/>
-      <button id="exportModel" class="showOnLoad" onclick="exportGraphAsJSON()" title="Save Model (S)">💾</button>
-      <button id="exportImage" class="showOnLoad" onclick="exportPNG()" title="Save Image (P)">📷️</button>
+      <button id="exportModel" class="showOnLoad medium-btn" onclick="exportGraphAsJSON()" title="Save Model (S)">💾</button>
+      <button id="exportImage" class="showOnLoad medium-btn" onclick="exportPNG()" title="Save Image (P)">📷️</button>
+      <button class="showOnLoad medium-btn"></button>
       <div class="showOnLoad">
         <hr>
         <h3>Network Options</h3>
