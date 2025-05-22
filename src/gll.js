@@ -402,8 +402,7 @@ class NetworkMetrics {
     div.className = 'nw-div';
 
     /* header ------------------------------------------------------- */
-    const header = document.createElement('div');
-    header.className = 'nw-header';
+    const header = document.createElement('h3');
     header.textContent = 'Network Metrics';
     div.appendChild(header);
 
