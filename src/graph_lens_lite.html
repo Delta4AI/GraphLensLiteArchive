@@ -215,6 +215,10 @@
           left: auto !important;
       }
 
+      #selectView {
+          margin-bottom: 10px;
+      }
+
 
       h4 {
           margin: 0.2rem;
@@ -1790,17 +1794,16 @@
       <div class="showOnLoad">
         <hr>
         <h3>Network Options</h3>
-        <label for="layout">Network View:</label>
-        <select name="layout" id="layout" onchange="changeLayout()" style="margin-bottom:10px;"></select>
-        <button class="small-btn" id="resetLayoutButton" onclick="resetLayout()" title="Reset View Arrangement (R)">⭯
-        </button>
-        <button class="small-btn" onclick="graph.fitView()" title="Fit View in Viewport (F)">⛶</button>
-        <button class="small-btn red" onclick="toggleCleanUpDanglingElements(this)" title="Hide all nodes and edges that are not connected to any other node or edge.">🚫</button>
-        <button class="small-btn green show-on-edit" onclick="addLayout()" title="Create New View">&nbsp;✚&nbsp;</button>
-        <button class="small-btn red show-on-edit disabled" onclick="removeSelectedLayout()" id="removeSelectedLayoutButton" title="Remove Layout">&nbsp;✗&nbsp;</button>
+        <label for="selectView">Network View:</label>
+        <select name="selectView" id="selectView" onchange="changeLayout()"></select>
+        <button class="small-btn" id="resetLayoutButton" title="Reset View (R)" onclick="resetLayout()">⭯</button>
+        <button class="small-btn" title="Fit View (F)" onclick="graph.fitView()">⛶</button>
+        <button class="small-btn red" title="Hide all nodes and edges that are not connected to any other node or edge" onclick="toggleCleanUpDanglingElements(this)">🚫</button>
+        <button class="small-btn green show-on-edit" title="Create New View" onclick="addLayout()" >&nbsp;✚&nbsp;</button>
+        <button class="small-btn red show-on-edit disabled" id="removeSelectedLayoutButton" title="Remove View" onclick="removeSelectedLayout()">&nbsp;✗&nbsp;</button>
         <button class="small-btn show-on-edit" title="Save filter settings to stash (to be reapplied in different view)" onclick="saveFiltersToStash(true)">📥</button>
-        <button class="small-btn show-on-edit disabled" title="Load filter settings from stash" id="loadFromStashBtn" onclick="loadFiltersFromStash()">📤</button>
-        <div id="debugDiv" style="display: inline;"></div>
+        <button class="small-btn show-on-edit disabled" id="loadFromStashBtn" title="Load filter settings from stash" onclick="loadFiltersFromStash()">📤</button>
+        <div id="debugDiv" class="inline"></div>
         <br>
         <h5 class="purple">Shown:
           <span id="visibleNodes" class="red">0</span>/<span id="totalNodes">0</span> nodes,

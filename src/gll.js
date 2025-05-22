@@ -3676,16 +3676,11 @@ function getLineMetrics(el) {
 
 function validateAlignment() {
   // read real widths of the two layers
-  const textWidth    = query.text.offsetWidth;
-  const overlayWidth = query.overlay.offsetWidth;
-
   const mText    = getLineMetrics(query.text);
   const mOverlay = getLineMetrics(query.overlay);
 
   const linesMatch     = mText.lines        === mOverlay.lines;
-  // const lastWidthMatch = mText.lastLineWidth === mOverlay.lastLineWidth;
   const lastWidthMatch = Math.abs(mText.lastLineWidth - mOverlay.lastLineWidth) <= 1;  // 1 pixel tolerance
-
 
   if (linesMatch && lastWidthMatch) {
     if (query.sizeChangeLocked) {
@@ -3701,7 +3696,7 @@ function validateAlignment() {
   }
 
   // freeze both layers at the last known good width
-  if (!query.sizeChangeLocked && query.lastGoodWidth > 0) {             // guard against first run
+  if (!query.sizeChangeLocked && query.lastGoodWidth > 0) {
       console.warn(
     `Mismatch — lines: ${mText.lines}/${mOverlay.lines}, ` +
     `last width: ${mText.lastLineWidth}/${mOverlay.lastLineWidth}. ` +
@@ -3737,12 +3732,12 @@ function buildUI() {
 }
 
 function buildDropdownOptions() {
-  let layoutDropdown = document.getElementById('layout');
-  let layoutOptions = Object.keys(data.layouts).map(key => {
+  let selectViewDropdown = document.getElementById('selectView');
+  let selectViewOptions = Object.keys(data.layouts).map(key => {
     let selected = data.selectedLayout === key ? "selected" : "";
     return `<option value="${key}" ${selected}>${key}</option>`;
   });
-  layoutDropdown.innerHTML = layoutOptions.join("");
+  selectViewDropdown.innerHTML = selectViewOptions.join("");
 }
 
 function buildFilterUI() {
@@ -4748,8 +4743,8 @@ function showUI(show) {
 }
 
 async function changeLayout() {
-  data.selectedLayout = document.getElementById('layout').value;
-  await showLoading("Switching layout", data.selectedLayout);
+  data.selectedLayout = document.getElementById('selectView').value;
+  await showLoading("Switching View", data.selectedLayout);
   let layout = data.layouts[data.selectedLayout];
 
   let skipConsecutiveRender = false;
@@ -4769,18 +4764,19 @@ async function changeLayout() {
     await decideToRenderOrDraw(true);
   }
 
+  await graph.fitView();
   info(`Switched to view: ${data.selectedLayout}`);
 }
 
-function addLayout() {
-  let layoutName = prompt("Enter Layout Name: ");
+async function addLayout() {
+  let layoutName = prompt("Enter View Name: ");
   let existing = Object.keys(data.layouts);
 
   if (layoutName == null || layoutName === "") {
-    console.log("Creating layout canceled");
+    info("Creating layout canceled");
     return false;
   } else if (existing.includes(layoutName)) {
-    alert(`Layout with name "${layoutName}" already exists.`);
+    error(`Layout with name "${layoutName}" already exists.`);
     return false;
   }
 
@@ -4798,11 +4794,12 @@ function addLayout() {
   }
 
   buildDropdownOptions();
-  document.getElementById('layout').value = layoutName;
-  changeLayout().then(r => console.log("Changed to new layout"));
+  document.getElementById('selectView').value = layoutName;
+  await changeLayout();
+  info(`Created view ${layoutName}`);
 }
 
-function removeSelectedLayout() {
+async function removeSelectedLayout() {
   if (!data.layouts[data.selectedLayout].isCustom) {
     alert("Cannot delete default layout.");
     return false;
@@ -4813,8 +4810,8 @@ function removeSelectedLayout() {
   delete data.layouts[data.selectedLayout];
   buildDropdownOptions();
 
-  document.getElementById('layout').value = DEFAULTS.LAYOUT;
-  changeLayout();
+  document.getElementById('selectView').value = DEFAULTS.LAYOUT;
+  await changeLayout();
 }
 
 function getNodeStyleOrDefaults(node) {
@@ -6029,9 +6026,9 @@ async function loadFileWrapper(event) {
         return;
       }
 
-      await graph.render().then(() => {
-        console.log("Initial graph rendered.");
-      });
+      await graph.render();
+      await graph.fitView();
+      console.log("Initial graph rendered.");
     })
     .catch(async (error) => {
       alert(`Error loading graph: ${error}`);
@@ -6260,8 +6257,3 @@ function debugQuery(query) {
   handleQueryValidationEvent();
   handleQueryUpdateEvent();
 }
-
-// DOM loaded event
-document.addEventListener('DOMContentLoaded', () => {
-  showQueryHelp();
-});
