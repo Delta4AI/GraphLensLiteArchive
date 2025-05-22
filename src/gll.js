@@ -315,6 +315,16 @@ const DEFAULTS = {
   FILTER_STRATEGY: "OR",
 };
 
+const STATES = {
+  BEFORE_DRAW_RUNNING: false,
+  DRAG_END_RUNNING: false,
+  AFTER_DRAW_RUNNNING: false,
+  BEFORE_RENDER_RUNNING: false,
+  AFTER_RENDER_RUNNING: false,
+  ONCE_AFTER_RENDER_RUNNING: false,
+  INITIAL_RENDER_DONE: false
+}
+
 
 class NetworkMetrics {
   constructor() {
@@ -2481,27 +2491,6 @@ async function toggleSelectionByNeighbors(mode) {
   await update();
 }
 
-async function conditionallyPersistNodePositions() {
-  let ld = data.layouts[data.selectedLayout];
-  if (!ld.isCustom && ld.positions.size === 0) {
-    console.log(`Initially persisting coordinates of default layout ${data.selectedLayout} ..`);
-    await persistNodePositions();
-  }
-
-  // cache is written on app start or layout change every time IF no data exists yet, no matter if it is a custom layout or not
-  if (!cache.initialNodePositions.has(data.selectedLayout)) {
-    cache.initialNodePositions.set(data.selectedLayout, new Map());
-    console.log(`Caching coordinates of layout ${data.selectedLayout} to be used by reset feature ..`);
-    await persistNodePositions(cache.initialNodePositions.get(data.selectedLayout));
-  }
-}
-
-async function persistNodePositions(targetMap = data.layouts[data.selectedLayout].positions) {
-  for (const node of await graph.getNodeData()) {
-    targetMap.set(node.id, {x: node.style.x, y: node.style.y});
-  }
-}
-
 function* traverseD4Data(nodeOrEdge) {
   if (!nodeOrEdge.D4Data) return;
 
@@ -2511,12 +2500,6 @@ function* traverseD4Data(nodeOrEdge) {
         yield [section, subsection, prop, nodeOrEdge.D4Data[section][subsection][prop]];
       }
     }
-  }
-}
-
-function* iterateConnectivityMetrics() {
-  for (const metric of Object.values(cache.connectivity)) {
-    yield metric;
   }
 }
 
@@ -2960,33 +2943,86 @@ async function createGraphInstance() {
     });
 
     graph.on(NodeEvent.DRAG_END, async (event) => {
-      // persist all node positions
-      await persistNodePositions();
+      if (STATES.DRAG_END_RUNNING) return;
+
+      try {
+        STATES.DRAG_END_RUNNING = true;
+        await persistNodePositions();
+      } catch (errorMsg) {
+        error(`Error in NodeEvent.DRAG_END: ${errorMsg}`);;
+      } finally {
+        STATES.DRAG_END_RUNNING = false;
+      }
     });
 
     graph.on(GraphEvent.AFTER_DRAW, async () => {
-      await updateSelectedNodesAndEdges();
-      await hideLoading();
+      if (STATES.AFTER_DRAW_RUNNNING) return;
+
+      try {
+        STATES.AFTER_DRAW_RUNNNING = true;
+        await updateSelectedNodesAndEdges();
+      } catch (errorMsg) {
+        error(`Error in GraphEvent.AFTER_DRAW: ${errorMsg}`);
+      } finally {
+        await hideLoading();
+        STATES.AFTER_DRAW_RUNNNING = false;
+      }
     });
 
     graph.on(GraphEvent.BEFORE_RENDER, async () => {
-      await showLoading("Rendering", "Rendering graph ..");
+      if (STATES.BEFORE_RENDER_RUNNING) return;
+
+      try {
+        STATES.BEFORE_RENDER_RUNNING = true;
+        await showLoading("Rendering", "Rendering graph ..");
+      } catch (errorMsg) {
+        error(`Error in GraphEvent.BEFORE_RENDER: ${errorMsg}`);
+      } finally {
+        STATES.BEFORE_RENDER_RUNNING = false;
+      }
     });
 
     graph.on(GraphEvent.AFTER_RENDER, async () => {
-      await restorePositions();
-      await hideLoading();
+      if (STATES.AFTER_RENDER_RUNNING) return;
+      if (!STATES.INITIAL_RENDER_DONE) return;
+
+      try {
+        STATES.AFTER_RENDER_RUNNING = true;
+        const inSync = await nodePositionsAreInSyncWithPersistedPositions();
+        if (!inSync) {
+          await showLoading("Post-processing", "Restoring node positions ..");
+          await syncNodePositions();
+          STATES.AFTER_RENDER_RUNNING = false;
+          await graph.draw();
+        }
+      } catch (errorMsg) {
+        error(`Error in GraphEvent.AFTER_RENDER: ${errorMsg}`);
+      } finally {
+        await hideLoading();
+        STATES.AFTER_RENDER_RUNNING = false;
+      }
     });
 
     // after initial rendering when loading a file; this is called prior to the regular after render event
     graph.once(GraphEvent.AFTER_RENDER, async () => {
-      await conditionallyPersistNodePositions();
-      await saveFiltersToStash(false);
-      registerHotkeyEvents();
-      registerGlobalEventListeners();
-      // to initially fill caches related to the query/filters, preRenderEvent is called without rendering afterwards
-      await preRenderEvent();
-      cache.metrics.updateUI();
+      if (STATES.ONCE_AFTER_RENDER_RUNNING) return;
+
+      try {
+        STATES.ONCE_AFTER_RENDER_RUNNING = true;
+        await conditionallyPersistNodePositions();
+        await saveFiltersToStash(false);
+        registerHotkeyEvents();
+        registerGlobalEventListeners();
+        // to initially fill caches related to the query/filters, preRenderEvent is called without rendering afterwards
+        await preRenderEvent();
+        cache.metrics.updateUI();
+        STATES.INITIAL_RENDER_DONE = true;
+        await graph.render();
+      } catch (errorMsg) {
+        error(`Error in GraphEvent.AFTER_RENDER: ${errorMsg}`);
+      } finally {
+        STATES.ONCE_AFTER_RENDER_RUNNING = false;
+      }
     })
 
     let layout = data.layouts[data.selectedLayout];
@@ -3534,16 +3570,6 @@ async function updateBubbleSetIfChanged() {
   }
 }
 
-async function restorePositions() {
-  if (!(await nodePositionsAreInSyncWithPersistedPositions())) {
-    console.log("Restoring positions from persisted positions.");
-    await graph.draw();
-    console.log("Graph positions restored.");
-  } else {
-    console.log("Graph positions in sync - no redraw necessary.");
-  }
-}
-
 async function nodePositionsAreInSyncWithPersistedPositions() {
   for (let node of await graph.getNodeData()) {
     const persistedPosition = data.layouts[data.selectedLayout].positions.get(node.id);
@@ -3552,6 +3578,38 @@ async function nodePositionsAreInSyncWithPersistedPositions() {
     }
   }
   return true;
+}
+
+async function conditionallyPersistNodePositions() {
+  let ld = data.layouts[data.selectedLayout];
+  if (!ld.isCustom && ld.positions.size === 0) {
+    console.log(`Initially persisting coordinates of default layout ${data.selectedLayout} ..`);
+    await persistNodePositions();
+  }
+
+  // cache is written on app start or layout change every time IF no data exists yet, no matter if it is a custom layout or not
+  if (!cache.initialNodePositions.has(data.selectedLayout)) {
+    cache.initialNodePositions.set(data.selectedLayout, new Map());
+    console.log(`Caching coordinates of layout ${data.selectedLayout} to be used by reset feature ..`);
+    await persistNodePositions(cache.initialNodePositions.get(data.selectedLayout));
+  }
+}
+
+async function persistNodePositions(targetMap = data.layouts[data.selectedLayout].positions) {
+  for (const node of await graph.getNodeData()) {
+    targetMap.set(node.id, {x: node.style.x, y: node.style.y});
+  }
+}
+
+async function syncNodePositions() {
+  const toUpdate = [];
+  for (let node of await graph.getNodeData()) {
+    const persistedPosition = data.layouts[data.selectedLayout].positions.get(node.id);
+    if (persistedPosition && (persistedPosition.x !== node.style.x || persistedPosition.y !== node.style.y)) {
+      toUpdate.push({id: node.id, style: {x: persistedPosition.x, y: persistedPosition.y}});
+    }
+  }
+  await graph.updateNodeData(toUpdate);
 }
 
 function isInteger(value) {
@@ -4641,18 +4699,22 @@ function createAddOrRemoveToSelectionButton(propID, shouldAdd) {
 }
 
 async function decideToRenderOrDraw(forceRender = false) {
+  await showLoading("Loading", "Deciding to render or draw ..");
   await preRenderEvent();
   await cache.metrics.updateUI();
 
   try {
     if (cache.bubbleSetChanged || cache.styleChanged || forceRender) {
       if (cache.styleChanged) {
+        await showLoading("Loading", "Updating graph data ..");
         await graph.updateData(createSimplifiedDataForGraphObject());
         cache.styleChanged = false;
         cache.labelStyleChanged = false;
       }
+      await showLoading("Loading", "Rendering graph ..");
       return await graph.render();
     } else {
+      await showLoading("Loading", "Redrawing graph ..");
       return await graph.draw();
     }
   } catch (errorMsg) {
@@ -4679,6 +4741,7 @@ async function handleFilterEvent(header, text, propID = null, shouldResetQuery =
 
 async function handleStyleChangeLoadingEvent(header, text) {
   await showLoading(header, text);
+  cache.styleChanged = true;
   await decideToRenderOrDraw();
   console.log(`Graph updated after style event with message ${header} ${text}`);
 }
