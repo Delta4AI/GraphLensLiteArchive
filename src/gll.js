@@ -1,36 +1,250 @@
-const {Graph, NodeEvent, GraphEvent, CanvasEvent, CommonEvent, WindowEvent, Layout} = G6;
+const {
+  Graph,
+  NodeEvent,
+  GraphEvent,
+  CanvasEvent,
+  CommonEvent,
+  WindowEvent,
+  Layout,
+  BaseLayout,
+  ExtensionCategory,
+  register
+} = G6;
 
-/** @type {import('@antv/g6').Graph","null} */
+
+class CustomForceLayout extends BaseLayout {
+  id = 'custom-force-layout';
+
+  async execute(data) {
+    const {nodes = []} = data;
+    const myNodes = nodes
+      .filter(n => cache.selectedNodes.includes(n.id))
+      .map((node, index) => ({
+        id: node.id,
+        style: {
+          x: 50 * index + 25,
+          y: 50 * index + 25,
+        },
+      }));
+    await graph.updateNodeData(myNodes);
+    await persistNodePositions();
+    return {
+      nodes: myNodes,
+    };
+  }
+}
+
+register(ExtensionCategory.LAYOUT, 'custom', CustomForceLayout);
+
+// graph.setLayout({type: 'custom'});
+// persistNodePositions();
+// handleFilterEvent("Custom", "foo");
+
+/**
+ *  Essential objects
+ */
+/* @type {import('@antv/g6').Graph","null} */
+// The G6 graph object
 let graph = null;
-let data = {};  // Stores data that can be serialized as json file
-let cache = {};  // Stores references to map IDs to node/edge objects that cannot be serialized to a json file
-let inputErrors = [];
 
+// Stores json serializable data that is essential to reconstruct the graph
+let data = {};
+
+// Stores query related elements (text & overlay), AST, status about validity, widths, ..
+let query = {
+  valid: false,
+  ast: null,
+  text: null,
+  overlay: null,
+  caret: null,
+  editorDiv: null,
+  lastGoodWidth: 0,
+  sizeObserver: null,
+  sizeChangeLocked: false
+};
+
+// Stores references to map IDs to node/edge objects that cannot (or are not necessary to) serialized to a json file
+let cache = {
+  initialized: false
+};
+
+// Stores available network metrics and their calculation function references
+const metrics = {
+  centrality: {id: "centrality", label: "Degree Centrality", calculate: calculateDegreeCentrality},
+  betweenness: {id: "betweenness", label: "Betweenness Centrality", calculate: calculateBetweennessCentrality},
+  closeness: {id: "closeness", label: "Closeness Centrality", calculate: calculateClosenessCentrality},
+  eigenvector: {id: "eigenvector", label: "Eigenvector Centrality", calculate: calculateEigenvectorCentrality},
+  pagerank: {id: "pagerank", label: "PageRank", calculate: calculatePageRank},
+};
+
+/**
+ *  GLL configuration parameters
+ */
+
+// Determines if filter sliders should be hidden when the minimum and maximum values are identical
 const HIDE_SLIDERS_WITH_SAME_MIN_MAX_VALUES = true;
+
+// Specifies the slider step size for integer-based properties
 const FILTER_STEP_SIZE_INTEGER = 1;
+
+// Specifies the slider step size for float-based properties
 const FILTER_STEP_SIZE_FLOAT = 0.000001;
-const FILTER_VISUAL_FLOAT_PRECISION = 3;  // used in slider thumbs and tooltips; in the back, full float is used
-const FILTERS_ACTIVE_PER_DEFAULT = false;
+
+// Specifies the slider thumb- and tooltip-values (only visually); internally, the full float precision is used
+const FILTER_VISUAL_FLOAT_PRECISION = 3;
+
+// If true, filters in the side-panel are sorted alphabetically
 const SORT_FILTERS = false;
+
+// If true, filters in the tooltips are sorted alphabetically
 const SORT_TOOLTIPS = true;
-const TOOLTIP_LINE_BREAK = 20;
+
+// Maximum tooltip columns
+const TOOLTIP_MAX_COLUMNS = 1;
+
+// If true, properties with null (empty) values are not displayed in tooltips
 const TOOLTIP_HIDE_NULL_VALUES = false;
+
+// Node count threshold beyond which labels and hover effects are disabled to keep the application responsive
 const MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT = 300;
 
+// If true, bubble groups avoid all non-bubble group members per default
 const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
-const SHOW_NODE_OR_EDGE_PROPERTY_SPECIFIC_STYLE_BUTTON = false;
 
+// Maximum capacity of selection memory
+const MAX_SELECTION_MEMORY = 10;
+
+const NODE_CONNECTIVITY_METRICS_PRECISION = 4;
+
+/**
+ *  Excel-model import related properties
+ */
+
+// Header automatically assigned to properties without a group definition
+const EXCEL_UNCATEGORIZED_SUBHEADER = "Uncategorized Properties";
+
+// Node filter header
+const EXCEL_NODE_HEADER = "Node filters";
+
+// Edge filter header
+const EXCEL_EDGE_HEADER = "Edge filters";
+
+// The following constants define the columns in the Excel template for mapping node and edge properties
+// allowed types: "str", "num", "bool", "rgba", "oneOf:a|b|c"
+// @formatter:off
+const EXCEL_NODE_PROPERTIES = [
+  {column: "ID", type: "str", required: true},
+  {column: "Label", type: "str", apply: (n, v) => {
+    n.label = v;
+    n.style.label = false;
+    n.style.labelText = v;
+    n.style.labelFontSize = DEFAULTS.NODE.FONT_SIZE;
+    n.style.labelFill = DEFAULTS.NODE.FOREGROUND_COLOR;
+    n.style.labelBackground = DEFAULTS.NODE.BACKGROUND;
+    n.style.labelBackgroundFill = DEFAULTS.NODE.BACKGROUND_COLOR;
+    n.style.labelPlacement = DEFAULTS.NODE.PLACEMENT;
+  }},
+  {column: "Label Font Size", type: "num", apply: (n, v) => {n.style.labelFontSize = v; }},
+  {
+    column: "Label Placement",
+    type: "oneOf:left|right|top|bottom|left-top|left-bottom|right-top|right-bottom|top-left|top-right|bottom-left|"
+      + "bottom-right|center",
+    apply: (n, v) => {n.style.labelPlacement = v; }
+  },
+  {column: "Label Color", type: "rgba", apply: (n, v) => {n.style.labelFill = v; }},
+  {column: "Label Background Color", type: "rgba", apply: (n, v) => {
+    n.style.labelBackground = true;
+    n.style.labelBackgroundFill = v;
+  }},
+  {column: "Description", type: "str", apply: (n, v) => {n.description = v; }},
+  {column: "Shape", type: "oneOf:circle|diamond|hexagon|rect|triangle|star", apply: (n, v) => {n.type = v; }},
+  {column: "Size", type: "num", apply: (n, v) => {n.style.size = v; }},
+  {column: "Fill Color", type: "rgba", apply: (n, v) => {n.style.fill = v; }},
+  {column: "Border Color", type: "rgba", apply: (n, v) => {n.style.stroke = v; }},
+  {column: "Border Size", type: "num", apply: (n, v) => {n.style.lineWidth = v; }},
+  {column: "X Coordinate", type: "num", apply: (n, v) => {n.style.x = v; }},
+  {column: "Y Coordinate", type: "num", apply: (n, v) => {n.style.y = v; }},
+];
+
+const EXCEL_EDGE_PROPERTIES = [
+  {column: "Source ID", type: "str", required: true},
+  {column: "Target ID", type: "str", required: true},
+  {column: "Label", type: "str", apply: (e, v) => {
+    e.label = v;
+    e.style.label = false;
+    e.style.labelText = v;
+    e.style.labelFontSize = DEFAULTS.EDGE.LABEL.FONT_SIZE;
+    e.style.labelFill = DEFAULTS.EDGE.LABEL.FOREGROUND_COLOR;
+    e.style.labelPlacement = DEFAULTS.EDGE.LABEL.PLACEMENT;
+    e.style.labelAutoRotate = DEFAULTS.EDGE.LABEL.AUTO_ROTATE;
+    e.style.labelBackground = DEFAULTS.EDGE.LABEL.BACKGROUND;
+    e.style.labelBackgroundFill = DEFAULTS.EDGE.LABEL.BACKGROUND_COLOR;
+  }},
+  {column: "Label Font Size", type: "num", apply: (e, v) => {e.style.labelFontSize = v; }},
+  {column: "Label Placement", type: "oneOf:start|center|end", apply: (e, v) => {e.style.labelPlacement = v; }},
+  {column: "Label Color", type: "rgba", apply: (e, v) => {e.style.labelFill = v; }},
+  {column: "Label Background Color", type: "rgba", apply: (e, v) => {
+    e.style.labelBackground = true;
+    e.style.labelBackgroundFill = v;
+  }},
+  {column: "Label Offset X", type: "num", apply: (e, v) => {e.style.labelOffsetX = v; }},
+  {column: "Label Offset Y", type: "num", apply: (e, v) => {e.style.labelOffsetY = v; }},
+  {column: "Label Auto Rotate", type: "bool", apply: (e, v) => {e.style.labelAutoRotate = v; }},
+  {column: "Color", type: "rgba", apply: (e, v) => {e.style.stroke = v; }},
+  {column: "Line Width", type: "num", apply: (e, v) => {e.style.lineWidth = v; }},
+  {column: "Line Dash", type: "num", apply: (e, v) => {e.style.lineDash = v; }},
+  {column: "Type", type: "oneOf:line|cubic|quadratic|polyline", apply: (e, v) => {e.type = v; }},
+  {column: "Start Arrow", type: "bool", apply: (e, v) => {e.startArrow = v; }},
+  {column: "Start Arrow Size", type: "num", apply: (e, v) => {e.startArrowSize = v; }},
+  {column: "Start Arrow Type", type: "oneOf:triangle|circle|diamond|vee|rect|triangleRect|simple",
+    apply: (e, v) => {e.startArrowType = v; }
+  },
+  {column: "End Arrow", type: "bool", apply: (e, v) => {e.endArrow = v; }},
+  {column: "End Arrow Size", type: "num", apply: (e, v) => {e.endArrowSize = v; }},
+  {column: "End Arrow Type", type: "oneOf:triangle|circle|diamond|vee|rect|triangleRect|simple",
+    apply: (e, v) => { e.endArrowType = v; }
+  },
+  {column: "Halo Color", type: "rgba", apply: (e, v) => {
+    e.style.halo = true;
+    e.style.haloStroke = v;
+  }},
+  {column: "Halo Width", type: "num", apply: (e, v) => {e.style.haloLineWidth = v; }},
+];
+// @formatter:on
+
+/**
+ * Defaults for the graph, layouts and UI
+ */
 const DEFAULTS = {
   NODE: {
-    COLOR: "#C33D35", SIZE: 20, TYPE: "hexagon"
+    FILL_COLOR: "#C33D35", SIZE: 20, LINE_WIDTH: 1, TYPE: "hexagon", STROKE_COLOR: null,
+    BADGE: {
+      FONT_SIZE: 8, COLOR: "#C33D35"
+    },
+    LABEL: {
+      FOREGROUND_COLOR: "#000000", BACKGROUND: false, BACKGROUND_COLOR: null, BACKGROUND_RADIUS: 5,
+      PADDING: 2, PLACEMENT: "bottom", FONT_SIZE: 12, CURSOR: "default", LINE_SPACING: 0, MAX_LINES: 1,
+      MAX_WIDTH: "200%", TEXT_ALIGN: "middle", WORD_WRAP: false, Z_INDEX: 0, OFFSET_X: 0, OFFSET_Y: 0,
+    },
   },
   EDGE: {
-    COLOR: "#403C5390", LINE_WIDTH: 0.75, TYPE: "line", ARROWS: {START: false, END: false}
+    COLOR: "#403C5390", LINE_WIDTH: 0.75, LINE_DASH: 0, TYPE: "line",
+    ARROWS: {START: false, END: false, START_SIZE: 8, START_TYPE: "triangle", END_SIZE: 8, END_TYPE: "triangle"},
+    LABEL: {
+      TEXT: null, FOREGROUND_COLOR: "#000000", BACKGROUND: false, BACKGROUND_COLOR: null,
+      BACKGROUND_CURSOR: "default", BACKGROUND_FILL_OPACITY: 1, BACKGROUND_RADIUS: 0, BACKGROUND_STROKE_OPACITY: 1,
+      CURSOR: "default", FILL_OPACITY: 1, FONT_WEIGHT: "normal", MAX_LINES: 1, MAX_WIDTH: "80%", PADDING: 0,
+      PLACEMENT: "center", FONT_SIZE: 12, AUTO_ROTATE: false, OFFSET_X: 4, OFFSET_Y: 0, TEXT_ALIGN: "left",
+      TEXT_BASE_LINE: "middle", TEXT_OVERFLOW: "ellipsis", VISIBILITY: "visible", WORD_WRAP: false, OPACITY: 1,
+    },
+    HALO: {
+      ENABLED: false, COLOR: "#403C53", WIDTH: 3,
+    }
   },
   LAYOUT: "force",
   LAYOUT_INTERNALS: {
     "force": {gravity: 10},
-    "fruchterman": {gravity: 5, speed: 5, clustering: true, nodeClusterBy: 'cluster', clusterGravity: 16},
+    // "fruchterman": {gravity: 5, speed: 5, clustering: true, nodeClusterBy: 'cluster', clusterGravity: 16},
     // "antv-dagre": {nodesep: 100, ranksep: 70, controlPoints: true},
     "circular": {startRadius: 10, endRadius: 300},
     "radial": {direction: "LR", nodeSize: 32, unitRadius: 100, linkDistance: 200},
@@ -50,47 +264,1014 @@ const DEFAULTS = {
   STYLES: {
     NODE_FORM: {"●": "circle", "◆": "diamond", "⬢": "hexagon", "■": "rect", "▲": "triangle", "★": "star"},
     NODE_COLORS: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD"},
-    NODE_SIZES: {sm: 15, md: 25, lg: 35, xlg: 50},
+    NODE_SIZES: {s: 15, m: 25, l: 35, xl: 50},
     NODE_BORDER_COLORS: {
       red: "#C33D35",
       purple: "#403C53",
       blue: "#8CA6D9",
       pink: "#EFB0AA",
       grey: "#ABACBD",
-      transparent: "#00000000"
+      none: "#00000000"
     },
     NODE_BORDER_SIZES: {sm: 0.5, md: 1, lg: 2, xlg: 4},
-    NODE_LABEL_SIZES: {sm: 10, md: 12, lg: 14, xlg: 20},
+    NODE_LABEL_FONT_SIZES: {sm: 10, md: 12, lg: 14, xlg: 20},
+    NODE_LABEL_COLORS: {black: "#000000", red: "#C33D35", purple: "#403C53", grey: "#ABACBD"},
+    NODE_LABEL_PLACEMENTS: ["left", "right", "top", "bottom", "left-top", "left-bottom", "right-top", "right-bottom", "top-left", "top-right", "bottom-left", "bottom-right", "center"],
+    NODE_LABEL_BACKGROUND_COLORS: {
+      red: "#C33D35",
+      purple: "#403C53",
+      blue: "#8CA6D9",
+      pink: "#EFB0AA",
+      grey: "#ABACBD",
+      none: "#00000000"
+    },
     NODE_BADGE_PLACEMENTS: ["left", "right", "top", "bottom", "left-top", "left-bottom", "right-top", "right-bottom", "top-left", "top-right", "bottom-left", "bottom-right"],
-    NODE_BADGE_DEFAULT_COLOR: "#C33D35",
+    EDGE_TYPES: ["line", "cubic", "quadratic", "polyline"],
     EDGE_COLORS: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD"},
-    EDGE_WIDTHS: {sm: 0.5, md: 0.75, lg: 1, xlg: 3},
+    // EDGE_WIDTHS: {sm: 0.5, md: 0.75, lg: 1, xlg: 3},
     EDGE_DASHS: {none: 0, dashed: 10},
+    EDGE_LABEL_FONT_SIZES: {sm: 8, md: 12, lg: 16},
+    EDGE_LABEL_PLACEMENTS: ["start", "center", "end"],
+    EDGE_LABEL_COLORS: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD"},
+    EDGE_LABEL_BACKGROUND_COLORS: {
+      red: "#C33D35",
+      purple: "#403C53",
+      blue: "#8CA6D9",
+      pink: "#EFB0AA",
+      grey: "#ABACBD"
+    },
+    EDGE_LABEL_OFFSET_X: {"-25": -25, "0": 0, "25": 25},
+    EDGE_LABEL_OFFSET_Y: {"-25": -25, "0": 0, "25": 25},
+    // EDGE_LABEL_AUTOROTATE: {enable: true, disable: false},
+    // EDGE_ARROW_SIZES: {sm: 8, md: 10, lg: 14},
+    EDGE_ARROW_TYPES: ["triangle", "circle", "diamond", "vee", "rect", "triangleRect", "simple"],
     EDGE_HALO: {enable: true, disable: false},
-    EDGE_HALO_STROKE: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD"},
-    EDGE_HALO_WIDTH: {sm: 2, md: 3, lg: 4, xlg: 6},
-  }
+    EDGE_HALO_STROKE: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9"},
+    EDGE_HALO_WIDTH: {sm: 2, md: 3, lg: 5},
+  },
+  FILTER_STRATEGY: "OR",
 };
 
-function createDefaultLayout(key) {
-  if (data?.layouts?.[key]) {
-    alert("Layout with key '" + key + "' already exists.");
-    return false;
+const STATES = {
+  BEFORE_DRAW_RUNNING: false,
+  DRAG_END_RUNNING: false,
+  AFTER_DRAW_RUNNNING: false,
+  BEFORE_RENDER_RUNNING: false,
+  AFTER_RENDER_RUNNING: false,
+  ONCE_AFTER_RENDER_RUNNING: false,
+  INITIAL_RENDER_DONE: false
+}
+
+
+class NetworkMetrics {
+  constructor() {
+    this.selected = 'centrality';
+    this.multiselect = null;
+    this.table = null;
+    this.m = metrics;
+    this.collapsed = false;
+
+    this.selectBtns = {
+      'Add to Selection': async () => this.updateSelectedNodes(true),
+      'Remove from Selection': async () => this.updateSelectedNodes(false)
+    };
   }
 
+  toggleUI() {
+    const panel = document.getElementById('networkMetricsContainer');
+    const willOpen = panel.classList.toggle('open');
+    const fullHeight = panel.scrollHeight + 'px';
+    panel.style.maxHeight = fullHeight;
+
+    const btn = document.getElementById('metricsToggleBtn');
+
+    requestAnimationFrame(() => {
+      panel.style.maxHeight = willOpen ? fullHeight : '0';
+    });
+
+    if (willOpen) {
+      panel.addEventListener(
+        'transitionend',
+        () => (panel.style.maxHeight = 'none'),
+        {once: true}
+      );
+      btn.classList.add("highlight");
+    } else {
+      btn.classList.remove("highlight");
+    }
+
+    this.collapsed = !willOpen;
+  }
+
+  updateUI() {
+    const metricResult = this.m[this.selected]?.calculate();
+
+    /* multiselect */
+    this.multiselect.innerHTML = '';
+    for (const ns of metricResult.scores) {
+      const opt = document.createElement('option');
+      opt.value = ns.id;
+      opt.textContent = ns.text;
+      this.multiselect.appendChild(opt);
+    }
+
+    /* graph-level table */
+    this.table.innerHTML = '';
+    Object.entries(metricResult.graphLevelMetrics).forEach(([label, value]) => {
+      const row        = document.createElement('tr');
+      const labelCell  = document.createElement('td');
+      labelCell.textContent = label;
+      const valueCell  = document.createElement('td');
+      valueCell.textContent = `${value}`;
+      row.append(labelCell, valueCell);
+      this.table.appendChild(row);
+    });
+
+    /* tooltip */
+    document.getElementById("metricInfoBtn").onclick = () => {
+      cache.popup = new Popup(metricResult.popupContent);
+    };
+  }
+
+  buildUI() {
+    const container = document.createElement('div');
+    container.className = 'nw-root';
+    container.id = 'networkMetricsContainer';
+
+    const div = document.createElement('div');
+    div.className = 'nw-div';
+
+    /* header ------------------------------------------------------- */
+    const header = document.createElement('h3');
+    header.textContent = 'Network Metrics';
+    div.appendChild(header);
+
+    /* metric dropdown --------------------------------------------- */
+    const dropdownContainer = document.createElement("div");
+    dropdownContainer.className = "nw-metric-select-container";
+
+    const dropdown = document.createElement('select');
+    dropdown.className = 'nw-metric-select';
+    Object.values(this.m).forEach(metric => {
+      const opt = document.createElement('option');
+      opt.value = metric.id;
+      opt.textContent = metric.label;
+      opt.selected = metric.id === this.selected;
+      dropdown.appendChild(opt);
+    });
+    dropdown.addEventListener('change', e => {
+      this.selected = e.target.value;
+      this.updateUI();
+    });
+    dropdownContainer.appendChild(dropdown);
+
+    const infoBtn = document.createElement("button");
+    infoBtn.className = "info-btn";
+    infoBtn.textContent = "🛈";
+    infoBtn.id = "metricInfoBtn";
+    dropdownContainer.appendChild(infoBtn);
+    div.append(dropdownContainer);
+
+    /* node multiselect -------------------------------------------- */
+    this.multiselect = document.createElement('select');
+    this.multiselect.className = 'nw-node-multiselect';
+    this.multiselect.multiple = true;
+    this.multiselect.id = 'metricsMultiselect';
+    div.appendChild(this.multiselect);
+
+    /* buttons ------------------------------------------------------ */
+    const buttonRow = document.createElement('div');
+    Object.entries(this.selectBtns).forEach(([text, cb]) => {
+      const btn = document.createElement('button');
+      btn.textContent = text;
+      btn.className = 'nw-button';
+      btn.onclick = cb;
+      buttonRow.appendChild(btn);
+    });
+    div.appendChild(buttonRow);
+
+    div.appendChild(document.createElement('hr'));
+
+    /* graph-level metrics table ------------------------------------ */
+    const tHeader = document.createElement('p');
+    tHeader.className = 'nw-subheader';
+    tHeader.textContent = 'Graph Level Metrics';
+    div.appendChild(tHeader);
+
+    this.table = document.createElement('table');
+    this.table.className = 'nw-graph-metrics-table';
+    div.appendChild(this.table);
+
+    div.appendChild(document.createElement('hr'));
+
+    container.appendChild(div);
+    return container;
+  }
+
+  async updateSelectedNodes(add) {
+    const ids = Array.from(
+      this.multiselect.selectedOptions,
+      opt => opt.value
+    );
+    if (ids.length) {
+      const nodeData = await graph.getNodeData(ids);
+      await updateSelectedState(nodeData, add);
+    }
+  }
+}
+
+function calculateDegreeCentrality() {
+  const {nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef} = cache;
+
+  const n = nodes.size;
+  if (n === 0) {
+    return {scores: [], graphLevelMetrics: {}};
+  }
+
+  // 1. Degree accumulation
+  const degree = new Map();
+  for (const id of nodes) degree.set(id, 0);
+
+  for (const edgeId of edges) {
+    const {source, target} = edgeRef.get(edgeId);
+    if (degree.has(source)) degree.set(source, degree.get(source) + 1);
+    if (degree.has(target)) degree.set(target, degree.get(target) + 1);
+  }
+
+  // 2. Centrality + statistics
+  const scores = [];
+  let sum = 0, min = Infinity, max = -Infinity;
+
+  for (const [id, d] of degree) {
+    const c = d / (n - 1);                // Freeman degree centrality
+    scores.push({id, degree: d, centrality: c});
+    sum += c;
+    if (c < min) min = c;
+    if (c > max) max = c;
+  }
+
+  scores.sort((a, b) => b.centrality - a.centrality);
+  const median = scores[Math.floor(n / 2)].centrality;
+  const mean = sum / n;
+
+  // Freeman network centralization (undirected)
+  const centralization = (n > 2)
+    ? scores.reduce((acc, s) => acc + (max - s.centrality), 0) /
+    ((n - 1) * (n - 2))
+    : 0;
+
+  return {
+    scores: scores.map(s => ({
+      id: s.id,
+      text: `${s.id} | Degree ${s.degree} | Centrality ${s.centrality.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.centrality / max) * 100)} %)`
+    })),
+    graphLevelMetrics: {
+      "Maximum Degree Centrality": max * (n - 1),
+      "Minimum Degree Centrality": min * (n - 1),
+      "Average Degree Centrality": +(mean * (n - 1)).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Median Degree": +(median * (n - 1)).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Graph Density": +(sum / n).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Centralization": +centralization.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
+    },
+    popupContent: `<div>
+<h1>Degree Centrality</h1>
+<hr>
+<p>Degree centrality is a measure of the number of connections a node has in a network.
+Nodes with more connections are considered more central and receive a higher score (up to 1.0).
+<a href="https://doi.org/10.2307%2F3033543">Freeman, 1977</a>
+</p>
+<svg width="300" height="200" viewBox="0 0 300 200">
+  <!-- Edges (drawn first so they appear behind nodes) -->
+  <!-- Central node (3) connections -->
+  <line x1="150" y1="100" x2="50" y2="50" stroke="#666" stroke-width="2"/>
+  <line x1="150" y1="100" x2="250" y2="50" stroke="#666" stroke-width="2"/>
+  <line x1="150" y1="100" x2="50" y2="150" stroke="#666" stroke-width="2"/>
+  <line x1="150" y1="100" x2="250" y2="150" stroke="#666" stroke-width="2"/>
+  
+  <!-- Nodes -->
+  <!-- Central node with degree 4 -->
+  <circle cx="150" cy="100" r="25" fill="#C33D35"/>
+  <text x="150" y="105" text-anchor="middle" fill="white" font-size="14">4</text>
+  
+  <!-- End nodes (degree 1) -->
+  <circle cx="50" cy="50" r="20" fill="#403C53"/>
+  <text x="50" y="55" text-anchor="middle" fill="white" font-size="14">1</text>
+  
+  <circle cx="250" cy="50" r="20" fill="#403C53"/>
+  <text x="250" y="55" text-anchor="middle" fill="white" font-size="14">1</text>
+  
+  <circle cx="50" cy="150" r="20" fill="#403C53"/>
+  <text x="50" y="155" text-anchor="middle" fill="white" font-size="14">1</text>
+  
+  <circle cx="250" cy="150" r="20" fill="#403C53"/>
+  <text x="250" y="155" text-anchor="middle" fill="white" font-size="14">1</text>
+</svg>
+<hr>
+<p><strong>Degree Centrality:</strong> Normalised number of neighbours a node possesses.</p>
+<p><strong>Graph Density:</strong> Fraction of realised edges out of all possible edges (0&nbsp;–&nbsp;1).</p>
+<p><strong>Centralization:</strong> Freeman degree-centralization — how strongly the network is dominated by its most connected node (0&nbsp;=&nbsp;even, 1&nbsp;=&nbsp;perfect star).</p>
+</div>`
+  };
+}
+
+function calculateBetweennessCentrality() {
+  const {nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef} = cache;
+
+  const n = nodes.size;
+  if (n === 0) {
+    return {scores: [], graphLevelMetrics: {}};
+  }
+
+  function findShortestPaths(start, end, adjacencyMap) {
+    const paths = [];
+    const visited = new Set();
+    const queue = [[start]];
+    let shortestLength = Infinity;
+
+    while (queue.length > 0) {
+      const path = queue.shift();
+      const node = path[path.length - 1];
+
+      if (path.length > shortestLength) continue;
+
+      if (node === end) {
+        shortestLength = path.length;
+        paths.push(path);
+        continue;
+      }
+
+      for (const neighbor of adjacencyMap.get(node)) {
+        if (!path.includes(neighbor)) {
+          queue.push([...path, neighbor]);
+        }
+      }
+    }
+
+    return paths;
+  }
+
+  const adjacencyMap = new Map();
+  for (const id of nodes) adjacencyMap.set(id, new Set());
+
+  for (const edgeId of edges) {
+    const {source, target} = edgeRef.get(edgeId);
+    if (adjacencyMap.has(source)) adjacencyMap.get(source).add(target);
+    if (adjacencyMap.has(target)) adjacencyMap.get(target).add(source);
+  }
+
+  const betweenness = new Map();
+  for (const id of nodes) betweenness.set(id, 0);
+
+  // For each pair of nodes
+  const nodeArray = Array.from(nodes);
+  for (let i = 0; i < nodeArray.length; i++) {
+    for (let j = i + 1; j < nodeArray.length; j++) {
+      const start = nodeArray[i];
+      const end = nodeArray[j];
+
+      // Find shortest paths using BFS
+      const paths = findShortestPaths(start, end, adjacencyMap);
+      if (paths.length === 0) continue;
+
+      // For each node that appears in shortest paths
+      const intermediateNodes = new Map();
+      for (const path of paths) {
+        for (let k = 1; k < path.length - 1; k++) {
+          const node = path[k];
+          intermediateNodes.set(node, (intermediateNodes.get(node) || 0) + 1 / paths.length);
+        }
+      }
+
+      // Add to betweenness scores
+      for (const [node, count] of intermediateNodes) {
+        betweenness.set(node, betweenness.get(node) + count);
+      }
+    }
+  }
+
+  // 3. Normalize scores and prepare results
+  const scores = [];
+  let max = -Infinity;
+  const normalizationFactor = ((n - 1) * (n - 2)) / 2; // Maximum possible betweenness
+
+  for (const [id, score] of betweenness) {
+    const normalizedScore = score / normalizationFactor;
+    scores.push({id, score: normalizedScore});
+    if (normalizedScore > max) max = normalizedScore;
+  }
+
+  scores.sort((a, b) => b.score - a.score);
+
+  // graph level metrics
+  const centralityValues = scores.map(s => s.score);
+  const sum = centralityValues.reduce((a, b) => a + b, 0);
+  const mean = sum / n;
+  const min = Math.min(...centralityValues);
+  const centralization = scores.reduce((acc, s) => acc + (max - s.score), 0) / ((n - 1) * (n - 2) / 2);
+
+  return {
+    scores: scores.map(s => ({
+      id: s.id,
+      text: `${s.id} | Score: ${s.score.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.score / max) * 100)}%)`
+    })),
+    graphLevelMetrics: {
+      "Maximum Betweenness Centrality": +max.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Minimum Betweenness Centrality": +min.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Average Betweenness Centrality": +mean.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Centralization": +centralization.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+    },
+    popupContent: `<div>
+<h1>Betweenness Centrality</h1>
+<hr>
+<p>Betweenness centrality measures how often a node acts as a bridge along the shortest path between two other nodes.
+Nodes with high betweenness centrality are important controllers of information flow in the network.
+<a href="https://doi.org/10.2307%2F3033543">Freeman, 1977</a>
+</p>
+<svg width="300" height="200" viewBox="0 0 300 200">
+  <!-- Edges -->
+  <line x1="50" y1="100" x2="150" y2="100" stroke="#666" stroke-width="2"/>
+  <line x1="150" y1="100" x2="250" y2="100" stroke="#666" stroke-width="2"/>
+  <line x1="150" y1="100" x2="150" y2="50" stroke="#666" stroke-width="2"/>
+  <line x1="150" y1="100" x2="150" y2="150" stroke="#666" stroke-width="2"/>
+  
+  <!-- Nodes -->
+  <circle cx="150" cy="100" r="25" fill="#C33D35"/> <!-- Bridge node -->
+  <text x="150" y="105" text-anchor="middle" fill="white" font-size="14">1.0</text>
+  
+  <circle cx="50" cy="100" r="20" fill="#403C53"/>
+  <text x="50" y="105" text-anchor="middle" fill="white" font-size="14">0</text>
+  
+  <circle cx="250" cy="100" r="20" fill="#403C53"/>
+  <text x="250" y="105" text-anchor="middle" fill="white" font-size="14">0</text>
+  
+  <circle cx="150" cy="50" r="20" fill="#403C53"/>
+  <text x="150" y="55" text-anchor="middle" fill="white" font-size="14">0</text>
+  
+  <circle cx="150" cy="150" r="20" fill="#403C53"/>
+  <text x="150" y="155" text-anchor="middle" fill="white" font-size="14">0</text>
+</svg>
+<hr>
+<p><strong>Centralization:</strong> 0 when paths are evenly shared, 1 when a single hub monopolises shortest paths (star-like topology).</p>
+</div>`
+  };
+}
+
+function calculateClosenessCentrality() {
+  const {nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef} = cache;
+
+  const n = nodes.size;
+  if (n === 0) return {scores: [], graphLevelMetrics: {}};
+
+  // Build adjacency list
+  const graphMap = new Map();
+  for (const id of nodes) graphMap.set(id, new Set());
+
+  for (const edgeId of edges) {
+    const {source, target} = edgeRef.get(edgeId);
+    if (graphMap.has(source) && graphMap.has(target)) {
+      graphMap.get(source).add(target);
+      graphMap.get(target).add(source);
+    }
+  }
+
+  // Calculate shortest paths using BFS
+  function bfs(start) {
+    const distances = new Map();
+    const queue = [[start, 0]];
+    distances.set(start, 0);
+
+    while (queue.length > 0) {
+      const [node, dist] = queue.shift();
+      for (const neighbor of graphMap.get(node)) {
+        if (!distances.has(neighbor)) {
+          distances.set(neighbor, dist + 1);
+          queue.push([neighbor, dist + 1]);
+        }
+      }
+    }
+    return distances;
+  }
+
+  const scores = [];
+  let sum = 0, min = Infinity, max = -Infinity;
+
+  for (const nodeId of nodes) {
+    const distances = bfs(nodeId);
+    const totalDistance = Array.from(distances.values()).reduce((a, b) => a + b, 0);
+    const closeness = distances.size === n ? (n - 1) / totalDistance : 0;
+
+    scores.push({id: nodeId, closeness});
+    sum += closeness;
+    if (closeness < min) min = closeness;
+    if (closeness > max) max = closeness;
+  }
+
+  scores.sort((a, b) => b.closeness - a.closeness);
+  const mean = sum / n;
+
+  return {
+    scores: scores.map(s => ({
+      id: s.id,
+      text: `${s.id} | Score: ${s.closeness.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.closeness / max) * 100)}%)`
+    })),
+    graphLevelMetrics: {
+      "Maximum Closeness Centrality": +max.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Minimum Closeness Centrality": +min.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Average Closeness Centrality": +mean.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Centralization": +((n * max - sum) / ((n - 1) * (n - 2) / (2 * n - 3))).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
+    },
+    popupContent: `<div>
+<h1>Closeness Centrality</h1>
+<hr>
+<p>Closeness centrality measures how near a node is to all others via shortest paths. A higher score (up to 1.0)
+ indicates shorter average distance to every node.  
+<a href="https://psycnet.apa.org/doi/10.1121/1.1906679">Bavelas, 1950</a>
+</p>
+<svg width="300" height="200" viewBox="0 0 300 200">
+  <line x1="150" y1="100" x2="75" y2="100" stroke="#666" stroke-width="2"/>
+  <line x1="150" y1="100" x2="225" y2="100" stroke="#666" stroke-width="2"/>
+  <line x1="75" y1="100" x2="75" y2="150" stroke="#666" stroke-width="2"/>
+  <line x1="225" y1="100" x2="225" y2="150" stroke="#666" stroke-width="2"/>
+  
+  <circle cx="150" cy="100" r="25" fill="#C33D35"/>
+  <text x="150" y="105" text-anchor="middle" fill="white" font-size="14">1.0</text>
+  
+  <circle cx="75" cy="100" r="20" fill="#403C53"/>
+  <text x="75" y="105" text-anchor="middle" fill="white" font-size="14">0.6</text>
+  
+  <circle cx="225" cy="100" r="20" fill="#403C53"/>
+  <text x="225" y="105" text-anchor="middle" fill="white" font-size="14">0.6</text>
+  
+  <circle cx="75" cy="150" r="20" fill="#403C53"/>
+  <text x="75" y="155" text-anchor="middle" fill="white" font-size="14">0.4</text>
+  
+  <circle cx="225" cy="150" r="20" fill="#403C53"/>
+  <text x="225" y="155" text-anchor="middle" fill="white" font-size="14">0.4</text>
+</svg>
+<hr>
+<p>
+<strong>Centralization:</strong> Freeman closeness-centralization — degree to which one node is, on average, closer to all others than the rest of the network.
+</p>
+</div>`
+  };
+}
+
+function calculateEigenvectorCentrality() {
+  const {nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef} = cache;
+
+  const n = nodes.size;
+  if (n === 0) return {scores: [], graphLevelMetrics: {}};
+
+  // Initialize adjacency matrix and eigenvector
+  const matrix = Array(n).fill().map(() => Array(n).fill(0));
+  const nodeArray = Array.from(nodes);
+  const nodeIndex = new Map(nodeArray.map((id, i) => [id, i]));
+
+  // Build adjacency matrix
+  for (const edgeId of edges) {
+    const {source, target} = edgeRef.get(edgeId);
+    if (nodeIndex.has(source) && nodeIndex.has(target)) {
+      const i = nodeIndex.get(source), j = nodeIndex.get(target);
+      matrix[i][j] = matrix[j][i] = 1;
+    }
+  }
+
+  // Power iteration method
+  let eigenVector = Array(n).fill(1/n);
+  let prevEigenVector;
+  const maxIterations = 100;
+  const tolerance = 1e-6;
+
+  for (let iter = 0; iter < maxIterations; iter++) {
+    prevEigenVector = [...eigenVector];
+    eigenVector = Array(n).fill(0);
+
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        eigenVector[i] += matrix[i][j] * prevEigenVector[j];
+      }
+    }
+
+    // Normalize
+    const norm = Math.sqrt(eigenVector.reduce((sum, x) => sum + x * x, 0));
+    eigenVector = eigenVector.map(x => x / norm);
+
+    // Check convergence
+    if (eigenVector.every((x, i) => Math.abs(x - prevEigenVector[i]) < tolerance)) break;
+  }
+
+  // Prepare scores
+  const scores = eigenVector.map((score, i) => ({
+    id: nodeArray[i],
+    centrality: score
+  }));
+
+  scores.sort((a, b) => b.centrality - a.centrality);
+  const max = scores[0].centrality;
+  const min = scores[scores.length - 1].centrality;
+
+  const mean = eigenVector.reduce((a, b) => a + b) / n;
+  const variance = eigenVector.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n;
+
+  return {
+    scores: scores.map(s => ({
+      id: s.id,
+      text: `${s.id} | Score: ${s.centrality.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.centrality / max) * 100)}%)`
+    })),
+    graphLevelMetrics: {
+      "Maximum Eigenvector Centrality": +max.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Minimum Eigenvector Centrality": +min.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Average Eigenvector Centrality": +mean.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Variance Eigenvector Centrality": +variance.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Centralization": +(scores.reduce((acc, s) => acc + (max - s.centrality), 0) / (n - 1)).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
+    },
+    popupContent: `<div>
+<h1>Eigenvector Centrality</h1>
+<hr>
+<p>Eigenvector centrality scores nodes by connecting to other high-scoring nodes: 
+links to influential neighbours matter more than links to peripheral ones.
+<a href="https://doi.org/10.1093/oso/9780198805090.003.0006">Newman, 2010</a>
+</p>
+<p>
+<strong>Parameters:</strong>
+<ul>
+  <li>Tolerance: 1e-6</li>
+  <li>Max iterations: 100</li>
+</ul>
+</p>
+<svg width="300" height="200" viewBox="0 0 300 200">
+  <line x1="150" y1="100" x2="50" y2="50" stroke="#666" stroke-width="2"/>
+  <line x1="150" y1="100" x2="250" y2="50" stroke="#666" stroke-width="2"/>
+  <line x1="250" y1="50" x2="250" y2="150" stroke="#666" stroke-width="2"/>
+  <line x1="50" y1="50" x2="50" y2="150" stroke="#666" stroke-width="2"/>
+  
+  <circle cx="150" cy="100" r="25" fill="#C33D35"/>
+  <text x="150" y="105" text-anchor="middle" fill="white" font-size="14">1.00</text>
+  
+  <circle cx="50" cy="50" r="20" fill="#403C53"/>
+  <text x="50" y="55" text-anchor="middle" fill="white" font-size="12">0.52</text>
+  
+  <circle cx="250" cy="50" r="20" fill="#403C53"/>
+  <text x="250" y="55" text-anchor="middle" fill="white" font-size="12">0.52</text>
+  
+  <circle cx="50" cy="150" r="20" fill="#666"/>
+  <text x="50" y="155" text-anchor="middle" fill="white" font-size="12">0.27</text>
+  
+  <circle cx="250" cy="150" r="20" fill="#666"/>
+  <text x="250" y="155" text-anchor="middle" fill="white" font-size="12">0.27</text>
+</svg>
+<hr>
+<p><strong>Centralization:</strong> Measures how much the network centrality is dominated by a single node.</p>
+</div>`
+
+  };
+}
+
+function calculatePageRank() {
+  const {nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef} = cache;
+
+  const n = nodes.size;
+  if (n === 0) return {scores: [], graphLevelMetrics: {}};
+
+  const nodeArray = Array.from(nodes);
+  const nodeIndex = new Map(nodeArray.map((id, i) => [id, i]));
+  const matrix = Array(n).fill().map(() => Array(n).fill(0));
+  const outDegrees = Array(n).fill(0);
+
+  for (const edgeId of edges) {
+    const {source, target} = edgeRef.get(edgeId);
+    if (nodeIndex.has(source) && nodeIndex.has(target)) {
+      const i = nodeIndex.get(source), j = nodeIndex.get(target);
+      matrix[j][i] = 1;
+      outDegrees[i]++;
+    }
+  }
+
+  for (let i = 0; i < n; i++) {
+    if (outDegrees[i] > 0) {
+      for (let j = 0; j < n; j++) {
+        matrix[j][i] = matrix[j][i] / outDegrees[i];
+      }
+    } else {
+      for (let j = 0; j < n; j++) {
+        matrix[j][i] = 1/n;
+      }
+    }
+  }
+
+  const d = 0.85;
+  let scores = Array(n).fill(1/n);
+  let prevScores;
+  const maxIter = 100;
+  const tolerance = 1e-6;
+
+  for (let iter = 0; iter < maxIter; iter++) {
+    prevScores = [...scores];
+    scores = Array(n).fill((1-d)/n);
+
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        scores[i] += d * matrix[i][j] * prevScores[j];
+      }
+    }
+
+    if (scores.every((x, i) => Math.abs(x - prevScores[i]) < tolerance)) break;
+  }
+
+  const sortedScores = scores.map((score, i) => ({
+    id: nodeArray[i],
+    score
+  })).sort((a, b) => b.score - a.score);
+
+  const maxScore = sortedScores[0].score;
+  const minScore = sortedScores[sortedScores.length - 1].score;
+  const meanScore = scores.reduce((a, b) => a + b) / n;
+  const minDegree = Math.min(...outDegrees);
+  const maxDegree = Math.max(...outDegrees);
+  const avgDegree = outDegrees.reduce((a, b) => a + b) / n;
+
+  return {
+    scores: sortedScores.map(s => ({
+      id: s.id,
+      text: `${s.id} | Score: ${s.score.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.score / maxScore) * 100)}%)`
+    })),
+    graphLevelMetrics: {
+      "Maximum PageRank Score": +maxScore.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Minimum PageRank Score": +minScore.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Mean PageRank Score": +meanScore.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+      "Maximum PageRank Degree": maxDegree,
+      "Minimum PageRank Degree": minDegree,
+      "Mean PageRank Degree": +avgDegree.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
+    },
+    popupContent: `<div>
+<h1>PageRank</h1>
+<hr>
+<p>PageRank measures node importance based on the number and quality of incoming links. 
+A node is important if it receives many links from other important nodes.
+<a href="https://doi.org/10.1016/S0169-7552(98)00110-X">Brin & Page, 1998</a>
+</p>
+<svg width="300" height="300" viewBox="0 0 400 300">
+  <defs>
+    <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5"
+        markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#999"/>
+    </marker>
+  </defs>
+  
+  <!-- Directed edges -->
+  <g stroke="#999" stroke-width="2" fill="none" marker-end="url(#arrowhead)">
+    <!-- Hub node connections -->
+    <line x1="200" y1="150" x2="120" y2="100"/>
+    <line x1="200" y1="150" x2="280" y2="100"/>
+    <line x1="200" y1="150" x2="200" y2="80"/>
+    <line x1="200" y1="150" x2="120" y2="200"/>
+    <line x1="200" y1="150" x2="280" y2="200"/>
+    
+    <!-- Secondary connections -->
+    <line x1="120" y1="100" x2="200" y2="80"/>
+    <line x1="280" y1="100" x2="200" y2="80"/>
+    <line x1="120" y1="200" x2="50" y2="150"/>
+    <line x1="280" y1="200" x2="350" y2="150"/>
+    <line x1="50" y1="150" x2="120" y2="100"/>
+    <line x1="350" y1="150" x2="280" y2="100"/>
+    <line x1="120" y1="200" x2="280" y2="200"/>
+    <line x1="200" y1="80" x2="200" y2="30"/>
+    <line x1="200" y1="30" x2="280" y2="100"/>
+  </g>
+  
+  <!-- Nodes -->
+  <g>
+    <!-- Central hub -->
+    <circle cx="200" cy="150" r="25" fill="#e74c3c"/>
+    <text x="200" y="155" text-anchor="middle" fill="white" font-family="Arial" font-size="14">35%</text>
+    
+    <!-- Top tier nodes -->
+    <circle cx="200" cy="80" r="20" fill="#34495e"/>
+    <text x="200" y="85" text-anchor="middle" fill="white" font-family="Arial" font-size="12">15%</text>
+    
+    <circle cx="120" cy="100" r="20" fill="#34495e"/>
+    <text x="120" y="105" text-anchor="middle" fill="white" font-family="Arial" font-size="12">12%</text>
+    
+    <circle cx="280" cy="100" r="20" fill="#34495e"/>
+    <text x="280" y="105" text-anchor="middle" fill="white" font-family="Arial" font-size="12">12%</text>
+    
+    <!-- Secondary nodes -->
+    <circle cx="120" cy="200" r="18" fill="#7f8c8d"/>
+    <text x="120" y="205" text-anchor="middle" fill="white" font-family="Arial" font-size="11">7%</text>
+    
+    <circle cx="280" cy="200" r="18" fill="#7f8c8d"/>
+    <text x="280" y="205" text-anchor="middle" fill="white" font-family="Arial" font-size="11">7%</text>
+    
+    <circle cx="50" cy="150" r="18" fill="#7f8c8d"/>
+    <text x="50" y="155" text-anchor="middle" fill="white" font-family="Arial" font-size="11">4%</text>
+    
+    <circle cx="350" cy="150" r="18" fill="#7f8c8d"/>
+    <text x="350" y="155" text-anchor="middle" fill="white" font-family="Arial" font-size="11">4%</text>
+    
+    <!-- Top node -->
+    <circle cx="200" cy="30" r="18" fill="#7f8c8d"/>
+    <text x="200" y="35" text-anchor="middle" fill="white" font-family="Arial" font-size="11">2%</text>
+    
+    <!-- Isolated node with fewer connections -->
+    <circle cx="350" cy="50" r="15" fill="#95a5a6"/>
+    <text x="350" y="55" text-anchor="middle" fill="white" font-family="Arial" font-size="10">2%</text>
+  </g>
+</svg>
+<hr>
+<p>
+<strong>Parameters:</strong>
+<ul>
+  <li>Damping factor (d): 0.85</li>
+  <li>Tolerance: 1e-6</li>
+  <li>Max iterations: 100</li>
+</ul>
+</p>
+<hr>
+<p><strong>PageRank Score:</strong> Probability that a random walker lands on the node.</p>
+<p><strong>PageRank Degree:</strong> In-degree used internally while computing PageRank.</p>
+</div>`
+  };
+}
+
+class QueryAST {
+  constructor(instructions) {
+    this.instructions = instructions;
+  }
+
+  /* ===== public API =================================================== */
+  testNode(node) {
+    return this.#evalExpr(this.instructions, node, /*elemType*/ 'Node filters');
+  }
+
+  testEdge(edge) {
+    return this.#evalExpr(this.instructions, edge, /*elemType*/ 'Edge filters');
+  }
+
+  /* ===== internal helpers ============================================ */
+  /**
+   * Recursively evaluate any sub-expression.
+   * Implements “left-before-right” for chains of arbitrary length.
+   */
+  #evalExpr(expr, element, requestedMainGroup) {
+    if (!Array.isArray(expr)) return false;
+
+    /* ---------- 1. unwrap single-element containers --------------------- */
+    if (expr.length === 1) {
+      return this.#evalExpr(expr[0], element, requestedMainGroup);
+    }
+
+    /* ---------- 2. leaf detection --------------------------------------- */
+    const isLeaf =
+      expr.length > 0 &&
+      !Array.isArray(expr[0]) &&          // first item is NOT another list
+      typeof expr[0] === 'object' &&
+      expr[0]?.type === 'property';
+
+    if (isLeaf) {
+      return this.#evalLeaf(expr, element, requestedMainGroup);
+    }
+
+    /* ---------- 3. composite chain  (lhs OP rhs OP rhs2 …) -------------- */
+    if (expr.length >= 3 && typeof expr[1] === 'string') {
+      // evaluate first operand
+      let acc = this.#evalExpr(expr[0], element, requestedMainGroup);
+
+      // walk through the chain left-to-right
+      for (let i = 1; i < expr.length; i += 2) {
+        const op = expr[i];           // "AND" | "OR" | "NOT"
+        const rhs = this.#evalExpr(expr[i + 1], element, requestedMainGroup);
+
+        switch (op) {
+          case 'AND':
+            acc = acc && rhs;
+            break;
+          case 'OR':
+            acc = acc || rhs;
+            break;
+          case 'NOT':
+            // “lhs NOT rhs”  :=  lhs && !rhs   (specification)
+            acc = acc && !rhs;
+            break;
+          default:
+            // should never occur with validated input
+            return false;
+        }
+      }
+      return acc;
+    }
+
+    /* ---------- 4. nothing matched  ------------------------------------ */
+    return false;   // fallback – shouldn’t be reached with valid input
+  }
+
+
+  // Evaluate a single property expression
+  #evalLeaf(tokens, element, requestedMainGroup) {
+    /*  token layout (guaranteed):
+          0: property
+          1: KW (BETWEEN | LOWER THAN | IN [)
+          2+: values / further KW
+    */
+    const propTok = tokens[0];
+    const opTok = tokens[1];  // KW: "BETWEEN" | "LOWER THAN" | "IN [""]
+    const value = this.#readValue(element, propTok);
+
+    if (value === undefined || value === null) return false;
+
+    // skip properties of the wrong main group (e.g. node property on an edge)
+    if (propTok.main !== requestedMainGroup) return false;
+
+    const propVal = this.#readValue(element, propTok);
+    if (propVal === undefined || propVal === null) return false;
+
+    const op = tokens[1].value;
+
+    let validated = false;
+    // --- BETWEEN a AND b ------------------------------------------------
+    if (op === 'BETWEEN') {
+      const lower = tokens[2].value;
+      const upper = tokens[4].value;
+      validated = typeof propVal === 'number' && propVal >= lower && propVal <= upper;
+    }
+
+    // --- LOWER THAN a OR GREATER THAN b -------------------------------
+    if (op === 'LOWER THAN') {
+      const low = tokens[2].value;  // a
+      const high = tokens[4].value;  // b
+      validated = typeof propVal === 'number' && (propVal <= low || propVal >= high);
+    }
+
+    // --- IN [ a, b, c ] -------------------------------------------------
+    if (op.startsWith('IN')) {
+      const set = tokens.slice(2).map(t => t.value);
+      validated = set.includes(propVal);
+    }
+
+    element.featureIsWithinThreshold.set(tokens[0].propID, validated);
+    return validated;
+  }
+
+  // Safely pull the data from the D4Data hierarchy
+  #readValue(element, {main, sub, prop}) {
+    try {
+      return element?.D4Data?.[main]?.[sub]?.[prop];
+    } catch {
+      return undefined;
+    }
+  }
+}
+
+function isString(value) {
+  return typeof value === 'string' || value instanceof String;
+}
+
+function isNumber(value) {
+  const parsed = parseFloat(value);
+  return !isNaN(parsed) && isFinite(parsed);
+}
+
+function isInList(value, allowedValues) {
+  return allowedValues.includes(value);
+}
+
+function isBoolean(value) {
+  if (typeof value === 'boolean') {
+    return true;
+  }
+  if (typeof value === 'string') {
+    const lowerVal = value.trim().toLowerCase();
+    return lowerVal === 'true' || lowerVal === 'false';
+  }
+  if (typeof value === 'number') {
+    return value === 1 || value === 0;
+  }
+  return false;
+}
+
+function isHexColor(value) {
+  if (!isString(value)) return false;
+  const hexRegex = /^#(?:[A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$/;
+  return hexRegex.test(value.trim());
+}
+
+function createDefaultLayout(key) {
   const defLayout = {
     internals: DEFAULTS.LAYOUT_INTERNALS[key] || null,
     positions: new Map(),
     filters: structuredClone(data.filterDefaults),
     isCustom: false,
-    filterStrategy: "AND",
+    query: undefined
   };
+
+  for (const [nodeID, positions] of cache.nodePositionsFromExcelImport) {
+    defLayout.positions.set(nodeID, {x: positions.x, y: positions.y});
+  }
 
   for (let group of traverseBubbleSets()) {
     defLayout[`${group}Props`] = new Set();
   }
 
-  return defLayout
+  return defLayout;
 }
 
 function parseGroups(filterValue) {
@@ -116,7 +1297,7 @@ function parseLayouts(jsonLayouts) {
         ...value, ...parseGroups(value),
       },])),
       isCustom: layout.isCustom || false,
-      filterStrategy: layout.filterStrategy || "AND",
+      query: layout["query"] || undefined
     };
 
     for (let group of traverseBubbleSets()) {
@@ -155,719 +1336,1156 @@ function getTargetEdges(propID) {
   );
 }
 
-function createStyleDiv(propID) {
-  const container = document.createElement("div");
-  container.classList.add("style-container");
+async function layoutSelectedNodes(action) {
+  if (cache.selectedNodes.length === 0) return;
 
-  if (!propID) {
-    const selectButtonBar = document.createElement("div");
-    const selectAllNodes = document.createElement("button");
-    selectAllNodes.textContent = "All nodes";
-    selectAllNodes.classList.add("style-inner-button");
-    selectAllNodes.onclick = () => {
-      toggleSelectionForAllNodes(true);
-    }
-    selectButtonBar.appendChild(selectAllNodes);
-
-    const selectNoNodes = document.createElement("button");
-    selectNoNodes.textContent = "No nodes";
-    selectNoNodes.classList.add("style-inner-button");
-    selectNoNodes.onclick = () => {
-      toggleSelectionForAllNodes(false);
-    }
-    selectButtonBar.appendChild(selectNoNodes);
-
-    const selectAllEdges = document.createElement("button");
-    selectAllEdges.textContent = "All edges";
-    selectAllEdges.classList.add("style-inner-button");
-    selectAllEdges.onclick = () => {
-      toggleSelectionForAllEdges(true);
-    }
-    selectButtonBar.appendChild(selectAllEdges);
-
-    const selectNoEdges = document.createElement("button");
-    selectNoEdges.textContent = "No edges";
-    selectNoEdges.classList.add("style-inner-button");
-    selectNoEdges.onclick = () => {
-      toggleSelectionForAllEdges(false);
-    }
-    selectButtonBar.appendChild(selectNoEdges);
-
-    createSection("Select", selectButtonBar, propID);
-    createSeparator();
-
-    const layoutButtonBar = document.createElement("div");
-
-    const shrinkNodesButton = document.createElement("button");
-    shrinkNodesButton.textContent = "Shrink";
-    shrinkNodesButton.classList.add("style-inner-button");
-    shrinkNodesButton.title = "Move nodes closer together, halving their distance to the center.";
-    shrinkNodesButton.onclick = () => {
-      layoutSelectedNodes("shrink");
-    };
-    layoutButtonBar.appendChild(shrinkNodesButton);
-
-    const expandNodesButton = document.createElement("button");
-    expandNodesButton.textContent = "Expand";
-    expandNodesButton.classList.add("style-inner-button");
-    expandNodesButton.title = "Move nodes farther apart, doubling their distance to the center.";
-    expandNodesButton.onclick = () => {
-      layoutSelectedNodes("expand");
-    };
-    layoutButtonBar.appendChild(expandNodesButton);
-
-    const verticalRule = document.createElement("div");
-    verticalRule.classList.add("vr");
-    layoutButtonBar.appendChild(verticalRule);
-
-    const arrangeCircleButton = document.createElement("button");
-    arrangeCircleButton.textContent = "Circle";
-    arrangeCircleButton.classList.add("style-inner-button");
-    arrangeCircleButton.title = "Arrange nodes evenly in a circular layout around the center.";
-    arrangeCircleButton.onclick = () => {
-      layoutSelectedNodes("circle");
-    };
-    layoutButtonBar.appendChild(arrangeCircleButton);
-
-    const forceLayoutButton = document.createElement("button");
-    forceLayoutButton.textContent = "Force";
-    forceLayoutButton.classList.add("style-inner-button");
-    forceLayoutButton.title = "Apply a force-directed layout to the selected nodes.";
-    forceLayoutButton.onclick = () => {
-      layoutSelectedNodes("force");
-    }
-    layoutButtonBar.appendChild(forceLayoutButton);
-
-    const gridLayoutButton = document.createElement("button");
-    gridLayoutButton.textContent = "Grid";
-    gridLayoutButton.classList.add("style-inner-button");
-    gridLayoutButton.title = "Apply a grid layout to the selected nodes.";
-    gridLayoutButton.onclick = () => {
-      layoutSelectedNodes("grid");
-    }
-    layoutButtonBar.appendChild(gridLayoutButton);
-
-    const randomLayoutButton = document.createElement("button");
-    randomLayoutButton.textContent = "Random";
-    randomLayoutButton.classList.add("style-inner-button");
-    randomLayoutButton.title = "Apply a random layout to the selected nodes.";
-    randomLayoutButton.onclick = () => {
-      layoutSelectedNodes("random");
-    }
-    layoutButtonBar.appendChild(randomLayoutButton);
-
-    createSection("Arrange Nodes", layoutButtonBar, propID);
-    createSeparator();
+  async function getSelectedNodes() {
+    return await graph.getNodeData().filter((node) => cache.selectedNodes.includes(node.id));
   }
 
-  function layoutSelectedNodes(action) {
-    if (cache.selectedNodes.length === 0) return;
+  async function groupOrSpreadSelectedNodes(scale) {
+    for (const node of await getSelectedNodes()) {
+      const oldX = node.style.x;
+      const oldY = node.style.y;
 
-    function getSelectedNodes() {
-      return graph.getNodeData().filter((node) => cache.selectedNodes.includes(node.id));
+      node.style.x = avgX + (oldX - avgX) * scale;
+      node.style.y = avgY + (oldY - avgY) * scale;
+    }
+  }
+
+  async function arrangeNodesInCircle(radius) {
+    const numNodes = cache.selectedNodes.length;
+    let angleStep = (2 * Math.PI) / numNodes;
+
+    let i = 0;
+    for (const node of await getSelectedNodes()) {
+      const angle = i * angleStep;
+      node.style.x = avgX + radius * Math.cos(angle);
+      node.style.y = avgY + radius * Math.sin(angle);
+      i++;
+    }
+  }
+
+  async function applyForceLayout(iterations) {
+    // -----------------------------
+    // Updated parameters
+    // -----------------------------
+    const INITIAL_TEMPERATURE = 2.0;     // Starting "temperature" for the cooling factor
+    const COOLING_FACTOR = 0.98;    // Slower cooling to allow more spreading
+    const GRAVITY_STRENGTH = 0.00001; // Reduced gravity so nodes aren't pulled too close
+    const MAX_DISPLACEMENT = 50;      // Higher limit on movement per iteration or remove if needed
+
+    const REPULSION = 20000;        // Strong repulsion to push nodes apart
+    const SPRING_LENGTH = 300;         // Ideal distance between connected nodes
+    const SPRING_STRENGTH = 0.005;        // Reduced tension to allow more space
+
+    // -----------------------------
+    // Larger initial placement range
+    // -----------------------------
+    const nodes = getSelectedNodes();
+    for (const node of nodes) {
+      node.style.x = Math.random() * 1000 - 500;  // Range: [-500, 500]
+      node.style.y = Math.random() * 1000 - 500;  // Range: [-500, 500]
     }
 
-    function groupOrSpreadSelectedNodes(scale) {
-      for (const node of getSelectedNodes()) {
-        const oldX = node.style.x;
-        const oldY = node.style.y;
+    // -----------------------------
+    // Main iteration
+    // -----------------------------
+    let temperature = INITIAL_TEMPERATURE;
+    for (let i = 0; i < iterations; i++) {
+      // 1) Repulsion between every pair of nodes
+      for (let a = 0; a < nodes.length; a++) {
+        for (let b = a + 1; b < nodes.length; b++) {
+          const dx = nodes[b].style.x - nodes[a].style.x;
+          const dy = nodes[b].style.y - nodes[a].style.y;
+          const dist = Math.sqrt(dx * dx + dy * dy) + 0.01; // Avoid dividing by zero
 
-        node.style.x = avgX + (oldX - avgX) * scale;
-        node.style.y = avgY + (oldY - avgY) * scale;
+          const force = REPULSION / (dist * dist); // 1 / distance^2
+          const fx = force * (dx / dist);
+          const fy = force * (dy / dist);
+
+          // Apply forces (scaled by temperature)
+          nodes[a].style.x -= fx * temperature;
+          nodes[a].style.y -= fy * temperature;
+          nodes[b].style.x += fx * temperature;
+          nodes[b].style.y += fy * temperature;
+        }
       }
-    }
 
-    function arrangeNodesInCircle(radius) {
-      const numNodes = cache.selectedNodes.length;
-      let angleStep = (2 * Math.PI) / numNodes;
+      // 2) Spring forces (edges)
+      for (const edge of await graph.getEdgeData()) {
+        const {source, target} = edge;
+        if (cache.selectedNodes.includes(source) && cache.selectedNodes.includes(target)) {
+          const nodeA = nodes.find((n) => n.id === source);
+          const nodeB = nodes.find((n) => n.id === target);
+          if (nodeA && nodeB) {
+            const dx = nodeB.style.x - nodeA.style.x;
+            const dy = nodeB.style.y - nodeA.style.y;
+            const dist = Math.sqrt(dx * dx + dy * dy) + 0.01;
 
-      let i = 0;
-      for (const node of getSelectedNodes()) {
-        const angle = i * angleStep;
-        node.style.x = avgX + radius * Math.cos(angle);
-        node.style.y = avgY + radius * Math.sin(angle);
-        i++;
-      }
-    }
-
-    function applyForceLayout(iterations) {
-      const repelForce = 3000;      // Overall strength of repulsion.
-      const springLength = 150;     // Ideal edge length for springs.
-      const springStrength = 0.01;  // Spring tension.
-
-      const nodes = getSelectedNodes();
-      for (let i = 0; i < iterations; i++) {
-        // -- Repel each pair of selected nodes
-        for (let a = 0; a < nodes.length; a++) {
-          for (let b = a + 1; b < nodes.length; b++) {
-            const dx = nodes[b].style.x - nodes[a].style.x;
-            const dy = nodes[b].style.y - nodes[a].style.y;
-            const dist = Math.sqrt(dx * dx + dy * dy) + 0.01; // Add small term to avoid division by zero
-
-            // Calculate force based on 1 / distance^2
-            const force = repelForce / (dist * dist);
-
-            // Force direction
+            // (currentDistance - idealDistance)
+            const force = (dist - SPRING_LENGTH) * SPRING_STRENGTH;
             const fx = force * (dx / dist);
             const fy = force * (dy / dist);
 
-            // Apply to each node. Could also factor in a node 'mass' here.
-            nodes[a].style.x -= fx;
-            nodes[a].style.y -= fy;
-            nodes[b].style.x += fx;
-            nodes[b].style.y += fy;
-          }
-        }
-
-        // -- Attract nodes that share an edge (spring force). Only applied between selected nodes.
-        for (const edge of graph.getEdgeData()) {
-          const {source, target} = edge;
-          if (
-            cache.selectedNodes.includes(source) &&
-            cache.selectedNodes.includes(target)
-          ) {
-            const nodeA = nodes.find((n) => n.id === source);
-            const nodeB = nodes.find((n) => n.id === target);
-            if (nodeA && nodeB) {
-              const dx = nodeB.style.x - nodeA.style.x;
-              const dy = nodeB.style.y - nodeA.style.y;
-              const dist = Math.sqrt(dx * dx + dy * dy) + 0.01;
-
-              // Attractive force that strives to keep nodes near springLength.
-              const force = (dist - springLength) * springStrength;
-              const fx = force * (dx / dist);
-              const fy = force * (dy / dist);
-
-              nodeA.style.x += fx;
-              nodeA.style.y += fy;
-              nodeB.style.x -= fx;
-              nodeB.style.y -= fy;
-            }
+            // Apply (scaled by temperature)
+            nodeA.style.x += fx * temperature;
+            nodeA.style.y += fy * temperature;
+            nodeB.style.x -= fx * temperature;
+            nodeB.style.y -= fy * temperature;
           }
         }
       }
-    }
 
-    function applyGridLayout() {
-      const nodes = getSelectedNodes();
-      if (nodes.length === 0) return;
+      // 3) Gravity / Centering
+      // With reduced gravity, nodes won't cluster too tightly
+      for (const node of nodes) {
+        node.style.x += -node.style.x * GRAVITY_STRENGTH * temperature;
+        node.style.y += -node.style.y * GRAVITY_STRENGTH * temperature;
+      }
 
-      const count = nodes.length;
-      const columns = Math.ceil(Math.sqrt(count));
-      const spacing = 100;
-
-      const rows = Math.ceil(count / columns);
-      const totalWidth = (columns - 1) * spacing;
-      const totalHeight = (rows - 1) * spacing;
-
-      let idx = 0;
-      for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < columns; col++) {
-          if (idx >= count) break;
-          const node = nodes[idx];
-          node.style.x = avgX - totalWidth / 2 + col * spacing;
-          node.style.y = avgY - totalHeight / 2 + row * spacing;
-          idx++;
+      // 4) Limit maximum displacement (optional)
+      // Increase or remove if you don't want clamping
+      for (const node of nodes) {
+        const dist = Math.sqrt(node.style.x * node.style.x + node.style.y * node.style.y);
+        if (dist > MAX_DISPLACEMENT) {
+          const ratio = MAX_DISPLACEMENT / dist;
+          node.style.x *= ratio;
+          node.style.y *= ratio;
         }
       }
+
+      // 5) Cool down temperature for next iteration
+      temperature *= COOLING_FACTOR;
     }
-
-    function applyRandomLayout() {
-      for (const node of getSelectedNodes()) {
-        node.style.x = Math.random() * xDistance;
-        node.style.y = Math.random() * yDistance;
-      }
-    }
-
-    const selectedNodes = new Map(
-      [...data.layouts[data.selectedLayout].positions]
-        .filter(([key]) => cache.selectedNodes.includes(key))
-    );
-    const selectedNodesCoords = [...selectedNodes.values()];
-    const avgX = selectedNodesCoords.reduce((sum, pos) => sum + pos.x, 0) / selectedNodesCoords.length;
-    const avgY = selectedNodesCoords.reduce((sum, pos) => sum + pos.y, 0) / selectedNodesCoords.length;
-    const minX = Math.min(...selectedNodesCoords.map((pos) => pos.x));
-    const maxX = Math.max(...selectedNodesCoords.map((pos) => pos.x));
-    const minY = Math.min(...selectedNodesCoords.map((pos) => pos.y));
-    const maxY = Math.max(...selectedNodesCoords.map((pos) => pos.y));
-    const xDistance = maxX - minX;
-    const yDistance = maxY - minY;
-
-    const eventLabels = {
-      "shrink": "Shrinking Selected Nodes in Layout",
-      "expand": "Expanding Selected Nodes in Layout",
-      "circle": "Applying Circular Layout to Selected Nodes",
-      "force": "Applying Force Layout to Selected Nodes",
-      "grid": "Applying Grid Layout to Selected Nodes",
-      "random": "Applying Random Layout to Selected Nodes",
-    }
-
-    const layoutActions = {
-      "shrink": () => groupOrSpreadSelectedNodes(0.5),
-      "expand": () => groupOrSpreadSelectedNodes(2),
-      "circle": () => arrangeNodesInCircle(100),
-      "force": () => applyForceLayout(100),
-      "grid": () => applyGridLayout(),
-      "random": () => applyRandomLayout(),
-    }
-
-    layoutActions[action]();
-    persistNodePositions();
-    handleFilterEvent(action, eventLabels[action]);
   }
 
-  function updateNodes(
-    propID = null,
-    property = null,
-    type = null,
-    color = null,
-    size = null,
-    label = null,
-    badge = null
-  ) {
-    for (const nodeID of propID ? getTargetNodes(propID) : cache.selectedNodes) {
-      const node = cache.nodeRef.get(nodeID);
-      if (type !== null) node.type = type;
-      if (color !== null) {
-        if (property === "Node") node.style.fill = color;
-        else if (property === "Node Border") {
-          node.style.stroke = color;
-          if (!node.style.lineWidth) node.style.lineWidth = DEFAULTS.STYLES.NODE_BORDER_SIZES.md;
-        }
-      }
-      if (size !== null) {
-        if (property === "Node") node.style.size = size;
-        else if (property === "Node Border") node.style.lineWidth = size;
-        else if (property === "Node Label") node.style.labelFontSize = size;
-      }
-      if (label !== null) {
-        let labelText = (label === "::SET_TO_ID::") ? nodeID : label;
-        if (node.style.label === undefined || node.style.label === false) {
-          enableNodeLabelAndSetToDefaults(node, labelText);
-        } else {
-          node.style.labelText = labelText;
-        }
-      }
-      if (badge !== null) {
-        if (badge === "::CLEAR::") {
-          node.style.badge = false;
-          node.style.badges = [];
-          node.style.badgePalette = [];
-        } else {
-          node.style.badge = true;
-          if (!node.style.badges) node.style.badges = [];
-          if (!node.style.badgePalette) node.style.badgePalette = [];
-          node.style.badges.push({text: badge.text, placement: badge.placement});
-          node.style.badgePalette.push(badge.color);
-        }
+  async function applyGridLayout() {
+    const nodes = await getSelectedNodes();
+    if (nodes.length === 0) return;
+
+    const count = nodes.length;
+    const columns = Math.ceil(Math.sqrt(count));
+    const spacing = 100;
+
+    const rows = Math.ceil(count / columns);
+    const totalWidth = (columns - 1) * spacing;
+    const totalHeight = (rows - 1) * spacing;
+
+    let idx = 0;
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < columns; col++) {
+        if (idx >= count) break;
+        const node = nodes[idx];
+        node.style.x = avgX - totalWidth / 2 + col * spacing;
+        node.style.y = avgY - totalHeight / 2 + row * spacing;
+        idx++;
       }
     }
-
-    handleFilterEvent("Style", "Updating Node Style", propID);
   }
 
-  function enableNodeLabelAndSetToDefaults(node, labelText) {
-    graph.updateNodeData([{
-      id: node.id,
-      style: {
-        label: true,
-        labelText: labelText,
-        labelBackground: true,
-        labelFontSize: DEFAULTS.STYLES.NODE_LABEL_SIZES.md,
-      },
-    }]);
+  async function applyRandomLayout() {
+    for (const node of await getSelectedNodes()) {
+      node.style.x = minX + Math.random() * xDistance;
+      node.style.y = minY + Math.random() * yDistance;
+    }
   }
 
-  function updateEdges(
-    propID = null,
-    property = null,
-    width = null,
-    label = null,
-    color = null,
-    halo = null
-  ) {
-    for (const edgeID of propID ? getTargetEdges(propID) : cache.selectedEdges) {
-      const edge = cache.edgeRef.get(edgeID);
-      if (width !== null) {
-        if (property === "Edge") edge.style.lineWidth = width;
-        else if (property === "Edge Dash") edge.style.lineDash = width;
-        else if (property === "Edge Halo") edge.style.haloLineWidth = width;
-      }
-      if (label !== null) edge.style.labelText = label;
-      if (color !== null) {
-        if (property === "Edge") edge.style.stroke = color;
-        else if (property === "Edge Halo") edge.style.haloStroke = color;
-      }
-      if (halo !== null) edge.style.halo = halo;
+  const selectedNodes = new Map(
+    [...data.layouts[data.selectedLayout].positions]
+      .filter(([key]) => cache.selectedNodes.includes(key))
+  );
+  const selectedNodesCoords = [...selectedNodes.values()];
+  const avgX = selectedNodesCoords.reduce((sum, pos) => sum + pos.x, 0) / selectedNodesCoords.length;
+  const avgY = selectedNodesCoords.reduce((sum, pos) => sum + pos.y, 0) / selectedNodesCoords.length;
+  const minX = Math.min(...selectedNodesCoords.map((pos) => pos.x));
+  const maxX = Math.max(...selectedNodesCoords.map((pos) => pos.x));
+  const minY = Math.min(...selectedNodesCoords.map((pos) => pos.y));
+  const maxY = Math.max(...selectedNodesCoords.map((pos) => pos.y));
+  const xDistance = maxX - minX;
+  const yDistance = maxY - minY;
+
+  const eventLabels = {
+    "shrink": "Shrinking Selected Nodes in Layout",
+    "expand": "Expanding Selected Nodes in Layout",
+    "circle": "Applying Circular Layout to Selected Nodes",
+    "force": "Applying Force Layout to Selected Nodes",
+    "grid": "Applying Grid Layout to Selected Nodes",
+    "random": "Applying Random Layout to Selected Nodes",
+  }
+
+  const layoutActions = {
+    "shrink": () => groupOrSpreadSelectedNodes(0.5),
+    "expand": () => groupOrSpreadSelectedNodes(2),
+    "circle": () => arrangeNodesInCircle(100),
+    "force": () => applyForceLayout(150),
+    "grid": () => applyGridLayout(),
+    "random": () => applyRandomLayout(),
+  }
+
+  await layoutActions[action]();
+  await persistNodePositions();
+  await handleFilterEvent(action, eventLabels[action]);
+}
+
+function createStyleDiv() {
+  const root = document.createElement("div");
+
+  function createNewRow(parent) {
+    const row = document.createElement("div");
+    row.classList.add("card-row");
+    parent.appendChild(row);
+    return row;
+  }
+
+  function appendVerticalRule(parent, label = undefined, tooltip = undefined, id=undefined) {
+    const verticalRule = document.createElement("div");
+    verticalRule.className = "vr";
+    parent.appendChild(verticalRule);
+    appendLabel(parent, label, tooltip, id);
+  }
+
+  function createLabel(labelText, tooltip = undefined) {
+    if (labelText) {
+      const label = document.createElement("label");
+      label.textContent = labelText;
+      label.className = "vr-label";
+      label.id = labelText;
+      if (tooltip) label.title = tooltip;
+      return label;
+    }
+    return null;
+  }
+
+  function appendLabel(parent, labelText, tooltip = undefined, id=undefined) {
+    const label = createLabel(labelText, tooltip);
+    if (id) label.id = id;
+    if (label) parent.appendChild(label);
+  }
+
+  function createCard(label) {
+    const card = document.createElement("div");
+    card.classList.add("card-labeled");
+    card.dataset.label = label;
+    card.id = label;
+    root.appendChild(card);
+    return card;
+  }
+
+  function createSwitch(callback = undefined, inputId = undefined) {
+    const label = document.createElement('label');
+    label.className = 'switch';
+
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+
+    const span = document.createElement('span');
+    span.className = 'slider round';
+
+    if (callback) {
+      input.addEventListener('change', callback);
     }
 
-    handleFilterEvent("Style", "Updating Edge Style", propID);
+    if (inputId) {
+      input.id = inputId;
+    }
+
+    label.append(input, span);
+    return label;
   }
 
-  // Helper to create a labeled section with heading and controls
-  function createSection(title, controls, propID) {
-    const heading = document.createElement("div");
-    heading.textContent = title;
-    heading.classList.add("style-col1-heading");
-    controls.classList.add("style-col2-controls");
-
-    heading.id = `${title}-heading-${propID}`;
-    controls.id = `${title}-controls-${propID}`;
-
-    container.appendChild(heading);
-    container.appendChild(controls);
+  async function handleStyleChangeEvent(property, value) {
+    switch (property) {
+      case "Node Size":
+        await updateNodes({style: {size: value}});
+        break;
+      case "Node Border Size":
+        await updateNodes({style: {lineWidth: value}});
+        break;
+      case "Node Label Font Size":
+        await updateNodes({style: {labelFontSize: value}});
+        break;
+      case "Node Label Font Color":
+        await updateNodes({style: {labelFill: value}});
+        break;
+      case "Node Label Background Color":
+        await updateNodes({style: {labelBackground: true, labelBackgroundFill: value}});
+        break;
+      case "Node Fill Color":
+        await updateNodes({style: {fill: value}});
+        break;
+      case "Node Border Color":
+        await updateNodes({style: {stroke: value}});
+        break;
+      case "Node Label Color":
+        await updateNodes({style: {labelFill: value}});
+        break;
+      case "Node Label Placement":
+        await updateNodes({style: {labelPlacement: value}});
+        break;
+      case "Edge Color":
+        await updateEdges({style: {stroke: value}});
+        break;
+      case "Edge Width":
+        await updateEdges({style: {lineWidth: value}});
+        break;
+      case "Edge Dash":
+        await updateEdges({style: {lineDash: value}});
+        break;
+      case "Edge Label Font Size":
+        await updateEdges({style: {labelFontSize: value}});
+        break;
+      case "Edge Label Offset X":
+        await updateEdges({style: {labelOffsetX: value}});
+        break;
+      case "Edge Label Offset Y":
+        await updateEdges({style: {labelOffsetY: value}});
+        break;
+      case "Edge Label Placement":
+        await updateEdges({style: {labelPlacement: value}});
+        break;
+      case "Edge Label Font Color":
+        await updateEdges({style: {labelFill: value}});
+        break;
+      case "Edge Label Background Color":
+        await updateEdges({style: {labelBackground: true, labelBackgroundFill: value}});
+        break;
+      case "Edge Label Auto Rotate":
+        await updateEdges({style: {labelAutoRotate: value}});
+        break;
+      case "Edge Start Arrow":
+        await updateEdges({style: {startArrow: value}});
+        break;
+      case "Edge End Arrow":
+        await updateEdges({style: {endArrow: value}});
+        break;
+      case "Edge Start Arrow Size":
+        await updateEdges({style: {startArrowSize: value}});
+        break;
+      case "Edge End Arrow Size":
+        await updateEdges({style: {endArrowSize: value}});
+        break;
+      case "Edge Start Arrow Type":
+        await updateEdges({style: {startArrowType: value}});
+        break;
+      case "Edge End Arrow Type":
+        await updateEdges({style: {endArrowType: value}});
+        break;
+      case "Edge Halo":
+        await updateEdges({style: {halo: value}});
+        break;
+      case "Edge Halo Width":
+        await updateEdges({style: {haloLineWidth: value}});
+        break;
+      case "Edge Halo Color":
+        await updateEdges({style: {haloStroke: value}});
+        break;
+      default:
+        break;
+    }
   }
 
-  function createSeparator() {
-    const separator = document.createElement("div");
-    separator.classList.add("style-separator");
-    container.appendChild(separator);
+  function createBooleanControls(parent, property, tooltip = undefined) {
+    const onBtn = document.createElement("button");
+    onBtn.textContent = "On";
+    onBtn.classList.add("style-inner-button");
+    onBtn.onclick = async () => {
+      await handleStyleChangeEvent(property, true);
+    }
+    if (tooltip) onBtn.title = tooltip;
+    parent.appendChild(onBtn);
+
+    const offBtn = document.createElement("button");
+    offBtn.textContent = "Off";
+    offBtn.classList.add("style-inner-button");
+    offBtn.onclick = async () => {
+      await handleStyleChangeEvent(property, false);
+    }
+    if (tooltip) offBtn.title = tooltip;
+    parent.appendChild(offBtn);
   }
 
-  function createLabelControls(property) {
-    const controls = document.createElement("div");
 
-    const labelInput = document.createElement("input");
-    labelInput.type = "text";
-    labelInput.placeholder = `Enter ${property}`;
-    labelInput.className = "style-input style-input-lg";
-    labelInput.value = "";
+  function createCategoricalControls(parent, property, defaultValue, listOfValues, tooltip = undefined) {
+    const dropdown = document.createElement("select");
+    dropdown.className = "style-inner-button";
+    if (tooltip) dropdown.title = tooltip;
 
-    const clearLabelButton = document.createElement("button");
-    clearLabelButton.textContent = "Clear";
-    clearLabelButton.className = "style-inner-button red";
-    clearLabelButton.onclick = () => {
-      labelInput.value = "";
-      updateNodes(propID, property, null, null, null, "", null);
-    };
-
-    const setToIDButton = document.createElement("button");
-    setToIDButton.textContent = "Set to ID";
-    setToIDButton.classList.add("style-inner-button");
-    setToIDButton.onclick = () => {
-      labelInput.value = "";
-      updateNodes(propID, property, null, null, null, "::SET_TO_ID::", null);
-    };
-
-    labelInput.addEventListener("keypress", function (event) {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        const newLabel = labelInput.value.trim();
-        updateNodes(propID, property, null, null, null, newLabel, null);
-      }
+    listOfValues.forEach((value) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = value;
+      dropdown.appendChild(option);
+      dropdown.onchange = async () => {
+        await handleStyleChangeEvent(property, dropdown.value);
+      };
     });
 
-    controls.appendChild(labelInput);
-    controls.appendChild(setToIDButton);
-    controls.appendChild(clearLabelButton);
-
-    return controls;
+    dropdown.value = defaultValue;
+    parent.appendChild(dropdown);
   }
 
-  function createNodeFormControls() {
-    const controls = document.createElement("div");
+  function createNumericalSlider(parent, property, defaultValue, sliderParams = {
+    min: 0,
+    max: 100,
+    step: 1
+  }, tooltip = undefined) {
+    const useFloat =
+      !Number.isInteger(sliderParams.min) ||
+      !Number.isInteger(sliderParams.max) ||
+      !Number.isInteger(sliderParams.step);
 
-    for (const [label, value] of Object.entries(DEFAULTS.STYLES.NODE_FORM)) {
-      const button = document.createElement("button");
-      button.textContent = label;
-      button.title = value;
-      button.classList.add("style-inner-button");
-      button.onclick = () => {
-        updateNodes(propID, null, value, null, null, null, null);
-      };
-      controls.appendChild(button);
+    // A helper function to parse according to the useFloat flag
+    function parseValue(val) {
+      return useFloat ? parseFloat(val) : parseInt(val, 10);
     }
 
-    return controls;
+    const typedDefaultValue = parseValue(defaultValue);
+
+    const container = document.createElement("div");
+    container.className = "style-slider-container";
+    if (tooltip) container.title = tooltip;
+
+    const slider = document.createElement("input");
+    slider.type = "range";
+    slider.min = sliderParams.min;
+    slider.max = sliderParams.max;
+    slider.step = sliderParams.step;
+    slider.value = typedDefaultValue;
+    slider.classList.add("style-slider");
+
+    const valueInput = document.createElement("input");
+    valueInput.type = "number";
+    valueInput.value = typedDefaultValue;
+    valueInput.classList.add("style-input-sm");
+
+    slider.oninput = () => {
+      valueInput.value = slider.value;
+    };
+
+    slider.onchange = async () => {
+      await handleStyleChangeEvent(property, parseValue(slider.value));
+    };
+
+    valueInput.onchange = async () => {
+      slider.value = valueInput.value;
+      await handleStyleChangeEvent(property, parseValue(valueInput.value));
+    };
+
+    container.appendChild(slider);
+    container.appendChild(valueInput);
+
+    parent.appendChild(container);
   }
 
-  function createColorControls(property, defaultColor, colors) {
-    const controls = document.createElement("div");
+  function createColorPicker(defaultColor, title) {
+    const colorPicker = document.createElement("input");
+    colorPicker.type = "color";
+    colorPicker.classList.add("style-inner-button");
+    colorPicker.style.width = "24px";
+    colorPicker.value = defaultColor;
+    colorPicker.title = title;
+    return colorPicker;
+  }
+
+  function createColorControls(parent, property, defaultColor, colors) {
+    const colorButtonDiv = document.createElement("div");
+    colorButtonDiv.className = "style-color-button-container";
 
     for (const [label, value] of Object.entries(colors)) {
       const colorButton = document.createElement("button");
       colorButton.style.backgroundColor = value;
       colorButton.style.color = getReadableForegroundColor(value);
-      colorButton.classList.add("style-inner-button");
-      colorButton.textContent = label;
-      colorButton.onclick = () => {
+      colorButton.className = "style-inner-button style-color-button";
+      colorButton.title = `Set ${property} of the selected elements to ${label} (${value}).`;
+
+      if (label === "none") {
+        colorButton.textContent = "×";
+        colorButton.style.maxWidth = "12px";
+      }
+
+      colorButton.onclick = async () => {
         colorInput.value = value;
-        property.startsWith("Node")
-          ? updateNodes(propID, property, null, value, null, null, null)
-          : updateEdges(propID, property, null, null, value, null);
+        await handleStyleChangeEvent(property, value);
       };
-      controls.appendChild(colorButton);
+      colorButtonDiv.appendChild(colorButton);
     }
 
-    const colorPicker = document.createElement("input");
-    colorPicker.type = "color";
-    colorPicker.classList.add("style-inner-button");
-    colorPicker.style.width = "24px";
-    colorPicker.value = defaultColor; // Default color
+    parent.appendChild(colorButtonDiv);
 
-    // fires on every change in the color picker; only updates input
+    const colorPicker = createColorPicker(defaultColor,
+      `Set ${property} of the selected elements to a color of choice.`);
+
     colorPicker.oninput = () => {
       colorInput.value = colorPicker.value;
     };
 
-    // fired when leaving the color picker
-    colorPicker.onchange = () => {
-      property.startsWith("Node")
-        ? updateNodes(propID, property, null, colorPicker.value, null, null, null)
-        : updateEdges(propID, property, null, null, colorPicker.value, null);
+    colorPicker.onchange = async () => {
+      await handleStyleChangeEvent(property, colorPicker.value);
     }
 
     const colorInput = document.createElement("input");
     colorInput.type = "text";
-    colorInput.value = defaultColor; // Default color
+    colorInput.value = defaultColor;
     colorInput.classList.add("style-input");
+    colorInput.title = `Set ${property} of the selected elements to a color of choice (RGBA hex color code).`;
+    colorInput.placeholder = `Enter Color`;
 
-    colorInput.addEventListener("keypress", function (event) {
+    colorInput.addEventListener("keypress", async function (event) {
       if (event.key === "Enter") {
         event.preventDefault();
-        property.startsWith("Node")
-          ? updateNodes(propID, property, null, colorInput.value, null, null, null)
-          : updateEdges(propID, property, null, null, colorInput.value, null);
+        await handleStyleChangeEvent(property, colorInput.value);
       }
     });
 
-    controls.appendChild(colorPicker);
-    controls.appendChild(colorInput);
-
-    return controls;
+    parent.appendChild(colorPicker);
+    parent.appendChild(colorInput);
   }
 
-  function createSizeControls(property, defaultValue, sizeMap) {
-    const controls = document.createElement("div");
+  function createLabelControls(parent, property, isNode = null) {
+    const labelInput = createInput(120, `Enter Custom ${property}`,
+      `Set the label of the selected ${isNode ? "nodes" : "edges"} to a custom label.`, undefined,
+      async () => {
+        isNode ? await updateNodes({
+          style: {
+            label: true,
+            labelText: labelInput.value.trim()
+          }
+        }) : await updateEdges({style: {label: true, labelText: labelInput.value.trim()}});
+      });
 
-    const sizeInput = document.createElement("input");
-    sizeInput.type = "text";
-    sizeInput.placeholder = `Custom ${property.toLowerCase()} size`;
-    sizeInput.classList.add("style-input");
-    sizeInput.value = defaultValue;
+    const clearLabelButton = createButton("Clear",
+      `Clear the label of the selected ${isNode ? "nodes" : "edges"}.`, async () => {
+        labelInput.value = "";
+        const sharedOverride = {
+          style: {
+            label: false,
+            labelText: undefined
+          }
+        };
+        isNode ? await updateNodes(sharedOverride) : await updateEdges(sharedOverride);
+        labelInput.value = "";
+      });
 
-    for (const [label, value] of Object.entries(sizeMap)) {
-      const button = document.createElement("button");
-      button.textContent = label;
-      button.classList.add("style-inner-button");
-      button.onclick = () => {
-        sizeInput.value = value;
-        property.startsWith("Node")
-          ? updateNodes(propID, property, null, null, value, null, null)
-          : updateEdges(propID, property, value, null, null, null);
-      };
-      controls.appendChild(button);
+    const setToIDButton = createButton("Set to ID",
+      `Set the label of the selected ${isNode ? "nodes" : "edges"} to their predefined IDs.`, async () => {
+        labelInput.value = "";
+        const sharedCommands = ["label_set_to_id"];
+        isNode ? await updateNodes(undefined, sharedCommands) : await updateEdges(undefined, sharedCommands);
+      });
+    const setToLabelButton = createButton("Set to Label",
+      `Set the label of the selected ${isNode ? "nodes" : "edges"} to their predefined labels.`, async () => {
+        labelInput.value = "";
+        const sharedCommands = ["label_set_to_label"];
+        isNode ? await updateNodes(undefined, sharedCommands) : await updateEdges(undefined, sharedCommands);
+      });
+
+    parent.appendChild(labelInput);
+    parent.appendChild(setToIDButton);
+    parent.appendChild(setToLabelButton);
+    parent.appendChild(clearLabelButton);
+  }
+
+  function createButton(label, tooltip, callback) {
+    const btn = document.createElement("button");
+    btn.textContent = label;
+    btn.title = tooltip;
+    btn.classList.add("style-inner-button");
+    if (label === "Clear") btn.classList.add("red");
+    btn.id = label;
+    btn.onclick = () => {
+      callback();
     }
+    return btn;
+  }
 
-    sizeInput.addEventListener("keypress", function (event) {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        const customValue = parseFloat(sizeInput.value);
-        if (!isNaN(customValue)) {
-          property.startsWith("Node")
-            ? updateNodes(propID, property, null, null, customValue, null, null)
-            : updateEdges(propID, property, customValue, null, null, null);
-        } else {
-          sizeInput.value = defaultValue;
+  function appendButton(parent, label, tooltip, callback) {
+    const btn = createButton(label, tooltip, callback);
+    parent.appendChild(btn);
+  }
+
+  function createInput(widthInPx = 80, placeholder = undefined, title = undefined,
+                       defaultValue = undefined, callback = undefined) {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = placeholder;
+    input.title = title;
+    input.classList.add("style-input");
+    input.style.width = `${widthInPx}px`;
+    input.value = defaultValue || "";
+    if (callback) {
+      input.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          callback(input.value.trim());
         }
-      }
-    });
-
-    controls.appendChild(sizeInput);
-
-    return controls;
+      });
+    }
+    return input;
   }
 
-  function createHaloEnablingControls() {
-    const controls = document.createElement("div");
-
-    const enableButton = document.createElement("button");
-    enableButton.textContent = "Enable";
-    enableButton.classList.add("style-inner-button");
-    enableButton.onclick = () => {
-      updateEdges(propID, null, null, null, null, true);
-    };
-    controls.appendChild(enableButton);
-
-    const disableButton = document.createElement("button");
-    disableButton.textContent = "Disable";
-    disableButton.classList.add("style-inner-button");
-    disableButton.onclick = () => {
-      updateEdges(propID, null, null, null, null, false);
-    };
-    controls.appendChild(disableButton);
-
-    return controls;
+  function createNodeShapeControls(parent) {
+    for (const [label, value] of Object.entries(DEFAULTS.STYLES.NODE_FORM)) {
+      appendButton(parent, label, value,
+        async () => await updateNodes({type: value})
+      );
+    }
   }
 
-  function createBadgeControls() {
-    const controls = document.createElement("div");
+  function createEdgeTypeControls(parent) {
+    for (const label of DEFAULTS.STYLES.EDGE_TYPES) {
+      appendButton(parent, label, label, async () => await updateEdge({type: label}));
+    }
+  }
 
-    const badgeInput = document.createElement("input");
-    badgeInput.type = "text";
-    badgeInput.placeholder = "Enter badge text";
-    badgeInput.className = "style-input style-input-lg";
+  function createNodeBadgeControls(parent) {
+    const badgeInput = createInput(120, "Enter Badge Text",
+      "Enter the text of the badge to add to the selected nodes.", undefined, undefined);
+    parent.appendChild(badgeInput);
 
-    const colorPicker = document.createElement("input");
-    colorPicker.type = "color";
-    colorPicker.className = "style-inner-button";
-    colorPicker.style.width = "24px";
-    colorPicker.value = DEFAULTS.STYLES.NODE_BADGE_DEFAULT_COLOR;
+    const badgeColorPicker = createColorPicker(DEFAULTS.NODE.BADGE.COLOR, "Set the color of the badge.");
+    parent.appendChild(badgeColorPicker);
 
-    const placementDropdown = document.createElement("select");
-    placementDropdown.className = "style-inner-button";
+    const badgePlacementDropdown = document.createElement("select");
+    badgePlacementDropdown.className = "style-inner-button";
     DEFAULTS.STYLES.NODE_BADGE_PLACEMENTS.forEach((placement) => {
       const option = document.createElement("option");
       option.value = placement;
       option.textContent = placement.replace("-", " ");
-      placementDropdown.appendChild(option);
+      badgePlacementDropdown.appendChild(option);
     });
+    parent.appendChild(badgePlacementDropdown);
 
-    const addBadgeButton = document.createElement("button");
-    addBadgeButton.textContent = "Add";
-    addBadgeButton.classList.add("style-inner-button");
-    addBadgeButton.onclick = () => {
-      const badge = {
-        text: badgeInput.value.trim(),
-        color: colorPicker.value,
-        placement: placementDropdown.value
-      };
-      updateNodes(propID, null, null, null, null, null, badge);
-    };
-
-    const clearBadgesButton = document.createElement("button");
-    clearBadgesButton.textContent = "Clear";
-    clearBadgesButton.className = "style-inner-button red";
-    clearBadgesButton.onclick = () => {
-      updateNodes(propID, null, null, null, null, null, "::CLEAR::");
-    };
-
-    controls.appendChild(badgeInput);
-    controls.appendChild(colorPicker);
-    controls.appendChild(placementDropdown);
-    controls.appendChild(addBadgeButton);
-    controls.appendChild(clearBadgesButton);
-
-    return controls;
+    appendButton(parent, "Add", "Add a badge to the selected nodes.", async () => {
+      await updateNodes({
+          style: {
+            badges: [{
+              text: badgeInput.value.trim(),
+              placement: badgePlacementDropdown.value
+            }],
+            badgePalette: [badgeColorPicker.value]
+          }
+        }, ["badge_add"]
+      );
+    });
+    appendButton(parent, "Clear", "Clear all badges from the selected nodes.", async () => {
+      await updateNodes({}, ["badge_clear"]);
+    });
   }
 
-  if (!propID || cache.nodeExclusiveProps.has(propID) || cache.mixedProps.has(propID)) {
-    createSection("Node Form", createNodeFormControls(), propID);
-    createSection("Node Color", createColorControls("Node", DEFAULTS.NODE.COLOR, DEFAULTS.STYLES.NODE_COLORS), propID);
-    createSection("Node Size", createSizeControls("Node", DEFAULTS.NODE.SIZE, DEFAULTS.STYLES.NODE_SIZES), propID);
-    createSection("Node Border Color", createColorControls("Node Border", DEFAULTS.STYLES.NODE_BORDER_COLORS.transparent, DEFAULTS.STYLES.NODE_BORDER_COLORS), propID);
-    createSection("Node Border Size", createSizeControls("Node Border", DEFAULTS.STYLES.NODE_BORDER_SIZES.md, DEFAULTS.STYLES.NODE_BORDER_SIZES), propID);
-    createSection("Node Label", createLabelControls("Node Label"), propID);
-    createSection("Node Label Size", createSizeControls("Node Label", DEFAULTS.STYLES.NODE_LABEL_SIZES.md, DEFAULTS.STYLES.NODE_LABEL_SIZES), propID);
-    createSection("Node Badges", createBadgeControls(), propID);
+  function createSelectCard() {
+    const selDiv = createCard("Select Elements");
+
+    const rowOne = createNewRow(selDiv);
+    appendButton(rowOne, "All Nodes", "Select all visible nodes",
+      async () => await toggleSelectionForAllNodes(true));
+    appendButton(rowOne, "No Nodes", "Deselect all visible nodes",
+      async () => await toggleSelectionForAllNodes(false));
+    appendVerticalRule(rowOne);
+    appendButton(rowOne, "All Edges", "Select all visible edges",
+      async () => await toggleSelectionForAllEdges(true));
+    appendButton(rowOne, "No Edges", "Deselect all visible edges",
+      async () => await toggleSelectionForAllEdges(false));
+    appendVerticalRule(rowOne);
+    appendButton(rowOne, "Expand Edges",
+      "Add all edges connected to the currently selected nodes to the selection",
+      async () => await toggleSelectionByNeighbors("expand-edges"));
+    appendButton(rowOne, "Reduce Edges",
+      "Remove edges that do not connect two selected nodes",
+      async () => await toggleSelectionByNeighbors("reduce-edges"));
+    appendVerticalRule(rowOne);
+    appendButton(rowOne, "Expand Neighbors",
+      "Add all directly connected neighbor nodes (and their edges) to the current selection",
+      async () => await toggleSelectionByNeighbors("expand-neighbors"));
+    appendButton(rowOne, "Reduce Neighbors",
+      "Remove the outermost layer of selected neighbor nodes (and their edges) from the ",
+      async () => await toggleSelectionByNeighbors("reduce-neighbors"));
+
+    const rowTwo = createNewRow(selDiv);
+    const nodeIDsInputSwitch = createSwitch(e => {
+      document.getElementById('selectByNodeIDsLabel').textContent = !e.target.checked
+        ? 'Include Node ID(s)' : 'Exclude Node ID(s)';
+    }, "selectByNodeIDsSwitch");
+    rowTwo.appendChild(nodeIDsInputSwitch);
+    const nodeIDsTT = "Enter comma-separated list of node IDs to add/remove to/from selection\nConfirm with Enter";
+    appendLabel(rowTwo, "Include Node ID(s)", nodeIDsTT, "selectByNodeIDsLabel");
+    const topTwoNodeIDs = data?.nodes?.slice(0, 2).map(n => n.id).join(',') || 'Node1,Node2';
+    const nodeIDsInput = createInput(220, topTwoNodeIDs, nodeIDsTT, undefined,
+      async (val) => {
+        await addNodeOrEdgeIDsToSelection(val, true);
+      });
+    nodeIDsInput.id = "selectByNodeIDsInput";
+    rowTwo.appendChild(nodeIDsInput);
+
+    const edgeIDsTT = "Enter comma-separated list of edge IDs (SourceID::TargetID) to add/remove to/from selection\nConfirm with Enter";
+    appendVerticalRule(rowTwo, "Include Edge ID(s)", edgeIDsTT, "selectByEdgeIDsLabel");
+    const edgeIDsInputSwitch = createSwitch(e => {
+      document.getElementById('selectByEdgeIDsLabel').textContent = !e.target.checked
+        ? 'Include Edge ID(s)' : 'Exclude Edge ID(s)';
+    }, "selectByEdgeIDsSwitch");
+    rowTwo.appendChild(edgeIDsInputSwitch);
+    const topTwoEdgeIDs = data?.edges?.slice(0, 2).map(e => e.id).join(',') || 'Node1::Node2,Node1::Node3';
+    const edgeIDsInput = createInput(220, topTwoEdgeIDs, edgeIDsTT, undefined,
+      async (val) => {
+        await addNodeOrEdgeIDsToSelection(val, false);
+      });
+    edgeIDsInput.id = "selectByEdgeIDsInput";
+    rowTwo.appendChild(edgeIDsInput);
   }
 
-  if (!propID || cache.mixedProps.has(propID)) {
-    createSeparator();
+  function createArrangeNodesCard() {
+    const arrDiv = createCard("Arrange Selection");
+
+    const rowOne = createNewRow(arrDiv);
+    appendButton(rowOne, "Shrink", "Move nodes closer together, halving their distance to the center.",
+      () => layoutSelectedNodes("shrink"));
+    appendButton(rowOne, "Expand", "Move nodes farther apart, doubling their distance to the center.",
+      () => layoutSelectedNodes("expand"));
+    appendVerticalRule(rowOne);
+    appendButton(rowOne, "Circle", "Arrange nodes evenly in a circular layout around the center.",
+      () => layoutSelectedNodes("circle"));
+    appendButton(rowOne, "Force", "Apply a force-directed layout to the selected nodes.",
+      () => layoutSelectedNodes("force"));
+    appendButton(rowOne, "Grid", "Apply a grid layout to the selected nodes.",
+      () => layoutSelectedNodes("grid"));
+    appendButton(rowOne, "Random", "Apply a random layout to the selected nodes.",
+      () => layoutSelectedNodes("random"));
   }
 
-  if (!propID || cache.edgeExclusiveProps.has(propID) || cache.mixedProps.has(propID)) {
-    createSection("Edge Color", createColorControls("Edge", DEFAULTS.EDGE.COLOR, DEFAULTS.STYLES.EDGE_COLORS), propID);
-    createSection("Edge Width", createSizeControls("Edge", DEFAULTS.EDGE.LINE_WIDTH, DEFAULTS.STYLES.EDGE_WIDTHS), propID);
-    createSection("Edge Dash", createSizeControls("Edge Dash", DEFAULTS.STYLES.EDGE_DASHS.none, DEFAULTS.STYLES.EDGE_DASHS), propID);
-    createSection("Edge Halo", createHaloEnablingControls(), propID);
-    createSection("Edge Halo Color", createColorControls("Edge Halo", DEFAULTS.STYLES.EDGE_HALO_STROKE.purple, DEFAULTS.STYLES.EDGE_HALO_STROKE), propID);
-    createSection("Edge Halo Width", createSizeControls("Edge Halo", DEFAULTS.STYLES.EDGE_HALO_WIDTH.md, DEFAULTS.STYLES.EDGE_HALO_WIDTH), propID);
+  function createNodeConfigCard() {
+    const nodeDiv = createCard("Node Configuration");
+
+    const rowOne = createNewRow(nodeDiv);
+    appendLabel(rowOne, "Shape");
+    createNodeShapeControls(rowOne);
+    appendVerticalRule(rowOne, "Size");
+    createNumericalSlider(rowOne, "Node Size", DEFAULTS.NODE.SIZE,
+      {min: 10, max: 50, step: 1});
+    appendVerticalRule(rowOne, "Fill Color");
+    createColorControls(rowOne, "Node Fill Color", DEFAULTS.NODE.FILL_COLOR, DEFAULTS.STYLES.NODE_COLORS);
+
+    const rowTwo = createNewRow(nodeDiv);
+    appendLabel(rowTwo, "Border Size", "Defines the width of the border of the selected nodes.");
+    createNumericalSlider(rowTwo, "Node Border Size", DEFAULTS.NODE.LINE_WIDTH,
+      {min: 1, max: 10, step: 1}, "Defines the width of the border of the selected nodes.");
+    appendVerticalRule(rowTwo, "Border Color", "Defines the fill color of the selected nodes.");
+    createColorControls(rowTwo, "Node Border Color", DEFAULTS.NODE.STROKE_COLOR,
+      DEFAULTS.STYLES.NODE_BORDER_COLORS);
+
+    const rowThree = createNewRow(nodeDiv);
+    appendLabel(rowThree, "Label", "Customize the selected nodes labels.");
+    createLabelControls(rowThree, "Node Label", true);
+    appendVerticalRule(rowThree, "Font Size", "Defines the font size of the selected nodes labels.");
+    createNumericalSlider(rowThree, "Node Label Font Size", DEFAULTS.NODE.LABEL.FONT_SIZE,
+      {min: 10, max: 30, step: 1}, "Defines the font size of the selected nodes labels.");
+    appendVerticalRule(rowThree, "Placement", "Defines the placement of the selected nodes labels.");
+    createCategoricalControls(rowThree, "Node Label Placement", DEFAULTS.NODE.LABEL.PLACEMENT,
+      DEFAULTS.STYLES.NODE_LABEL_PLACEMENTS, "Defines the placement of the selected nodes labels.");
+
+    const rowFour = createNewRow(nodeDiv);
+    appendLabel(rowFour, "Label Color",
+      "Defines the foreground (text) color of the selected nodes labels.");
+    createColorControls(rowFour, "Node Label Font Color", DEFAULTS.NODE.LABEL.FOREGROUND_COLOR,
+      DEFAULTS.STYLES.NODE_LABEL_COLORS);
+    appendVerticalRule(rowFour, "Label Background Color",
+      "Defines the background color of the selected nodes labels.");
+    createColorControls(rowFour, "Node Label Background Color", DEFAULTS.NODE.LABEL.BACKGROUND_COLOR,
+      DEFAULTS.STYLES.NODE_LABEL_BACKGROUND_COLORS);
+
+    const rowFive = createNewRow(nodeDiv);
+    appendLabel(rowFive, "Badges", "Add Badges to the selected nodes.");
+    createNodeBadgeControls(rowFive);
+
   }
 
-  return container;
+  function createEdgeConfigCard() {
+    const edgeDiv = createCard("Edge Configuration");
+
+    const rowOne = createNewRow(edgeDiv);
+    appendLabel(rowOne, "Type", "Change the geometric edge type of the selected edges.");
+    createEdgeTypeControls(rowOne);
+    appendVerticalRule(rowOne, "Width", "Change the width of the selected edges.");
+    createNumericalSlider(rowOne, "Edge Width", DEFAULTS.EDGE.LINE_WIDTH,
+      {min: 0.1, max: 10.0, step: 0.1}, "Change the width of the selected edges.");
+    appendVerticalRule(rowOne, "Dash", "Define the dash pattern of the selected edges.");
+    createNumericalSlider(rowOne, "Edge Dash", DEFAULTS.EDGE.LINE_DASH,
+      {min: 0, max: 40, step: 1}, "Define the dash pattern of the selected edges.");
+    appendVerticalRule(rowOne, "Color", "Define the selected edges color.");
+    createColorControls(rowOne, "Edge Color", DEFAULTS.EDGE.COLOR, DEFAULTS.STYLES.EDGE_COLORS);
+
+    const rowTwo = createNewRow(edgeDiv);
+    appendLabel(rowTwo, "Label", "Customize the selected edges labels.");
+    createLabelControls(rowTwo, "Edge Label");
+    appendVerticalRule(rowTwo, "Font Size", "Defines the font size of the selected edges labels.");
+    createNumericalSlider(rowTwo, "Edge Label Font Size", DEFAULTS.EDGE.LABEL.FONT_SIZE,
+      {min: 10, max: 30, step: 1}, "Defines the font size of the selected edges labels.");
+    appendVerticalRule(rowTwo, "Placement", "Defines the placement of the selected edges labels.");
+    createCategoricalControls(rowTwo, "Edge Label Placement", DEFAULTS.EDGE.LABEL.PLACEMENT,
+      DEFAULTS.STYLES.EDGE_LABEL_PLACEMENTS, "Defines the placement of the selected edges labels.");
+    appendVerticalRule(rowTwo, "Rotate", "Enable/Disable label rotation.");
+    createBooleanControls(rowTwo, "Edge Label Auto Rotate", "Enable/Disable label rotation.");
+
+    const rowThree = createNewRow(edgeDiv);
+    appendLabel(rowThree, "Label Offset X",
+      "Define the offset of the selected edges labels along the X-axis.");
+    createNumericalSlider(rowThree, "Edge Label Offset X", DEFAULTS.EDGE.LABEL.OFFSET_X,
+      {min: -100, max: 100, step: 1},
+      "Define the offset of the selected edges labels along the X-axis.");
+    appendVerticalRule(rowThree, "Label Offset Y",
+      "Define the offset of the selected edges labels along the Y-axis.");
+    createNumericalSlider(rowThree, "Edge Label Offset Y", DEFAULTS.EDGE.LABEL.OFFSET_Y,
+      {min: -100, max: 100, step: 1},
+      "Define the offset of the selected edges labels along the Y-axis.");
+
+    const rowFour = createNewRow(edgeDiv);
+    appendLabel(rowFour, "Label Color",
+      "Defines the foreground (text) color of the selected edges labels.");
+    createColorControls(rowFour, "Edge Label Font Color", DEFAULTS.EDGE.LABEL.FOREGROUND_COLOR,
+      DEFAULTS.STYLES.EDGE_LABEL_COLORS, "Defines the foreground (text) color of the selected edges labels.");
+    appendVerticalRule(rowFour, "Label Background Color",
+      "Defines the background color of the selected edges labels.");
+    createColorControls(rowFour, "Edge Label Background Color", DEFAULTS.EDGE.LABEL.BACKGROUND_COLOR,
+      DEFAULTS.STYLES.EDGE_LABEL_BACKGROUND_COLORS, "Defines the background color of the selected edges labels.");
+
+    const rowFive = createNewRow(edgeDiv);
+    appendLabel(rowFive, "Start Arrow", "Enable/Disable the start arrow of the selected edges.");
+    createBooleanControls(rowFive, "Edge Start Arrow", "Enable/Disable the start arrow of the selected edges.");
+    appendVerticalRule(rowFive, "Size", "Define the size of the start arrow of the selected edges.");
+    createNumericalSlider(rowFive, "Edge Start Arrow Size", DEFAULTS.EDGE.ARROWS.START_SIZE,
+      {min: 10, max: 40, step: 1}, "Define the size of the start arrow of the selected edges.");
+    appendVerticalRule(rowFive, "Type", "Define the type of the start arrow of the selected edges.");
+    createCategoricalControls(rowFive, "Edge Start Arrow Type", DEFAULTS.EDGE.ARROWS.START_TYPE,
+      DEFAULTS.STYLES.EDGE_ARROW_TYPES, "Define the type of the start arrow of the selected edges.");
+
+    const rowSix = createNewRow(edgeDiv);
+    appendLabel(rowSix, "End Arrow", "Enable/Disable the end arrow of the selected edges.");
+    createBooleanControls(rowSix, "Edge End Arrow", "Enable/Disable the end arrow of the selected edges.");
+    appendVerticalRule(rowSix, "Size", "Define the size of the end arrow of the selected edges.");
+    createNumericalSlider(rowSix, "Edge End Arrow Size", DEFAULTS.EDGE.ARROWS.END_SIZE,
+      {min: 10, max: 40, step: 1}, "Define the size of the end arrow of the selected edges.");
+    appendVerticalRule(rowSix, "Type", "Define the type of the end arrow of the selected edges.");
+    createCategoricalControls(rowSix, "Edge End Arrow Type", DEFAULTS.EDGE.ARROWS.END_TYPE,
+      DEFAULTS.STYLES.EDGE_ARROW_TYPES, "Define the type of the end arrow of the selected edges.");
+
+    const rowSeven = createNewRow(edgeDiv);
+    appendLabel(rowSeven, "Halo", "Enable/Disable a halo around the selected edges.");
+    createBooleanControls(rowSeven, "Edge Halo", "Enable/Disable a halo around the selected edges.");
+    appendVerticalRule(rowSeven, "Color", "Define the color of the halo for the selected edges.");
+    createColorControls(rowSeven, "Edge Halo Color", DEFAULTS.EDGE.COLOR,
+      DEFAULTS.STYLES.EDGE_COLORS);
+    appendVerticalRule(rowSeven, "Width", "Define the halo width for the selected edges.");
+    createNumericalSlider(rowSeven, "Edge Halo Width", DEFAULTS.EDGE.HALO.WIDTH,
+      {min: 1, max: 30, step: 1}, "Define the halo width for the selected edges.");
+  }
+
+  createSelectCard();
+  createArrangeNodesCard();
+  createNodeConfigCard();
+  createEdgeConfigCard();
+
+  return root;
 }
 
-function toggleNodeStyleElements(enable) {
+async function updateEdges(overrides = {}, commands = []) {
+  for (const edgeID of cache.selectedEdges) {
+    const edge = cache.edgeRef.get(edgeID);
+
+    for (const command of commands) {
+      if (command === "label_set_to_id") {
+        edge.style.label = true;
+        edge.style.labelText = edge.id;
+      }
+      if (command === "label_set_to_label") {
+        edge.style.label = true;
+        edge.style.labelText = edge.label;
+      }
+    }
+
+    // apply overrides
+    deepMerge(edge, overrides);
+    cache.edgeRef.set(edgeID, edge);
+  }
+
+  await handleStyleChangeLoadingEvent("Style", "Updating Edge Styles");
+}
+
+/**
+ * Recursively merges properties from `source` into `target`.
+ * - Existing properties in `target` remain if not in `source`.
+ * - Matching keys in `source` overwrite `target`.
+ * - New keys are added to `target`.
+ */
+function deepMerge(target, source) {
+  if (!isObject(target) || !isObject(source)) return;
+
+  for (const [key, value] of Object.entries(source)) {
+    // If both target and value are objects, recurse into them
+    if (isObject(value) && isObject(target[key])) {
+      deepMerge(target[key], value);
+    } else {
+      // Otherwise, just overwrite
+      target[key] = value;
+    }
+  }
+}
+
+function isObject(obj) {
+  return obj !== null && typeof obj === "object" && !Array.isArray(obj);
+}
+
+async function updateNodes(overrides = {}, commands = []) {
+  for (const nodeID of cache.selectedNodes) {
+    const node = cache.nodeRef.get(nodeID);
+
+    for (const command of commands) {
+      if (command === "badge_clear") {
+        node.style.badge = false;
+        node.style.badges = [];
+        node.style.badgePalette = [];
+      }
+      if (command === "badge_add") {
+        node.style.badge = true;
+        node.style.badges = node.style.badges || [];
+        node.style.badgePalette = node.style.badgePalette || [];
+        node.style.badges = [...node.style.badges, ...overrides.style.badges];
+        node.style.badgePalette = [...node.style.badgePalette, ...overrides.style.badgePalette];
+        delete overrides.style?.badges;
+        delete overrides.style?.badgePalette;
+      }
+      if (command === "label_set_to_id") {
+        node.style.label = true;
+        node.style.labelText = node.id;
+      }
+      if (command === "label_set_to_label") {
+        node.style.label = true;
+        node.style.labelText = node.label;
+      }
+    }
+
+    // apply overrides
+    deepMerge(node, overrides);
+    cache.nodeRef.set(nodeID, node);
+  }
+  await handleStyleChangeLoadingEvent("Style", `Updating Node Styles`);
+}
+
+function toggleStyleElementsThatRequireAtLeastOneSelectedNode(enable) {
   toggleStyleElements([
-    "Node Form", "Node Color", "Node Size", "Node Border Color", "Node Border Size", "Node Label", "Node Label Size",
-    "Node Badges"], enable);
+    "Node Configuration", "Expand Edges", "Reduce Edges", "Expand Neighbors", "Reduce Neighbors"
+  ], enable);
 }
 
-function toggleEdgeStyleElements(enable) {
-  toggleStyleElements([
-    "Edge Color", "Edge Width", "Edge Dash", "Edge Halo", "Edge Halo Color", "Edge Halo Width"], enable);
+function toggleStyleElementsThatRequireAtLeastOneSelectedEdge(enable) {
+  toggleStyleElements(["Edge Configuration"], enable);
 }
 
-function toggleCommonStyleElements(enable) {
-  toggleStyleElements(["Arrange Nodes"], enable);
+function toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(enable) {
+  toggleStyleElements([], enable);
 }
 
-function toggleSelectStyleElements(enable) {
-  toggleStyleElements(["Select"], enable);
+function toggleStyleElementsThatRequireAtLeastOneVisibleNode(enable) {
+  toggleStyleElements(["selectByNodeIDsInput"], enable);
+}
+
+function toggleStyleElementsThatRequireAtLeastOneVisibleEdge(enable) {
+  toggleStyleElements(["selectByEdgeIDsInput"], enable);
+}
+
+function toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(enable) {
+  toggleStyleElements(["Select Elements"], enable);
+}
+
+function toggleStyleElementsThatRequireMoreThanOneSelectedNode(enable) {
+  toggleStyleElements(["Arrange Selection"], enable);
 }
 
 function toggleStyleElements(headingLabels, enable) {
-  const elementIDs = headingLabels.flatMap(l => [`${l}-heading-undefined`, `${l}-controls-undefined`]);
-  for (let elemID of elementIDs) {
+  for (let elemID of headingLabels) {
     const elem = document.getElementById(elemID);
-    enable ? elem.classList.remove("is-disabled") : elem.classList.add("is-disabled");
-  }
-}
-
-function updateSelectedState(elemData, enable) {
-  for (const item of elemData) {
-    if (!item.states) {
-      item.states = [];
-    }
-
-    if (enable) {
-      if (!item.states.includes("selected")) {
-        item.states.push("selected");
-      }
+    if (elem) {
+      enable ? elem.classList.remove("is-disabled") : elem.classList.add("is-disabled");
     } else {
-      const index = item.states.indexOf("selected");
-      if (index > -1) {
-        item.states.splice(index, 1);
+      debug("Element not found: " + elemID);
+    }
+  }
+}
+
+async function updateSelectedState(elemData, enable) {
+  await showLoading(enable ? "Selecting" : "Deselecting", `Modifying selection of ${elemData.length} elements`);
+  for (const item of elemData) {
+    await graph.setElementState(item.id, enable ? 'selected' : '');
+  }
+  await hideLoading();
+}
+
+async function toggleSelectionForAllNodes(enable) {
+  const nodes = await graph.getNodeData();
+  await updateSelectedState(nodes, enable);
+}
+
+async function toggleSelectionForAllEdges(enable) {
+  const edges = await graph.getEdgeData();
+  await updateSelectedState(edges, enable);
+}
+
+async function syncSelectionCacheAndElementStates() {
+  const nodesToShow = [];
+  const nodesToHide = [];
+  const edgesToShow = [];
+  const edgesToHide = [];
+
+  const snapshot = cache.selectionMemory[cache.selectedMemoryIndex];
+
+  cache.selectedNodes = snapshot.nodes;
+  cache.selectedEdges = snapshot.edges;
+
+  for (const node of graph.getNodeData()) {
+    snapshot.nodes.includes(node.id) ? nodesToShow.push(node) : nodesToHide.push(node);
+  }
+  for (const edge of graph.getEdgeData()) {
+    snapshot.edges.includes(edge.id) ? edgesToShow.push(edge) : edgesToHide.push(edge);
+  }
+  await updateSelectedState(nodesToShow, true);
+  await updateSelectedState(nodesToHide, false);
+  await updateSelectedState(edgesToShow, true);
+  await updateSelectedState(edgesToHide, false);
+}
+
+function undoSelection() {
+  if (cache.selectedMemoryIndex > 0) {
+    cache.selectedMemoryIndex--;
+    syncSelectionCacheAndElementStates();
+  } else {
+    warning("Cannot undo!");
+  }
+}
+
+function redoSelection() {
+  if (cache.selectionMemory.length > cache.selectedMemoryIndex + 1) {
+    cache.selectedMemoryIndex++;
+    syncSelectionCacheAndElementStates();
+  } else {
+    warning("Cannot redo!");
+  }
+}
+
+async function addNodeOrEdgeIDsToSelection(elementIDs, isNode) {
+  const shouldAdd = isNode
+    ? !document.getElementById("selectByNodeIDsSwitch").checked
+    : !document.getElementById("selectByEdgeIDsSwitch").checked;
+
+  const elemDescription = isNode ? "Node" : "Edge";
+  const idArray = elementIDs ? elementIDs.split(",") : [];
+
+  const visibleElements = isNode ? cache.nodeIDsToBeShown : cache.edgeIDsToBeShown;
+  const existingElements = isNode ? cache.nodeRef.keys().toArray() : cache.edgeRef.keys().toArray();
+  const selectedElements = isNode ? cache.selectedNodes : cache.selectedEdges;
+  const ref = isNode ? cache.nodeRef : cache.edgeRef;
+
+  for (const elemID of idArray) {
+    if (!existingElements.includes(elemID)) {
+      error(`${elemDescription} with ID: '${elemID}' does not exist!`);
+      continue;
+    }
+
+    if (!visibleElements.has(elemID)) {
+      warning(`Cannot update selection of ${elemDescription} with ID: '${elemID}' as it is not visible.`);
+      continue;
+    }
+
+    const elementsToUpdate = [];
+    if (!selectedElements.includes(elemID) || !shouldAdd) {
+      elementsToUpdate.push(ref.get(elemID));
+    }
+
+    if (elementsToUpdate.length > 0) {
+      await updateSelectedState(elementsToUpdate, shouldAdd);
+    }
+  }
+}
+
+async function toggleSelectionByNeighbors(mode) {
+  const edgesToShow = [];
+  const edgesToHide = [];
+  const nodesToShow = [];
+  const nodesToHide = [];
+
+  function isOuterNodeInSelection(nodeID) {
+    let neighborsInSelection = 0;
+
+    for (const edgeID of cache.nodeIDToEdgeIDs.get(nodeID) || []) {
+      const edge = cache.edgeRef.get(edgeID);
+      if (!edge) continue;
+
+      const neighbor = edge.source === nodeID ? edge.target : edge.source;
+
+      if (cache.selectedNodes.includes(neighbor)) {
+        neighborsInSelection++;
+        if (neighborsInSelection > 1) {
+          return false;
+        }
       }
     }
+
+    return neighborsInSelection <= 1;
   }
-}
 
-function toggleSelectionForAllNodes(enable) {
-  const nodes = graph.getNodeData();
-  updateSelectedState(nodes, enable);
-  graph.updateNodeData(nodes);
-  graph.render();
-}
-
-function toggleSelectionForAllEdges(enable) {
-  const edges = graph.getEdgeData();
-  updateSelectedState(edges, enable);
-  graph.updateEdgeData(edges);
-  graph.render();
-}
-
-function persistPositionsUpdateDataAndReDrawGraph() {
-  // the timeout is necessary since otherwise, when calling this directly after rendering, the layout is not fully
-  // finished and the recorded nodes are misplaced slightly
-  setTimeout(() => {
-    let ld = data.layouts[data.selectedLayout];
-    if (!ld.isCustom && ld.positions.size === 0) {
-      console.log(`Initially persisting coordinates of default layout ${data.selectedLayout} ..`);
-      persistNodePositions();
-    }
-
-    // cache is written on app start or layout change every time IF no data exists yet, no matter if it is a custom layout or not
-    if (!cache.initialNodePositions.has(data.selectedLayout)) {
-      cache.initialNodePositions.set(data.selectedLayout, new Map());
-      console.log(`Caching coordinates of layout ${data.selectedLayout} to be used by reset feature ..`);
-      persistNodePositions(cache.initialNodePositions.get(data.selectedLayout));
-    }
-  }, 100);
-}
-
-function persistNodePositions(targetMap = data.layouts[data.selectedLayout].positions) {
-  for (const node of graph.getNodeData()) {
-    targetMap.set(node.id, {x: node.style.x, y: node.style.y});
+  async function update() {
+    if (edgesToShow.length > 0) await updateSelectedState(edgesToShow, true);
+    if (edgesToHide.length > 0) await updateSelectedState(edgesToHide, false);
+    if (nodesToShow.length > 0) await updateSelectedState(nodesToShow, true);
+    if (nodesToHide.length > 0) await updateSelectedState(nodesToHide, false);
   }
+
+  switch (mode) {
+
+    case "expand-edges":
+      for (let nodeID of cache.selectedNodes) {
+        for (let edgeID of cache.nodeIDToEdgeIDs.get(nodeID) || []) {
+          edgesToShow.push(cache.edgeRef.get(edgeID));
+        }
+      }
+      break;
+
+    case "reduce-edges":
+      for (let edgeID of cache.selectedEdges) {
+        const edge = cache.edgeRef.get(edgeID);
+        const connectingNodesAreSelected = cache.selectedNodes.includes(edge.source)
+          && cache.selectedNodes.includes(edge.target);
+        connectingNodesAreSelected ? edgesToShow.push(edge) : edgesToHide.push(edge);
+      }
+      break;
+
+    case "expand-neighbors":
+      for (let nodeID of cache.selectedNodes) {
+        for (let edgeID of cache.nodeIDToEdgeIDs.get(nodeID) || []) {
+          const edge = cache.edgeRef.get(edgeID);
+          edgesToShow.push(edge);
+
+          nodesToShow.push(cache.nodeRef.get(edge.source));
+          nodesToShow.push(cache.nodeRef.get(edge.target));
+        }
+      }
+      break;
+
+    case "reduce-neighbors":
+      for (const nodeID of cache.selectedNodes.filter(isOuterNodeInSelection)) {
+        nodesToHide.push(cache.nodeRef.get(nodeID));
+
+        for (const edgeID of cache.nodeIDToEdgeIDs.get(nodeID) || []) {
+          edgesToHide.push(cache.edgeRef.get(edgeID));
+        }
+      }
+      break;
+
+    default:
+      break;
+  }
+
+  await update();
 }
 
 function* traverseD4Data(nodeOrEdge) {
-  // call with
-  //     for (let [section, subsection, prop, data] of traverseD4Data(nodeOrEdge)) {
-  //        console.log(`Section: ${section}, SubSection: ${subsection}, Prop: ${prop}, Data:`, data);
-  //      }
   if (!nodeOrEdge.D4Data) return;
 
   for (let section in nodeOrEdge.D4Data) {
@@ -958,84 +2576,290 @@ function parseJSON(file) {
 function parseExcelToJson(file) {
   const workbook = XLSX.read(file, {type: 'array'});
 
-  // Reserved column mappings
-  const RESERVED_COLUMNS = {
-    x: 'x', // Position X
-    y: 'y', // Position Y
-    label: 'label', // Node or edge label
-    color: 'color', // Node or edge color
-    size: 'size', // Node size
-    source: 'source', // Edge source node ID
-    target: 'target', // Edge target node ID
-  };
-
   const nodesSheet = workbook.Sheets['nodes'];
   const edgesSheet = workbook.Sheets['edges'];
+  const debugSheet = workbook.Sheets["debug"];
 
   if (!nodesSheet || !edgesSheet) {
-    throw new Error('The Excel file must have two sheets: "nodes" and "edges".');
+    error('The Excel file must contain a "nodes" and "edges" sheet.');
+    return;
+  }
+
+  function getOrNull(row, key) {
+    const lowerCaseKey = key.toString().toLowerCase().trim();
+    const value = row[Object.keys(row).find(key => key.toLowerCase() === lowerCaseKey)];
+    if (value && value.toString().trim() !== "") {
+      return value;
+    }
+    return null;
+  }
+
+  function validateColumns(requiredColumns, firstRowKeys, sheetName) {
+    for (const column of requiredColumns) {
+      if (!firstRowKeys.includes(column)) {
+        const origColumn = firstRowKeys.filter(k => k.toLowerCase().trim() === column)[0];
+        error(`The "${sheetName}" sheet must contain an "${origColumn}" column.`);
+        return;
+      }
+    }
+  }
+
+  function removeEmptyColumns(sheetJson, sheetDescriptor) {
+    const allCols = Object.keys(sheetJson[0]).filter(c => !c.startsWith("__EMPTY"));
+
+    const emptyCols = allCols.filter(col =>
+      sheetJson.every(row => {
+        const v = row[col];
+        return v === null || v.toString().trim() === "";
+      })
+    );
+
+    if (emptyCols.length) {
+      for (const col of emptyCols) {
+        warning(`Column "${col}" in "${sheetDescriptor}" sheet is empty and will be removed.`);
+      }
+    }
+
+    sheetJson.forEach(row =>
+      emptyCols.forEach(col => delete row[col])
+    );
   }
 
   const nodesData = XLSX.utils.sheet_to_json(nodesSheet, {defval: null});
   const edgesData = XLSX.utils.sheet_to_json(edgesSheet, {defval: null});
 
+  if (nodesData.length === 0) {
+    error('The "nodes" sheet is empty or invalid.');
+    return;
+  }
+
+  if (edgesData.length === 0) {
+    error('The "edges" sheet is empty or invalid.');
+    return;
+  }
+
+  removeEmptyColumns(nodesData, "nodes");
+  removeEmptyColumns(edgesData, "edges");
+
+  const firstNodeRowKeys = Object.keys(nodesData[0])
+    .map(k => k.toLowerCase().trim());
+  const requiredNodeColumns = EXCEL_NODE_PROPERTIES
+    .filter(node => node.required)
+    .map(node => node.column.toLowerCase().trim());
+  validateColumns(requiredNodeColumns, firstNodeRowKeys, 'nodes');
+
+  const firstEdgeRowKeys = Object.keys(edgesData[0])
+    .map(k => k.toLowerCase().trim());
+  const requiredEdgeColumns = EXCEL_EDGE_PROPERTIES
+    .filter(edge => edge.required)
+    .map(edge => edge.column.toLowerCase().trim());
+  validateColumns(requiredEdgeColumns, firstEdgeRowKeys, 'edges');
+
+  const nonDataNodeColumns = new Set(EXCEL_NODE_PROPERTIES.map((p) => p.column.toLowerCase().trim()));
+  const nodeDataHeaders = Object.keys(nodesData[0])
+    .filter(k => !nonDataNodeColumns.has(k.toLowerCase().trim()) && !k.startsWith("__EMPTY"))
+    .map((k) => decodeKey(k));
+  const nonDataEdgeColumns = new Set(EXCEL_EDGE_PROPERTIES.map((p) => p.column.toLowerCase().trim()));
+  const edgeDataHeaders = Object.keys(edgesData[0])
+    .filter(k => !nonDataEdgeColumns.has(k.toLowerCase().trim()) && !k.startsWith("__EMPTY"))
+    .map((k) => decodeKey(k));
+
+  function addNodeOrEdgeStyle(nodeOrEdge, row, propertyMap, descriptor) {
+    nodeOrEdge.style = {};
+
+    propertyMap.forEach(({column, type, required, apply}) => {
+      if (required) return;
+
+      const rowNum = row.__rowNum__ + 1;
+
+      if (!type) {
+        warning(`Unsure how to validate ${descriptor} property ${column} in row ${rowNum}. 
+        Missing definition in EXCEL_NODE_PROPERTIES or EXCEL_EDGE_PROPERTIES?`);
+        return;
+      }
+
+      const maybeValue = getOrNull(row, column);
+      if (maybeValue) {
+        let validated = false;
+        let listValues = null;
+        if (type.startsWith("oneOf:")) {
+          listValues = type.split(":")[1].split("|");
+          type = "list";
+        }
+        switch (type) {
+          case "str":
+            validated = true;
+            break;
+          case "num":
+            validated = isNumber(maybeValue);
+            break;
+          case "bool":
+            validated = isBoolean(maybeValue);
+            break;
+          case "rgba":
+            validated = isHexColor(maybeValue);
+            break;
+          case "list":
+            validated = isInList(maybeValue, listValues);
+            break;
+          default:
+            break;
+        }
+        if (!validated) {
+          error(`${descriptor} property '${column}' in row ${rowNum} has an invalid value '${maybeValue}' and will be ignored (value must be of type '${type}').`);
+        } else {
+          apply(nodeOrEdge, maybeValue);
+        }
+      }
+    });
+  }
+
+  function decodeKey(key) {
+    let subGroup = EXCEL_UNCATEGORIZED_SUBHEADER;
+    if (key.indexOf("[") > -1 && key.indexOf("]") > -1) {
+      subGroup = key.substring(key.indexOf("[") + 1, key.indexOf("]")).trim();
+    }
+    const trimmedKey = key.split("[")[0].trim();
+    return {"subGroup": subGroup, "key": trimmedKey};
+  }
+
+  function validateUserData(row, key) {
+    const val = row[key];
+
+    if (val === null || val.toString().trim() === "") {
+      return null;
+    }
+
+    return {"value": val, ...decodeKey(key)};
+  }
+
+  function addNodeOrEdgeUserData(nodeOrEdge, row, propertyMap, header, descriptor) {
+    nodeOrEdge.D4Data = {
+      [header]: {},
+    };
+
+    let propsAdded = 0;
+    const reservedProperties = propertyMap.map(p => p.column.toLowerCase().trim());
+
+    for (let key in row) {
+      if (reservedProperties.includes(key.toLowerCase())) continue;
+
+      const userData = validateUserData(row, key);
+
+      if (!userData) continue;
+
+      if (!nodeOrEdge.D4Data[header].hasOwnProperty(userData.subGroup)) {
+        nodeOrEdge.D4Data[header][userData.subGroup] = {};
+      }
+
+      nodeOrEdge.D4Data[header][userData.subGroup][userData.key] = userData.value;
+      propsAdded++;
+    }
+
+    if (propsAdded === 0) {
+      warning(`${descriptor} in row ${row.__rowNum__} (${nodeOrEdge.id}) has no properties. 
+      Added property 'exists' to enable display.`);
+      nodeOrEdge.D4Data[header][EXCEL_UNCATEGORIZED_SUBHEADER] = {
+        "exists": true
+      }
+    }
+  }
+
+  const nodeIDs = new Set();
+
   const parsedNodes = nodesData.map(row => {
     const node = {};
-    if (row.id == null) {
-      throw new Error('Each node must have an "id" column.');
+    const nodeRowNum = row.__rowNum__ + 1;
+    const descriptor = "Node";
+
+    const nodeID = getOrNull(row, "ID");
+    if (!nodeID) {
+      warning(`Node in row ${nodeRowNum} does not contain an ID and will be skipped.`);
+      return null;
     }
 
-    node.id = row.id; // Mandatory ID
-    node.label = row[RESERVED_COLUMNS.label] || null; // Optional label
-    node.style = {}; // Styles (e.g., color, size)
+    if (nodeIDs.has(nodeID)) {
+      warning(`Node in row ${nodeRowNum} (ID ${nodeID}) already exists and will be skipped.`);
+      return null;
+    }
 
-    if (row[RESERVED_COLUMNS.x] != null && row[RESERVED_COLUMNS.y] != null) {
-      node.x = row[RESERVED_COLUMNS.x];
-      node.y = row[RESERVED_COLUMNS.y];
-    }
-    if (row[RESERVED_COLUMNS.color]) {
-      node.style.fill = row[RESERVED_COLUMNS.color]; // Map color to node style
-    }
-    if (row[RESERVED_COLUMNS.size] != null) {
-      node.style.size = row[RESERVED_COLUMNS.size];
-    }
+    node.id = nodeID;
+    nodeIDs.add(nodeID);
+
+    addNodeOrEdgeStyle(node, row, EXCEL_NODE_PROPERTIES, descriptor);
+    addNodeOrEdgeUserData(node, row, EXCEL_NODE_PROPERTIES, EXCEL_NODE_HEADER, descriptor);
 
     return node;
-  });
+  }).filter(node => node !== null);
 
   const parsedEdges = edgesData.map(row => {
     const edge = {};
-    if (row[RESERVED_COLUMNS.source] == null || row[RESERVED_COLUMNS.target] == null) {
-      throw new Error('Each edge must have "source" and "target" columns.');
+    const edgeRowNum = row.__rowNum__ + 1;
+    const descriptor = "Edge";
+
+    const sourceID = getOrNull(row, "Source ID");
+    if (!sourceID) {
+      warning(`Edge in row ${edgeRowNum} does not contain a Source ID and will be skipped.`);
+      return null;
     }
 
-    edge.source = row[RESERVED_COLUMNS.source]; // Mandatory source
-    edge.target = row[RESERVED_COLUMNS.target]; // Mandatory target
-    edge.label = row[RESERVED_COLUMNS.label] || null; // Optional label
-    edge.style = {}; // Styles (e.g., color)
-
-    if (row[RESERVED_COLUMNS.color]) {
-      edge.style.stroke = row[RESERVED_COLUMNS.color]; // Map color to edge style
+    if (!nodeIDs.has(sourceID)) {
+      warning(`Edge in row ${edgeRowNum} has an invalid/missing Source ID (${sourceID}) and will be skipped.`);
+      return null;
     }
+
+    const targetID = getOrNull(row, "Target ID");
+    if (!targetID) {
+      warning(`Edge in row ${edgeRowNum} does not contain a Target ID and will be skipped.`)
+      return null;
+    }
+
+    if (!nodeIDs.has(targetID)) {
+      warning(`Edge in row ${edgeRowNum} has an invalid/missing Target ID (${targetID}) and will be skipped.`);
+      return null;
+    }
+
+    edge.id = `${sourceID}::${targetID}`;
+    edge.source = sourceID;
+    edge.target = targetID;
+
+    addNodeOrEdgeStyle(edge, row, EXCEL_EDGE_PROPERTIES, descriptor);
+    addNodeOrEdgeUserData(edge, row, EXCEL_EDGE_PROPERTIES, EXCEL_EDGE_HEADER, descriptor);
 
     return edge;
-  });
+  }).filter(edge => edge !== null);
 
-  // return {
-  //   nodes: [{"id": "MF_0", "color": "#572cd2", "label": "MF 0", "description": "optional description for node id 0", "type": "hexagon", "size": 25, "D4Data": {"cells": {}, "tissues": {"vasculature": {"Endothelium": "category_1"}, "heart": {"Myocardium": 20}}, "phenotypes": {"NO_GROUPS_YET": {"Collagenous Sprue": "category_3"}}}},{"id": "MF_1", "color": "#1495f8", "label": "MF 1", "description": "optional description for node id 1", "type": "hexagon", "size": 25, "D4Data": {"cells": {}, "tissues": {"vasculature": {"Endothelium": "category_2"}}, "phenotypes": {"NO_GROUPS_YET": {"Atrial Remodeling": 215}}}},{"id": "MF_15", "color": "#61752d", "label": "MF 15", "description": "optional description for node id 15", "type": "hexagon", "size": 25, "D4Data": {"cells": {"adipose tissue": {"ADIPOCYTE": 1.137999}, "ECM": {"CARDIOFIBROBLAST": "category_2"}}, "tissues": {}, "phenotypes": {"NO_GROUPS_YET": {"Rhinitis, Allergic": 533}}}}],
-  //   edges: [{"color": "#E4E3EA", "source": "MF_0", "target": "MF_15", "D4Data": {"properties": {"NO_GROUPS_YET": {"GWAS": 422}}}, "id": "MF_0::MF_15", "label": "Edge 0"}]
-  // }
+  if (debugSheet) {
+    const debugJson = XLSX.utils.sheet_to_json(debugSheet, {defval: null});
+
+    const header = Object.keys(debugJson[0]);
+    const expectedHeader = ["Query", "Valid Node IDs", "Valid Edge IDs"];
+    if (!arraysAreEqual(header, expectedHeader)) {
+      warning(`The 'debug' sheet must contain three columns: ${expectedHeader} (comma-separated IDs).`);
+      return;
+    }
+
+    const debugDiv = document.getElementById("debugDiv");
+
+    debugJson.map(row => {
+      const btn = document.createElement("button");
+      btn.onclick = () => debugQuery(row["Query"]);
+      btn.title = `Valid Node IDs: ${row["Valid Node IDs"]} | Valid Edge IDs: ${row["Valid Edge IDs"]}`;
+      btn.textContent = `${row.__rowNum__}`;
+      btn.className = "small-btn red";
+      debugDiv.appendChild(btn);
+    })
+  }
 
   return {
     nodes: parsedNodes,
     edges: parsedEdges,
-    combos: [],
-    layouts: {},
+    nodeDataHeaders: nodeDataHeaders,
+    edgeDataHeaders: edgeDataHeaders,
   };
 }
 
-
-function createGraphInstance() {
+async function createGraphInstance() {
   if (graph === null) {
 
     const behaviors = [
@@ -1044,26 +2868,14 @@ function createGraphInstance() {
       {type: 'drag-element', cursor: {default: 'default', grab: 'default', grabbing: 'default'},},
     ];
 
-    if (cache.showNodeLabelsAndHoverEffect) {
+    if (cache.showLabelsAndEnableHoverEffect) {
       behaviors.push(
         {
           type: 'hover-activate',
           enable: (event) => {
-            // console.log(event.target.config.id);
             return event.targetType === 'node' || event.targetType === 'edge';
           },
           degree: 1,
-          // degree: (event) => {
-          //   if (event.targetType === 'node') {
-          //     let relatedEdges = graph.getRelatedEdgesData(event.target.config.id).map(e => e.id);
-          //     let relatedNodes = graph.getNeighborNodesData(event.target.config.id).map(n => n.id);
-          //     if (!relatedEdges.every(edgeId => !cache.edgeIDsToBeShown.has(edgeId))) {
-          //       return 0;
-          //     }
-          //     // return visibleNeighbors.length > 0 ? 1 : 0;
-          //   }
-          //   return 1;
-          // },
           state: 'highlight',
           inactiveState: 'dim',
         }
@@ -1078,7 +2890,11 @@ function createGraphInstance() {
         enterable: true,
         getContent: (e, items) => cache.toolTips.get(items[0].id),
       },
-      {key: "minimap", type: "minimap",},
+      {
+        key: "minimap",
+        type: "minimap",
+        position: "bottom-left",
+      },
       ...[...traverseBubbleSets()].map(group => ({
         key: `bubbleSetPlugin-${group}`,
         type: "bubble-sets",
@@ -1120,90 +2936,220 @@ function createGraphInstance() {
       plugins: plugins,
     });
 
-    graph.on(NodeEvent.DRAG_END, (event) => {
-      // persist only the node affected by the event (when moving a group of selected nodes, the event only holds one id ..)
-      // data.layouts[data.selectedLayout].positions.set(event.target.id, {...event.canvas});
-      // console.log(`moved ${event.target.id} to ${event.canvas.x}, ${event.canvas.y}`);
+    graph.on(NodeEvent.DRAG_END, async (event) => {
+      if (STATES.DRAG_END_RUNNING) return;
 
-      // persist all node positions
-      persistNodePositions();
+      try {
+        STATES.DRAG_END_RUNNING = true;
+        await persistNodePositions();
+      } catch (errorMsg) {
+        error(`Error in NodeEvent.DRAG_END: ${errorMsg}`);;
+      } finally {
+        STATES.DRAG_END_RUNNING = false;
+      }
     });
 
-    graph.on(GraphEvent.AFTER_DRAW, (ev) => {
-      // TODO: fired quite often.. better alternative?
-      updateSelectedNodesAndEdges();
+    graph.on(GraphEvent.AFTER_DRAW, async () => {
+      if (STATES.AFTER_DRAW_RUNNNING) return;
+
+      try {
+        STATES.AFTER_DRAW_RUNNNING = true;
+        await updateSelectedNodesAndEdges();
+      } catch (errorMsg) {
+        error(`Error in GraphEvent.AFTER_DRAW: ${errorMsg}`);
+      } finally {
+        await hideLoading();
+        STATES.AFTER_DRAW_RUNNNING = false;
+      }
     });
 
-    graph.on(GraphEvent.BEFORE_RENDER, () => {
-      preRenderEvent();
-      console.log("BEFORE RENDER EVENT DONE");
+    graph.on(GraphEvent.BEFORE_RENDER, async () => {
+      if (STATES.BEFORE_RENDER_RUNNING) return;
+
+      try {
+        STATES.BEFORE_RENDER_RUNNING = true;
+        await showLoading("Rendering", "Rendering graph ..");
+      } catch (errorMsg) {
+        error(`Error in GraphEvent.BEFORE_RENDER: ${errorMsg}`);
+      } finally {
+        STATES.BEFORE_RENDER_RUNNING = false;
+      }
     });
 
-    graph.on(GraphEvent.AFTER_RENDER, () => {
-      showLoading("Preparing View", "Restoring Positions and Groups");
-      afterRenderEvent();
-      // TODO: Without this update and redraw after 200ms, positions are not restored
-      restorePositions();
-      console.log("AFTER RENDER EVENT DONE");
+    graph.on(GraphEvent.AFTER_RENDER, async () => {
+      if (STATES.AFTER_RENDER_RUNNING) return;
+      if (!STATES.INITIAL_RENDER_DONE) return;
+
+      try {
+        STATES.AFTER_RENDER_RUNNING = true;
+        const inSync = await nodePositionsAreInSyncWithPersistedPositions();
+        if (!inSync) {
+          await showLoading("Post-processing", "Restoring node positions ..");
+          await syncNodePositions();
+          STATES.AFTER_RENDER_RUNNING = false;
+          await graph.draw();
+        }
+      } catch (errorMsg) {
+        error(`Error in GraphEvent.AFTER_RENDER: ${errorMsg}`);
+      } finally {
+        await hideLoading();
+        STATES.AFTER_RENDER_RUNNING = false;
+      }
     });
+
+    // after initial rendering when loading a file; this is called prior to the regular after render event
+    graph.once(GraphEvent.AFTER_RENDER, async () => {
+      if (STATES.ONCE_AFTER_RENDER_RUNNING) return;
+
+      try {
+        STATES.ONCE_AFTER_RENDER_RUNNING = true;
+        await conditionallyPersistNodePositions();
+        await saveFiltersToStash(false);
+        registerHotkeyEvents();
+        registerGlobalEventListeners();
+        // to initially fill caches related to the query/filters, preRenderEvent is called without rendering afterwards
+        await preRenderEvent();
+        cache.metrics.updateUI();
+        STATES.INITIAL_RENDER_DONE = true;
+        await graph.render();
+      } catch (errorMsg) {
+        error(`Error in GraphEvent.AFTER_RENDER: ${errorMsg}`);
+      } finally {
+        STATES.ONCE_AFTER_RENDER_RUNNING = false;
+      }
+    })
 
     let layout = data.layouts[data.selectedLayout];
     if (!layout.isCustom) {
-      graph.setLayout({type: data.selectedLayout, ...layout.internals});
+      await graph.setLayout({type: data.selectedLayout, ...layout.internals});
     }
   }
 }
 
-function updateSelectedNodesAndEdges() {
-  cache.selectedNodes = graph.getNodeData()
+function fakeMove() {
+  data.layouts[data.selectedLayout].positions.set("A", {x: 150, y: 250});
+}
+
+function arraysAreEqual(a, b) {
+  if (a === b) return true;       // Same reference
+  if (!a || !b) return false;     // One is undefined/null
+  if (a.length !== b.length) return false;
+
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+let changeCounter = 0;
+
+function updateSelectionCache() {
+  const {selectedNodes, selectedEdges, selectionMemory, selectedMemoryIndex} = cache;
+
+  // this should never be triggered; in case no snapshot is available, create an empty one
+  if (selectionMemory.length === 0) {
+    selectionMemory.push({nodes: [], edges: []});
+    cache.selectedMemoryIndex = 0;
+  }
+
+  const currentSnapshot = selectionMemory[selectedMemoryIndex];
+
+  const nodesChanged = !arraysAreEqual(currentSnapshot.nodes, selectedNodes);
+  const edgesChanged = !arraysAreEqual(currentSnapshot.edges, selectedEdges);
+
+  if (nodesChanged || edgesChanged) {
+    changeCounter++;
+
+    // In case the user goes back in memory & then changes the selection, clear all memories after the current selection
+    if (selectedMemoryIndex < selectionMemory.length - 1) {
+      selectionMemory.splice(selectedMemoryIndex + 1);
+    }
+
+    // if the memory limit is reached, clear the first entry
+    if (selectionMemory.length === MAX_SELECTION_MEMORY) {
+      selectionMemory.shift();
+      cache.selectedMemoryIndex = selectionMemory.length - 1;
+    }
+
+    // push new memory, increment index
+    selectionMemory.push({
+      nodes: [...selectedNodes],
+      edges: [...selectedEdges],
+    });
+
+    cache.selectedMemoryIndex = selectionMemory.length - 1;
+  }
+}
+
+function updateEnabledStateUndoRedoSelectionButtons() {
+  const {selectionMemory, selectedMemoryIndex} = cache;
+  const canUndo = (selectedMemoryIndex > 0);
+  const canRedo = (selectedMemoryIndex < selectionMemory.length - 1);
+
+  const undoButton = document.getElementById("undoSelectionBtn");
+  const redoButton = document.getElementById("redoSelectionButton");
+
+  canUndo ? undoButton.classList.remove("disabled") : undoButton.classList.add("disabled");
+  canRedo ? redoButton.classList.remove("disabled") : redoButton.classList.add("disabled");
+}
+
+async function updateSelectedNodesAndEdges() {
+  cache.selectedNodes = await graph.getNodeData()
     .filter((n) => n.states?.includes("selected") && cache.nodeIDsToBeShown.has(n.id))
     .map((n) => n.id);
-  cache.selectedEdges = graph.getEdgeData()
+  cache.selectedEdges = await graph.getEdgeData()
     .filter((e) => e.states?.includes("selected") && cache.edgeIDsToBeShown.has(e.id))
     .map((e) => e.id);
 
   const selectedNodesCount = cache.selectedNodes?.length || 0;
   const selectedEdgesCount = cache.selectedEdges?.length || 0;
 
-
   document.getElementById("selectedNodes").textContent = `${selectedNodesCount}`;
   document.getElementById("selectedEdges").textContent = `${selectedEdgesCount}`;
 
-  if (selectedNodesCount > 0) {
-    document.getElementById("selectedNodes").style.display = "block";
-    toggleNodeStyleElements(true);
-  } else {
-    document.getElementById("selectedNodes").style.display = "none";
-    toggleNodeStyleElements(false);
-  }
+  const atLeastOneNodeSelected = selectedNodesCount > 0;
+  const atLeastOneEdgeSelected = selectedEdgesCount > 0;
+  const atLeastOneNodeOrEdgeSelected = atLeastOneNodeSelected || atLeastOneEdgeSelected;
+  const moreThanOneNodeSelected = selectedNodesCount > 1;
 
-  if (selectedEdgesCount > 0) {
-    toggleEdgeStyleElements(true);
-  } else {
-    toggleEdgeStyleElements(false);
-  }
+  document.getElementById("selectedNodes").style.display = atLeastOneNodeSelected ? "block" : "none";
 
-  if (selectedNodesCount > 0 || selectedEdgesCount > 0) {
-    toggleCommonStyleElements(true);
-  } else {
-    toggleCommonStyleElements(false);
-  }
+  toggleStyleElementsThatRequireAtLeastOneSelectedNode(atLeastOneNodeSelected);
+  toggleStyleElementsThatRequireAtLeastOneSelectedEdge(atLeastOneEdgeSelected);
+  toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(atLeastOneNodeOrEdgeSelected);
+  toggleStyleElementsThatRequireMoreThanOneSelectedNode(moreThanOneNodeSelected);
+
+  updateSelectionCache();
+  updateEnabledStateUndoRedoSelectionButtons();
 }
 
-function toggleEditMode(ev) {
-  let editModeActive = ev.classList.contains("active");
-  editModeActive ? ev.classList.remove("active") : ev.classList.add("active");
+function toggleQueryEditor() {
+  const btn = document.getElementById("queryToggleBtn");
+  let shouldEnable = !btn.classList.contains("highlight");
+
+  const mainContent = document.getElementById("mainContent");
+  const bottomBar = document.getElementById("bottomBar");
+
+  mainContent.style.height = shouldEnable ? "90%" : "100%";
+  bottomBar.style.height = shouldEnable ? "10%" : "0";
+  bottomBar.classList.toggle("active", shouldEnable);
+  btn.classList.toggle("highlight", shouldEnable);
+}
+
+async function toggleEditMode() {
+  const editBtn = document.getElementById("editBtn");
+  let editModeActive = editBtn.classList.contains("active");
+  editModeActive ? editBtn.classList.remove("active") : editBtn.classList.add("active");
 
   const nonEditBehaviors = [
     {type: 'drag-canvas', key: 'drag-canvas'},
     {type: 'drag-element', cursor: {default: 'default', grab: 'default', grabbing: 'default'}},
   ];
 
-  if (cache.showNodeLabelsAndHoverEffect) {
+  if (cache.showLabelsAndEnableHoverEffect) {
     nonEditBehaviors.push({
       type: 'hover-activate', degree: 1, state: 'highlight', inactiveState: 'dim',
       enable: (event) => {
-        // console.log(event.targetType);
         return event.targetType === 'node' || event.targetType === 'edge';
       },
     });
@@ -1215,26 +3161,35 @@ function toggleEditMode(ev) {
   ];
 
   // reduce behaviors to clean up existing edit/non-edit behaviors
-  let behaviors = graph.getBehaviors()
+  let behaviors = await graph.getBehaviors()
     .filter(b => ![...nonEditBehaviors.map(b => b.type), ...editBehaviors.map(b => b.type)].includes(b.type));
 
   // re-add behaviors for current mode
-  graph.setBehaviors([...behaviors, ...editModeActive ? nonEditBehaviors : editBehaviors]);
+  await graph.setBehaviors([...behaviors, ...editModeActive ? nonEditBehaviors : editBehaviors]);
 
   // control tooltip plugin
-  graph.updatePlugin({key: 'tooltip', enable: editModeActive});
+  await graph.updatePlugin({key: 'tooltip', enable: editModeActive});
 
   handleEditModeUIChanges();
 }
 
 function handleEditModeUIChanges() {
-  const editModeActive = document.getElementById("editBtn").classList.contains("active");
+  const editBtn = document.getElementById("editBtn");
+  const container = document.getElementById("sidebarContentContainer");
+  const sidebar = document.getElementById("sidebar");
+  const status = document.getElementById("sidebarStatusContainer");
+
+  const editModeActive = editBtn.classList.contains("active");
+
+  editModeActive ? editBtn.classList.add("highlight") : editBtn.classList.remove("highlight");
+
+  container.style.paddingRight = editModeActive ? "6px" : "0";
 
   // handle all edit elements
   const editElements = document.querySelectorAll('.show-on-edit');
   editElements.forEach(el => {
     editModeActive ? el.classList.add("show") : el.classList.remove("show");
-    editModeActive ? el.style.height = `${el.scrollHeight}px` : el.style.height = "0";
+    el.style.height = editModeActive ? `${el.scrollHeight}px` : "0";
   });
 
   // 'collapse' all open style rows
@@ -1249,7 +3204,7 @@ function handleEditModeUIChanges() {
   const filterRows = document.querySelectorAll('.filter-row');
   filterRows.forEach(row => {
     const checkboxCol = row.children[0];
-    checkboxCol.style.width = editModeActive ? "35%" : "66%";
+    checkboxCol.style.width = editModeActive ? "45%" : "56%";
 
     const sliderCol = row.querySelector(".filter-row-col2");
     sliderCol.style.width = editModeActive ? "65%" : "33%";
@@ -1269,7 +3224,11 @@ function handleEditModeUIChanges() {
     }
   });
 
-  document.getElementById("sidebar").style.minWidth = editModeActive ? "600px" : "360px";
+  sidebar.style.maxWidth = editModeActive ? "100%" : "unset";
+  status.style.maxWidth = editModeActive ? `${container.offsetWidth}px` : "375px";
+
+  const metricsContainer = document.getElementById("networkMetricsContainer");
+  metricsContainer.style.maxWidth = editModeActive ? `${container.offsetWidth}px` : "350px";
 }
 
 function* traverseBubbleSets() {
@@ -1278,21 +3237,23 @@ function* traverseBubbleSets() {
   }
 }
 
-function updateBubbleSet(group, members) {
+async function updateBubbleSet(group, members) {
   console.log(`Updating bubble set ${group} ..`);
-  const plugin = graph.getPluginInstance("bubbleSetPlugin-" + group);
+  const plugin = await graph.getPluginInstance("bubbleSetPlugin-" + group);
   let empty = !members || members.size === 0;
   const membersAsArray = [...members];
-  plugin.update({
+
+  function getMembers() {
+    return AVOID_NON_BUBBLE_GROUP_MEMBERS ?
+      [...cache.nodeRef.keys()].filter(nodeID => !membersAsArray.includes(nodeID)) : [];
+  }
+
+  await plugin.update({
     members: empty ? [] : membersAsArray,
-    avoidMembers: empty ?
-      [] : AVOID_NON_BUBBLE_GROUP_MEMBERS ?
-        [...cache.nodeRef.keys()].filter(nodeID => !membersAsArray.includes(nodeID)) : [],
+    avoidMembers: empty ? [] : getMembers(),
     fillOpacity: empty ? 0 : DEFAULTS.BUBBLE_SET_STYLE[group].fillOpacity,
     strokeOpacity: empty ? 0 : DEFAULTS.BUBBLE_SET_STYLE[group].strokeOpacity,
   });
-  // graph.draw();
-  // plugin.drawBubbleSets();
 }
 
 function setsAreEqual(setA, setB) {
@@ -1364,83 +3325,85 @@ function createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
   };
 }
 
-function preRenderEvent() {
-  /**
-   * Determines the visibility of nodes and edges based on active properties and filter thresholds.
-   * Updates the visibility cache and adjusts the graph visuals by hiding or showing nodes and edges.
-   * Supports both "OR" and "AND" filtering strategies
-   * "AND" filtering strategy:
-   *   - The node fulfills the node-related conditions **AND**
-   *   - The edge fulfills the edge-related conditions **AND**
-   *   - The edge connects nodes that are not filtered out by the node filters.
-   * "OR" filtering strategy:
-   *   - Any element fulfills at least one condition
-   */
+function decodeQueryAndBuildAST() {
+  const instructions = decodeQuery();
+  query.ast = new QueryAST(instructions);
+}
+
+async function preRenderEvent() {
   cache.nodeIDsToBeShown = new Set();
   cache.propIDsToNodeIDsToBeShown = new Map();  // this is used by the bubble-grouping functionality after rendering
   cache.edgeIDsToBeShown = new Set();
   cache.propIDsToEdgeIDsToBeShown = new Map();
   cache.remainingEdgeRelatedNodes = new Set();
   resetFeatureIsWithinThresholdMaps();
+  cache.bubbleSetChanged = false;
+  decodeQueryAndBuildAST();
 
-  for (let propID of cache.activeProps) {
-    let fd = data.layouts[data.selectedLayout].filters.get(propID);
-    cache.propIDsToNodeIDsToBeShown.set(propID, new Set());
-
-    for (let node of cache.propToNodes.get(propID) || []) {
-      if (isWithinThreshold(fd, node.featureValues.get(propID))) {
-        // this node has an active property and is within the defined thresholds, so we can consider showing it
-        cache.nodeIDsToBeShown.add(node.id);
-        cache.propIDsToNodeIDsToBeShown.get(propID).add(node.id);
-        node.featureIsWithinThreshold.set(propID, true);
-      } else {
-        node.featureIsWithinThreshold.set(propID, false);
-      }
+  for (const node of cache.nodeRef.values()) {
+    if (query.ast.testNode(node)) {
+      cache.nodeIDsToBeShown.add(node.id);
+      node.featureIsWithinThreshold.forEach((v, k) => {
+        if (v === true) {
+          if (!cache.propIDsToNodeIDsToBeShown.has(k)) {
+            cache.propIDsToNodeIDsToBeShown.set(k, new Set());
+          }
+          cache.propIDsToNodeIDsToBeShown.get(k).add(node.id);
+        }
+      });
     }
+    // else console.log(`Node ${node.id} did not fulfill filter!`);
   }
 
-  // we need two iterations over all activated props, otherwise we might miss node ids to be shown
-  for (let propID of cache.activeProps) {
-    let fd = data.layouts[data.selectedLayout].filters.get(propID);
-    cache.propIDsToEdgeIDsToBeShown.set(propID, new Set());
+  for (const edge of cache.edgeRef.values()) {
+    const endsOk = cache.nodeIDsToBeShown.has(edge.source) &&
+      cache.nodeIDsToBeShown.has(edge.target);
 
-    for (let edge of cache.propToEdges.get(propID) || []) {
-      if (isWithinThreshold(fd, edge.featureValues.get(propID)) && allRelatedNodesAreVisible(edge.id)) {
-        // this edge has an active property, is within the defined thresholds, and all of its related nodes are visible,
-        // so we can also consider to show the edge itself
-        cache.edgeIDsToBeShown.add(edge.id);
-        cache.propIDsToEdgeIDsToBeShown.get(propID).add(edge.id);
-        edge.featureIsWithinThreshold.set(propID, true);
-      } else {
-        edge.featureIsWithinThreshold.set(propID, false);
-      }
+    if (endsOk && (query.ast.testEdge(edge))) {
+      cache.edgeIDsToBeShown.add(edge.id);
+      edge.featureIsWithinThreshold.forEach((v, k) => {
+        if (v === true) {
+          if (!cache.propIDsToEdgeIDsToBeShown.has(k)) {
+            cache.propIDsToEdgeIDsToBeShown.set(k, new Set());
+          }
+          cache.propIDsToEdgeIDsToBeShown.get(k).add(edge.id);
+        }
+      });
     }
-  }
-
-  // in the "OR" filtering logic, we already have all to be considered nodes (at least one property is within threshold)
-  if (data.layouts[data.selectedLayout].filterStrategy === "AND") {
-    performANDFilterLogic();
+    // else console.log(`Edge ${edge.id} did not fulfill filter!`);
   }
 
   const nodeIDsToBeHidden = [...cache.nodeRef.keys()].filter(nodeID => !cache.nodeIDsToBeShown.has(nodeID));
   const edgeIDsToBeHidden = [...cache.edgeRef.keys()].filter(edgeID => !cache.edgeIDsToBeShown.has(edgeID));
 
-  // TODO: skip rendering if no nodes/edges are visible
-  document.getElementById("visibleNodes").innerHTML = `${cache.nodeIDsToBeShown.size}`;
-  document.getElementById("totalNodes").innerHTML = `${data.nodes.length}`;
-  document.getElementById("visibleEdges").innerHTML = `${cache.edgeIDsToBeShown.size}`;
-  document.getElementById("totalEdges").innerHTML = `${data.edges.length}`;
+  const idsToShow = [
+    ...cache.nodeIDsToBeShown,
+    ...cache.edgeIDsToBeShown
+  ];
 
-  if (cache.nodeIDsToBeShown.size > 0 || cache.edgeIDsToBeShown.size > 0) {
-    toggleSelectStyleElements(true);
-  } else {
-    toggleSelectStyleElements(false);
-  }
+  const idsToHide = [
+    ...nodeIDsToBeHidden,
+    ...edgeIDsToBeHidden,
+    ...cache.hiddenDanglingNodeIDs,
+    ...cache.hiddenDanglingEdgeIDs
+  ];
 
-  const idsToShow = [...cache.nodeIDsToBeShown, ...cache.edgeIDsToBeShown];
-  const idsToHide = [...nodeIDsToBeHidden, ...edgeIDsToBeHidden];
-  graph.showElement(idsToShow).then(r => console.log(`${cache.nodeIDsToBeShown.size} nodes and ${cache.edgeIDsToBeShown.size} edges shown`));
-  graph.hideElement(idsToHide).then(r => console.log(`${nodeIDsToBeHidden.length} nodes and ${edgeIDsToBeHidden.length} edges hidden`));
+  await updateElementVisibility(idsToShow, idsToHide);
+  await updateBubbleSetIfChanged();
+}
+
+async function updateElementVisibility(idsToShow, idsToHide) {
+  const { nodes, edges } = await graph.getData();
+  const { visible, hidden } = [...nodes, ...edges].reduce((acc, item) => {
+      acc[item.style.visibility === "visible" ? 'visible' : 'hidden'].push(item.id);
+      return acc;
+  }, { visible: [], hidden: [] });
+
+  const showElementsDiff = idsToShow.filter(id => hidden.includes(id));
+  const hideElementsDiff = idsToHide.filter(id => visible.includes(id));
+
+  if (showElementsDiff.length > 0) await graph.showElement(showElementsDiff);
+  if (hideElementsDiff.length > 0) await graph.hideElement(hideElementsDiff);
 }
 
 function performANDFilterLogic() {
@@ -1466,40 +3429,76 @@ function performANDFilterLogic() {
       cache.remainingEdgeRelatedNodes.add(target);
     }
   }
-
-  // if we have any edges displayed, clean up incomplete ones and dangling nodes
-  cleanUpDanglingElements();
 }
 
-function cleanUpDanglingElements() {
-  if (cache.remainingEdgeRelatedNodes.size === 0) return;
+async function toggleCleanUpDanglingElements(btn) {
+  const shouldEnable = btn.classList.contains("red");
+
+  if (shouldEnable) {
+    btn.classList.remove("red");
+    btn.classList.add("green", "highlight");
+    btn.title = "Show all nodes and edges, irrespectively of their connectedness.";
+    btn.textContent = "👁";
+    await hideDanglingElements();
+  } else {
+    btn.classList.remove("green", "highlight");
+    btn.classList.add("red");
+    btn.title = "Hide all nodes and edges that are not connected to any other node or edge.";
+    btn.textContent = "🚫";
+    await showDanglingElements();
+  }
+}
+
+function nodeHasAVisibleEdge(nodeID) {
+  for (const edgeID of cache.nodeIDToEdgeIDs.get(nodeID) || []) {
+    if (cache.edgeIDsToBeShown.has(edgeID) && !cache.hiddenDanglingEdgeIDs.has(edgeID)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function edgeIsConnectedToTwoVisibleNodes(edgeID) {
+  for (const nodeID of cache.edgeIDToNodeIDs.get(edgeID) || []) {
+    if (!cache.nodeIDsToBeShown.has(nodeID) || cache.hiddenDanglingNodeIDs.has(nodeID)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+async function hideDanglingElements() {
   let changes;
+
   do {
     changes = false;
 
-    // Remove nodes without visible edges
-    for (let nodeID of [...cache.nodeIDsToBeShown]) {
-      const hasVisibleEdges = Array.from(cache.edgeIDsToBeShown).some(edgeID => {
-        const [source, target] = edgeID.split("::");
-        return source === nodeID || target === nodeID;
-      });
-
-      if (!hasVisibleEdges) {
-        cache.nodeIDsToBeShown.delete(nodeID);
-        removeFromPropIDsToNodeIDsToBeShown(nodeID);
+    for (let nodeID of cache.nodeIDsToBeShown) {
+      if (!nodeHasAVisibleEdge(nodeID) && !cache.hiddenDanglingNodeIDs.has(nodeID)) {
+        cache.hiddenDanglingNodeIDs.add(nodeID);
         changes = true;
       }
     }
 
-    // Remove edges with invisible nodes
-    for (let edgeID of [...cache.edgeIDsToBeShown]) {
-      const [source, target] = edgeID.split("::");
-      if (!cache.nodeIDsToBeShown.has(source) || !cache.nodeIDsToBeShown.has(target)) {
-        cache.edgeIDsToBeShown.delete(edgeID);
+    for (let edgeID of cache.edgeIDsToBeShown) {
+      if (!edgeIsConnectedToTwoVisibleNodes(edgeID) && !cache.hiddenDanglingEdgeIDs.has(edgeID)) {
+        cache.hiddenDanglingEdgeIDs.add(edgeID);
         changes = true;
       }
     }
-  } while (changes); // Repeat until no changes
+
+  } while (changes);
+
+  await handleFilterEvent("Hiding Elements", "Hiding nodes and edges that are not connected to any other node or edge.");
+}
+
+async function showDanglingElements() {
+  cache.hiddenDanglingNodeIDs.clear();
+  cache.hiddenDanglingEdgeIDs.clear();
+
+  await handleFilterEvent("Showing Elements",
+    "Showing all previously hidden nodes and edges that are not connected to any other node or edge.");
 }
 
 function removeFromPropIDsToNodeIDsToBeShown(nodeID) {
@@ -1556,47 +3555,7 @@ function getPropertiesNotWithinThresholds(nodeID = null, edgeID = null) {
   return keysWithFalse;
 }
 
-function isWithinThreshold(filterData, nodeOrEdgeValue) {
-  return filterData.isCategory
-    ? evaluateCategoricalThreshold(filterData, nodeOrEdgeValue)
-    : evaluateNumericalThreshold(filterData, nodeOrEdgeValue);
-}
-
-function evaluateCategoricalThreshold(filterData, nodeOrEdgeValue) {
-  if (data.layouts[data.selectedLayout].filterStrategy === "AND") {
-    // element must fulfill all checked categories
-    return setsAreEqual(filterData.categories, nodeOrEdgeValue);
-  } else {
-    // the element must have at least one active category
-    return setsIntersect(filterData.categories, nodeOrEdgeValue);
-  }
-}
-
-function evaluateNumericalThreshold(filterData, nodeOrEdgeValue) {
-  return filterData.isInverted
-    ? (nodeOrEdgeValue <= filterData.upperThreshold || nodeOrEdgeValue >= filterData.lowerThreshold)
-    : (filterData.lowerThreshold <= nodeOrEdgeValue && nodeOrEdgeValue <= filterData.upperThreshold);
-}
-
-function allRelatedNodesAreVisible(edgeID) {
-  for (let nodeID of cache.edgeIDToNodeIDs.get(edgeID) || []) {
-    if (!cache.nodeIDsToBeShown.has(nodeID)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function afterRenderEvent() {
-  /**
-   * Updates and redraws bubble sets after each graph rendering.
-   *
-   * For each bubble set group, it calculates the current members (nodes),
-   * compares them with the previous members, and redraws the set if changes are detected.
-   * Updates the cache with the latest members for consistency.
-   */
-
-  // update bubble sets
+async function updateBubbleSetIfChanged() {
   for (let group of traverseBubbleSets()) {
     let propsInGroup = data.layouts[data.selectedLayout][`${group}Props`];
 
@@ -1610,33 +3569,53 @@ function afterRenderEvent() {
     }
 
     if (!setsAreEqual(lastSetMembers, newSetMembers)) {
-      updateBubbleSet(group, newSetMembers);
+      await updateBubbleSet(group, newSetMembers);
       cache.lastBubbleSetMembers.set(group, newSetMembers);
+      cache.bubbleSetChanged = true;
     }
   }
 }
 
-function restorePositions() {
-  setTimeout(() => {
-    if (!nodePositionsAreInSyncWithPersistedPositions()) {
-      graph.updateData(createSimplifiedDataForGraphObject());
-      graph.draw();
-    } else {
-      console.log("Graph is in sync, no re-draw necessary");
-    }
-
-    hideLoading();
-  }, 200);
-}
-
-function nodePositionsAreInSyncWithPersistedPositions() {
-  for (let node of graph.getNodeData()) {
+async function nodePositionsAreInSyncWithPersistedPositions() {
+  for (let node of await graph.getNodeData()) {
     const persistedPosition = data.layouts[data.selectedLayout].positions.get(node.id);
     if (node.style.x !== persistedPosition?.x || node.style.y !== persistedPosition?.y) {
       return false;
     }
   }
   return true;
+}
+
+async function conditionallyPersistNodePositions() {
+  let ld = data.layouts[data.selectedLayout];
+  if (!ld.isCustom && ld.positions.size === 0) {
+    console.log(`Initially persisting coordinates of default layout ${data.selectedLayout} ..`);
+    await persistNodePositions();
+  }
+
+  // cache is written on app start or layout change every time IF no data exists yet, no matter if it is a custom layout or not
+  if (!cache.initialNodePositions.has(data.selectedLayout)) {
+    cache.initialNodePositions.set(data.selectedLayout, new Map());
+    console.log(`Caching coordinates of layout ${data.selectedLayout} to be used by reset feature ..`);
+    await persistNodePositions(cache.initialNodePositions.get(data.selectedLayout));
+  }
+}
+
+async function persistNodePositions(targetMap = data.layouts[data.selectedLayout].positions) {
+  for (const node of await graph.getNodeData()) {
+    targetMap.set(node.id, {x: node.style.x, y: node.style.y});
+  }
+}
+
+async function syncNodePositions() {
+  const toUpdate = [];
+  for (let node of await graph.getNodeData()) {
+    const persistedPosition = data.layouts[data.selectedLayout].positions.get(node.id);
+    if (persistedPosition && (persistedPosition.x !== node.style.x || persistedPosition.y !== node.style.y)) {
+      toUpdate.push({id: node.id, style: {x: persistedPosition.x, y: persistedPosition.y}});
+    }
+  }
+  await graph.updateNodeData(toUpdate);
 }
 
 function isInteger(value) {
@@ -1647,26 +3626,122 @@ function formatNumber(value, precision) {
   return isInteger(value) ? value : parseFloat(value).toFixed(precision);
 }
 
+function countLines(el) {
+  if (!el.firstChild) return 0;
+  const r     = document.createRange();
+  r.selectNodeContents(el);
+  const tops  = new Set(Array.from(r.getClientRects()).map(rc => Math.round(rc.top)));
+  return tops.size;
+}
+
+function getLineMetrics(el) {
+  if (!el || !el.firstChild) {
+    return { lines: 0, lastLineWidth: 0 };
+  }
+
+  const range = document.createRange();
+  range.selectNodeContents(el);
+
+  // All rectangles created by the text flow.
+  const rects = Array.from(range.getClientRects());
+
+  // Group by the rectangle's top coordinate (≈ line-id).
+  // Using a rounded value avoids sub-pixel duplicates.
+  const groups = new Map(); // top -> [rects]
+
+  rects.forEach(rc => {
+    const key = Math.round(rc.top);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(rc);
+  });
+
+  // Number of distinct "top" positions ⇒ line count.
+  const lines = groups.size;
+  if (lines === 0) return { lines: 0, lastLineWidth: 0 };
+
+  // Get rects belonging to the last (visually lowest) line.
+  const lastTop = Math.max(...groups.keys());
+  const lastRects = groups.get(lastTop);
+
+  // Combine segments to obtain total visual width of that line.
+  // (If inline spans break the line into pieces, merge them.)
+  const left  = Math.min(...lastRects.map(r => r.left));
+  const right = Math.max(...lastRects.map(r => r.right));
+  const lastLineWidth = Math.round(right - left);
+
+  return { lines, lastLineWidth };
+}
+
+
+function validateAlignment() {
+  // read real widths of the two layers
+  const mText    = getLineMetrics(query.text);
+  const mOverlay = getLineMetrics(query.overlay);
+
+  const linesMatch     = mText.lines        === mOverlay.lines;
+  const lastWidthMatch = Math.abs(mText.lastLineWidth - mOverlay.lastLineWidth) <= 1;  // 1 pixel tolerance
+
+  if (linesMatch && lastWidthMatch) {
+    if (query.sizeChangeLocked) {
+      // let flexbox resize again
+    query.text.style.removeProperty('width');
+    query.overlay.style.removeProperty('width');
+      query.sizeChangeLocked = false;
+      console.info("Alignment restored, width unlocked");
+    }
+
+    query.lastGoodWidth = query.text.offsetWidth;
+    return;
+  }
+
+  // freeze both layers at the last known good width
+  if (!query.sizeChangeLocked && query.lastGoodWidth > 0) {
+      console.warn(
+    `Mismatch — lines: ${mText.lines}/${mOverlay.lines}, ` +
+    `last width: ${mText.lastLineWidth}/${mOverlay.lastLineWidth}. ` +
+    `Locking at ${query.lastGoodWidth}px`
+  );
+    query.text.style.width    = `${query.lastGoodWidth}px`;
+    query.overlay.style.width = `${query.lastGoodWidth}px`;
+    query.sizeChangeLocked = true;
+  }
+}
+
 function buildUI() {
+  query.text = document.getElementById("queryTextArea");
+  query.overlay = document.getElementById("queryOverlay");
+  query.caret = document.getElementById("queryCaret");
+  query.editorDiv = document.getElementById("queryEditor");
+
+  query.sizeObserver = new ResizeObserver(() => requestAnimationFrame(validateAlignment));
+  query.sizeObserver.observe(query.editorDiv);
+
+  query.text.addEventListener("scroll", () => {
+    query.overlay.scrollTop = query.text.scrollTop;
+    query.overlay.scrollLeft = query.text.scrollLeft;
+  });
+
   buildDropdownOptions();
+  buildMetricsUI();
   buildFilterUI();
   showUI(true);
+
+  query.lastGoodWidth = query.editorDiv.offsetWidth;
+  validateAlignment();
 }
 
 function buildDropdownOptions() {
-  let layoutDropdown = document.getElementById('layout');
-  let layoutOptions = Object.keys(data.layouts).map(key => {
+  let selectViewDropdown = document.getElementById('selectView');
+  let selectViewOptions = Object.keys(data.layouts).map(key => {
     let selected = data.selectedLayout === key ? "selected" : "";
     return `<option value="${key}" ${selected}>${key}</option>`;
   });
-  layoutDropdown.innerHTML = layoutOptions.join("");
+  selectViewDropdown.innerHTML = selectViewOptions.join("");
 }
 
 function buildFilterUI() {
   const div = document.getElementById("filterContainer");
   div.innerHTML = "";
-
-  div.appendChild(createFilterStrategyToggleSwitch());
 
   let sectionsCreated = new Set();
   let subSectionsCreated = new Set();
@@ -1684,27 +3759,28 @@ function buildFilterUI() {
         div.appendChild(document.createElement("hr"));
       }
       const headerDiv = document.createElement("div");
-      headerDiv.classList.add("container-vertical-aligned");
+      headerDiv.className = "header-card";
 
-      const header = document.createElement("h3");
+      const header = document.createElement("h4");
       header.textContent = section;
-      header.classList.add("inline");
+      header.className = "m-0 white";
       headerDiv.appendChild(header);
 
       headerDiv.appendChild(createSectionToggleButton(true, section));
       headerDiv.appendChild(createSectionToggleButton(false, section));
 
       div.appendChild(headerDiv);
+      div.appendChild(document.createElement("br"));
       sectionsCreated.add(section);
     }
 
-    if (!subSectionsCreated.has(subSection)) {
+    if (!subSectionsCreated.has(`${section}::${subSection}`)) {
       const subHeaderDiv = document.createElement("div");
-      subHeaderDiv.classList.add("container-vertical-aligned");
+      subHeaderDiv.className = "sub-header-card";
 
       const subHeader = document.createElement("h5");
       subHeader.textContent = subSection;
-      subHeader.classList.add("ml-0", "inline");
+      subHeader.className = "m-0 inline";
       subHeaderDiv.appendChild(subHeader);
 
       subHeaderDiv.appendChild(createSectionToggleButton(true, section, subSection));
@@ -1712,7 +3788,7 @@ function buildFilterUI() {
 
       div.appendChild(subHeaderDiv);
 
-      subSectionsCreated.add(subSection);
+      subSectionsCreated.add(`${section}::${subSection}`);
     }
 
     const row = document.createElement('div');
@@ -1741,22 +3817,12 @@ function buildFilterUI() {
       placeHolder.style.width = "18px";
       col3.appendChild(placeHolder);
     }
-    if (SHOW_NODE_OR_EDGE_PROPERTY_SPECIFIC_STYLE_BUTTON) {
-      col3.appendChild(createStyleToggleButton(propID));
-    }
     col3.appendChild(createAddOrRemoveToSelectionButton(propID, true));
     col3.appendChild(createAddOrRemoveToSelectionButton(propID, false));
     row.appendChild(col3);
 
     div.append(row);
     sliderOrDropdown.appendListeners();
-
-    const hiddenRow = document.createElement("div");
-    hiddenRow.id = `style-row-${propID}`;
-    hiddenRow.className = "style-row";
-    hiddenRow.appendChild(createStyleDiv(propID));
-
-    div.append(hiddenRow);
   }
 
   const staticStyleDiv = document.getElementById("staticStyleDiv");
@@ -1765,59 +3831,29 @@ function buildFilterUI() {
 
   manageDynamicWidgets();
   handleEditModeUIChanges();
+  updateQueryTextArea();
 }
 
-function saveFiltersToStash() {
+function buildMetricsUI() {
+  const div = document.getElementById("metricsContainer");
+  div.innerHTML = "";
+  div.appendChild(cache.metrics.buildUI());
+}
+
+async function saveFiltersToStash(manualTriggered = false) {
   data.stash = {
     filters: structuredClone(data.layouts[data.selectedLayout].filters),
-    filterStrategy: structuredClone(data.layouts[data.selectedLayout].filterStrategy),
+    query: structuredClone(data.layouts[data.selectedLayout]["query"]),
+    triggered: manualTriggered
   };
-  showLoading("Saving filter", "Saving filter settings to stash", false, true);
+  await showLoading("Saving filter", "Saving filter settings to stash");
 }
 
-function loadFiltersFromStash() {
+async function loadFiltersFromStash() {
   data.layouts[data.selectedLayout].filters = structuredClone(data.stash.filters);
-  data.layouts[data.selectedLayout].filterStrategy = structuredClone(data.stash.filterStrategy);
+  data.layouts[data.selectedLayout]["query"] = structuredClone(data.stash["query"]);
   buildFilterUI();
-  handleFilterEvent("Restoring filter", "Restoring filter settings from stash");
-}
-
-function createFilterStrategyToggleSwitch() {
-  function updateText() {
-    text.innerHTML = `Filter Strategy: <span class='red'>${data.layouts[data.selectedLayout].filterStrategy}</span>`;
-    text.title = data.layouts[data.selectedLayout].filterStrategy === "AND" ? "Applies all active filters at the same time. Only items that satisfy all conditions will be displayed." : "Items that satisfy any condition will be displayed.";
-  }
-
-  let currentStrat = data.layouts[data.selectedLayout].filterStrategy;
-
-  const div = document.createElement("div");
-  div.className = "container-vertical-aligned";
-
-  const text = document.createElement("h5");
-  text.className = "inline";
-  updateText();
-
-  const label = document.createElement("label");
-  label.className = "switch inline";
-
-  const input = document.createElement("input");
-  input.type = "checkbox";
-  input.checked = currentStrat === "AND";
-  input.addEventListener("change", () => {
-    data.layouts[data.selectedLayout].filterStrategy = data.layouts[data.selectedLayout].filterStrategy === "AND" ? "OR" : "AND";
-    updateText();
-    handleFilterEvent("Filter Strategy", "Filter Strategy changed to " + data.layouts[data.selectedLayout].filterStrategy);
-  });
-
-  const span = document.createElement("span");
-  span.className = "slider round";
-
-  label.appendChild(input);
-  label.appendChild(span);
-  div.appendChild(label);
-  div.appendChild(text);
-
-  return div;
+  await handleFilterEvent("Restoring filter", "Restoring filter settings from stash");
 }
 
 function manageDynamicWidgets() {
@@ -1831,9 +3867,9 @@ function manageDynamicWidgets() {
 
 function createSectionToggleButton(enable, section, subSection = null) {
   const btn = document.createElement("button");
-  btn.classList.add("small-btn", "no-border", "no-background", "red");
+  btn.className = "small-btn toggle-section-btn ml-1";
   if (subSection) btn.classList.add("extra-small");
-  if (enable) btn.classList.add("ml-1");
+  if (enable) btn.classList.add("ml-2");
   btn.textContent = enable ? "✔" : "✗";
   btn.title = `${enable ? 'Enable' : 'Disable'} all filters for the ${subSection ? 'sub-section: ' + subSection : 'section: ' + section}`;
   btn.onclick = () => {
@@ -1880,7 +3916,7 @@ function createCheckbox(propID, prop) {
 
   const customCheckbox = document.createElement('span');
   customCheckbox.id = `filter-${propID}-checkbox-inner`;
-  customCheckbox.classList.add('checkbox', 'red', 'red-border');
+  customCheckbox.className = "checkbox checkbox-red";
 
   const updateCheckbox = () => {
     customCheckbox.textContent = input.checked ? '✔' : '';
@@ -1910,6 +3946,25 @@ function createCheckbox(propID, prop) {
   return wrapper;
 }
 
+function uncheckAllCheckboxes() {
+  for (const propID of cache.propIDs) {
+    checkCheckbox(propID, false);
+  }
+}
+
+function checkCheckbox(propID, enable = true) {
+  const checkbox = document.getElementById(`filter-${propID}-checkbox`);
+  const span = document.getElementById(`filter-${propID}-checkbox-inner`);
+  const wrapper = document.getElementById(`filter-${propID}-checkbox-wrapper`);
+
+  checkbox.checked = enable;
+  data.layouts[data.selectedLayout].filters.get(propID).active = enable;
+
+  enable ? cache.activeProps.add(propID) : cache.activeProps.delete(propID);
+  span.textContent = enable ? '✔' : '';
+  wrapper.title = `Click to ${enable ? 'hide' : 'show'} nodes and related edges that ${enable ? 'do not' : ''} have the property: ${propID}`;
+}
+
 class DropdownChecklist {
   constructor(propID) {
     this.propID = propID;
@@ -1917,6 +3972,7 @@ class DropdownChecklist {
     this.selectedCategories = data.layouts[data.selectedLayout].filters.get(propID).categories;
     this.isVisible = false;
     this.sortCategories();
+    cache.propIDToDropdownChecklists.set(propID, this);
   }
 
   sortCategories() {
@@ -2075,16 +4131,34 @@ class DropdownChecklist {
     });
   }
 
+  selectCategory(category) {
+    if (!this.categories.has(category)) {
+      warning(`Category "${category}" does not exist for ${this.propID}`);
+      return;
+    }
+
+    this.selectedCategories.add(category);
+
+    const checkbox = this.itemsList.querySelector(
+      `input[type="checkbox"][value="${CSS.escape(category)}"]`
+    );
+    checkbox.checked = true;
+    checkbox.nextElementSibling.classList.add("checked");
+    this.anchor.textContent = `${this.selectedCategories.size}/${this.categories.size} selected`;
+  }
+
   selectAllCategories() {
     this.categories.forEach(category => this.selectedCategories.add(category)); // Add all categories
     this.updateCheckboxStates(true);
     handleFilterEvent("Showing Elements", `Nodes and related edges for ${this.propID}`, this.propID);
   }
 
-  deselectAllCategories() {
+  deselectAllCategories(skipFilterEvent = false) {
     this.categories.forEach(category => this.selectedCategories.delete(category)); // Clear all categories
     this.updateCheckboxStates(false);
-    handleFilterEvent("Hiding Elements", `Nodes and related edges for ${this.propID}`, this.propID);
+    if (!skipFilterEvent) {
+      handleFilterEvent("Hiding Elements", `Nodes and related edges for ${this.propID}`, this.propID);
+    }
   }
 
   updateCheckboxStates(selectAll) {
@@ -2110,6 +4184,9 @@ class InvertibleRangeSlider {
       ? FILTER_STEP_SIZE_INTEGER
       : FILTER_STEP_SIZE_FLOAT;
     this.initializeIds();
+    this.inputStart = null;
+    this.inputEnd = null;
+    cache.propIDToInvertibleRangeSliders.set(propID, this);
   }
 
   initializeIds() {
@@ -2128,17 +4205,25 @@ class InvertibleRangeSlider {
   }
 
   readCurrentFilterSettings() {
-    let filterData = data.layouts[data.selectedLayout].filters.get(this.propID);
-    this.currentMin = filterData.lowerThreshold;
-    this.currentMax = filterData.upperThreshold;
-    this.isInverted = filterData.isInverted;
+    if (!data.layouts[data.selectedLayout].filters.has(this.propID)) {
+      this.currentMin = 0;
+      this.currentMax = 1;
+      this.isInverted = false;
+    } else {
+      let filterData = data.layouts[data.selectedLayout].filters.get(this.propID);
+      this.currentMin = filterData.lowerThreshold;
+      this.currentMax = filterData.upperThreshold;
+      this.isInverted = filterData.isInverted;
+    }
   }
 
   writeCurrentFilterSettings() {
-    let filterData = data.layouts[data.selectedLayout].filters.get(this.propID);
-    filterData.lowerThreshold = this.currentMin;
-    filterData.upperThreshold = this.currentMax;
-    filterData.isInverted = this.isInverted;
+    if (data.layouts[data.selectedLayout].filters.has(this.propID)) {
+      let filterData = data.layouts[data.selectedLayout].filters.get(this.propID);
+      filterData.lowerThreshold = this.currentMin;
+      filterData.upperThreshold = this.currentMax;
+      filterData.isInverted = this.isInverted;
+    }
   }
 
   calcPercentage(value) {
@@ -2193,21 +4278,20 @@ class InvertibleRangeSlider {
     const colLeft = document.createElement('div');
     colLeft.classList.add('show-on-edit');
     colLeft.style.transition = 'width 0.2s ease';
-    const leftElem = this.createSliderInput(this.sliderIdStartInput, this.currentMin, this.sliderIdStart);
-    colLeft.appendChild(leftElem);
+    this.inputStart = this.createSliderInput(this.sliderIdStartInput, this.currentMin, this.sliderIdStart);
+    colLeft.appendChild(this.inputStart);
 
     const colRight = document.createElement('div');
     colRight.classList.add('show-on-edit');
-    colRight.style.marginLeft = '10px';
     colRight.style.transition = 'width 0.2s ease';
-    const rightElem = this.createSliderInput(this.sliderIdEndInput, this.currentMax, this.sliderIdEnd);
-    colRight.appendChild(rightElem);
+    this.inputEnd = this.createSliderInput(this.sliderIdEndInput, this.currentMax, this.sliderIdEnd);
+    colRight.appendChild(this.inputEnd);
 
     const div = document.createElement("div");
     div.innerHTML = this.createDivInnerHTML();
     const slider = div.firstElementChild;
     slider.style.width = '100%';
-    slider.title = `Set minimum & maximum thresholds for ${this.propID}.\nDouble-click to reset.`;
+    slider.title = `Thresholds for ${this.propID}.\n  - Move handles to set min/max (≥ min ∧ ≤ max).\n  - Swap handles to invert (≤ min ∨ ≥ max).\n  - Double-click to reset.`;
 
     parent.appendChild(div);
     parent.appendChild(colLeft);
@@ -2298,6 +4382,9 @@ class InvertibleRangeSlider {
 
       this.labelStart.parentElement.classList.add("flipped");
       this.labelEnd.parentElement.classList.add("flipped");
+
+      this.inputStart.classList.add("red");
+      this.inputEnd.classList.add("red");
     } else {
       const leftPos = this.calcPercentage(isLower ? primaryValue : secondaryValue);
       const rightPos = 100 - this.calcPercentage(isLower ? secondaryValue : primaryValue);
@@ -2317,6 +4404,9 @@ class InvertibleRangeSlider {
 
       this.labelStart.parentElement.classList.remove("flipped");
       this.labelEnd.parentElement.classList.remove("flipped");
+
+      this.inputStart.classList.remove("red");
+      this.inputEnd.classList.remove("red");
     }
 
     if (isLower) {
@@ -2328,6 +4418,35 @@ class InvertibleRangeSlider {
       this.sliderEndInput.value = primaryValue;
       this.currentMax = primaryValue;
     }
+  }
+
+  setTo(min, max, inverted) {
+    const clampedMin = Math.min(Math.max(min, this.sliderMin), this.sliderMax);
+    const clampedMax = Math.min(Math.max(max, this.sliderMin), this.sliderMax);
+
+    if (!inverted && min >= max) {
+      error(`Cannot set min threshold to ${min} and max threshold to ${max} for ${this.propID}`);
+      return;
+    }
+    if (inverted && max <= min) {
+      error(`Cannot set threshold to LOWER THAN ${min} OR GREATER THAN ${max} for inverted ${this.propID}`);
+      return;
+    }
+
+    if (min < this.sliderMin) {
+      warning(`Minimum threshold for ${this.propID} corrected to ${clampedMin} (from ${min})`);
+    }
+    if (max > this.sliderMax) {
+      warning(`Maximum threshold for ${this.propID} corrected to ${clampedMax} (from ${max})`);
+    }
+
+    this.sliderStart.value = inverted ? clampedMax : clampedMin;
+    this.sliderEnd.value = inverted ? clampedMin : clampedMax;
+
+    this.handleThresholdOnInputEvent(true);
+    this.handleThresholdOnInputEvent(false);
+
+    this.writeCurrentFilterSettings();
   }
 }
 
@@ -2341,7 +4460,7 @@ function createCircleGroupButtonWithQuadrants(propID) {
     quadrant.classList.add(quadrantPosition);
     data.layouts[data.selectedLayout].filters.get(propID)[`${group}Members`].size === 0 ? quadrant.classList.remove("active") : quadrant.classList.add("active");
 
-    quadrant.addEventListener('click', () => {
+    quadrant.addEventListener('click', async () => {
       let shouldShowRemove = quadrant.classList.contains("active");
       let members = data.layouts[data.selectedLayout].filters.get(propID)[`${group}Members`];
 
@@ -2350,34 +4469,200 @@ function createCircleGroupButtonWithQuadrants(propID) {
         quadrant.title = `Remove ${propID} from ${group}.`;
         members.delete(propID);
         quadrant.classList.remove("active");
-        handleFilterEvent(`Reduce Group`, `Removing ${propID} from ${group}`, propID);
+        await handleFilterEvent(`Reduce Group`, `Removing ${propID} from ${group}`, propID);
       } else {
         data.layouts[data.selectedLayout][`${group}Props`].add(propID);
-        quadrant.title = `Add ${propID} to ${group}`;
+        quadrant.title = `Highlight ${propID} and add to bubble-group (${group})`;
         members.add(propID);
         quadrant.classList.add("active");
-        handleFilterEvent(`Add to Group`, `Adding ${propID} to ${group}`, propID);
+        await handleFilterEvent(`Add to Group`, `Adding ${propID} to ${group}`, propID);
       }
     });
 
-    quadrant.title = `Add ${propID} to ${group}.`;
+    quadrant.title = `Highlight ${propID} and add to bubble-group (${group})`;
     circleButton.appendChild(quadrant);
   }
 
   return circleButton;
 }
 
-function createStyleToggleButton(propID) {
-  const btn = document.createElement("button");
-  btn.classList.add("ml-2", "style-icon-button", "show-on-edit");
-  btn.textContent = "🎨";
-  btn.title = "Control style for this property";
+class Popup {
+  /**
+   * // Simple text popup
+   * const popup1 = new Popup("Hello, I'm a simple popup!");
+   *
+   * // Popup with HTML content
+   * const popup2 = new Popup(`
+   *     <h2>Welcome!</h2>
+   *     <p>This is a popup with <strong>HTML</strong> content.</p>
+   *     <button onclick="alert('Button clicked!')">Click me</button>
+   * `);
+   *
+   * // Popup with custom options
+   * const popup3 = new Popup("Custom positioned popup!", {
+   *     width: '400px',
+   *     position: { x: 100, y: 100 },
+   *     closeOnClickOutside: false,
+   *     onClose: () => console.log('Popup closed!')
+   * });
+   */
+    constructor(content, options = {}) {
+        this.options = {
+            width: '300px',
+            height: 'auto',
+            position: 'center',
+            lineHeight: 'normal',
+            closeOnClickOutside: true,
+            onClose: null,
+            showFullscreenButton: true,
+            ...options
+        };
 
-  btn.addEventListener("click", () => {
-    document.getElementById(`style-row-${propID}`).classList.toggle("show");
-  });
+        this.popup = null;
+        this.overlay = null;
+        this.closeBtn = null;
+        this.fullscreenBtn = null;
+        this.isFullscreen = false;
+        this.originalStyles = null;
 
-  return btn;
+        this.init(content);
+    }
+
+    init(content) {
+        this.createPopup(content);
+        this.setupCloseHandlers();
+        if (this.options.showFullscreenButton) {
+            this.setupFullscreenButton();
+        }
+        this.show();
+    }
+
+    createPopup(content) {
+        this.popup = document.createElement('div');
+        this.popup.className = 'p-custom';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'p-header';
+
+        if (this.options.showFullscreenButton) {
+            this.fullscreenBtn = document.createElement('button');
+            this.fullscreenBtn.className = 'p-btn';
+            this.fullscreenBtn.innerHTML = '⛶';
+            this.fullscreenBtn.title = 'Toggle fullscreen';
+            headerDiv.appendChild(this.fullscreenBtn);
+        }
+
+        this.closeBtn = document.createElement('button');
+        this.closeBtn.className = 'p-btn';
+        this.closeBtn.innerHTML = '×';
+        this.closeBtn.title = 'Close popup';
+        headerDiv.appendChild(this.closeBtn);
+
+        const popupContent = document.createElement('div');
+        popupContent.className = 'popup-content';
+        popupContent.style.marginTop = '20px';
+
+        if (typeof content === 'string') {
+            popupContent.innerHTML = content;
+        } else {
+            popupContent.appendChild(content);
+        }
+
+        this.popup.appendChild(headerDiv);
+        this.popup.appendChild(popupContent);
+
+        this.overlay = document.createElement('div');
+        this.overlay.className = 'p-overlay';
+
+        document.body.appendChild(this.overlay);
+        document.body.appendChild(this.popup);
+
+        this.popup.style.width = this.options.width;
+        if (this.options.height !== 'auto') {
+            this.popup.style.height = this.options.height;
+        }
+
+        if (this.options.lineHeight !== 'normal') {
+          this.popup.style.lineHeight = this.options.lineHeight;
+        }
+
+        this.setPosition();
+        this.storeOriginalStyles();
+    }
+
+    storeOriginalStyles() {
+      this.originalStyles = {
+        width: this.popup.style.width,
+        height: this.popup.style.height,
+        top: this.popup.style.top,
+        left: this.popup.style.left,
+        transform: this.popup.style.transform,
+        borderRadius: this.popup.style.borderRadius,
+        margin: this.popup.style.margin,
+        position: this.popup.style.position
+      };
+    }
+
+    setupFullscreenButton() {
+        this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+    }
+
+    toggleFullscreen() {
+        this.isFullscreen = !this.isFullscreen;
+
+        if (this.isFullscreen) {
+            this.popup.style.width = '100%';
+            this.popup.style.height = '100%';
+            this.popup.style.top = '0';
+            this.popup.style.left = '0';
+            this.popup.style.transform = 'none';
+            this.popup.style.position = 'fixed';
+
+            this.fullscreenBtn.innerHTML = '⧉';
+            this.fullscreenBtn.title = 'Exit fullscreen';
+        } else {
+            Object.assign(this.popup.style, this.originalStyles);
+
+            this.fullscreenBtn.innerHTML = '⛶';
+            this.fullscreenBtn.title = 'Fullscreen';
+        }
+    }
+
+    setPosition() {
+        if (!this.isFullscreen) {
+            if (this.options.position === 'center') {
+                this.popup.style.top = '50%';
+                this.popup.style.left = '50%';
+                this.popup.style.transform = 'translate(-50%, -50%)';
+            } else {
+                this.popup.style.top = `${this.options.position.y}px`;
+                this.popup.style.left = `${this.options.position.x}px`;
+                this.popup.style.transform = 'none';
+            }
+        }
+    }
+
+    setupCloseHandlers() {
+        this.closeBtn.addEventListener('click', () => this.close());
+
+        if (this.options.closeOnClickOutside) {
+            this.overlay.addEventListener('click', () => this.close());
+        }
+    }
+
+    show() {
+        this.popup.style.display = 'block';
+        this.overlay.style.display = 'block';
+    }
+
+    close() {
+        if (this.options.onClose) {
+            this.options.onClose();
+        }
+        this.popup.remove();
+        this.overlay.remove();
+        cache.popup = null;
+    }
 }
 
 function createAddOrRemoveToSelectionButton(propID, shouldAdd) {
@@ -2385,44 +4670,68 @@ function createAddOrRemoveToSelectionButton(propID, shouldAdd) {
   btn.classList.add("plus-minus-button", "show-on-edit");
   btn.textContent = shouldAdd ? "+" : "-";
   btn.title = shouldAdd ? "Add to selection" : "Remove from selection";
-  btn.addEventListener("click", () => {
-    let triggerRender = false;
-
+  btn.addEventListener("click", async () => {
     const nodeIDs = cache.propIDsToNodeIDsToBeShown.get(propID) || [];
     if (nodeIDs.size > 0) {
       const nodes = graph.getNodeData([...nodeIDs]);
-      updateSelectedState(nodes, shouldAdd);
-      graph.updateNodeData(nodes);
-      triggerRender = true;
+      await updateSelectedState(nodes, shouldAdd);
     }
 
     const edgeIDs = cache.propIDsToEdgeIDsToBeShown.get(propID) || [];
     if (edgeIDs.size > 0) {
       const edges = graph.getEdgeData([...edgeIDs]);
-      updateSelectedState(edges, shouldAdd);
-      graph.updateEdgeData(edges);
-      triggerRender = true;
-    }
-
-    if (triggerRender) {
-      const addRemove = shouldAdd ? "Adding" : "Removing";
-      const filler = shouldAdd ? "to" : "from";
-      handleFilterEvent(`${addRemove} ${filler} Selection`, `${addRemove} ${propID} ${filler} selection`, propID);
+      await updateSelectedState(edges, shouldAdd);
     }
   });
   return btn;
 }
 
-function handleFilterEvent(header, text, propID = null) {
+async function decideToRenderOrDraw(forceRender = false) {
+  await showLoading("Loading", "Deciding to render or draw ..");
+  await preRenderEvent();
+  await cache.metrics.updateUI();
+
+  try {
+    if (cache.bubbleSetChanged || cache.styleChanged || forceRender) {
+      if (cache.styleChanged) {
+        await showLoading("Loading", "Updating graph data ..");
+        await graph.updateData(createSimplifiedDataForGraphObject());
+        cache.styleChanged = false;
+        cache.labelStyleChanged = false;
+      }
+      await showLoading("Loading", "Rendering graph ..");
+      return await graph.render();
+    } else {
+      await showLoading("Loading", "Redrawing graph ..");
+      return await graph.draw();
+    }
+  } catch (errorMsg) {
+    error(errorMsg);
+    return false;
+  } finally {
+    await hideLoading();
+  }
+}
+
+async function handleFilterEvent(header, text, propID = null, shouldResetQuery = true) {
+  if (shouldResetQuery) {
+    resetQuery();
+  }
+
   // skip rendering if property is not active
   if (propID !== null && !data.layouts[data.selectedLayout].filters.get(propID).active) {
     return;
   }
 
-  showLoading(header, text);
-  setTimeout(() => {
-    graph.render().then(r => console.log(`Graph updated after filter event with message ${header} ${text}`));
-  }, 25);
+  await showLoading(header, text);
+  await decideToRenderOrDraw();
+}
+
+async function handleStyleChangeLoadingEvent(header, text) {
+  await showLoading(header, text);
+  cache.styleChanged = true;
+  await decideToRenderOrDraw();
+  console.log(`Graph updated after style event with message ${header} ${text}`);
 }
 
 function showUI(show) {
@@ -2433,36 +4742,40 @@ function showUI(show) {
 }
 
 async function changeLayout() {
-  data.selectedLayout = document.getElementById('layout').value;
-  showLoading("Switching layout", data.selectedLayout);
-  setTimeout(() => {
-    let layout = data.layouts[data.selectedLayout];
-    if (!layout.isCustom) {
-      graph.setLayout({type: data.selectedLayout, ...layout.internals});
-    }
-    buildFilterUI();
-    clearActivePropsCacheOnLayoutChange();
+  data.selectedLayout = document.getElementById('selectView').value;
+  await showLoading("Switching View", data.selectedLayout);
+  let layout = data.layouts[data.selectedLayout];
 
-    setTimeout(() => {
-      graph.render().then(r => {
-        persistPositionsUpdateDataAndReDrawGraph();
-        console.log(`Switched to layout: ${data.selectedLayout}`);
-      });
-    }, 25);
+  let skipConsecutiveRender = false;
+  if (!layout.isCustom) {
+    await graph.setLayout({type: data.selectedLayout, ...layout.internals});
+    await graph.render();
+    skipConsecutiveRender = true;
+  }
 
+  buildFilterUI();
+  clearActivePropsCacheOnLayoutChange();
 
-  }, 25);
+  await conditionallyPersistNodePositions();
+  cache.metrics.updateUI();
+
+  if (!skipConsecutiveRender) {
+    await decideToRenderOrDraw(true);
+  }
+
+  await graph.fitView();
+  info(`Switched to view: ${data.selectedLayout}`);
 }
 
-function addLayout() {
-  let layoutName = prompt("Enter Layout Name: ");
+async function addLayout() {
+  let layoutName = prompt("Enter View Name: ");
   let existing = Object.keys(data.layouts);
 
   if (layoutName == null || layoutName === "") {
-    console.log("Creating layout canceled");
+    info("Creating layout canceled");
     return false;
   } else if (existing.includes(layoutName)) {
-    alert(`Layout with name "${layoutName}" already exists.`);
+    error(`Layout with name "${layoutName}" already exists.`);
     return false;
   }
 
@@ -2480,11 +4793,12 @@ function addLayout() {
   }
 
   buildDropdownOptions();
-  document.getElementById('layout').value = layoutName;
-  changeLayout();
+  document.getElementById('selectView').value = layoutName;
+  await changeLayout();
+  info(`Created view ${layoutName}`);
 }
 
-function removeSelectedLayout() {
+async function removeSelectedLayout() {
   if (!data.layouts[data.selectedLayout].isCustom) {
     alert("Cannot delete default layout.");
     return false;
@@ -2495,69 +4809,139 @@ function removeSelectedLayout() {
   delete data.layouts[data.selectedLayout];
   buildDropdownOptions();
 
-  document.getElementById('layout').value = DEFAULTS.LAYOUT;
-  changeLayout();
+  document.getElementById('selectView').value = DEFAULTS.LAYOUT;
+  await changeLayout();
 }
 
 function getNodeStyleOrDefaults(node) {
-  const nodeObj = {
-    type: node.type || DEFAULTS.NODE.TYPE,
+  const src = node.style ?? {};
+  const d = DEFAULTS.NODE;
+
+  // ----- basic style -------------------------------------------------------
+  /* @formatter:off */
+  const defaultNode = {
+    type : node.type ?? d.TYPE,
     style: {
-      size: node.style?.size || DEFAULTS.NODE.SIZE,
-      fill: node.style?.fill || DEFAULTS.NODE.COLOR,
-      stroke: node.style?.stroke || null,
-      lineWidth: node.style?.lineWidth || DEFAULTS.STYLES.NODE_BORDER_SIZES.md,
-      badge: node.style?.badge || false,
-      badges: node.style?.badges || [],
-      badgePalette: node.style?.badgePalette || [],
-      badgeFontSize: 8,
+      size         : src.size          ?? d.SIZE,
+      fill         : src.fill          ?? d.FILL_COLOR,
+      stroke       : src.stroke        ?? d.STROKE_COLOR,
+      lineWidth    : src.lineWidth     ?? d.LINE_WIDTH,
+
+      badge        : src.badge         ?? false,
+      badges       : src.badges        ?? [],
+      badgePalette : src.badgePalette  ?? [],
+      badgeFontSize: src.badgeFontSize ?? d.BADGE.FONT_SIZE,
     }
   };
 
-  if (cache.showNodeLabelsAndHoverEffect) {
-    nodeObj.style.label = true;
-    nodeObj.style.labelText = node.style?.labelText || node.label || node.id;
-    nodeObj.style.labelBackground = true;
-    nodeObj.style.labelFontSize = node.style?.labelFontSize || DEFAULTS.STYLES.NODE_LABEL_SIZES.md;
+  // ----- label style ------------------------------------------------------
+  if (cache.showLabelsAndEnableHoverEffect || src.label) {
+    const l = DEFAULTS.NODE.LABEL;
+
+    Object.assign(defaultNode.style, {
+      label                 : true,
+      labelText             : src.labelText,
+      labelBackgroundFill   : src.labelBackgroundFill   ?? l.BACKGROUND_COLOR,
+      labelBackground       : src.labelBackground       ?? l.BACKGROUND,
+      labelBackgroundRadius : src.labelBackgroundRadius ?? l.BACKGROUND_RADIUS,
+      labelCursor           : src.labelCursor           ?? l.CURSOR,
+      labelFill             : src.labelFill             ?? l.FOREGROUND_COLOR,
+      labelFontSize         : src.labelFontSize         ?? l.FONT_SIZE,
+      labelLeading          : src.labelLeading          ?? l.LINE_SPACING,
+      labelMaxLines         : src.labelMaxLines         ?? l.MAX_LINES,
+      labelMaxWidth         : src.labelMaxWidth         ?? l.MAX_WIDTH,
+      labelOffsetX          : src.labelOffsetX          ?? l.OFFSET_X,
+      labelOffsetY          : src.labelOffsetY          ?? l.OFFSET_Y,
+      labelPadding          : src.labelPadding          ?? l.PADDING,
+      labelPlacement        : src.labelPlacement        ?? l.PLACEMENT,
+      labelTextAlign        : src.labelTextAlign        ?? l.TEXT_ALIGN,
+      labelWordWrap         : src.labelWordWrap         ?? l.WORD_WRAP,
+      labelZIndex           : src.labelZIndex           ?? l.Z_INDEX,
+    });
   }
-  return nodeObj;
+  /* @formatter:on */
+
+  return defaultNode;
 }
 
 function getEdgeStyleOrDefaults(edge) {
-  return {
-    type: edge.type || DEFAULTS.EDGE.TYPE,
+  const src = edge.style ?? {};
+  const d = DEFAULTS.EDGE;
+
+  // ---- core edge style ----------------------------------------------------
+  /* @formatter:off */
+  const defaultEdge = {
+    type : edge.type ?? d.TYPE,
     style: {
-      startArrow: edge.startArrow || DEFAULTS.EDGE.ARROWS.START,
-      endArrow: edge.endArrow || DEFAULTS.EDGE.ARROWS.END,
-      lineWidth: edge.style?.lineWidth || DEFAULTS.EDGE.LINE_WIDTH,
-      lineDash: edge.style?.lineDash || DEFAULTS.STYLES.EDGE_DASHS.none,
-      label: false,
-      labelText: edge.style?.labelText || "",
-      labelBackground: true,
-      stroke: edge.style?.stroke || DEFAULTS.EDGE.COLOR,
-      halo: edge.style?.halo || false,
-      haloStroke: edge.style?.haloStroke || DEFAULTS.STYLES.EDGE_HALO_STROKE.purple,
-      haloLineWidth: edge.style?.haloLineWidth || DEFAULTS.STYLES.EDGE_HALO_WIDTH.md
+      startArrow     : src.startArrow     ?? d.ARROWS.START,
+      startArrowSize : src.startArrowSize ?? d.ARROWS.START_SIZE,
+      startArrowType : src.startArrowType ?? d.ARROWS.START_TYPE,
+      endArrow       : src.endArrow       ?? d.ARROWS.END,
+      endArrowSize   : src.endArrowSize   ?? d.ARROWS.END_SIZE,
+      endArrowType   : src.endArrowType   ?? d.ARROWS.END_TYPE,
+
+      lineWidth      : src.lineWidth      ?? d.LINE_WIDTH,
+      lineDash       : src.lineDash       ?? d.LINE_DASH,
+      stroke         : src.stroke         ?? d.COLOR,
+
+      halo           : src.halo           ?? d.HALO.ENABLED,
+      haloStroke     : src.haloStroke     ?? d.HALO.COLOR,
+      haloLineWidth  : src.haloLineWidth  ?? d.HALO.WIDTH,
     }
+  };
+
+  // ---- label style ------------------------------------------------------
+  if (cache.showLabelsAndEnableHoverEffect || src.label) {
+    const l = DEFAULTS.EDGE.LABEL;
+
+    Object.assign(defaultEdge.style, {
+      label                        : true,
+      labelAutoRotate              : src.labelAutoRotate              ?? l.AUTO_ROTATE,
+      labelBackground              : src.labelBackground              ?? l.BACKGROUND,
+      labelBackgroundFill          : src.labelBackgroundFill          ?? l.BACKGROUND_COLOR,
+      labelBackgroundCursor        : src.labelBackgroundCursor        ?? l.BACKGROUND_CURSOR,
+      labelBackgroundFillOpacity   : src.labelBackgroundFillOpacity   ?? l.BACKGROUND_FILL_OPACITY,
+      labelBackgroundRadius        : src.labelBackgroundRadius        ?? l.BACKGROUND_RADIUS,
+      labelBackgroundStrokeOpacity : src.labelBackgroundStrokeOpacity ?? l.BACKGROUND_STROKE_OPACITY,
+      labelCursor                  : src.labelCursor                  ?? l.CURSOR,
+      labelFill                    : src.labelFill                    ?? l.FOREGROUND_COLOR,
+      labelFillOpacity             : src.labelFillOpacity             ?? l.FILL_OPACITY,
+      labelFontSize                : src.labelFontSize                ?? l.FONT_SIZE,
+      labelFontWeight              : src.labelFontWeight              ?? l.FONT_WEIGHT,
+      labelMaxLines                : src.labelMaxLines                ?? l.MAX_LINES,
+      labelMaxWidth                : src.labelMaxWidth                ?? l.MAX_WIDTH,
+      labelOffsetX                 : src.labelOffsetX                 ?? l.OFFSET_X,
+      labelOffsetY                 : src.labelOffsetY                 ?? l.OFFSET_Y,
+      labelOpacity                 : src.labelOpacity                 ?? l.OPACITY,
+      labelPlacement               : src.labelPlacement               ?? l.PLACEMENT,
+      labelPadding                 : src.labelPadding                 ?? l.PADDING,
+      labelText                    : src.labelText                    ?? l.TEXT,
+      labelTextAlign               : src.labelTextAlign               ?? l.TEXT_ALIGN,
+      labelTextBaseLine            : src.labelTextBaseLine            ?? l.TEXT_BASE_LINE,
+      labelTextOverflow            : src.labelTextOverflow            ?? l.TEXT_OVERFLOW,
+      labelVisibility              : src.labelVisibility              ?? l.VISIBILITY,
+      labelWordWrap                : src.labelWordWrap                ?? l.WORD_WRAP,
+    });
+    /* @formatter:on */
   }
+
+  return defaultEdge;
 }
 
-function exportGraphAsJSON() {
+async function exportGraphAsJSON() {
   if (data === null) {
     alert("No graph data to save.");
     return false;
   }
 
+  // helper for JSON.stringify to serialize Maps to plain objects and Sets to arrays
   function replacer(key, value) {
-    /**
-     * Custom replacer function for JSON.stringify to serialize Maps and Sets.
-     * Converts Maps to plain objects and Sets to arrays.
-     */
     if (value instanceof Map) return Object.fromEntries(value);
     if (value instanceof Set) return [...value];
     return value;
   }
 
+  await showLoading("Exporting graph ..");
   const blob = new Blob([JSON.stringify(data, replacer)], {type: "application/json"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -2565,16 +4949,17 @@ function exportGraphAsJSON() {
   a.download = "graph.json";
   a.click();
   URL.revokeObjectURL(url);
+  await hideLoading();
 }
 
 function preProcessData(fileData) {
   data = {};
   data.filterDefaults = new Map();  // used as template for each layout
-  cache = {};
+  cache = {initialized: false};
 
   function getDefaultFilterObject() {
     let obj = {
-      active: FILTERS_ACTIVE_PER_DEFAULT,
+      active: true,
       lowerThreshold: Infinity,
       upperThreshold: -Infinity,
       isInverted: false,
@@ -2602,9 +4987,8 @@ function preProcessData(fileData) {
     if (isNaN(nodeOrEdgeValue)) {
       if (data.filterDefaults.get(propHash).lowerThreshold !== Infinity) {
         let [section, subSection, prop] = decodePropHashId(propHash);
-        let warning = `Property ${prop} (section ${section} sub-section ${subSection} contains both numeric and categorical values. To proceed, please use a single data type. Property has been excluded.`;
-        console.log(warning);
-        inputErrors.push(warning);
+        warning(`Property ${prop} (section ${section} sub-section ${subSection} contains both numeric and 
+        categorical values. To proceed, please use a single data type. Property has been excluded.`);
         data.filterDefaults.delete(propHash);
         return
       }
@@ -2617,10 +5001,25 @@ function preProcessData(fileData) {
     data.filterDefaults.get(propHash).upperThreshold = Math.max(nodeOrEdgeValue, data.filterDefaults.get(propHash).upperThreshold);
   }
 
-  cache.showNodeLabelsAndHoverEffect = fileData.nodes.length <= MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT;
+  cache.showLabelsAndEnableHoverEffect = fileData.nodes.length <= MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT;
+  cache.nodePositionsFromExcelImport = new Map();
 
-  if (!cache.showNodeLabelsAndHoverEffect) {
-    alert(`Graph contains many nodes (${fileData.nodes.length}). Labels and hover-effects will be deactivated to improve performance.`);
+  if (!cache.showLabelsAndEnableHoverEffect) {
+    warning(`Large graph with more than ${MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT} nodes (${fileData.nodes.length}) detected. Labels and hover effects are disabled to improve performance.`);
+  }
+
+  // takes excel header and pre-populates data.filterDefaults to maintain order
+  if (fileData.nodeDataHeaders) {
+    for (const nodeHeader of fileData.nodeDataHeaders) {
+      const nodePropHash = generatePropHashId(EXCEL_NODE_HEADER, nodeHeader.subGroup, nodeHeader.key);
+      data.filterDefaults.set(nodePropHash, getDefaultFilterObject());
+    }
+  }
+  if (fileData.edgeDataHeaders) {
+    for (const edgeHeader of fileData.edgeDataHeaders) {
+      const edgePropHash = generatePropHashId(EXCEL_EDGE_HEADER, edgeHeader.subGroup, edgeHeader.key);
+      data.filterDefaults.set(edgePropHash, getDefaultFilterObject());
+    }
   }
 
   data.nodes = fileData.nodes.map((node) => {
@@ -2642,6 +5041,10 @@ function preProcessData(fileData) {
       }
       nodeFeatureWithinThreshold.set(propId, null);
       populateFilterPropsLowsAndHighs(propId, data);
+    }
+
+    if (node.style?.x && node.style?.y) {
+      cache.nodePositionsFromExcelImport.set(node.id, {x: node.style.x, y: node.style.y});
     }
 
     return {
@@ -2693,8 +5096,13 @@ function preProcessData(fileData) {
     data.layouts = parseLayouts(fileData.layouts);
   } else {
     data.layouts = Object.keys(DEFAULTS.LAYOUT_INTERNALS).reduce((acc, key) => {
-      acc[key] = createDefaultLayout(key);
-      return acc;
+      if (data?.layouts?.[key]) {
+        warning("Layout with key '" + key + "' already exists.");
+        return acc;
+      } else {
+        acc[key] = createDefaultLayout(key);
+        return acc;
+      }
     }, {});
   }
 
@@ -2708,16 +5116,20 @@ function preProcessData(fileData) {
         },
       ])
     );
+    data.stash.triggered = true;
   }
 
   console.log("Done pre-processing data");
 }
 
-function createCache() {
+function initCache() {
+  cache.initialized = true;
+
   cache.nodeRef = new Map();
   cache.edgeRef = new Map();
   cache.toolTips = new Map();
 
+  cache.propIDs = new Set();
   cache.activeProps = new Set();
   cache.nodeExclusiveProps = new Set();
   cache.edgeExclusiveProps = new Set();
@@ -2729,9 +5141,15 @@ function createCache() {
   cache.propToEdgeIDs = new Map();
   cache.nodeIDToEdgeIDs = new Map();
   cache.edgeIDToNodeIDs = new Map();
+  cache.nodeIDToPropIDs = new Map();
+  cache.edgeIDToPropIDs = new Map();
+
+  cache.propIDToDropdownChecklists = new Map();
+  cache.propIDToInvertibleRangeSliders = new Map();
 
   cache.initialNodePositions = new Map();
   cache.lastBubbleSetMembers = new Map();
+  cache.bubbleSetChanged = false;
 
   cache.nodeIDsToBeShown = new Set();
   cache.propIDsToNodeIDsToBeShown = new Map();
@@ -2741,6 +5159,32 @@ function createCache() {
   cache.selectedNodes = new Set();
   cache.selectedEdges = new Set();
 
+  cache.selectionMemory = [{nodes: [], edges: []}];
+  cache.selectedMemoryIndex = 0;
+
+  cache.hiddenDanglingNodeIDs = new Set();
+  cache.hiddenDanglingEdgeIDs = new Set();
+
+  cache.uniquePropHierarchy = {};
+
+  cache.styleChanged = false;
+  cache.labelStyleChanged = false;
+
+  cache.metrics = new NetworkMetrics();
+  cache.popup = null;
+
+  function populateUniquePropGroups(propHash) {
+    const [mainGroup, subGroup, prop] = decodePropHashId(propHash);
+    if (!cache.uniquePropHierarchy[mainGroup]) {
+      cache.uniquePropHierarchy[mainGroup] = {};
+    }
+
+    if (!cache.uniquePropHierarchy[mainGroup][subGroup]) {
+      cache.uniquePropHierarchy[mainGroup][subGroup] = new Set();
+    }
+
+    cache.uniquePropHierarchy[mainGroup][subGroup].add(prop);
+  }
 
   for (let group of traverseBubbleSets()) {
     cache.lastBubbleSetMembers.set(group, new Set());
@@ -2749,19 +5193,25 @@ function createCache() {
   data.nodes.forEach((node) => {
     cache.nodeRef.set(node.id, node);
     cache.toolTips.set(node.id, buildToolTipText(node.id, false));
+    cache.nodeIDToPropIDs.set(node.id, new Set());
     for (let prop of node.features) {
+      populateUniquePropGroups(prop);
       if (!cache.propToNodes.has(prop)) cache.propToNodes.set(prop, new Set());
       if (!cache.propToNodeIDs.has(prop)) cache.propToNodeIDs.set(prop, new Set());
       cache.propToNodes.get(prop).add(node);
       cache.propToNodeIDs.get(prop).add(node.id);
       cache.nodeExclusiveProps.add(prop);
+      cache.propIDs.add(prop);
+      cache.nodeIDToPropIDs.get(node.id).add(prop);
     }
   });
 
   data.edges.forEach((edge) => {
     cache.edgeRef.set(edge.id, edge);
     cache.toolTips.set(edge.id, buildToolTipText(edge.id, true));
+    cache.edgeIDToPropIDs.set(edge.id, new Set());
     for (let prop of edge.features) {
+      populateUniquePropGroups(prop);
       if (!cache.propToEdges.has(prop)) cache.propToEdges.set(prop, new Set());
       if (!cache.propToEdgeIDs.has(prop)) cache.propToEdgeIDs.set(prop, new Set());
       cache.propToEdges.get(prop).add(edge);
@@ -2772,6 +5222,8 @@ function createCache() {
       } else {
         cache.edgeExclusiveProps.add(prop);
       }
+      cache.propIDs.add(prop);
+      cache.edgeIDToPropIDs.get(edge.id).add(prop);
     }
 
     if (!cache.nodeIDToEdgeIDs.has(edge.source)) cache.nodeIDToEdgeIDs.set(edge.source, new Set());
@@ -2794,104 +5246,809 @@ function clearActivePropsCacheOnLayoutChange() {
 }
 
 function buildToolTipText(nodeOrEdgeID, isEdge) {
-  let item = isEdge ? cache.edgeRef.get(nodeOrEdgeID) : cache.nodeRef.get(nodeOrEdgeID);
-  let label = item.label && item.label !== item.id ? `${item.label} (${item.id})` : item.id;
-  let tooltip = `<h3>${isEdge ? "Edge" : "Node"} <i>${label}</i></h3>`;
+  const item = isEdge ? cache.edgeRef.get(nodeOrEdgeID) : cache.nodeRef.get(nodeOrEdgeID);
+  const label = item.label && item.label !== item.id ? `${item.label}<br><small>${item.id}</small>` : item.id;
+  let tooltip = `<h3><span class="purple">${isEdge ? "Edge" : "Node"}</span> <span class="red">${label}</span></h3>`;
 
   if (item.description) {
-    tooltip += `<p>${item.description}</p>`;
+    tooltip += `<p class="tooltip-description">${item.description}</p>`;
   }
-
   if (!item.D4Data) return tooltip;
 
-  const sortedPropIDs = SORT_TOOLTIPS ? [...data.filterDefaults.keys()].sort() : [...data.filterDefaults.keys()];
+  const sortedPropIDs = SORT_TOOLTIPS
+    ? [...data.filterDefaults.keys()].sort()
+    : [...data.filterDefaults.keys()];
 
-  let currentLineCount = 0;
-  tooltip += `<hr><div class="tooltip-columns"><div class="tooltip-column">`;
+  // ------------------
+  // 1) Collect data into a structure grouped by (section, subSection)
+  // ------------------
+  const structuredData = [];
 
-  let lastSection = null;
-  let lastSubSection = null;
-
-  for (const propID of sortedPropIDs) {
-    const [section, subSection, property] = decodePropHashId(propID);
-
-    // Skip if this property is not defined in the current item's data
-    if (item.D4Data[section]?.[subSection]?.[property] === undefined) continue;
-
-    if (section !== lastSection) {
-      if (lastSection !== null) tooltip += `</ul>`; // Close the last subsection if it exists
-      tooltip += `<h3>${section}</h3>`;
-      lastSection = section;
-      lastSubSection = null;
-      currentLineCount++;
+  /**
+   * Ensures a section object and subSection array exist, then pushes a property item.
+   */
+  function pushSubSectionProperty(secName, subName, prop, val) {
+    let sectionObj = structuredData.find(s => s.section === secName);
+    if (!sectionObj) {
+      sectionObj = {section: secName, subSections: []};
+      structuredData.push(sectionObj);
     }
-
-    if (subSection !== lastSubSection) {
-      if (lastSubSection !== null) tooltip += `</ul>`; // Close the previous subsection if it exists
-
-      const subSectionLineCount = 1 + Object.keys(item.D4Data[section][subSection]).length;
-      if (currentLineCount + subSectionLineCount > TOOLTIP_LINE_BREAK) {
-        tooltip += `</div><div class="tooltip-column">`; // Start new column
-        currentLineCount = 0;
-      }
-
-      tooltip += `<h5>${subSection}</h5><ul>`;
-      lastSubSection = subSection;
-      currentLineCount++;
+    let subObj = sectionObj.subSections.find(sub => sub.name === subName);
+    if (!subObj) {
+      subObj = {name: subName, props: []};
+      sectionObj.subSections.push(subObj);
     }
-
-    // Add property and its value
-    const value = item.D4Data[section][subSection][property];
-    if (TOOLTIP_HIDE_NULL_VALUES && value === 0) continue;
-
-    const formattedValue = isNaN(value) ? value : formatNumber(value, FILTER_VISUAL_FLOAT_PRECISION);
-    tooltip += `<li>${property}: <span class="red"><b>${formattedValue}</b></span></li>`;
-    currentLineCount++;
+    subObj.props.push({key: prop, value: val});
   }
 
-  // Close any remaining open tags
-  tooltip += `</ul></div></div>`;
+  // Gather valid properties, grouped
+  for (const propID of sortedPropIDs) {
+    const [section, subSection, property] = decodePropHashId(propID);
+    const rawValue = item.D4Data?.[section]?.[subSection]?.[property];
+    if (rawValue === undefined) continue;
+    if (TOOLTIP_HIDE_NULL_VALUES && rawValue === 0) continue;
 
+    const displayValue = isNaN(rawValue)
+      ? rawValue
+      : formatNumber(rawValue, FILTER_VISUAL_FLOAT_PRECISION);
+
+    pushSubSectionProperty(section, subSection, property, displayValue);
+  }
+
+  // ------------------
+  // 2) Sort properties within each subSection if needed (SORT_TOOLTIPS)
+  // ------------------
+  if (SORT_TOOLTIPS) {
+    for (const sec of structuredData) {
+      for (const sub of sec.subSections) {
+        sub.props.sort((a, b) => a.key.localeCompare(b.key));
+      }
+    }
+  }
+
+  // ------------------
+  // 3) Flatten each {section, subSections} into an array while preserving order
+  // ------------------
+  const orderedBlocks = [];
+  for (const s of structuredData) {
+    orderedBlocks.push({type: "section", text: s.section});
+    for (const sb of s.subSections) {
+      orderedBlocks.push({type: "subSection", section: s.section, text: sb.name, props: sb.props});
+    }
+  }
+
+  // If we have nothing to show, return the basic tooltip
+  if (orderedBlocks.length === 0) return tooltip;
+
+  // ------------------
+  // 4) Distribute these blocks into columns, left to right, preserving order
+  // ------------------
+  const columns = [];
+  const columnSize = Math.ceil(orderedBlocks.length / TOOLTIP_MAX_COLUMNS);
+
+  for (let i = 0; i < TOOLTIP_MAX_COLUMNS; i++) {
+    const start = i * columnSize;
+    const end = start + columnSize;
+    columns.push(orderedBlocks.slice(start, end));
+  }
+
+  // ------------------
+  // 5) Build the tooltip HTML
+  // ------------------
+  tooltip += `<hr><div class="tooltip-columns">`;
+
+  for (const col of columns) {
+    tooltip += `<div class="tooltip-column">`;
+
+    let startedList = false;
+    for (const block of col) {
+      if (block.type === "section") {
+        // Close a list if it's open before starting a new section
+        if (startedList) {
+          tooltip += `</ul>`;
+          startedList = false;
+        }
+        // tooltip += `<h3 class="tooltip-section">${block.text}</h3>`;
+      } else if (block.type === "subSection") {
+        if (startedList) {
+          tooltip += `</ul>`;
+          startedList = false;
+        }
+        tooltip += `<h5 class="tooltip-sub-section">${block.text}</h5><ul>`;
+        startedList = true;
+        // Properties for this subSection
+        for (const propItem of block.props) {
+          tooltip += `<li>${propItem.key}: <span class="red"><b>${propItem.value}</b></span></li>`;
+        }
+      }
+    }
+
+    if (startedList) {
+      tooltip += `</ul>`;
+    }
+    tooltip += `</div>`;
+  }
+
+  tooltip += `</div>`;
   return tooltip;
 }
 
-function loadFileWrapper(event) {
-  showLoading("Loading", "Loading data");
-  setTimeout(() => {
-    loadFile(event)
-      .then((fileData) => {
-        if (!fileData) {
-          hideLoading();
-          return;
+function encodeQuery(asciiStr) {
+  query.valid = true;
+
+  const space = `<span class='q-space' data-encoded> </span>`;
+
+  // ------------------------------------------------------------------
+  // 1. Check for empty query
+  // ------------------------------------------------------------------
+  if (!asciiStr) {
+    query.valid = false;
+  }
+
+  // ------------------------------------------------------------------
+  // 2. Check for empty instructions "()"
+  // ------------------------------------------------------------------
+  asciiStr = asciiStr.replace(
+    /\(\s*\)/g,
+    match => {
+      query.valid = false;
+      return `<span class="q-error-empty-instruction" data-encoded>${match}</span>`;
+    }
+  );
+
+  // ------------------------------------------------------------------
+  // 3. Check for missing connectors between instructions ")("
+  // ------------------------------------------------------------------
+  asciiStr = asciiStr.replace(
+    /\)\s*\(/g,
+    match => {
+      query.valid = false;
+      return (
+        `<span class="q-error-missing-connector" data-encoded>` +
+        match +
+        `</span>`
+      );
+    }
+  );
+
+  /* ------------------------------------------------------------------ */
+  /* 4. Encode Property names (main group::sub group::property)                */
+  /* ------------------------------------------------------------------ */
+  asciiStr = asciiStr.replace(
+    /(Node filters|Edge filters)::([^:]+)::([^:]+)(?=\s(?:IN|BETWEEN|LOWER\sTHAN|\)))/g,
+    (match, mainGroup, subGroup, prop) => {
+      const mgok = mainGroup in cache.uniquePropHierarchy;
+      const sgok = mgok && (subGroup in cache.uniquePropHierarchy[mainGroup]);
+      const pok = sgok && cache.uniquePropHierarchy[mainGroup][subGroup].has(prop);
+
+      const mainGroupEncoded = `<span class="${mgok ? 'q-maingroup' : 'q-error-unrecognized'}" data-encoded>${mainGroup}</span>`;
+      const subGroupEncoded = `<span class="${sgok ? 'q-subgroup' : 'q-error-unrecognized'}" data-encoded>${subGroup}</span>`;
+      const propEncoded = `<span class="${pok ? 'q-property' : 'q-error-unrecognized'}" data-encoded>${prop}</span>`;
+      const sep = `<span class="q-prop-group-separator" data-encoded>::</span>`;
+
+      return `<span class="q-property-wrapper" data-encoded>`
+        + mainGroupEncoded + sep
+        + subGroupEncoded + sep
+        + propEncoded
+        + `</span>`;
+    }
+  );
+
+  /* ------------------------------------------------------------------ */
+  /* 5. Encode filters in instructions                                  */
+  /* ------------------------------------------------------------------ */
+
+  /* 5-1 Numerical Values (Slider): "BETWEEN X AND Y" --------- */
+  asciiStr = asciiStr.replace(
+    /(BETWEEN)\s+(-?\d+(?:\.\d+)?)\s+(AND)\s+(-?\d+(?:\.\d+)?)/gi,
+    (_m, betweenKw, low, andKw, high) =>
+      `<span class='q-kw-between' data-encoded>${betweenKw}</span>`
+      + space
+      + `<span class='q-number' data-encoded>${low}</span>`
+      + space
+      + `<span class='q-kw-between-and' data-encoded>${andKw}</span>`
+      + space
+      + `<span class='q-number' data-encoded>${high}</span>`
+  );
+
+  /* 5-2 Inverted Numerical Values (Slider): "LOWER THAN X OR GREATER THAN Y" ------ */
+  asciiStr = asciiStr.replace(
+    /(LOWER THAN)\s+(-?\d+(?:\.\d+)?)\s+(OR GREATER THAN)\s+(-?\d+(?:\.\d+)?)/gi,
+    (_m, lowerThanKw, low, andGreaterThanKw, high) =>
+      `<span class='q-lower-than' data-encoded>${lowerThanKw}</span>`
+      + space
+      + `<span class='q-number' data-encoded>${low}</span>`
+      + space
+      + `<span class='q-or-greater-than' data-encoded>${andGreaterThanKw}</span>`
+      + space
+      + `<span class='q-number' data-encoded>${high}</span>`
+  );
+
+  /* 5-3 Categorical Values (Dropdown): "IN [" up to "]"  --------- */
+  asciiStr = asciiStr.replace(/IN\s*\[([^\]]*?)]/g, (_match, list) => {
+      const encodedCategories = list
+        .split(",")
+        .map(cat => `<span class='q-string' data-encoded>${cat}</span>`)
+        .join(`<span class='q-comma' data-encoded>,</span>`);
+
+      return [
+        `<span class='q-in-cat-bracket-open' data-encoded>IN${space}[</span>`,
+        encodedCategories,
+        `<span class='q-cat-bracket-close' data-encoded>]</span>`
+      ].join("");
+    }
+  );
+
+  /* ------------------------------------------------------------------ */
+  /* 6.  Top-level connectors  ") OR ("  /  ") AND ("  /  ") NOT ("     */
+  /* ------------------------------------------------------------------ */
+  const connectorOpeningBracket = `<span class='q-connector-opening-bracket' data-encoded>(</span>`;
+  const connectorClosingBracket = `<span class='q-connector-closing' data-encoded>)</span>`;
+
+  asciiStr = asciiStr.replace(
+    /\)\s*(OR|AND|NOT)\s*\(/gi,
+    (_m, connector) =>
+      connectorClosingBracket
+      + `<span class='q-connector-${connector.toLowerCase()}' data-encoded>`
+      + ' '
+      + connector.toUpperCase()
+      + ' '
+      + `</span>`
+      + connectorOpeningBracket
+  );
+
+  /* ------------------------------------------------------------------ */
+  /* 7. Brackets with depth tracking                                    */
+  /* ------------------------------------------------------------------ */
+  function findUnmatchedBracketIndices(str) {
+    const stack = [];
+    const unmatched = new Set();
+
+    for (let i = 0; i < str.length; ++i) {
+      const ch = str[i];
+      if (ch === '(') {
+        stack.push(i);
+      } else if (ch === ')') {
+        if (stack.length) {
+          stack.pop();
+        } else {
+          // “)” without a matching “(”
+          unmatched.add(i);
         }
+      }
+    }
 
-        preProcessData(fileData);
-        createCache();
-        buildUI();
-        createGraphInstance();
+    stack.forEach(idx => unmatched.add(idx));
+    return unmatched;
+  }
 
-        graph.render().then(r => {
-          console.log("Initial graph rendered");
-          persistPositionsUpdateDataAndReDrawGraph();
-          saveFiltersToStash();
-          hideLoading();
-        });
+  let bracketLevel = 0;
+  const unmatched = findUnmatchedBracketIndices(asciiStr);
+  if (unmatched.size) {
+    query.valid = false;
+  }
 
-        registerHotkeyEvents();
-      })
-      .catch((error) => {
-        alert(`Error loading graph: ${error}`);
-        hideLoading();
-      })
-      .finally(() => {
-        hideLoading();
-      });
-  }, 20);
+  asciiStr = [...asciiStr]
+    .map((ch, i) => {
+      if (ch === '(') {
+        bracketLevel++;
+        const lvl = Math.min(bracketLevel, 5);
+        const cls = [
+          `q-bracket-open-lvl-${lvl}`,
+          unmatched.has(i) ? 'q-error-unmatched-opening-bracket' : ''
+        ].join(' ');
+        return `<span class='${cls.trim()}' data-encoded>(</span>`;
+      }
 
+      if (ch === ')') {
+        const lvl = Math.min(bracketLevel, 5);
+        const cls = [
+          `q-bracket-close-lvl-${lvl}`,
+          unmatched.has(i) ? 'q-error-unmatched-closing-bracket' : ''
+        ].join(' ');
+        const html = `<span class='${cls.trim()}' data-encoded>)</span>`;
+        bracketLevel = Math.max(bracketLevel - 1, 0);
+        return html;
+      }
+
+      return ch;
+    })
+    .join('');
+
+  // ------------------------------------------------------------------
+  // 8. substitute &nbsp; with space span (important for copy/paste)
+  // ------------------------------------------------------------------
+  asciiStr = asciiStr
+    // split into “already encoded” vs “plain” parts
+    .split(/(<span\b[^>]*data-encoded[^>]*>[\s\S]*?<\/span>)/g)
+    .map(chunk => {
+      // keep every part that is already marked as encoded
+      if (chunk.startsWith('<span') && chunk.includes('data-encoded')) {
+        return chunk;
+      }
+      // in all other chunks replace real blanks, NBSP (char 160) and “&nbsp;”
+      // with the standard encoded-space element
+      return chunk
+        .replace(/&nbsp;|\u00a0| /g, space);
+    })
+    .join('');
+
+  // ------------------------------------------------------------------
+  // 9. Check for instructions without filters (no "IN|BETWEEN|LOWER THAN after property)
+  // TODO: not working
+  // ------------------------------------------------------------------
+
+  // asciiStr = asciiStr.replace(
+  //   /\(([^)]+?::[^)]+?::[^)]+?)(?=\s*\))/g,
+  //   (match, prop) => {
+  //     query.valid = false;
+  //     return `<span class="q-error-missing-filter" data-encoded>${match}</span>`;
+  //   }
+  // );
+
+  // ------------------------------------------------------------------
+  // 10. wrap everything not already in a <span class='q-…'>…</span> as an error
+  // ------------------------------------------------------------------
+  asciiStr = asciiStr
+    // split out only the already‐encoded chunks vs everything else
+    .split(/(<span\b[^>]*data-encoded[^>]*>[\s\S]*?<\/span>)/g)
+    .map(chunk => {
+      // if it’s one of our data-encoded spans, keep it
+      if ((chunk.startsWith('<span') && chunk.includes('data-encoded'))
+        || chunk === "" || chunk === "</span> " || chunk === "</span>" || chunk === "[</span>") {
+        return chunk;
+      }
+
+      query.valid = false;
+      return chunk.replace(/\S+/g, txt =>
+        `<span class="q-error-unrecognized">${txt}</span>`
+      );
+    })
+    .join('');
+
+  const updateQueryBtn = document.getElementById("queryUpdateBtn");
+  if (query.valid) {
+    updateQueryBtn.classList.remove("disabled");
+  } else {
+    updateQueryBtn.classList.add("disabled");
+  }
+
+  return asciiStr;
+}
+
+function updateQueryTextArea() {
+  let queryStr = data.layouts[data.selectedLayout]["query"] || "";
+
+  if (!queryStr) {
+    let queryEntries = [];
+    for (const [propID, fo] of data.layouts[data.selectedLayout].filters.entries()) {
+      if (fo.active) {
+        if (fo.isCategory) {
+          queryEntries.push(`${propID} IN [${[...fo.categories].map(cat => cat).join(",")}]`);
+        } else if (fo.isInverted) {
+          queryEntries.push(`${propID} LOWER THAN ${fo.upperThreshold} OR GREATER THAN ${fo.lowerThreshold}`);
+        } else {
+          queryEntries.push(`${propID} BETWEEN ${fo.lowerThreshold} AND ${fo.upperThreshold}`);
+        }
+      }
+    }
+
+    if (queryEntries.length) {
+      queryStr = `(${queryEntries.join(") OR (")})`;
+    }
+  }
+
+  query.text.textContent = queryStr;
+  query.overlay.innerHTML = encodeQuery(queryStr);
+}
+
+function getCursorPosition() {
+  const sel = document.getSelection();
+  sel.modify("extend", "backward", "paragraphboundary");
+  const pos = sel.toString().length;
+  if (sel.anchorNode !== null && sel.anchorNode !== undefined) sel.collapseToEnd();
+
+  return pos;
+}
+
+function setCursorPosition(charIndex) {
+  charIndex = Math.max(0, Math.min(charIndex, query.text.textContent.length));
+
+  const range = document.createRange();
+  const walker = document.createTreeWalker(query.text, NodeFilter.SHOW_TEXT, null, false);
+
+  let currentNode;
+  let remaining = charIndex;
+
+  while ((currentNode = walker.nextNode())) {
+    if (remaining <= currentNode.length) {
+      range.setStart(currentNode, remaining);
+      range.collapse(true);
+      break;
+    }
+    remaining -= currentNode.length;
+  }
+
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+function moveCaret() {
+  const sel = getSelection();
+  if (!sel || !sel.rangeCount) {
+    query.caret.style.display = 'none';
+    return;
+  }
+
+  const range = sel.getRangeAt(0).cloneRange();
+  range.collapse(true);
+
+  const rect = range.getClientRects()[0];
+  if (!rect) {
+    query.caret.style.display = 'none';
+    return;
+  }
+
+  const parentRect = query.text.getBoundingClientRect();
+
+  const overlapsVert = rect.bottom > parentRect.top && rect.top < parentRect.bottom;
+  const overlapsHoriz = rect.right > parentRect.left && rect.left < parentRect.right;
+
+  if (!(overlapsVert && overlapsHoriz)) {         // caret outside the box → hide it
+    query.caret.style.display = 'none';
+    return;
+  }
+
+  query.caret.style.display = 'block';
+  query.caret.style.left = `${rect.left - parentRect.left}px`;
+  query.caret.style.top = `${rect.top - parentRect.top}px`;
+  query.caret.style.height = `${rect.height}px`;
+}
+
+function handleQueryValidationEvent() {
+  const caretPosition = getCursorPosition();
+
+  query.overlay.innerHTML = encodeQuery(query.text.textContent);
+  query.overlay.scrollTop = query.text.scrollTop;
+  query.overlay.scrollLeft = query.text.scrollLeft;
+
+  if (query.valid) {
+    data.layouts[data.selectedLayout]["query"] = query.text.textContent;
+  } else {
+    data.layouts[data.selectedLayout]["query"] = undefined;
+  }
+
+  requestAnimationFrame(() => {
+    setCursorPosition(caretPosition);
+  });
+}
+
+function handleQueryUpdateEvent() {
+  updateUIFromQueryInstructions();
+  handleFilterEvent("Updating Graph from Query", query.text.textContent, null, false);
+}
+
+/**
+ * Turn the HTML produced by `encodeQuery()` back into a nested data
+ * structure that mirrors the original logical expression.
+ *
+ * Returned format (simplified):
+ * [
+ *   {type: 'property', main:'Node filters', sub:'Label', prop:'name'},
+ *   {type: 'KW', value: 'BETWEEN'},
+ *   {type: 'NUM', value: 10},
+ *   {type: 'KW', value: 'AND'},
+ *   {type: 'NUM', value: 20},
+ *   'AND',
+ *   [                                    // ← nested group (brackets)
+ *     {type:'property', …},
+ *     'OR',
+ *     {type:'property', …}
+ *   ]
+ * ]
+ *
+ * The tree can afterwards be compiled into any instruction format you need.
+ */
+function decodeQuery() {
+  /* -------------------------------------------------------------
+   * 1.  DOM → token list
+   * ----------------------------------------------------------- */
+  const tokens = [];
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(`<div>${query.overlay.innerHTML}</div>`, 'text/html');
+  const root = doc.body.firstElementChild;        // wrapper <div>
+
+  // helper: map CSS classes → token factory
+  const classMap = {
+    // connectors
+    'q-connector-or': () => 'OR',
+    'q-connector-and': () => 'AND',
+    'q-connector-not': () => 'NOT',
+
+    // brackets
+    'q-bracket-open-lvl-1': () => ({type: '(', value: '('}),
+    'q-bracket-open-lvl-2': () => ({type: '(', value: '('}),
+    'q-bracket-open-lvl-3': () => ({type: '(', value: '('}),
+    'q-bracket-open-lvl-4': () => ({type: '(', value: '('}),
+    'q-bracket-open-lvl-5': () => ({type: '(', value: '('}),
+    'q-bracket-close-lvl-1': () => ({type: ')', value: ')'}),
+    'q-bracket-close-lvl-2': () => ({type: ')', value: ')'}),
+    'q-bracket-close-lvl-3': () => ({type: ')', value: ')'}),
+    'q-bracket-close-lvl-4': () => ({type: ')', value: ')'}),
+    'q-bracket-close-lvl-5': () => ({type: ')', value: ')'}),
+
+    // numbers & keywords
+    'q-number': el => ({type: 'NUM', value: Number(el.textContent)}),
+    'q-kw-between': () => ({type: 'KW', value: 'BETWEEN'}),
+    'q-kw-between-and': () => ({type: 'KW', value: 'AND'}),
+    'q-lower-than': () => ({type: 'KW', value: 'LOWER THAN'}),
+    'q-or-greater-than': () => ({type: 'KW', value: 'OR GREATER THAN'}),
+    'q-in-cat-bracket-open': () => ({type: 'KW', value: 'IN ['}),
+
+    // category strings
+    'q-string': el => ({type: 'STR', value: el.textContent}),
+
+    // whole property path (“A::B::C”)
+    'q-property-wrapper': el => {
+      const [main, sub, prop] = el.textContent.split('::');
+      return {type: 'property', main, sub, prop, propID: el.textContent};
+    }
+  };
+
+  // depth-first walk
+  function walk(node) {
+    // ignore plain text / spaces
+    if (node.nodeType === Node.TEXT_NODE) {
+      return;
+    }
+
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      for (const cls of node.classList) {
+        if (classMap[cls]) {
+          const t = classMap[cls](node);
+          if (t !== undefined) tokens.push(t);
+          // stop after first recognised class
+          break;
+        }
+      }
+    }
+
+    node.childNodes.forEach(walk);
+  }
+
+  walk(root);
+
+  /* -------------------------------------------------------------
+   * 2.  Token list → nested groups     (recursive-descent)
+   * ----------------------------------------------------------- */
+  function readGroup(idx = 0) {
+    const group = [];
+
+    while (idx < tokens.length) {
+      const tok = tokens[idx];
+
+      if (tok.type === ')') {               // end of this group
+        return [group, idx + 1];
+      }
+
+      if (tok.type === '(') {               // begin sub-group
+        const [subGroup, next] = readGroup(idx + 1);
+        group.push(subGroup);
+        idx = next;
+        continue;
+      }
+
+      group.push(tok);
+      idx += 1;
+    }
+
+    return [group, idx];                    // top-level done
+  }
+
+  const [instructions] = readGroup();       // start at index 0
+  return instructions;
+}
+
+function updateUIFromQueryInstructions() {
+
+  function setFilter(obj) {
+    // normal slider
+    if (obj[1].type === "KW" && obj[1].value === "BETWEEN") {
+      checkCheckbox(obj[0].propID, true);
+      cache.propIDToInvertibleRangeSliders.get(obj[0].propID).setTo(obj[2].value, obj[4].value, false);
+    }
+
+    // inverted slider
+    else if (obj[1].type === "KW" && obj[1].value === "LOWER THAN") {
+      checkCheckbox(obj[0].propID, true);
+      cache.propIDToInvertibleRangeSliders.get(obj[0].propID).setTo(obj[2].value, obj[4].value, true);
+    }
+
+    // category
+    else if (obj[1].type === "KW" && obj[1].value === "IN [") {
+      checkCheckbox(obj[0].propID, true);
+      const dropdown = cache.propIDToDropdownChecklists.get(obj[0].propID);
+      dropdown.deselectAllCategories(true);
+      for (const dropdownElem of obj) {
+        if (dropdownElem.type === "STR") {
+          dropdown.selectCategory(dropdownElem.value);
+        }
+      }
+    }
+  }
+
+  function refreshUI(obj) {
+    if (obj.constructor === Array) {
+      if (obj[0].constructor === Object && obj[0].type === "property") {
+        setFilter(obj);
+      } else {
+        // nested instruction
+        for (const nestedInst of obj) {
+          refreshUI(nestedInst);
+        }
+      }
+    }
+  }
+
+  uncheckAllCheckboxes();
+  decodeQueryAndBuildAST();
+
+  for (const inst of query.ast.instructions) {
+    refreshUI(inst);
+  }
+}
+
+function moveCaretToEnd() {
+  const el = query.text;               // the editable element
+  if (!el) return;
+
+  /* -------- textarea / input ---------- */
+  if ('selectionStart' in el) {        // true for <input> / <textarea>
+    el.selectionStart = el.selectionEnd = el.value.length;
+    el.focus();
+    return;
+  }
+
+  /* -------- contenteditable ----------- */
+  const range = document.createRange();
+  range.selectNodeContents(el);        // select the whole content
+  range.collapse(false);               // collapse to the end
+
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  el.focus();
+}
+
+function resetQuery() {
+  delete data.layouts[data.selectedLayout]["query"];
+  query.text.textContent = "";
+  query.overlay.innerHTML = "";
+  updateQueryTextArea();
+  moveCaretToEnd();
+}
+
+function showQueryHelp() {
+  cache.popup = new Popup(`
+<h3>Query Editor</h3>
+The query editor allows filtering of the graph using nested AND, OR and NOT expressions.
+
+<ul>
+  <li>The query is validated during typing</li>
+  <li>Valid queries are stored per view and exported to a model.json upon export</li>
+  <li>Changes in the UI updates the query and resets custom AND/NOT logics and nested brackets</li>
+  <li>Invalid syntax is <span class="q-error-unrecognized">highlighted</span></li>
+</ul>
+<hr>
+<h3>Query Structure Explained</h3>
+<div class="popupQueryContainer">
+  <span class="q-bracket-open-lvl-1">(</span>
+  <span class="q-property-wrapper"><span class="q-maingroup">${EXCEL_NODE_HEADER}</span><span class="q-prop-group-separator">::</span><span class="q-subgroup">group A</span><span class="q-prop-group-separator">::</span><span class="q-property">prop X</span></span>
+  <span class="q-kw-between">BETWEEN</span>
+  <span class="q-number">0</span>
+  <span class="q-kw-between-and">AND</span>
+  <span class="q-number">1.3</span>
+  <span class="q-connector-closing"><span class="q-bracket-close-lvl-1">)</span></span>
+  <span class="q-connector-or">&nbsp;OR&nbsp;</span>
+  <span class="q-connector-opening-bracket"><span class="q-bracket-open-lvl-1">(</span></span>
+  <span class="q-property-wrapper"><span class="q-maingroup">${EXCEL_NODE_HEADER}</span><span class="q-prop-group-separator">::</span><span class="q-subgroup">group A</span><span class="q-prop-group-separator">::</span><span class="q-property">prop Y</span></span>
+  <span class="q-in-cat-bracket-open">IN<span class="q-space"> </span>[</span>
+  <span class="q-string">foo</span>
+  <span class="q-comma">,</span>
+  <span class="q-string">bar</span>
+  <span class="q-cat-bracket-close">]</span>
+  <span class="q-connector-closing"><span class="q-bracket-close-lvl-1">)</span></span>
+</div>
+<ul>
+<li><span class="q-bracket-open-lvl-1">(</span>&nbsp;<span class="q-bracket-close-lvl-1">)</span>: Parentheses collect several conditions into one logical unit 
+  <ul>
+    <li>Groups can be nested to any depth</li>
+    <li>Up to five levels of nested brackets are colour-coded: <span class="q-bracket-open-lvl-1">(</span><span class="q-bracket-open-lvl-2">(</span><span class="q-bracket-open-lvl-3">(</span><span class="q-bracket-open-lvl-4">(</span><span class="q-bracket-open-lvl-5">(</span><span class="q-bracket-close-lvl-5">)</span><span class="q-bracket-close-lvl-4">)</span><span class="q-bracket-close-lvl-3">)</span><span class="q-bracket-close-lvl-2">)</span><span class="q-bracket-close-lvl-1">)</span></li>
+    <li>Unmatched brackets are highlighted: <span class="q-bracket-close-lvl-0 q-error-unmatched-closing-bracket">)</span></li>
+  </ul>
+</li>
+<li><span class="q-property-wrapper"><span class="q-maingroup">${EXCEL_NODE_HEADER}</span><span class="q-prop-group-separator">::</span><span class="q-subgroup">group A</span><span class="q-prop-group-separator">::</span><span class="q-property">prop X</span></span>: selects property <strong>prop X [group A]</strong> from the <strong>node</strong> sheet 
+  <ul>
+    <li>Properties always have <strong>3 levels</strong>, separated by <span class="q-property-wrapper"><span class="q-prop-group-separator">::</span></span></li>
+    <li>Node properties start with <span class="q-property-wrapper"><span class="q-maingroup">${EXCEL_NODE_HEADER}</span><span class="q-prop-group-separator">::</span></span> while edge properties start with <span class="q-property-wrapper"><span class="q-maingroup">${EXCEL_EDGE_HEADER}</span><span class="q-prop-group-separator">::</span></span></li>
+    <li>If no groups are defined in a column of the input file, the default group <span class="q-property-wrapper"><span class="q-subgroup">${EXCEL_UNCATEGORIZED_SUBHEADER}</span></span> is used</li>
+  </ul> 
+</li>
+<li>Properties must be followed by a <strong>filter instruction</strong>. Three different instructions exist: </strong>
+  <ul>
+    <li><span class="q-kw-between">BETWEEN</span>&nbsp;<span class="q-number">0</span>&nbsp;<span class="q-kw-between-and">AND</span>&nbsp;<span class="q-number">1.3</span>: keeps numerical values from 0 to 1.3 (inclusive)</li>
+    <li><span class="q-lower-than">LOWER THAN</span>&nbsp;<span class="q-number">0.2</span>&nbsp;<span class="q-or-greater-than">OR GREATER THAN</span>&nbsp;<span class="q-number">0.8</span>: keeps numerical values ≤ 0.2 or ≥ 0.8</li>
+    <li><span class="q-in-cat-bracket-open">IN<span class="q-space">&nbsp;</span>[</span>&nbsp;<span class="q-string">foo</span><span class="q-comma">,</span> <span class="q-string">bar</span>&nbsp;<span class="q-cat-bracket-close">]</span>: keeps categorical values 'foo' or 'bar'</li>  
+  </ul>
+</li>
+<li><span class="q-connector-or">&nbsp;OR&nbsp;</span>: one of three logical operators that links two conditions or groups. Left prevails over right, otherwise all three operators are treated equally.
+  <ul>
+    <li><span class="q-connector-or">&nbsp;OR&nbsp;</span> results in true if at least one of the linked parts is true</li>
+    <li><span class="q-connector-and">&nbsp;AND&nbsp;</span> results in true if both linked parts are true</li>
+    <li><span class="q-connector-not">&nbsp;NOT&nbsp;</span> results in true part A is true while part B is not</li>
+  </ul>
+</li>
+</ul>
+`, {width: '66vw', height: '50vh', lineHeight: '1.5em'});
+}
+
+function humanFileSize(size) {
+  let i = size === 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
+  return +((size / Math.pow(1024, i)).toFixed(2)) + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+}
+
+async function loadFileWrapper(event) {
+  let file = event.target.files[0];
+  await showLoading("Loading", `Loading ${file.name} (${file.type} with ${humanFileSize(file.size)})`);
+
+  if (graph) {
+    await destroyGraphAndRollBackUI();
+  }
+
+  loadFile(event)
+    .then(async (fileData) => {
+      if (!fileData) {
+        alert("File data is empty.");
+        await hideLoading();
+        return;
+      }
+
+      preProcessData(fileData);
+      initCache();
+      buildUI();
+      await createGraphInstance();
+
+      if (!graph) {
+        alert("Graph not initialized, aborting.");
+        await hideLoading();
+        return;
+      }
+
+      await graph.render();
+      await graph.fitView();
+      console.log("Initial graph rendered.");
+    })
+    .catch(async (error) => {
+      alert(`Error loading graph: ${error}`);
+      await hideLoading();
+    })
+    .finally(async () => {
+      await hideLoading();
+    });
+}
+
+async function destroyGraphAndRollBackUI() {
+  await graph.destroy();
+  graph = null;
+
+  const status = document.getElementById("sidebarStatusContainer");
+  status.innerHTML = "";
+  status.style.height = "0";
 }
 
 function registerHotkeyEvents() {
-  document.addEventListener('keydown', (event) => {
+  document.addEventListener('keydown', async (event) => {
     const activeElement = document.activeElement;
 
     // Skip hotkeys if currently focused on an input, textarea, or select element
@@ -2906,19 +6063,25 @@ function registerHotkeyEvents() {
 
     switch (event.key) {
       case "p":
-        exportPNG();
+        await exportPNG();
         break;
       case "s":
-        exportGraphAsJSON();
+        await exportGraphAsJSON();
         break;
       case "r":
-        resetLayout();
+        await resetLayout();
         break;
       case "f":
-        graph.fitView();
+        await graph.fitView();
         break;
       case "e":
-        document.getElementById('editBtn').click();
+        await toggleEditMode();
+        break;
+      case "q":
+        toggleQueryEditor();
+        break;
+      case "m":
+        cache.metrics.toggleUI();
         break;
       default:
         break;
@@ -2926,77 +6089,170 @@ function registerHotkeyEvents() {
   });
 }
 
-function resetLayout() {
+function registerGlobalEventListeners() {
+  ['input', 'keydown', 'keyup', 'mousedown', 'mouseup', 'focus', 'blur', 'scroll', 'selectionchange'].forEach(evt =>
+    query.text.addEventListener(evt, moveCaret)
+  );
+}
+
+async function resetLayout() {
   if (data.layouts[data.selectedLayout].isCustom) {
     alert("Cannot reset custom layout.");
     return false;
   }
 
+  await showLoading("Resetting", "Resetting layout to default ..");
   data.layouts[data.selectedLayout]?.positions?.clear();
-  graph.updateData(createSimplifiedDataForGraphObject(true));
+
+  await graph.updateData(createSimplifiedDataForGraphObject(true));
   let layout = data.layouts[data.selectedLayout];
   if (!layout.isCustom) {
-    graph.setLayout({type: data.selectedLayout, ...layout.internals});
+    await graph.setLayout({type: data.selectedLayout, ...layout.internals});
   }
-  graph.render().then(r => console.log(`Resetted layout ${data.selectedLayout}`));
+
+  await decideToRenderOrDraw(true).then(r => console.log(`Reset layout ${data.selectedLayout}`));
 }
 
-function exportPNG() {
+async function exportPNG() {
   // https://g6.antv.antgroup.com/en/api/reference/g6/dataurloptions#properties
-  showLoading("Loading", "Generating picture data");
 
-  graph.toDataURL({
-    type: "image/png", mode: "viewport"
-  }).then((imageData) => {
+  try {
+    await showLoading("Loading", "Generating picture data");
+    const imageData = graph.toDataURL({
+      type: "image/png", mode: "viewport"
+    });
+
     const link = document.createElement('a');
     link.href = imageData;
     link.download = 'graph.png';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  });
 
-  hideLoading();
+    await hideLoading();
+  } catch (errorMsg) {
+    await hideLoading();
+    error(errorMsg);
+  }
 }
 
-function showLoading(header, text = "", invisible = false, autoFade = false) {
+async function showLoading(header, text = "") {
   const overlay = document.getElementById('loadingOverlay');
   overlay.style.display = 'flex';
-
-  // timeout is required to trigger transition; otherwise, because of style.display='flex', the transition is skipped
-  setTimeout(() => {
-    overlay.style.opacity = invisible ? '0' : '1';
-  }, 5);
+  overlay.style.opacity = '1';
 
   document.getElementById('loadingHeader').textContent = header;
   document.getElementById('loadingText').textContent = text;
 
-  setTimeout(() => {
-    console.log(header);
-  }, 25);
+  let logInfo = header;
+  if (text) logInfo += `: ${text}`;
+  console.log(logInfo);
 
-  if (autoFade) {
-    setTimeout(() => {
-      hideLoading();
-    }, 1000);
-  }
+  // Force reflow
+  overlay.getBoundingClientRect();
+
+  // Wait for next frame to ensure the UI has updated
+  return new Promise(resolve => requestAnimationFrame(resolve));
 }
 
-function hideLoading() {
+async function hideLoading() {
   const overlay = document.getElementById('loadingOverlay');
   overlay.style.opacity = '0';
 
-  setTimeout(() => {
-    overlay.style.display = 'none';
-  }, 200);
+  // Wait for the opacity transition to complete
+  await new Promise(resolve => {
+    const transitionDuration = getComputedStyle(overlay).transitionDuration;
+    const durationInMs = parseFloat(transitionDuration) * (transitionDuration.includes('ms') ? 1 : 1000);
+    setTimeout(resolve, durationInMs);
+  });
+
+  overlay.style.display = 'none';
+  refreshUI();
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  hideLoading();
-});
+function refreshUI() {
+  if (!cache.initialized) return;
+
+  const loadFromStashBtn = document.getElementById("loadFromStashBtn");
+  data.stash?.triggered ? loadFromStashBtn.classList.remove("disabled") : loadFromStashBtn.classList.add("disabled");
+
+  toggleStyleElementsThatRequireAtLeastOneVisibleNode(cache.nodeIDsToBeShown.size > 0);
+  toggleStyleElementsThatRequireAtLeastOneVisibleEdge(cache.edgeIDsToBeShown.size > 0);
+  toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(cache.nodeIDsToBeShown.size > 0 || cache.edgeIDsToBeShown.size > 0);
+
+  document.getElementById("visibleNodes").innerHTML = `${cache.nodeIDsToBeShown.size - cache.hiddenDanglingNodeIDs.size}`;
+  document.getElementById("totalNodes").innerHTML = `${data.nodes.length}`;
+  document.getElementById("visibleEdges").innerHTML = `${cache.edgeIDsToBeShown.size - cache.hiddenDanglingEdgeIDs.size}`;
+  document.getElementById("totalEdges").innerHTML = `${data.edges.length}`;
+}
 
 window.addEventListener('resize', () => {
   if (graph !== null) {
+    const editModeActive = document.getElementById("editBtn").classList.contains("active");
+    const sidebarContentContainer = document.getElementById("sidebarContentContainer");
+    const status = document.getElementById("sidebarStatusContainer");
 
+    status.style.maxWidth = editModeActive ? `${sidebarContentContainer.offsetWidth}px` : "360px";
   }
 })
+
+function logMessage(text, colorClass, bold = false, iconPrefix = "") {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  const timestamp = `${hh}:${mm}:${ss}`;
+
+  const container = document.getElementById('sidebarStatusContainer');
+  container.style.height = "8%";
+
+  const p = document.createElement('p');
+  p.style.margin = "0 0 1px 0";
+
+  const spanTime = document.createElement('span');
+  spanTime.textContent = `${timestamp} | `;
+  spanTime.classList.add("grey");
+  p.appendChild(spanTime);
+
+  if (iconPrefix) {
+    const spanIcon = document.createElement('span');
+    spanIcon.textContent = iconPrefix;
+    spanIcon.classList.add("mr");
+    p.appendChild(spanIcon);
+  }
+
+  const spanText = document.createElement('span');
+  spanText.classList.add(colorClass);
+  spanText.style.fontWeight = bold ? "bold" : "normal";
+  spanText.textContent = text;
+  p.appendChild(spanText);
+
+  container.appendChild(p);
+  container.scrollTop = container.scrollHeight;
+}
+
+function info(message) {
+  logMessage(message, "black", false);
+}
+
+function warning(message) {
+  logMessage(message, "orange", false, "⚠️");
+}
+
+function error(message) {
+  logMessage(message, "red", true, "⛔");
+}
+
+function success(message) {
+  logMessage(message, "green", false);
+}
+
+function debug(message) {
+  logMessage(message, "grey", false);
+}
+
+function debugQuery(query) {
+  query.text.textContent = query;
+  handleQueryValidationEvent();
+  handleQueryUpdateEvent();
+}
