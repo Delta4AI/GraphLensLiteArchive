@@ -1,0 +1,60 @@
+const { app, BrowserWindow, shell, Menu } = require('electron');
+const path = require('path');
+
+function createWindow() {
+  const win = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    backgroundColor: '#ffffff',
+    autoHideMenuBar: true,               // menu stays hidden until user presses Alt (Win/Linux)
+    icon: path.join(__dirname, '..', 'static', 'delta-4-icon.png'),
+    webPreferences: {
+      contextIsolation: true,
+      sandbox: true
+    }
+  });
+
+  win.loadFile(path.join(__dirname, 'graph_lens_lite.html'));
+
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: 'deny' };
+  });
+}
+
+/* ──────────────────────────────
+   HELP  >  About  menu template
+   ────────────────────────────── */
+const menuTemplate = [
+  {
+    label: 'About',
+    submenu: [
+      {
+        label: 'Graph Lens Lite GitHub',
+        click: () => {
+          shell.openExternal('https://github.com/Delta4AI/GraphLensLite');
+        }
+      },
+      {
+        label: "Delta 4 AI",
+        click: () => {
+          shell.openExternal('https://www.delta4.ai/');
+        }
+      }
+    ]
+  }
+];
+
+const appMenu = Menu.buildFromTemplate(menuTemplate);
+Menu.setApplicationMenu(appMenu);
+/* ────────────────────────────── */
+
+app.whenReady().then(createWindow);
+
+app.on('activate', () => {
+  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+});
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit();
+});
