@@ -1597,6 +1597,7 @@ function createStyleDiv() {
 
     if (inputId) {
       input.id = inputId;
+      label.id = `${inputId}Label`;
     }
 
     label.append(input, span);
@@ -1895,13 +1896,17 @@ function createStyleDiv() {
     parent.appendChild(clearLabelButton);
   }
 
-  function createButton(label, tooltip, callback) {
+  function createButton(label, tooltip, callback, id=undefined) {
     const btn = document.createElement("button");
     btn.textContent = label;
     btn.title = tooltip;
     btn.classList.add("style-inner-button");
     if (label === "Clear") btn.classList.add("red");
-    btn.id = label;
+    if (id) {
+      btn.id = id;
+    } else {
+      btn.id = label;
+    }
     btn.onclick = () => {
       callback();
     }
@@ -2011,35 +2016,65 @@ function createStyleDiv() {
       async () => await toggleSelectionByNeighbors("reduce-neighbors"));
 
     const rowTwo = createNewRow(selDiv);
-    const nodeIDsInputSwitch = createSwitch(e => {
-      document.getElementById('selectByNodeIDsLabel').textContent = !e.target.checked
-        ? 'Include Node ID(s)' : 'Exclude Node ID(s)';
-    }, "selectByNodeIDsSwitch");
-    rowTwo.appendChild(nodeIDsInputSwitch);
     const nodeIDsTT = "Enter comma-separated list of node IDs to add/remove to/from selection\nConfirm with Enter";
-    appendLabel(rowTwo, "Include Node ID(s)", nodeIDsTT, "selectByNodeIDsLabel");
+    appendLabel(rowTwo, "Node ID(s)", nodeIDsTT);
     const topTwoNodeIDs = data?.nodes?.slice(0, 2).map(n => n.id).join(',') || 'Node1,Node2';
-    const nodeIDsInput = createInput(220, topTwoNodeIDs, nodeIDsTT, undefined,
+    const nodeIDsInput = createInput(204, topTwoNodeIDs, nodeIDsTT, undefined,
       async (val) => {
         await addNodeOrEdgeIDsToSelection(val, true);
       });
     nodeIDsInput.id = "selectByNodeIDsInput";
     rowTwo.appendChild(nodeIDsInput);
+    const nodeIDsInputSwitch = createSwitch(e => {
+      const btn = document.getElementById("selectByNodeIDsButton");
+      if (e.target.checked) {
+        btn.textContent = "Exclude";
+        btn.classList.add("red");
+        btn.title = "Remove the selected nodes from the selection";
+      } else {
+        btn.textContent = "Include";
+        btn.classList.remove("red");
+        btn.title = "Add the selected nodes to the selection";
+      }
+    }, "selectByNodeIDsSwitch");
+    rowTwo.appendChild(nodeIDsInputSwitch);
+    const includeNodesByIdBtn = createButton("Include", "Add the selected nodes to the selection", async () => {
+      const elements = document.getElementById("selectByNodeIDsInput").value;
+      if (elements) {
+        await addNodeOrEdgeIDsToSelection(elements, true);
+      }
+    }, "selectByNodeIDsButton");
+    rowTwo.appendChild(includeNodesByIdBtn);
 
     const edgeIDsTT = "Enter comma-separated list of edge IDs (SourceID::TargetID) to add/remove to/from selection\nConfirm with Enter";
-    appendVerticalRule(rowTwo, "Include Edge ID(s)", edgeIDsTT, "selectByEdgeIDsLabel");
-    const edgeIDsInputSwitch = createSwitch(e => {
-      document.getElementById('selectByEdgeIDsLabel').textContent = !e.target.checked
-        ? 'Include Edge ID(s)' : 'Exclude Edge ID(s)';
-    }, "selectByEdgeIDsSwitch");
-    rowTwo.appendChild(edgeIDsInputSwitch);
+    appendVerticalRule(rowTwo, "Edge ID(s)", edgeIDsTT);
     const topTwoEdgeIDs = data?.edges?.slice(0, 2).map(e => e.id).join(',') || 'Node1::Node2,Node1::Node3';
-    const edgeIDsInput = createInput(220, topTwoEdgeIDs, edgeIDsTT, undefined,
+    const edgeIDsInput = createInput(204, topTwoEdgeIDs, edgeIDsTT, undefined,
       async (val) => {
         await addNodeOrEdgeIDsToSelection(val, false);
       });
     edgeIDsInput.id = "selectByEdgeIDsInput";
     rowTwo.appendChild(edgeIDsInput);
+    const edgeIDsInputSwitch = createSwitch(e => {
+      const btn = document.getElementById("selectByEdgeIDsButton");
+      if (e.target.checked) {
+        btn.textContent = "Exclude";
+        btn.classList.add("red");
+        btn.title = "Remove the selected edges from the selection";
+      } else {
+        btn.textContent = "Include";
+        btn.classList.remove("red");
+        btn.title = "Add the selected edges to the selection";
+      }
+    }, "selectByEdgeIDsSwitch");
+    rowTwo.appendChild(edgeIDsInputSwitch);
+    const includeEdgesByIdBtn = createButton("Include", "Add the selected nodes to the selection", async () => {
+      const elements = document.getElementById("selectByEdgeIDsInput").value;
+      if (elements) {
+        await addNodeOrEdgeIDsToSelection(elements, false);
+      }
+    }, "selectByEdgeIDsButton");
+    rowTwo.appendChild(includeEdgesByIdBtn);
   }
 
   function createArrangeNodesCard() {
@@ -2301,11 +2336,13 @@ function toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(enable) {
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleNode(enable) {
-  toggleStyleElements(["selectByNodeIDsInput"], enable);
+  toggleStyleElements(["selectByNodeIDsInput", "selectByNodeIDsInputLabel", "Node ID(s)",
+    "selectByNodeIDsSwitch", "selectByNodeIDsButton"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleEdge(enable) {
-  toggleStyleElements(["selectByEdgeIDsInput"], enable);
+  toggleStyleElements(["selectByEdgeIDsInput", "selectByEdgeIDsInputLabel", "Edge ID(s)",
+    "selectByEdgeIDsSwitch", "selectByEdgeIDsButton"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(enable) {
