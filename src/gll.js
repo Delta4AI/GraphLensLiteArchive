@@ -1572,7 +1572,7 @@ async function layoutSelectedNodes(action) {
 
   await layoutActions[action]();
   await persistNodePositions();
-  await handleFilterEvent(action, eventLabels[action]);
+  await handleStyleChangeLoadingEvent(action, eventLabels[action]);
 }
 
 function createStyleDiv() {
@@ -1752,7 +1752,6 @@ function createStyleDiv() {
     if (tooltip) offBtn.title = tooltip;
     parent.appendChild(offBtn);
   }
-
 
   function createCategoricalControls(parent, property, defaultValue, listOfValues, tooltip = undefined) {
     const dropdown = document.createElement("select");
