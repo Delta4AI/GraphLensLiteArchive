@@ -114,7 +114,7 @@ const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
 // Maximum capacity of selection memory
 const MAX_SELECTION_MEMORY = 10;
 
-const NODE_CONNECTIVITY_METRICS_PRECISION = 4;
+const NODE_CONNECTIVITY_METRICS_PRECISION = 5;
 
 /**
  *  Excel-model import related properties
@@ -364,8 +364,11 @@ class NetworkMetrics {
   }
 
   async updateUI() {
-    await showLoading("Calculating", `Network Metric: ${this.m[this.selected].label}`);
+    const metricName = this.m[this.selected].label;
+    await showLoading("Calculating", `Network Metric: ${metricName}`);
     await new Promise(resolve => requestAnimationFrame(resolve));
+
+    resetNodeToolTipMetricTexts();
 
     const metricResult = await this.m[this.selected]?.calculate();
 
@@ -376,8 +379,9 @@ class NetworkMetrics {
     for (const ns of metricResult.scores) {
       const opt = document.createElement('option');
       opt.value = ns.id;
-      opt.textContent = ns.text;
+      opt.textContent = `${ns.id} | ${ns.text}`;
       opt.selected = selectedValues.includes(ns.id);
+      updateNodeToolTipMetricText(ns.id, metricName, ns.text);
       this.multiselect.appendChild(opt);
     }
 
@@ -494,7 +498,7 @@ class NetworkMetrics {
   }
 }
 
-function calculateDegreeCentrality() {
+async function calculateDegreeCentrality() {
   const {nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef} = cache;
 
   const n = nodes.size;
@@ -537,7 +541,7 @@ function calculateDegreeCentrality() {
   return {
     scores: scores.map(s => ({
       id: s.id,
-      text: `${s.id} | Degree ${s.degree} | Centrality ${s.centrality.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.centrality / max) * 100)} %)`
+      text: `Degree ${s.degree} | Centrality ${s.centrality.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.centrality / max) * 100)} %)`
     })),
     graphLevelMetrics: {
       "Maximum Degree Centrality": max * (n - 1),
@@ -553,6 +557,9 @@ function calculateDegreeCentrality() {
 <p>Degree centrality is a measure of the number of connections a node has in a network.
 Nodes with more connections are considered more central and receive a higher score (up to 1.0).
 <a href="https://doi.org/10.2307%2F3033543">Freeman, 1977</a>
+</p>
+<p><strong>Note:</strong> 
+  This implementation treats all graphs as undirected, counting all connections equally regardless of direction.
 </p>
 <svg width="300" height="200" viewBox="0 0 300 200">
   <!-- Edges (drawn first so they appear behind nodes) -->
@@ -588,7 +595,7 @@ Nodes with more connections are considered more central and receive a higher sco
   };
 }
 
-function calculateBetweennessCentrality() {
+async function calculateBetweennessCentrality() {
   const {nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef} = cache;
 
   const n = nodes.size;
@@ -596,77 +603,75 @@ function calculateBetweennessCentrality() {
     return {scores: [], graphLevelMetrics: {}};
   }
 
-  function findShortestPaths(start, end, adjacencyMap) {
-    const paths = [];
-    const visited = new Set();
-    const queue = [[start]];
-    let shortestLength = Infinity;
-
-    while (queue.length > 0) {
-      const path = queue.shift();
-      const node = path[path.length - 1];
-
-      if (path.length > shortestLength) continue;
-
-      if (node === end) {
-        shortestLength = path.length;
-        paths.push(path);
-        continue;
-      }
-
-      for (const neighbor of adjacencyMap.get(node)) {
-        if (!path.includes(neighbor)) {
-          queue.push([...path, neighbor]);
-        }
-      }
-    }
-
-    return paths;
-  }
-
+  // Build adjacency map
   const adjacencyMap = new Map();
   for (const id of nodes) adjacencyMap.set(id, new Set());
-
   for (const edgeId of edges) {
     const {source, target} = edgeRef.get(edgeId);
     if (adjacencyMap.has(source)) adjacencyMap.get(source).add(target);
     if (adjacencyMap.has(target)) adjacencyMap.get(target).add(source);
   }
 
+  // Initialize betweenness scores
   const betweenness = new Map();
   for (const id of nodes) betweenness.set(id, 0);
 
-  // For each pair of nodes
-  const nodeArray = Array.from(nodes);
-  for (let i = 0; i < nodeArray.length; i++) {
-    for (let j = i + 1; j < nodeArray.length; j++) {
-      const start = nodeArray[i];
-      const end = nodeArray[j];
+  // Process each node as source
+  for (const source of nodes) {
+    // Initialize data structures for BFS
+    const distance = new Map();
+    const paths = new Map();
+    const queue = [];
+    const stack = []; // for dependency accumulation
 
-      // Find shortest paths using BFS
-      const paths = findShortestPaths(start, end, adjacencyMap);
-      if (paths.length === 0) continue;
+    // Initialize source node
+    distance.set(source, 0);
+    paths.set(source, 1);
+    queue.push(source);
 
-      // For each node that appears in shortest paths
-      const intermediateNodes = new Map();
-      for (const path of paths) {
-        for (let k = 1; k < path.length - 1; k++) {
-          const node = path[k];
-          intermediateNodes.set(node, (intermediateNodes.get(node) || 0) + 1 / paths.length);
+    // BFS phase
+    while (queue.length > 0) {
+      const node = queue.shift();
+      stack.push(node);
+
+      for (const neighbor of adjacencyMap.get(node)) {
+        // Node discovered for first time?
+        if (!distance.has(neighbor)) {
+          queue.push(neighbor);
+          distance.set(neighbor, distance.get(node) + 1);
+          paths.set(neighbor, paths.get(node));
+        }
+        // Another shortest path found?
+        else if (distance.get(neighbor) === distance.get(node) + 1) {
+          paths.set(neighbor, paths.get(neighbor) + paths.get(node));
+        }
+      }
+    }
+
+    // Dependency accumulation phase
+    const dependency = new Map();
+    for (const node of nodes) dependency.set(node, 0);
+
+    // Process nodes in reverse order of discovery
+    while (stack.length > 0) {
+      const node = stack.pop();
+      if (node === source) continue;
+
+      for (const neighbor of adjacencyMap.get(node)) {
+        if (distance.get(neighbor) === distance.get(node) - 1) {
+          const coeff = (paths.get(neighbor) / paths.get(node)) * (1 + dependency.get(node));
+          dependency.set(neighbor, dependency.get(neighbor) + coeff);
         }
       }
 
-      // Add to betweenness scores
-      for (const [node, count] of intermediateNodes) {
-        betweenness.set(node, betweenness.get(node) + count);
-      }
+      betweenness.set(node, betweenness.get(node) + dependency.get(node) / 2);
     }
   }
 
-  // 3. Normalize scores and prepare results
+  // Normalize scores and prepare results
   const scores = [];
   let max = -Infinity;
-  const normalizationFactor = ((n - 1) * (n - 2)) / 2; // Maximum possible betweenness
+  const normalizationFactor = ((n - 1) * (n - 2)) / 2;
 
   for (const [id, score] of betweenness) {
     const normalizedScore = score / normalizationFactor;
@@ -676,7 +681,7 @@ function calculateBetweennessCentrality() {
 
   scores.sort((a, b) => b.score - a.score);
 
-  // graph level metrics
+  // Calculate graph level metrics
   const centralityValues = scores.map(s => s.score);
   const sum = centralityValues.reduce((a, b) => a + b, 0);
   const mean = sum / n;
@@ -686,7 +691,7 @@ function calculateBetweennessCentrality() {
   return {
     scores: scores.map(s => ({
       id: s.id,
-      text: `${s.id} | Score: ${s.score.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.score / max) * 100)}%)`
+      text: `Score: ${s.score.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.score / max) * 100)}%)`
     })),
     graphLevelMetrics: {
       "Maximum Betweenness Centrality": +max.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
@@ -700,6 +705,8 @@ function calculateBetweennessCentrality() {
 <p>Betweenness centrality measures how often a node acts as a bridge along the shortest path between two other nodes.
 Nodes with high betweenness centrality are important controllers of information flow in the network.
 <a href="https://doi.org/10.2307%2F3033543">Freeman, 1977</a>
+</p>
+<p><strong>Note:</strong> This implementation assumes an undirected graph (A→B and B→A are considered the same path). 
 </p>
 <svg width="300" height="200" viewBox="0 0 300 200">
   <!-- Edges -->
@@ -730,7 +737,7 @@ Nodes with high betweenness centrality are important controllers of information 
   };
 }
 
-function calculateClosenessCentrality() {
+async function calculateClosenessCentrality() {
   const {nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef} = cache;
 
   const n = nodes.size;
@@ -771,8 +778,16 @@ function calculateClosenessCentrality() {
 
   for (const nodeId of nodes) {
     const distances = bfs(nodeId);
-    const totalDistance = Array.from(distances.values()).reduce((a, b) => a + b, 0);
-    const closeness = distances.size === n ? (n - 1) / totalDistance : 0;
+    const reachableNodes = distances.size;
+
+    // Skip unreachable nodes in total distance calculation
+    const totalDistance = Array.from(distances.values())
+      .filter(d => d > 0)  // Exclude self-distance
+      .reduce((a, b) => a + b, 0);
+
+    // Wasserman and Faust (1994) formula for disconnected graphs
+    const closeness = totalDistance > 0 ?
+      ((reachableNodes - 1) * (reachableNodes - 1)) / ((n - 1) * totalDistance) : 0;
 
     scores.push({id: nodeId, closeness});
     sum += closeness;
@@ -783,10 +798,13 @@ function calculateClosenessCentrality() {
   scores.sort((a, b) => b.closeness - a.closeness);
   const mean = sum / n;
 
+  // Avoid division by zero in percentage calculations
+  const maxForPercentage = max || 1;
+
   return {
     scores: scores.map(s => ({
       id: s.id,
-      text: `${s.id} | Score: ${s.closeness.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.closeness / max) * 100)}%)`
+      text: `Score: ${s.closeness.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.closeness / maxForPercentage) * 100)}%)`
     })),
     graphLevelMetrics: {
       "Maximum Closeness Centrality": +max.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
@@ -800,6 +818,9 @@ function calculateClosenessCentrality() {
 <p>Closeness centrality measures how near a node is to all others via shortest paths. A higher score (up to 1.0)
  indicates shorter average distance to every node.  
 <a href="https://psycnet.apa.org/doi/10.1121/1.1906679">Bavelas, 1950</a>
+</p>
+<p><strong>Note:</strong> 
+  This implementation treats all graphs as undirected when calculating shortest paths.
 </p>
 <svg width="300" height="200" viewBox="0 0 300 200">
   <line x1="150" y1="100" x2="75" y2="100" stroke="#666" stroke-width="2"/>
@@ -830,7 +851,7 @@ function calculateClosenessCentrality() {
   };
 }
 
-function calculateEigenvectorCentrality() {
+async function calculateEigenvectorCentrality() {
   const {nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef} = cache;
 
   const n = nodes.size;
@@ -890,7 +911,7 @@ function calculateEigenvectorCentrality() {
   return {
     scores: scores.map(s => ({
       id: s.id,
-      text: `${s.id} | Score: ${s.centrality.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.centrality / max) * 100)}%)`
+      text: `Score: ${s.centrality.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.centrality / max) * 100)}%)`
     })),
     graphLevelMetrics: {
       "Maximum Eigenvector Centrality": +max.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
@@ -905,6 +926,9 @@ function calculateEigenvectorCentrality() {
 <p>Eigenvector centrality scores nodes by connecting to other high-scoring nodes: 
 links to influential neighbours matter more than links to peripheral ones.
 <a href="https://doi.org/10.1093/oso/9780198805090.003.0006">Newman, 2010</a>
+</p>
+<p><strong>Note:</strong> 
+  This implementation treats all graphs as undirected when calculating influence scores.
 </p>
 <p>
 <strong>Parameters:</strong>
@@ -941,7 +965,7 @@ links to influential neighbours matter more than links to peripheral ones.
   };
 }
 
-function calculatePageRank() {
+async function calculatePageRank() {
   const {nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef} = cache;
 
   const n = nodes.size;
@@ -950,23 +974,28 @@ function calculatePageRank() {
   const nodeArray = Array.from(nodes);
   const nodeIndex = new Map(nodeArray.map((id, i) => [id, i]));
   const matrix = Array(n).fill().map(() => Array(n).fill(0));
-  const outDegrees = Array(n).fill(0);
+  const degrees = Array(n).fill(0);
 
+  // Build symmetric adjacency matrix for undirected graph
   for (const edgeId of edges) {
     const {source, target} = edgeRef.get(edgeId);
     if (nodeIndex.has(source) && nodeIndex.has(target)) {
       const i = nodeIndex.get(source), j = nodeIndex.get(target);
-      matrix[j][i] = 1;
-      outDegrees[i]++;
+      // Add edges in both directions
+      matrix[j][i] = matrix[i][j] = 1;
+      degrees[i]++;
+      degrees[j]++;
     }
   }
 
+  // Normalize the matrix
   for (let i = 0; i < n; i++) {
-    if (outDegrees[i] > 0) {
+    if (degrees[i] > 0) {
       for (let j = 0; j < n; j++) {
-        matrix[j][i] = matrix[j][i] / outDegrees[i];
+        matrix[j][i] = matrix[j][i] / degrees[i];
       }
     } else {
+      // For isolated nodes, distribute probability evenly
       for (let j = 0; j < n; j++) {
         matrix[j][i] = 1/n;
       }
@@ -979,6 +1008,7 @@ function calculatePageRank() {
   const maxIter = 100;
   const tolerance = 1e-6;
 
+  // Power iteration method remains the same
   for (let iter = 0; iter < maxIter; iter++) {
     prevScores = [...scores];
     scores = Array(n).fill((1-d)/n);
@@ -1000,22 +1030,22 @@ function calculatePageRank() {
   const maxScore = sortedScores[0].score;
   const minScore = sortedScores[sortedScores.length - 1].score;
   const meanScore = scores.reduce((a, b) => a + b) / n;
-  const minDegree = Math.min(...outDegrees);
-  const maxDegree = Math.max(...outDegrees);
-  const avgDegree = outDegrees.reduce((a, b) => a + b) / n;
+  const minDegree = Math.min(...degrees);
+  const maxDegree = Math.max(...degrees);
+  const avgDegree = degrees.reduce((a, b) => a + b) / n;
 
   return {
     scores: sortedScores.map(s => ({
       id: s.id,
-      text: `${s.id} | Score: ${s.score.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.score / maxScore) * 100)}%)`
+      text: `Score: ${s.score.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.score / maxScore) * 100)}%)`
     })),
     graphLevelMetrics: {
       "Maximum PageRank Score": +maxScore.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
       "Minimum PageRank Score": +minScore.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
       "Mean PageRank Score": +meanScore.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
-      "Maximum PageRank Degree": maxDegree,
-      "Minimum PageRank Degree": minDegree,
-      "Mean PageRank Degree": +avgDegree.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
+      "Maximum Degree": maxDegree,
+      "Minimum Degree": minDegree,
+      "Mean Degree": +(avgDegree).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
     },
     popupContent: `<div>
 <h1>PageRank</h1>
@@ -1023,6 +1053,9 @@ function calculatePageRank() {
 <p>PageRank measures node importance based on the number and quality of incoming links. 
 A node is important if it receives many links from other important nodes.
 <a href="https://doi.org/10.1016/S0169-7552(98)00110-X">Brin & Page, 1998</a>
+</p>
+<p><strong>Note:</strong> 
+  While PageRank was originally designed for directed graphs, this implementation treats all graphs as undirected.
 </p>
 <svg width="300" height="300" viewBox="0 0 400 300">
   <defs>
@@ -5326,13 +5359,41 @@ function clearActivePropsCacheOnLayoutChange() {
 }
 
 function buildToolTipText(nodeOrEdgeID, isEdge) {
-  const item = isEdge ? cache.edgeRef.get(nodeOrEdgeID) : cache.nodeRef.get(nodeOrEdgeID);
-  const label = item.label && item.label !== item.id ? `${item.label}<br><small>${item.id}</small>` : item.id;
-  let tooltip = `<h3><span class="purple">${isEdge ? "Edge" : "Node"}</span> <span class="red">${label}</span></h3>`;
+  function initAndAddHeader() {
+    const idFormatted = `<span class='purple'>ID: </span>${item.id}`;
+    const label = item.label && item.label !== item.id
+      ? `${item.label}<br><small>${idFormatted}</small>`
+      : idFormatted;
 
-  if (item.description) {
-    tooltip += `<p class="tooltip-description">${item.description}</p>`;
+    return `<h3>
+      <span class="purple">${isEdge ? "Edge" : "Node"}</span> 
+      <span class="red">${label}</span>
+    </h3>`;
   }
+
+  function addDescription() {
+    if (item.description) {
+      tooltip += `<p class="tooltip-description">${item.description}</p>`;
+    }
+  }
+
+  function addMetric() {
+    if (!isEdge) {
+      tooltip += `<div class="tooltip-metric-wrapper purple">
+        <hr>
+        <h5 class="tooltip-sub-section red-background">
+          📊 <span class="tooltip-metric-header"></span>
+        </h5>
+        <p class="tooltip-metric-content"></p>
+      </div>`
+    }
+  }
+
+  const item = isEdge ? cache.edgeRef.get(nodeOrEdgeID) : cache.nodeRef.get(nodeOrEdgeID);
+  let tooltip = initAndAddHeader();
+  addDescription();
+  addMetric();
+
   if (!item.D4Data) return tooltip;
 
   const sortedPropIDs = SORT_TOOLTIPS
@@ -5378,7 +5439,7 @@ function buildToolTipText(nodeOrEdgeID, isEdge) {
   // ------------------
   // 2) Sort properties within each subSection if needed (SORT_TOOLTIPS)
   // ------------------
-  if (SORT_TOOLTIPS) {
+  function sortProps() {
     for (const sec of structuredData) {
       for (const sub of sec.subSections) {
         sub.props.sort((a, b) => a.key.localeCompare(b.key));
@@ -5386,16 +5447,24 @@ function buildToolTipText(nodeOrEdgeID, isEdge) {
     }
   }
 
+  if (SORT_TOOLTIPS) sortProps();
+
   // ------------------
   // 3) Flatten each {section, subSections} into an array while preserving order
   // ------------------
-  const orderedBlocks = [];
-  for (const s of structuredData) {
-    orderedBlocks.push({type: "section", text: s.section});
-    for (const sb of s.subSections) {
-      orderedBlocks.push({type: "subSection", section: s.section, text: sb.name, props: sb.props});
+  function flattenBlocks() {
+    const blocks = [];
+    for (const s of structuredData) {
+      blocks.push({type: "section", text: s.section});
+      for (const sb of s.subSections) {
+        blocks.push({type: "subSection", section: s.section, text: sb.name, props: sb.props});
+      }
     }
+    return blocks;
   }
+
+
+  const orderedBlocks = flattenBlocks();
 
   // If we have nothing to show, return the basic tooltip
   if (orderedBlocks.length === 0) return tooltip;
@@ -5415,42 +5484,81 @@ function buildToolTipText(nodeOrEdgeID, isEdge) {
   // ------------------
   // 5) Build the tooltip HTML
   // ------------------
-  tooltip += `<hr><div class="tooltip-columns">`;
+  function buildColumns() {
 
-  for (const col of columns) {
-    tooltip += `<div class="tooltip-column">`;
+    tooltip += `<hr><div class="tooltip-columns">`;
 
-    let startedList = false;
-    for (const block of col) {
-      if (block.type === "section") {
-        // Close a list if it's open before starting a new section
-        if (startedList) {
-          tooltip += `</ul>`;
-          startedList = false;
-        }
-        // tooltip += `<h3 class="tooltip-section">${block.text}</h3>`;
-      } else if (block.type === "subSection") {
-        if (startedList) {
-          tooltip += `</ul>`;
-          startedList = false;
-        }
-        tooltip += `<h5 class="tooltip-sub-section">${block.text}</h5><ul>`;
-        startedList = true;
-        // Properties for this subSection
-        for (const propItem of block.props) {
-          tooltip += `<li>${propItem.key}: <span class="red"><b>${propItem.value}</b></span></li>`;
+    for (const col of columns) {
+      tooltip += `<div class="tooltip-column">`;
+
+      let startedList = false;
+      for (const block of col) {
+        if (block.type === "section") {
+          // Close a list if it's open before starting a new section
+          if (startedList) {
+            tooltip += `</ul>`;
+            startedList = false;
+          }
+        } else if (block.type === "subSection") {
+          if (startedList) {
+            tooltip += `</ul>`;
+            startedList = false;
+          }
+          tooltip += `<h5 class="tooltip-sub-section">${block.text}</h5><ul>`;
+          startedList = true;
+          // Properties for this subSection
+          for (const propItem of block.props) {
+            tooltip += `<li>${propItem.key}: <span class="red"><b>${propItem.value}</b></span></li>`;
+          }
         }
       }
+
+      if (startedList) {
+        tooltip += `</ul>`;
+      }
+      tooltip += `</div>`;
     }
 
-    if (startedList) {
-      tooltip += `</ul>`;
-    }
     tooltip += `</div>`;
   }
 
-  tooltip += `</div>`;
+  buildColumns();
   return tooltip;
+}
+
+function resetNodeToolTipMetricTexts() {
+  for (const nodeID of cache.toolTips.keys()) {
+    updateNodeToolTipMetricText(nodeID, undefined, undefined, true);
+  }
+}
+
+function updateNodeToolTipMetricText(nodeId = undefined, header = undefined, text = undefined, reset = false) {
+  const tooltip = cache.toolTips.get(nodeId);
+  if (!tooltip) return;
+
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = tooltip;
+
+  const metricWrapper = tempDiv.querySelector('.tooltip-metric-wrapper');
+  if (!metricWrapper) return;
+
+  const metricContent = metricWrapper.querySelector('.tooltip-metric-content');
+  if (!metricContent) return;
+
+  const metricHeader = metricWrapper.querySelector('.tooltip-metric-header');
+  if (!metricHeader) return;
+
+  if (reset) {
+    metricWrapper.classList.remove('visible');
+    metricContent.textContent = '';
+    metricHeader.textContent = '';
+  } else {
+    metricWrapper.classList.add('visible');
+    metricContent.textContent = text;
+    metricHeader.textContent = header;
+  }
+
+  cache.toolTips.set(nodeId, tempDiv.innerHTML);
 }
 
 function encodeQuery(asciiStr) {
