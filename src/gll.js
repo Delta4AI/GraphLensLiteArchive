@@ -309,7 +309,50 @@ const DEFAULTS = {
     EDGE_HALO_STROKE: {red: "#C33D35", purple: "#403C53", blue: "#8CA6D9"},
     EDGE_HALO_WIDTH: {sm: 2, md: 3, lg: 5},
   },
-  FILTER_STRATEGY: "OR",
+  BEHAVIOURS: {
+    DRAG_ELEMENT: {
+      type: 'drag-element',
+      cursor: {default: 'default', grab: 'default', grabbing: 'default'},
+      shadow: true,
+      shadowFill: '#C33D35',
+      shadowFillOpacity: 0.5,
+      shadowStroke: '#C33D35',
+      shadowStrokeOpacity: 1.0,
+    },
+    DRAG_CANVAS: {
+      type: 'drag-canvas',
+      key: 'drag-canvas'
+    },
+    ZOOM_CANVAS: {
+      type: 'zoom-canvas',
+      key: 'zoom-canvas'
+    },
+    HOVER_ACTIVATE: {
+      type: 'hover-activate',
+      enable: (event) => {
+        return event.targetType === 'node' || event.targetType === 'edge';
+      },
+      degree: 1,
+      state: 'highlight',
+      inactiveState: 'dim',
+    },
+    LASSO_SELECT: {
+      type: "lasso-select",
+      key: "lasso-select",
+      trigger: "drag",
+      style: {
+        fill: '#C33D35',
+        fillOpacity: 0.3,
+        stroke: '#C33D35'
+      }
+    },
+    CLICK_SELECT: {
+      type: "click-select",
+      key: "click-select",
+      multiple: true,
+      trigger: ["shift"]
+    },
+  },
 };
 
 const STATES = {
@@ -2956,23 +2999,13 @@ async function createGraphInstance() {
   if (graph === null) {
 
     const behaviors = [
-      {type: 'drag-canvas', key: 'drag-canvas',},
-      {type: 'zoom-canvas', key: 'zoom-canvas',},
-      {type: 'drag-element', cursor: {default: 'default', grab: 'default', grabbing: 'default'},},
+      DEFAULTS.BEHAVIOURS.DRAG_CANVAS,
+      DEFAULTS.BEHAVIOURS.ZOOM_CANVAS,
+      DEFAULTS.BEHAVIOURS.DRAG_ELEMENT
     ];
 
     if (cache.showLabelsAndEnableHoverEffect) {
-      behaviors.push(
-        {
-          type: 'hover-activate',
-          enable: (event) => {
-            return event.targetType === 'node' || event.targetType === 'edge';
-          },
-          degree: 1,
-          state: 'highlight',
-          inactiveState: 'dim',
-        }
-      );
+      behaviors.push(DEFAULTS.BEHAVIOURS.HOVER_ACTIVATE);
     }
 
     const plugins = [
@@ -3237,27 +3270,25 @@ async function toggleEditMode() {
   editModeActive ? editBtn.classList.remove("active") : editBtn.classList.add("active");
 
   const nonEditBehaviors = [
-    {type: 'drag-canvas', key: 'drag-canvas'},
-    {type: 'drag-element', cursor: {default: 'default', grab: 'default', grabbing: 'default'}},
+    DEFAULTS.BEHAVIOURS.DRAG_CANVAS,
+    DEFAULTS.BEHAVIOURS.DRAG_ELEMENT
   ];
 
   if (cache.showLabelsAndEnableHoverEffect) {
-    nonEditBehaviors.push({
-      type: 'hover-activate', degree: 1, state: 'highlight', inactiveState: 'dim',
-      enable: (event) => {
-        return event.targetType === 'node' || event.targetType === 'edge';
-      },
-    });
+    nonEditBehaviors.push(DEFAULTS.BEHAVIOURS.HOVER_ACTIVATE);
   }
 
   const editBehaviors = [
-    {type: "lasso-select", key: "lasso-select", trigger: "drag"},
-    {type: "click-select", key: "click-select", multiple: true, trigger: ["shift"]},
+    DEFAULTS.BEHAVIOURS.LASSO_SELECT,
+    DEFAULTS.BEHAVIOURS.CLICK_SELECT
   ];
 
   // reduce behaviors to clean up existing edit/non-edit behaviors
   let behaviors = await graph.getBehaviors()
-    .filter(b => ![...nonEditBehaviors.map(b => b.type), ...editBehaviors.map(b => b.type)].includes(b.type));
+    .filter(b => ![
+      ...nonEditBehaviors.map(b => b.type),
+      ...editBehaviors.map(b => b.type)
+    ].includes(b.type));
 
   // re-add behaviors for current mode
   await graph.setBehaviors([...behaviors, ...editModeActive ? nonEditBehaviors : editBehaviors]);
