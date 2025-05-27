@@ -70,11 +70,11 @@ let cache = {
 
 // Stores available network metrics and their calculation function references
 const metrics = {
-  centrality: {id: "centrality", label: "Degree Centrality", calculate: calculateDegreeCentrality},
-  betweenness: {id: "betweenness", label: "Betweenness Centrality", calculate: calculateBetweennessCentrality},
-  closeness: {id: "closeness", label: "Closeness Centrality", calculate: calculateClosenessCentrality},
-  eigenvector: {id: "eigenvector", label: "Eigenvector Centrality", calculate: calculateEigenvectorCentrality},
-  pagerank: {id: "pagerank", label: "PageRank", calculate: calculatePageRank},
+  centrality: {id: "centrality", label: "Degree Centrality", calculate: async () => await calculateDegreeCentrality()},
+  betweenness: {id: "betweenness", label: "Betweenness Centrality", calculate: async () => await calculateBetweennessCentrality()},
+  closeness: {id: "closeness", label: "Closeness Centrality", calculate: async () => await calculateClosenessCentrality()},
+  eigenvector: {id: "eigenvector", label: "Eigenvector Centrality", calculate: async () => await calculateEigenvectorCentrality()},
+  pagerank: {id: "pagerank", label: "PageRank", calculate: async () => await calculatePageRank()},
 };
 
 /**
@@ -363,8 +363,11 @@ class NetworkMetrics {
     this.collapsed = !willOpen;
   }
 
-  updateUI() {
-    const metricResult = this.m[this.selected]?.calculate();
+  async updateUI() {
+    await showLoading("Calculating", `Network Metric: ${this.m[this.selected].label}`);
+    await new Promise(resolve => requestAnimationFrame(resolve));
+
+    const metricResult = await this.m[this.selected]?.calculate();
 
     /* multiselect */
     const selectedValues = Array.from(this.multiselect.selectedOptions, opt => opt.value);
@@ -394,6 +397,8 @@ class NetworkMetrics {
     document.getElementById("metricInfoBtn").onclick = () => {
       cache.popup = new Popup(metricResult.popupContent);
     };
+    await hideLoading();
+    await new Promise(resolve => requestAnimationFrame(resolve));
   }
 
   buildUI() {
@@ -422,9 +427,9 @@ class NetworkMetrics {
       opt.selected = metric.id === this.selected;
       dropdown.appendChild(opt);
     });
-    dropdown.addEventListener('change', e => {
+    dropdown.addEventListener('change', async (e) => {
       this.selected = e.target.value;
-      this.updateUI();
+      await this.updateUI();
     });
     dropdownContainer.appendChild(dropdown);
 
@@ -2336,13 +2341,13 @@ function toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(enable) {
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleNode(enable) {
-  toggleStyleElements(["selectByNodeIDsInput", "selectByNodeIDsInputLabel", "Node ID(s)",
-    "selectByNodeIDsSwitch", "selectByNodeIDsButton"], enable);
+  toggleStyleElements(["selectByNodeIDsInput", "Node ID(s)", "selectByNodeIDsSwitch",
+    "selectByNodeIDsSwitchLabel", "selectByNodeIDsButton"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleEdge(enable) {
-  toggleStyleElements(["selectByEdgeIDsInput", "selectByEdgeIDsInputLabel", "Edge ID(s)",
-    "selectByEdgeIDsSwitch", "selectByEdgeIDsButton"], enable);
+  toggleStyleElements(["selectByEdgeIDsInput", "Edge ID(s)", "selectByEdgeIDsSwitch",
+    "selectByEdgeIDsSwitchLabel", "selectByEdgeIDsButton"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(enable) {
@@ -2366,10 +2371,12 @@ function toggleStyleElements(headingLabels, enable) {
 
 async function updateSelectedState(elemData, enable) {
   await showLoading(enable ? "Selecting" : "Deselecting", `Modifying selection of ${elemData.length} elements`);
+  await new Promise(resolve => requestAnimationFrame(resolve));
   for (const item of elemData) {
     await graph.setElementState(item.id, enable ? 'selected' : '');
   }
   await hideLoading();
+  await new Promise(resolve => requestAnimationFrame(resolve));
 }
 
 async function toggleSelectionForAllNodes(enable) {
@@ -3013,6 +3020,7 @@ async function createGraphInstance() {
         error(`Error in GraphEvent.AFTER_DRAW: ${errorMsg}`);
       } finally {
         await hideLoading();
+        await new Promise(resolve => requestAnimationFrame(resolve));
         STATES.AFTER_DRAW_RUNNNING = false;
       }
     });
@@ -3023,6 +3031,7 @@ async function createGraphInstance() {
       try {
         STATES.BEFORE_RENDER_RUNNING = true;
         await showLoading("Rendering", "Rendering graph ..");
+        await new Promise(resolve => requestAnimationFrame(resolve));
       } catch (errorMsg) {
         error(`Error in GraphEvent.BEFORE_RENDER: ${errorMsg}`);
       } finally {
@@ -3038,7 +3047,8 @@ async function createGraphInstance() {
         STATES.AFTER_RENDER_RUNNING = true;
         const inSync = await nodePositionsAreInSyncWithPersistedPositions();
         if (!inSync) {
-          await showLoading("Post-processing", "Restoring node positions ..");
+          await showLoading("Post-processing", "Syncing node positions and redrawing graph ..");
+          await new Promise(resolve => requestAnimationFrame(resolve));
           await syncNodePositions();
           STATES.AFTER_RENDER_RUNNING = false;
           await graph.draw();
@@ -3047,6 +3057,7 @@ async function createGraphInstance() {
         error(`Error in GraphEvent.AFTER_RENDER: ${errorMsg}`);
       } finally {
         await hideLoading();
+        await new Promise(resolve => requestAnimationFrame(resolve));
         STATES.AFTER_RENDER_RUNNING = false;
       }
     });
@@ -3056,6 +3067,8 @@ async function createGraphInstance() {
       if (STATES.ONCE_AFTER_RENDER_RUNNING) return;
 
       try {
+        await showLoading("Post-processing", "Persisting positions and saving filters to stash ..");
+        await new Promise(resolve => requestAnimationFrame(resolve));
         STATES.ONCE_AFTER_RENDER_RUNNING = true;
         await conditionallyPersistNodePositions();
         await saveFiltersToStash(false);
@@ -3063,7 +3076,7 @@ async function createGraphInstance() {
         registerGlobalEventListeners();
         // to initially fill caches related to the query/filters, preRenderEvent is called without rendering afterwards
         await preRenderEvent();
-        cache.metrics.updateUI();
+        await cache.metrics.updateUI();
         STATES.INITIAL_RENDER_DONE = true;
         await graph.render();
       } catch (errorMsg) {
@@ -3078,10 +3091,6 @@ async function createGraphInstance() {
       await graph.setLayout({type: data.selectedLayout, ...layout.internals});
     }
   }
-}
-
-function fakeMove() {
-  data.layouts[data.selectedLayout].positions.set("A", {x: 150, y: 250});
 }
 
 function arraysAreEqual(a, b) {
@@ -3901,6 +3910,7 @@ async function saveFiltersToStash(manualTriggered = false) {
     triggered: manualTriggered
   };
   await showLoading("Saving filter", "Saving filter settings to stash");
+  await new Promise(resolve => requestAnimationFrame(resolve));
 }
 
 async function loadFiltersFromStash() {
@@ -3925,21 +3935,27 @@ function createSectionToggleButton(enable, section, subSection = null) {
   if (subSection) btn.classList.add("extra-small");
   if (enable) btn.classList.add("ml-2");
   btn.textContent = enable ? "✔" : "✗";
-  btn.title = `${enable ? 'Enable' : 'Disable'} all filters for the ${subSection ? 'sub-section: ' + subSection : 'section: ' + section}`;
-  btn.onclick = () => {
-    subSection ? toggleSubSection(enable, section, subSection) : toggleSection(enable, section);
+  btn.title = `${enable ? 'Enable' : 'Disable'} all filters for the ${subSection 
+    ? 'group: ' + "\n * " + subSection 
+    : 'section: ' + "\n * " + section}`;
+  btn.onclick = async () => {
+    subSection ? await toggleSubSection(enable, section, subSection) : await toggleSection(enable, section);
   };
   return btn;
 }
 
-function toggleSection(enable, section) {
+async function toggleSection(enable, section) {
   toggleCheckboxesForSetOfPropIDs(enable, section);
-  handleFilterEvent(`${enable ? 'Showing' : 'Hiding'} Elements`, `Nodes and related edges for ${section}`);
+  await handleFilterEvent(`${enable ? 'Showing' : 'Hiding'} Elements`, `Nodes and related edges for ${section}`);
 }
 
-function toggleSubSection(enable, section, subSection) {
+async function toggleSubSection(enable, section, subSection) {
   toggleCheckboxesForSetOfPropIDs(enable, section + "::" + subSection);
-  handleFilterEvent(`${enable ? 'Showing' : 'Hiding'} Elements`, `Nodes and related edges for ${section} ${subSection}`);
+  await handleFilterEvent(`${enable ? 'Showing' : 'Hiding'} Elements`, `Nodes and related edges for ${section} ${subSection}`);
+}
+
+function getCheckboxTT(enable, propID) {
+  return `Click to ${enable ? 'hide' : 'show'} elements with the property:\n * ${propID}`;
 }
 
 function toggleCheckboxesForSetOfPropIDs(enable, propIDPrefixToSearchFor) {
@@ -3952,7 +3968,7 @@ function toggleCheckboxesForSetOfPropIDs(enable, propIDPrefixToSearchFor) {
     checkbox.checked = enable;
     data.layouts[data.selectedLayout].filters.get(propID).active = enable;
     enable ? cache.activeProps.add(propID) : cache.activeProps.delete(propID);
-    wrapper.title = `Click to ${enable ? 'hide' : 'show'} nodes and related edges that ${enable ? 'do not' : ''} have the property: ${propID}`;
+    wrapper.title = getCheckboxTT(enable, propID);
     inner.textContent = enable ? '✔' : '';
   }
 }
@@ -3970,11 +3986,11 @@ function createCheckbox(propID, prop) {
 
   const customCheckbox = document.createElement('span');
   customCheckbox.id = `filter-${propID}-checkbox-inner`;
-  customCheckbox.className = "checkbox checkbox-red";
+  customCheckbox.className = "checkbox checkbox-green";
 
   const updateCheckbox = () => {
     customCheckbox.textContent = input.checked ? '✔' : '';
-    wrapper.title = `Click to ${input.checked ? 'hide' : 'show'} nodes and related edges that ${input.checked ? 'do not' : ''} have the property: ${propID}`;
+    wrapper.title = getCheckboxTT(input.checked, propID);
   };
   updateCheckbox();
 
@@ -3986,13 +4002,13 @@ function createCheckbox(propID, prop) {
 
   wrapper.append(input, customCheckbox, displayField);
 
-  wrapper.addEventListener('change', (ev) => {
+  wrapper.addEventListener('change', async (ev) => {
     // const slider = document.getElementById(`filter-${propID}-slider`);
     // slider && input.checked ? slider.classList.remove("is-disabled") : slider && slider.classList.add("is-disabled");
     data.layouts[data.selectedLayout].filters.get(propID).active = input.checked;
     input.checked ? cache.activeProps.add(propID) : cache.activeProps.delete(propID);
     let status = input.checked ? "Showing" : "Hiding";
-    handleFilterEvent(`${status} Elements`, `Nodes and related edges for ${propID}`);
+    await handleFilterEvent(`${status} Elements`, `Nodes and related edges for ${propID}`);
   });
 
   input.checked ? cache.activeProps.add(propID) : cache.activeProps.delete(propID);
@@ -4016,7 +4032,7 @@ function checkCheckbox(propID, enable = true) {
 
   enable ? cache.activeProps.add(propID) : cache.activeProps.delete(propID);
   span.textContent = enable ? '✔' : '';
-  wrapper.title = `Click to ${enable ? 'hide' : 'show'} nodes and related edges that ${enable ? 'do not' : ''} have the property: ${propID}`;
+  wrapper.title = getCheckboxTT(enable, propID);
 }
 
 class DropdownChecklist {
@@ -4096,7 +4112,7 @@ class DropdownChecklist {
       checkbox.value = option;
       checkbox.checked = this.selectedCategories.has(option);
       checkbox.style.display = "none";
-      checkbox.addEventListener("change", (ev) => this.handleSelection(ev));
+      checkbox.addEventListener("change", async (ev) => await this.handleSelection(ev));
 
       const customCheckbox = document.createElement("span");
       customCheckbox.className = "custom-checkbox";
@@ -4122,12 +4138,12 @@ class DropdownChecklist {
     parent.appendChild(this.container);
   }
 
-  handleSelection(ev) {
+  async handleSelection(ev) {
     ev.target.checked
       ? this.selectedCategories.add(ev.target.value)
       : this.selectedCategories.delete(ev.target.value);
     this.anchor.textContent = `${this.selectedCategories.size}/${this.categories.size} selected`;
-    handleFilterEvent(ev.target.checked ? "Showing" : "Hiding" + " Elements",
+    await handleFilterEvent(ev.target.checked ? "Showing" : "Hiding" + " Elements",
       `Nodes and related edges for ${this.propID} ${ev.target.value}`, this.propID);
     // console.log(`${this.propID} ${ev.target.value} ${ev.target.checked}`);
   }
@@ -4173,8 +4189,8 @@ class DropdownChecklist {
     });
 
     // button callbacks
-    this.selectAllButton.addEventListener("click", () => this.selectAllCategories());
-    this.deselectAllButton.addEventListener("click", () => this.deselectAllCategories());
+    this.selectAllButton.addEventListener("click", async () => await this.selectAllCategories());
+    this.deselectAllButton.addEventListener("click", async () => await this.deselectAllCategories());
 
     // Handle clicks outside the dropdown to close it
     document.addEventListener("click", (event) => {
@@ -4201,17 +4217,17 @@ class DropdownChecklist {
     this.anchor.textContent = `${this.selectedCategories.size}/${this.categories.size} selected`;
   }
 
-  selectAllCategories() {
+  async selectAllCategories() {
     this.categories.forEach(category => this.selectedCategories.add(category)); // Add all categories
     this.updateCheckboxStates(true);
-    handleFilterEvent("Showing Elements", `Nodes and related edges for ${this.propID}`, this.propID);
+    await handleFilterEvent("Showing Elements", `Nodes and related edges for ${this.propID}`, this.propID);
   }
 
-  deselectAllCategories(skipFilterEvent = false) {
+  async deselectAllCategories(skipFilterEvent = false) {
     this.categories.forEach(category => this.selectedCategories.delete(category)); // Clear all categories
     this.updateCheckboxStates(false);
     if (!skipFilterEvent) {
-      handleFilterEvent("Hiding Elements", `Nodes and related edges for ${this.propID}`, this.propID);
+      await handleFilterEvent("Hiding Elements", `Nodes and related edges for ${this.propID}`, this.propID);
     }
   }
 
@@ -4392,15 +4408,15 @@ class InvertibleRangeSlider {
     });
 
     this.sliderStart.addEventListener("input", () => this.handleThresholdOnInputEvent(true));
-    this.sliderStart.addEventListener("change", () => {
+    this.sliderStart.addEventListener("change", async () => {
       this.writeCurrentFilterSettings();
-      handleFilterEvent("Filtering",
+      await handleFilterEvent("Filtering",
         `Applying lower threshold ${this.sliderStart.value} for ${this.propID}`, this.propID);
     });
     this.sliderEnd.addEventListener("input", () => this.handleThresholdOnInputEvent(false));
-    this.sliderEnd.addEventListener("change", () => {
+    this.sliderEnd.addEventListener("change", async () => {
       this.writeCurrentFilterSettings();
-      handleFilterEvent("Filtering",
+      await handleFilterEvent("Filtering",
         `Applying upper threshold ${this.sliderEnd.value} for ${this.propID}`, this.propID);
     });
 
@@ -4742,6 +4758,7 @@ function createAddOrRemoveToSelectionButton(propID, shouldAdd) {
 
 async function decideToRenderOrDraw(forceRender = false) {
   await showLoading("Loading", "Deciding to render or draw ..");
+  await new Promise(resolve => requestAnimationFrame(resolve));
   await preRenderEvent();
   await cache.metrics.updateUI();
 
@@ -4749,14 +4766,17 @@ async function decideToRenderOrDraw(forceRender = false) {
     if (cache.bubbleSetChanged || cache.styleChanged || forceRender) {
       if (cache.styleChanged) {
         await showLoading("Loading", "Updating graph data ..");
+        await new Promise(resolve => requestAnimationFrame(resolve));
         await graph.updateData(createSimplifiedDataForGraphObject());
         cache.styleChanged = false;
         cache.labelStyleChanged = false;
       }
       await showLoading("Loading", "Rendering graph ..");
+      await new Promise(resolve => requestAnimationFrame(resolve));
       return await graph.render();
     } else {
       await showLoading("Loading", "Redrawing graph ..");
+      await new Promise(resolve => requestAnimationFrame(resolve));
       return await graph.draw();
     }
   } catch (errorMsg) {
@@ -4764,6 +4784,7 @@ async function decideToRenderOrDraw(forceRender = false) {
     return false;
   } finally {
     await hideLoading();
+    await new Promise(resolve => requestAnimationFrame(resolve));
   }
 }
 
@@ -4778,11 +4799,13 @@ async function handleFilterEvent(header, text, propID = null, shouldResetQuery =
   }
 
   await showLoading(header, text);
+  await new Promise(resolve => requestAnimationFrame(resolve));
   await decideToRenderOrDraw();
 }
 
 async function handleStyleChangeLoadingEvent(header, text) {
   await showLoading(header, text);
+  await new Promise(resolve => requestAnimationFrame(resolve));
   cache.styleChanged = true;
   await decideToRenderOrDraw();
   console.log(`Graph updated after style event with message ${header} ${text}`);
@@ -4798,6 +4821,7 @@ function showUI(show) {
 async function changeLayout() {
   data.selectedLayout = document.getElementById('selectView').value;
   await showLoading("Switching View", data.selectedLayout);
+  await new Promise(resolve => requestAnimationFrame(resolve));
   let layout = data.layouts[data.selectedLayout];
 
   let skipConsecutiveRender = false;
@@ -4811,7 +4835,7 @@ async function changeLayout() {
   clearActivePropsCacheOnLayoutChange();
 
   await conditionallyPersistNodePositions();
-  cache.metrics.updateUI();
+  await cache.metrics.updateUI();
 
   if (!skipConsecutiveRender) {
     await decideToRenderOrDraw(true);
@@ -4996,6 +5020,7 @@ async function exportGraphAsJSON() {
   }
 
   await showLoading("Exporting graph ..");
+  await new Promise(resolve => requestAnimationFrame(resolve));
   const blob = new Blob([JSON.stringify(data, replacer)], {type: "application/json"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -5004,6 +5029,7 @@ async function exportGraphAsJSON() {
   a.click();
   URL.revokeObjectURL(url);
   await hideLoading();
+  await new Promise(resolve => requestAnimationFrame(resolve));
 }
 
 function preProcessData(fileData) {
@@ -5778,9 +5804,9 @@ function handleQueryValidationEvent() {
   });
 }
 
-function handleQueryUpdateEvent() {
+async function handleQueryUpdateEvent() {
   updateUIFromQueryInstructions();
-  handleFilterEvent("Updating Graph from Query", query.text.textContent, null, false);
+  await handleFilterEvent("Updating Graph from Query", query.text.textContent, null, false);
 }
 
 /**
@@ -6055,6 +6081,7 @@ function humanFileSize(size) {
 async function loadFileWrapper(event) {
   let file = event.target.files[0];
   await showLoading("Loading", `Loading ${file.name} (${file.type} with ${humanFileSize(file.size)})`);
+  await new Promise(resolve => requestAnimationFrame(resolve));
 
   if (graph) {
     await destroyGraphAndRollBackUI();
@@ -6065,6 +6092,7 @@ async function loadFileWrapper(event) {
       if (!fileData) {
         alert("File data is empty.");
         await hideLoading();
+        await new Promise(resolve => requestAnimationFrame(resolve));
         return;
       }
 
@@ -6076,9 +6104,9 @@ async function loadFileWrapper(event) {
       if (!graph) {
         alert("Graph not initialized, aborting.");
         await hideLoading();
+        await new Promise(resolve => requestAnimationFrame(resolve));
         return;
       }
-
       await graph.render();
       await graph.fitView();
       console.log("Initial graph rendered.");
@@ -6086,9 +6114,11 @@ async function loadFileWrapper(event) {
     .catch(async (error) => {
       alert(`Error loading graph: ${error}`);
       await hideLoading();
+      await new Promise(resolve => requestAnimationFrame(resolve));
     })
     .finally(async () => {
       await hideLoading();
+      await new Promise(resolve => requestAnimationFrame(resolve));
     });
 }
 
@@ -6156,6 +6186,7 @@ async function resetLayout() {
   }
 
   await showLoading("Resetting", "Resetting layout to default ..");
+  await new Promise(resolve => requestAnimationFrame(resolve));
   data.layouts[data.selectedLayout]?.positions?.clear();
 
   await graph.updateData(createSimplifiedDataForGraphObject(true));
@@ -6172,6 +6203,7 @@ async function exportPNG() {
 
   try {
     await showLoading("Loading", "Generating picture data");
+    await new Promise(resolve => requestAnimationFrame(resolve));
     const imageData = graph.toDataURL({
       type: "image/png", mode: "viewport"
     });
@@ -6184,8 +6216,10 @@ async function exportPNG() {
     document.body.removeChild(link);
 
     await hideLoading();
+    await new Promise(resolve => requestAnimationFrame(resolve));
   } catch (errorMsg) {
     await hideLoading();
+    await new Promise(resolve => requestAnimationFrame(resolve));
     error(errorMsg);
   }
 }
@@ -6204,6 +6238,8 @@ async function showLoading(header, text = "") {
 
   // Force reflow
   overlay.getBoundingClientRect();
+
+  await new Promise(resolve => requestAnimationFrame(resolve));
 
   // Wait for next frame to ensure the UI has updated
   return new Promise(resolve => requestAnimationFrame(resolve));
@@ -6305,8 +6341,8 @@ function debug(message) {
   logMessage(message, "grey", false);
 }
 
-function debugQuery(query) {
+async function debugQuery(query) {
   query.text.textContent = query;
   handleQueryValidationEvent();
-  handleQueryUpdateEvent();
+  await handleQueryUpdateEvent();
 }
