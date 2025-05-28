@@ -11,7 +11,8 @@
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder --linux --win"
+    "create-gll-zip": "zip -j dist/GLL_$(date +'%y%m%d').zip src/g6.min.js src/gll.js src/graph_lens_lite.html src/xlsx.full.min.js templates/GLL_template.xlsx",
+    "dist": "create-gll-zip && electron-builder --linux --win"
   },
   "build": {
     "appId": "com.delta4ai.graphlenslite",
