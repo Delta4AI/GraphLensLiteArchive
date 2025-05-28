@@ -11,7 +11,7 @@
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "create-gll-zip": "zip -j dist/GLL_$(date +'%y%m%d').zip src/g6.min.js src/gll.js src/graph_lens_lite.html src/xlsx.full.min.js templates/GLL_template.xlsx",
+    "create-gll-zip": "zip -j dist/GLL_v${npm_package_version}.zip src/g6.min.js src/gll.js src/graph_lens_lite.html src/xlsx.full.min.js templates/GLL_template.xlsx",
     "dist": "create-gll-zip && electron-builder --linux --win"
   },
   "build": {
