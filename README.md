@@ -27,6 +27,9 @@ sudo dnf install libxcrypt-compat wine
 # Run the electron app
 npm start
 
+# Create a GLL_vXXX.zip archive
+npm run create-gll-zip
+
 # Build the electron app
 npm run dist
 
