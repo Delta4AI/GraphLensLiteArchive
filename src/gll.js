@@ -5861,39 +5861,52 @@ function updateQueryTextArea() {
 }
 
 function getCursorPosition() {
-  const sel = document.getSelection();
-  sel.modify("extend", "backward", "paragraphboundary");
-  const pos = sel.toString().length;
-  if (sel.anchorNode !== null && sel.anchorNode !== undefined) sel.collapseToEnd();
+  const sel = window.getSelection();
+  if (!sel.rangeCount) return 0;
 
-  return pos;
+  const range = sel.getRangeAt(0).cloneRange();
+  const preCaretRange = range.cloneRange();
+  preCaretRange.selectNodeContents(query.text);
+  preCaretRange.setEnd(range.endContainer, range.endOffset);
+  return preCaretRange.toString().length;
 }
 
 function setCursorPosition(charIndex) {
-  charIndex = Math.max(0, Math.min(charIndex, query.text.textContent.length));
+  const root = query.text;
+  charIndex = Math.max(0, Math.min(charIndex, root.textContent.length));
 
   const range = document.createRange();
-  const walker = document.createTreeWalker(query.text, NodeFilter.SHOW_TEXT, null, false);
+  const sel = window.getSelection();
 
-  let currentNode;
-  let remaining = charIndex;
+  let currentPos = 0;
+  let found = false;
 
-  while ((currentNode = walker.nextNode())) {
-    if (remaining <= currentNode.length) {
-      range.setStart(currentNode, remaining);
-      range.collapse(true);
-      break;
+  function traverseNodes(node) {
+    if (found) return;
+
+    if (node.nodeType === Node.TEXT_NODE) {
+      const length = node.length;
+      if (currentPos + length >= charIndex) {
+        range.setStart(node, charIndex - currentPos);
+        range.collapse(true);
+        found = true;
+        return;
+      }
+      currentPos += length;
+    } else {
+      for (const child of node.childNodes) {
+        traverseNodes(child);
+      }
     }
-    remaining -= currentNode.length;
   }
 
-  const sel = window.getSelection();
+  traverseNodes(root);
   sel.removeAllRanges();
   sel.addRange(range);
 }
 
 function moveCaret() {
-  const sel = getSelection();
+  const sel = window.getSelection();
   if (!sel || !sel.rangeCount) {
     query.caret.style.display = 'none';
     return;
@@ -5902,18 +5915,18 @@ function moveCaret() {
   const range = sel.getRangeAt(0).cloneRange();
   range.collapse(true);
 
-  const rect = range.getClientRects()[0];
-  if (!rect) {
+  const rect = range.getBoundingClientRect();
+  const parentRect = query.text.getBoundingClientRect();
+
+  if (!rect || !rect.height) {
     query.caret.style.display = 'none';
     return;
   }
 
-  const parentRect = query.text.getBoundingClientRect();
-
   const overlapsVert = rect.bottom > parentRect.top && rect.top < parentRect.bottom;
   const overlapsHoriz = rect.right > parentRect.left && rect.left < parentRect.right;
 
-  if (!(overlapsVert && overlapsHoriz)) {         // caret outside the box → hide it
+  if (!(overlapsVert && overlapsHoriz)) {
     query.caret.style.display = 'none';
     return;
   }
