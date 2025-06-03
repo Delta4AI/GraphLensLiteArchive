@@ -27,7 +27,6 @@ class CustomForceLayout extends BaseLayout {
         },
       }));
     await graph.updateNodeData(myNodes);
-    await persistNodePositions();
     return {
       nodes: myNodes,
     };
@@ -71,9 +70,21 @@ let cache = {
 // Stores available network metrics and their calculation function references
 const metrics = {
   centrality: {id: "centrality", label: "Degree Centrality", calculate: async () => await calculateDegreeCentrality()},
-  betweenness: {id: "betweenness", label: "Betweenness Centrality", calculate: async () => await calculateBetweennessCentrality()},
-  closeness: {id: "closeness", label: "Closeness Centrality", calculate: async () => await calculateClosenessCentrality()},
-  eigenvector: {id: "eigenvector", label: "Eigenvector Centrality", calculate: async () => await calculateEigenvectorCentrality()},
+  betweenness: {
+    id: "betweenness",
+    label: "Betweenness Centrality",
+    calculate: async () => await calculateBetweennessCentrality()
+  },
+  closeness: {
+    id: "closeness",
+    label: "Closeness Centrality",
+    calculate: async () => await calculateClosenessCentrality()
+  },
+  eigenvector: {
+    id: "eigenvector",
+    label: "Eigenvector Centrality",
+    calculate: async () => await calculateEigenvectorCentrality()
+  },
   pagerank: {id: "pagerank", label: "PageRank", calculate: async () => await calculatePageRank()},
 };
 
@@ -253,10 +264,10 @@ const DEFAULTS = {
     "mds": {nodeSize: 32, linkDistance: 100},
   },
   BUBBLE_SET_STYLE: {
-    "groupOne": {fill: '#403C53', fillOpacity: 0.25, stroke: '#C33D35', strokeOpacity: 1, virtualEdges: true,},
-    "groupTwo": {fill: '#c33d35', fillOpacity: 0.25, stroke: '#403c53', strokeOpacity: 1, virtualEdges: true,},
-    "groupThree": {fill: '#EFB0AA', fillOpacity: 0.4, stroke: '#8CA6D9', strokeOpacity: 1, virtualEdges: true,},
-    "groupFour": {fill: '#8CA6D9', fillOpacity: 0.4, stroke: '#EFB0AA', strokeOpacity: 1, virtualEdges: true,},
+    "groupOne": {fill: '#403C53', fillOpacity: 0.25, stroke: '#C33D35', strokeOpacity: 1, virtualEdges: true, labelFill: '#fff', labelPadding: 2, labelBackgroundFill: '#403C53', labelBackgroundRadius: 5, label: true, labelText: 'group one'},
+    "groupTwo": {fill: '#c33d35', fillOpacity: 0.25, stroke: '#403c53', strokeOpacity: 1, virtualEdges: true, labelFill: '#fff', labelPadding: 2, labelBackgroundFill: '#c33d35', labelBackgroundRadius: 5, label: true, labelText: 'group two'},
+    "groupThree": {fill: '#EFB0AA', fillOpacity: 0.4, stroke: '#8CA6D9', strokeOpacity: 1, virtualEdges: true, labelFill: '#fff', labelPadding: 2, labelBackgroundFill: '#EFB0AA', labelBackgroundRadius: 5, label: true, labelText: 'group three'},
+    "groupFour": {fill: '#8CA6D9', fillOpacity: 0.4, stroke: '#EFB0AA', strokeOpacity: 1, virtualEdges: true, labelFill: '#fff', labelPadding: 2, labelBackgroundFill: '#8CA6D9', labelBackgroundRadius: 5, label: true, labelText: 'group four'},
   },
   BUBBLE_SET_QUADRANT_POSITIONS: {
     groupOne: "top-left", groupTwo: "top-right", groupThree: "bottom-left", groupFour: "bottom-right"
@@ -355,12 +366,14 @@ const DEFAULTS = {
   },
 };
 
-const STATES = {
+const LOCKS = {
   BEFORE_DRAW_RUNNING: false,
+  AFTER_DRAW_RUNNING: false,
   DRAG_END_RUNNING: false,
-  AFTER_DRAW_RUNNNING: false,
   BEFORE_RENDER_RUNNING: false,
   AFTER_RENDER_RUNNING: false,
+  BEFORE_LAYOUT_RUNNING: false,
+  AFTER_LAYOUT_RUNNING: false,
   ONCE_AFTER_RENDER_RUNNING: false,
   INITIAL_RENDER_DONE: false
 }
@@ -407,6 +420,8 @@ class NetworkMetrics {
   }
 
   async updateUI() {
+    if (!cache.visibleElementsChanged) return;
+
     const metricName = this.m[this.selected].label;
     await showLoading("Calculating", `Network Metric: ${metricName}`);
     await new Promise(resolve => requestAnimationFrame(resolve));
@@ -915,7 +930,7 @@ async function calculateEigenvectorCentrality() {
   }
 
   // Power iteration method
-  let eigenVector = Array(n).fill(1/n);
+  let eigenVector = Array(n).fill(1 / n);
   let prevEigenVector;
   const maxIterations = 100;
   const tolerance = 1e-6;
@@ -1040,13 +1055,13 @@ async function calculatePageRank() {
     } else {
       // For isolated nodes, distribute probability evenly
       for (let j = 0; j < n; j++) {
-        matrix[j][i] = 1/n;
+        matrix[j][i] = 1 / n;
       }
     }
   }
 
   const d = 0.85;
-  let scores = Array(n).fill(1/n);
+  let scores = Array(n).fill(1 / n);
   let prevScores;
   const maxIter = 100;
   const tolerance = 1e-6;
@@ -1054,7 +1069,7 @@ async function calculatePageRank() {
   // Power iteration method remains the same
   for (let iter = 0; iter < maxIter; iter++) {
     prevScores = [...scores];
-    scores = Array(n).fill((1-d)/n);
+    scores = Array(n).fill((1 - d) / n);
 
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n; j++) {
@@ -1354,7 +1369,7 @@ function createDefaultLayout(key) {
   };
 
   for (const [nodeID, positions] of cache.nodePositionsFromExcelImport) {
-    defLayout.positions.set(nodeID, {x: positions.x, y: positions.y});
+    defLayout.positions.set(nodeID, {style: {x: positions.x, y: positions.y}});
   }
 
   for (let group of traverseBubbleSets()) {
@@ -1618,6 +1633,20 @@ async function layoutSelectedNodes(action) {
   await handleStyleChangeLoadingEvent(action, eventLabels[action]);
 }
 
+async function getPositions() {
+  const posCopy = [];
+  for (const node of await graph.getNodeData()) {
+    posCopy.push({
+      id: node.id,
+      style: {
+        x: node.style.x,
+        y: node.style.y
+      }
+    });
+  }
+  return posCopy;
+}
+
 function createStyleDiv() {
   const root = document.createElement("div");
 
@@ -1628,7 +1657,7 @@ function createStyleDiv() {
     return row;
   }
 
-  function appendVerticalRule(parent, label = undefined, tooltip = undefined, id=undefined) {
+  function appendVerticalRule(parent, label = undefined, tooltip = undefined, id = undefined) {
     const verticalRule = document.createElement("div");
     verticalRule.className = "vr";
     parent.appendChild(verticalRule);
@@ -1647,7 +1676,7 @@ function createStyleDiv() {
     return null;
   }
 
-  function appendLabel(parent, labelText, tooltip = undefined, id=undefined) {
+  function appendLabel(parent, labelText, tooltip = undefined, id = undefined) {
     const label = createLabel(labelText, tooltip);
     if (id) label.id = id;
     if (label) parent.appendChild(label);
@@ -1976,7 +2005,7 @@ function createStyleDiv() {
     parent.appendChild(clearLabelButton);
   }
 
-  function createButton(label, tooltip, callback, id=undefined) {
+  function createButton(label, tooltip, callback, id = undefined) {
     const btn = document.createElement("button");
     btn.textContent = label;
     btn.title = tooltip;
@@ -2358,14 +2387,6 @@ function isObject(obj) {
 }
 
 async function updateNodes(overrides = {}, commands = []) {
-  // for (const node of await graph.getNodeData()) {
-  //   if (!node.states?.includes("selected")) continue;
-  //   const nodeID = node.id;
-
-  // TODO: bug
-  // 1. select a couple of nodes via network metrics
-  // 2. cache.selectedNodes does not hold all of them at the time updateNodes() is called, probably race condition
-
   for (const nodeID of cache.selectedNodes) {
     const node = cache.nodeRef.get(nodeID);
 
@@ -3029,6 +3050,7 @@ async function createGraphInstance() {
         ...DEFAULTS.BUBBLE_SET_STYLE[group],
         strokeOpacity: 0,  // hide bubble groups initially (1 node persists due to bug)
         fillOpacity: 0,
+        label: false,
       })),
     ];
 
@@ -3062,92 +3084,186 @@ async function createGraphInstance() {
       plugins: plugins,
     });
 
-    graph.on(NodeEvent.DRAG_END, async (event) => {
-      if (STATES.DRAG_END_RUNNING) return;
+    // graph.on(NodeEvent.DRAG_END, async (event) => {
+    //   if (STATES.DRAG_END_RUNNING) return;
+    //
+    //   try {
+    //     STATES.DRAG_END_RUNNING = true;
+    //     await persistNodePositions();
+    //   } catch (errorMsg) {
+    //     error(`Error in NodeEvent.DRAG_END: ${errorMsg}`);;
+    //   } finally {
+    //     STATES.DRAG_END_RUNNING = false;
+    //   }
+    // });
 
-      try {
-        STATES.DRAG_END_RUNNING = true;
-        await persistNodePositions();
-      } catch (errorMsg) {
-        error(`Error in NodeEvent.DRAG_END: ${errorMsg}`);;
-      } finally {
-        STATES.DRAG_END_RUNNING = false;
+    graph.on("node:dragend", async () => {
+      /**
+       * Persist all positions on every drag event
+       */
+      if (LOCKS.DRAG_END_RUNNING) return;
+
+      LOCKS.DRAG_END_RUNNING = true;
+      for (const node of await graph.getNodeData()) {
+        data.layouts[data.selectedLayout].positions.set(node.id, {style: {x: node.style.x, y: node.style.y}});
       }
-    });
+      LOCKS.DRAG_END_RUNNING = false;
+    })
+
+    // graph.on("beforelayout", () => {
+    //   console.log("BEFORE LAYOUT");
+    // })
+
+    graph.on("afterlayout", async () => {
+      /**
+       * Applies persisted positions (excel data or after moving nodes) after layouting has finished
+       */
+      if (LOCKS.AFTER_LAYOUT_RUNNING) return;
+
+      LOCKS.AFTER_LAYOUT_RUNNING = true;
+      if (!cache.initialNodePositions.has(data.selectedLayout)) {
+        cache.initialNodePositions.set(data.selectedLayout, new Map());
+      }
+      for (const node of await graph.getNodeData()) {
+        cache.initialNodePositions.get(data.selectedLayout).set(node.id, {style: {x: node.style.x, y: node.style.y}});
+      }
+
+      if (data.layouts[data.selectedLayout].positions.size > 0) {
+        graph.updateNodeData(Array.from(data.layouts[data.selectedLayout].positions, ([id, pos]) => ({id, style: pos.style})));
+        await graph.draw();
+        await graph.fitView();
+      }
+      LOCKS.AFTER_LAYOUT_RUNNING = false;
+    })
+
+    // graph.on(GraphEvent.BEFORE_DRAW, async () => {
+    //   if (LOCKS.BEFORE_DRAW_RUNNING) return;
+    //
+    //   LOCKS.BEFORE_DRAW_RUNNING = true;
+    //   const members = graph.getPluginInstance("bubbleSetPlugin-groupOne").members;
+    //   console.log(`BEFORE DRAW: ${members.size} | bubble set changed: ${cache.bubbleSetChanged}`);
+    //
+    // });
 
     graph.on(GraphEvent.AFTER_DRAW, async () => {
-      if (STATES.AFTER_DRAW_RUNNNING) return;
+      // const members = graph.getPluginInstance("bubbleSetPlugin-groupOne").members;
+      // console.log(`AFTER DRAW: ${members.size} | bubble set changed: ${cache.bubbleSetChanged}`);
+      if (LOCKS.AFTER_DRAW_RUNNING) return;
 
-      try {
-        STATES.AFTER_DRAW_RUNNNING = true;
-        await updateSelectedNodesAndEdges();
-      } catch (errorMsg) {
-        error(`Error in GraphEvent.AFTER_DRAW: ${errorMsg}`);
-      } finally {
-        await hideLoading();
-        await new Promise(resolve => requestAnimationFrame(resolve));
-        STATES.AFTER_DRAW_RUNNNING = false;
-      }
+      LOCKS.AFTER_DRAW_RUNNING = true;
+      await restoreBubbleSetStates();
+      LOCKS.AFTER_DRAW_RUNNING = false;
     });
 
-    graph.on(GraphEvent.BEFORE_RENDER, async () => {
-      if (STATES.BEFORE_RENDER_RUNNING) return;
+    // graph.on(GraphEvent.AFTER_DRAW, async () => {
+    //   // if (STATES.AFTER_DRAW_RUNNNING) return;
+    //   //
+    //   // try {
+    //   //   STATES.AFTER_DRAW_RUNNNING = true;
+    //   //   await updateSelectedNodesAndEdges();
+    //   // } catch (errorMsg) {
+    //   //   error(`Error in GraphEvent.AFTER_DRAW: ${errorMsg}`);
+    //   // } finally {
+    //   //   await hideLoading();
+    //   //   await new Promise(resolve => requestAnimationFrame(resolve));
+    //   //   STATES.AFTER_DRAW_RUNNNING = false;
+    //   // }
+    // });
 
-      try {
-        STATES.BEFORE_RENDER_RUNNING = true;
-        await showLoading("Rendering", "Rendering graph ..");
-        await new Promise(resolve => requestAnimationFrame(resolve));
-      } catch (errorMsg) {
-        error(`Error in GraphEvent.BEFORE_RENDER: ${errorMsg}`);
-      } finally {
-        STATES.BEFORE_RENDER_RUNNING = false;
-      }
-    });
+    // graph.on(GraphEvent.BEFORE_RENDER, async () => {
+      // if (STATES.BEFORE_RENDER_RUNNING) return;
+      //
+      // try {
+      //   STATES.BEFORE_RENDER_RUNNING = true;
+      //   await showLoading("Rendering", "Rendering graph ..");
+      //   await new Promise(resolve => requestAnimationFrame(resolve));
+      // } catch (errorMsg) {
+      //   error(`Error in GraphEvent.BEFORE_RENDER: ${errorMsg}`);
+      // } finally {
+      //   STATES.BEFORE_RENDER_RUNNING = false;
+      // }
+    // });
+
+    // graph.on(GraphEvent.AFTER_RENDER, async () => {
+    //   if (STATES.AFTER_RENDER_RUNNING) return;
+    //   if (!STATES.INITIAL_RENDER_DONE) return;
+    //
+    //   try {
+    //     STATES.AFTER_RENDER_RUNNING = true;
+    //     // console.log("Sleeping for 500 ms ..");
+    //     // await new Promise(resolve => setTimeout(resolve, 500));
+    //     // console.log("Done sleeping; Checking positions ..");
+    //     const inSync = await nodePositionsAreInSyncWithPersistedPositions();
+    //     // console.log(`inSync: ${inSync}`);
+    //     if (!inSync) {
+    //       await showLoading("Post-processing", "Syncing node positions and redrawing graph ..");
+    //       await new Promise(resolve => requestAnimationFrame(resolve));
+    //       await syncNodePositions();
+    //       STATES.AFTER_RENDER_RUNNING = false;
+    //       await graph.draw();
+    //       // console.log("Checking positions again ..");
+    //       // const inSync = await nodePositionsAreInSyncWithPersistedPositions();
+    //       // console.log(`inSync: ${inSync}`);
+    //     }
+    //   } catch (errorMsg) {
+    //     error(`Error in GraphEvent.AFTER_RENDER: ${errorMsg}`);
+    //   } finally {
+    //     await hideLoading();
+    //     await new Promise(resolve => requestAnimationFrame(resolve));
+    //     STATES.AFTER_RENDER_RUNNING = false;
+    //   }
+    // });
 
     graph.on(GraphEvent.AFTER_RENDER, async () => {
-      if (STATES.AFTER_RENDER_RUNNING) return;
-      if (!STATES.INITIAL_RENDER_DONE) return;
-
-      try {
-        STATES.AFTER_RENDER_RUNNING = true;
-        const inSync = await nodePositionsAreInSyncWithPersistedPositions();
-        if (!inSync) {
-          await showLoading("Post-processing", "Syncing node positions and redrawing graph ..");
-          await new Promise(resolve => requestAnimationFrame(resolve));
-          await syncNodePositions();
-          STATES.AFTER_RENDER_RUNNING = false;
-          await graph.draw();
-        }
-      } catch (errorMsg) {
-        error(`Error in GraphEvent.AFTER_RENDER: ${errorMsg}`);
-      } finally {
-        await hideLoading();
-        await new Promise(resolve => requestAnimationFrame(resolve));
-        STATES.AFTER_RENDER_RUNNING = false;
-      }
+      // if (!STATES.INITIAL_RENDER_DONE) return;
+      //
+      // try {
+      //   if (isPositionsDirty) {
+      //     await showLoading("Syncing positions...");
+      //     await syncPositionsDebounced();
+      //   }
+      // } catch (error) {
+      //   console.error('Error in render handler:', error);
+      // } finally {
+      //   await hideLoading();
+      // }
+      await hideLoading();
     });
+
 
     // after initial rendering when loading a file; this is called prior to the regular after render event
     graph.once(GraphEvent.AFTER_RENDER, async () => {
-      if (STATES.ONCE_AFTER_RENDER_RUNNING) return;
+      if (LOCKS.ONCE_AFTER_RENDER_RUNNING) return;
 
       try {
         await showLoading("Post-processing", "Persisting positions and saving filters to stash ..");
         await new Promise(resolve => requestAnimationFrame(resolve));
-        STATES.ONCE_AFTER_RENDER_RUNNING = true;
-        await conditionallyPersistNodePositions();
+        LOCKS.ONCE_AFTER_RENDER_RUNNING = true;
+        // await conditionallyPersistNodePositions();
         await saveFiltersToStash(false);
+
+        await showLoading("Post-processing", "Registering event listeners ..");
+        await new Promise(resolve => requestAnimationFrame(resolve));
         registerHotkeyEvents();
         registerGlobalEventListeners();
+
         // to initially fill caches related to the query/filters, preRenderEvent is called without rendering afterwards
+        await showLoading("Post-processing", "Pre-render event ..");
+        await new Promise(resolve => requestAnimationFrame(resolve));
         await preRenderEvent();
+
+        await showLoading("Post-processing", "Updating metrics UI ..");
+        await new Promise(resolve => requestAnimationFrame(resolve));
         await cache.metrics.updateUI();
-        STATES.INITIAL_RENDER_DONE = true;
+        LOCKS.INITIAL_RENDER_DONE = true;
+
+        await showLoading("Post-processing", "Finalizing rendering ..");
+        await new Promise(resolve => requestAnimationFrame(resolve));
         await graph.render();
       } catch (errorMsg) {
         error(`Error in GraphEvent.AFTER_RENDER: ${errorMsg}`);
       } finally {
-        STATES.ONCE_AFTER_RENDER_RUNNING = false;
+        LOCKS.ONCE_AFTER_RENDER_RUNNING = false;
       }
     })
 
@@ -3379,6 +3495,7 @@ async function updateBubbleSet(group, members) {
     avoidMembers: empty ? [] : getMembers(),
     fillOpacity: empty ? 0 : DEFAULTS.BUBBLE_SET_STYLE[group].fillOpacity,
     strokeOpacity: empty ? 0 : DEFAULTS.BUBBLE_SET_STYLE[group].strokeOpacity,
+    label: empty ? false : DEFAULTS.BUBBLE_SET_STYLE[group].label,
   });
 }
 
@@ -3388,19 +3505,6 @@ function setsAreEqual(setA, setB) {
     if (!setB.has(item)) return false;
   }
   return true;
-}
-
-function setsIntersect(activeSet, totalSet) {
-  if (!(totalSet instanceof Set)) {
-    return false;
-  }
-
-  for (let item of activeSet) {
-    if (totalSet.has(item)) {
-      return true;
-    }
-  }
-  return false;
 }
 
 function createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
@@ -3419,7 +3523,7 @@ function createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
       const filteredNode = filterObject(node, ["D4Data", "features", "featureValues", "featureWithinThreshold"]);
 
       // load positions from the layouts position Map
-      const position = data.layouts[data.selectedLayout]?.positions.get(node.id);
+      const position = data.layouts[data.selectedLayout].positions.get(node.id);
 
       Object.assign(filteredNode, getNodeStyleOrDefaults(node));
 
@@ -3429,8 +3533,8 @@ function createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
       }
 
       if (resetToCachedPositions) {
-        filteredNode.style.x = cache.initialNodePositions.get(data.selectedLayout).get(node.id).x;
-        filteredNode.style.y = cache.initialNodePositions.get(data.selectedLayout).get(node.id).y;
+        const {style: {x, y}} = cache.initialNodePositions.get(data.selectedLayout).get(node.id);
+        Object.assign(filteredNode.style, {x, y});
       }
 
       return filteredNode;
@@ -3519,17 +3623,25 @@ async function preRenderEvent() {
 }
 
 async function updateElementVisibility(idsToShow, idsToHide) {
-  const { nodes, edges } = await graph.getData();
-  const { visible, hidden } = [...nodes, ...edges].reduce((acc, item) => {
-      acc[item.style.visibility === "visible" ? 'visible' : 'hidden'].push(item.id);
-      return acc;
-  }, { visible: [], hidden: [] });
+  cache.visibleElementsChanged = false;
+  const {nodes, edges} = await graph.getData();
+  const {visible, hidden} = [...nodes, ...edges].reduce((acc, item) => {
+    acc[item.style.visibility === "visible" ? 'visible' : 'hidden'].push(item.id);
+    return acc;
+  }, {visible: [], hidden: []});
 
   const showElementsDiff = idsToShow.filter(id => hidden.includes(id));
   const hideElementsDiff = idsToHide.filter(id => visible.includes(id));
 
-  if (showElementsDiff.length > 0) await graph.showElement(showElementsDiff);
-  if (hideElementsDiff.length > 0) await graph.hideElement(hideElementsDiff);
+  if (showElementsDiff.length > 0) {
+    await graph.showElement(showElementsDiff);
+    cache.visibleElementsChanged = true;
+  }
+  if (hideElementsDiff.length > 0) {
+    await graph.hideElement(hideElementsDiff);
+    cache.visibleElementsChanged = true;
+  }
+
 }
 
 function performANDFilterLogic() {
@@ -3702,48 +3814,6 @@ async function updateBubbleSetIfChanged() {
   }
 }
 
-async function nodePositionsAreInSyncWithPersistedPositions() {
-  for (let node of await graph.getNodeData()) {
-    const persistedPosition = data.layouts[data.selectedLayout].positions.get(node.id);
-    if (node.style.x !== persistedPosition?.x || node.style.y !== persistedPosition?.y) {
-      return false;
-    }
-  }
-  return true;
-}
-
-async function conditionallyPersistNodePositions() {
-  let ld = data.layouts[data.selectedLayout];
-  if (!ld.isCustom && ld.positions.size === 0) {
-    console.log(`Initially persisting coordinates of default layout ${data.selectedLayout} ..`);
-    await persistNodePositions();
-  }
-
-  // cache is written on app start or layout change every time IF no data exists yet, no matter if it is a custom layout or not
-  if (!cache.initialNodePositions.has(data.selectedLayout)) {
-    cache.initialNodePositions.set(data.selectedLayout, new Map());
-    console.log(`Caching coordinates of layout ${data.selectedLayout} to be used by reset feature ..`);
-    await persistNodePositions(cache.initialNodePositions.get(data.selectedLayout));
-  }
-}
-
-async function persistNodePositions(targetMap = data.layouts[data.selectedLayout].positions) {
-  for (const node of await graph.getNodeData()) {
-    targetMap.set(node.id, {x: node.style.x, y: node.style.y});
-  }
-}
-
-async function syncNodePositions() {
-  const toUpdate = [];
-  for (let node of await graph.getNodeData()) {
-    const persistedPosition = data.layouts[data.selectedLayout].positions.get(node.id);
-    if (persistedPosition && (persistedPosition.x !== node.style.x || persistedPosition.y !== node.style.y)) {
-      toUpdate.push({id: node.id, style: {x: persistedPosition.x, y: persistedPosition.y}});
-    }
-  }
-  await graph.updateNodeData(toUpdate);
-}
-
 function isInteger(value) {
   return value % 1 === 0;
 }
@@ -3752,17 +3822,9 @@ function formatNumber(value, precision) {
   return isInteger(value) ? value : parseFloat(value).toFixed(precision);
 }
 
-function countLines(el) {
-  if (!el.firstChild) return 0;
-  const r     = document.createRange();
-  r.selectNodeContents(el);
-  const tops  = new Set(Array.from(r.getClientRects()).map(rc => Math.round(rc.top)));
-  return tops.size;
-}
-
 function getLineMetrics(el) {
   if (!el || !el.firstChild) {
-    return { lines: 0, lastLineWidth: 0 };
+    return {lines: 0, lastLineWidth: 0};
   }
 
   const range = document.createRange();
@@ -3783,7 +3845,7 @@ function getLineMetrics(el) {
 
   // Number of distinct "top" positions ⇒ line count.
   const lines = groups.size;
-  if (lines === 0) return { lines: 0, lastLineWidth: 0 };
+  if (lines === 0) return {lines: 0, lastLineWidth: 0};
 
   // Get rects belonging to the last (visually lowest) line.
   const lastTop = Math.max(...groups.keys());
@@ -3791,27 +3853,27 @@ function getLineMetrics(el) {
 
   // Combine segments to obtain total visual width of that line.
   // (If inline spans break the line into pieces, merge them.)
-  const left  = Math.min(...lastRects.map(r => r.left));
+  const left = Math.min(...lastRects.map(r => r.left));
   const right = Math.max(...lastRects.map(r => r.right));
   const lastLineWidth = Math.round(right - left);
 
-  return { lines, lastLineWidth };
+  return {lines, lastLineWidth};
 }
 
 
 function validateAlignment() {
   // read real widths of the two layers
-  const mText    = getLineMetrics(query.text);
+  const mText = getLineMetrics(query.text);
   const mOverlay = getLineMetrics(query.overlay);
 
-  const linesMatch     = mText.lines        === mOverlay.lines;
+  const linesMatch = mText.lines === mOverlay.lines;
   const lastWidthMatch = Math.abs(mText.lastLineWidth - mOverlay.lastLineWidth) <= 1;  // 1 pixel tolerance
 
   if (linesMatch && lastWidthMatch) {
     if (query.sizeChangeLocked) {
       // let flexbox resize again
-    query.text.style.removeProperty('width');
-    query.overlay.style.removeProperty('width');
+      query.text.style.removeProperty('width');
+      query.overlay.style.removeProperty('width');
       query.sizeChangeLocked = false;
       console.info("Alignment restored, width unlocked");
     }
@@ -3822,12 +3884,12 @@ function validateAlignment() {
 
   // freeze both layers at the last known good width
   if (!query.sizeChangeLocked && query.lastGoodWidth > 0) {
-      console.warn(
-    `Mismatch — lines: ${mText.lines}/${mOverlay.lines}, ` +
-    `last width: ${mText.lastLineWidth}/${mOverlay.lastLineWidth}. ` +
-    `Locking at ${query.lastGoodWidth}px`
-  );
-    query.text.style.width    = `${query.lastGoodWidth}px`;
+    console.warn(
+      `Mismatch — lines: ${mText.lines}/${mOverlay.lines}, ` +
+      `last width: ${mText.lastLineWidth}/${mOverlay.lastLineWidth}. ` +
+      `Locking at ${query.lastGoodWidth}px`
+    );
+    query.text.style.width = `${query.lastGoodWidth}px`;
     query.overlay.style.width = `${query.lastGoodWidth}px`;
     query.sizeChangeLocked = true;
   }
@@ -3998,8 +4060,8 @@ function createSectionToggleButton(enable, section, subSection = null) {
   if (subSection) btn.classList.add("extra-small");
   if (enable) btn.classList.add("ml-2");
   btn.textContent = enable ? "✔" : "✗";
-  btn.title = `${enable ? 'Enable' : 'Disable'} all filters for the ${subSection 
-    ? 'group: ' + "\n * " + subSection 
+  btn.title = `${enable ? 'Enable' : 'Disable'} all filters for the ${subSection
+    ? 'group: ' + "\n * " + subSection
     : 'section: ' + "\n * " + section}`;
   btn.onclick = async () => {
     subSection ? await toggleSubSection(enable, section, subSection) : await toggleSection(enable, section);
@@ -4602,13 +4664,21 @@ function createCircleGroupButtonWithQuadrants(propID) {
         quadrant.title = `Remove ${propID} from ${group}.`;
         members.delete(propID);
         quadrant.classList.remove("active");
-        await handleFilterEvent(`Reduce Group`, `Removing ${propID} from ${group}`, propID);
+        // await handleFilterEvent(`Reduce Group`, `Removing ${propID} from ${group}`, propID);
+        // await fixBubbleGroups();
+        // await decideToRenderOrDraw();
+        // await updateBubbleSetIfChanged();
+        await decideToRenderOrDraw();
       } else {
         data.layouts[data.selectedLayout][`${group}Props`].add(propID);
         quadrant.title = `Highlight ${propID} and add to bubble-group (${group})`;
         members.add(propID);
         quadrant.classList.add("active");
-        await handleFilterEvent(`Add to Group`, `Adding ${propID} to ${group}`, propID);
+        // await handleFilterEvent(`Add to Group`, `Adding ${propID} to ${group}`, propID);
+        // await fixBubbleGroups();
+        // await decideToRenderOrDraw();
+        // await updateBubbleSetIfChanged();
+        await decideToRenderOrDraw();
       }
     });
 
@@ -4639,163 +4709,163 @@ class Popup {
    *     onClose: () => console.log('Popup closed!')
    * });
    */
-    constructor(content, options = {}) {
-        this.options = {
-            width: '300px',
-            height: 'auto',
-            position: 'center',
-            lineHeight: 'normal',
-            closeOnClickOutside: true,
-            onClose: null,
-            showFullscreenButton: true,
-            ...options
-        };
+  constructor(content, options = {}) {
+    this.options = {
+      width: '300px',
+      height: 'auto',
+      position: 'center',
+      lineHeight: 'normal',
+      closeOnClickOutside: true,
+      onClose: null,
+      showFullscreenButton: true,
+      ...options
+    };
 
-        this.popup = null;
-        this.overlay = null;
-        this.closeBtn = null;
-        this.fullscreenBtn = null;
-        this.isFullscreen = false;
-        this.originalStyles = null;
+    this.popup = null;
+    this.overlay = null;
+    this.closeBtn = null;
+    this.fullscreenBtn = null;
+    this.isFullscreen = false;
+    this.originalStyles = null;
 
-        this.init(content);
+    this.init(content);
+  }
+
+  init(content) {
+    this.createPopup(content);
+    this.setupCloseHandlers();
+    if (this.options.showFullscreenButton) {
+      this.setupFullscreenButton();
+    }
+    this.show();
+  }
+
+  createPopup(content) {
+    this.popup = document.createElement('div');
+    this.popup.className = 'p-custom';
+
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'p-header';
+
+    if (this.options.showFullscreenButton) {
+      this.fullscreenBtn = document.createElement('button');
+      this.fullscreenBtn.className = 'p-btn';
+      this.fullscreenBtn.innerHTML = '⛶';
+      this.fullscreenBtn.title = 'Toggle fullscreen';
+      headerDiv.appendChild(this.fullscreenBtn);
     }
 
-    init(content) {
-        this.createPopup(content);
-        this.setupCloseHandlers();
-        if (this.options.showFullscreenButton) {
-            this.setupFullscreenButton();
-        }
-        this.show();
+    this.closeBtn = document.createElement('button');
+    this.closeBtn.className = 'p-btn';
+    this.closeBtn.innerHTML = '×';
+    this.closeBtn.title = 'Close popup';
+    headerDiv.appendChild(this.closeBtn);
+
+    const popupContent = document.createElement('div');
+    popupContent.className = 'popup-content';
+    popupContent.style.marginTop = '20px';
+
+    if (typeof content === 'string') {
+      popupContent.innerHTML = content;
+    } else {
+      popupContent.appendChild(content);
     }
 
-    createPopup(content) {
-        this.popup = document.createElement('div');
-        this.popup.className = 'p-custom';
+    this.popup.appendChild(headerDiv);
+    this.popup.appendChild(popupContent);
 
-        const headerDiv = document.createElement('div');
-        headerDiv.className = 'p-header';
+    this.overlay = document.createElement('div');
+    this.overlay.className = 'p-overlay';
 
-        if (this.options.showFullscreenButton) {
-            this.fullscreenBtn = document.createElement('button');
-            this.fullscreenBtn.className = 'p-btn';
-            this.fullscreenBtn.innerHTML = '⛶';
-            this.fullscreenBtn.title = 'Toggle fullscreen';
-            headerDiv.appendChild(this.fullscreenBtn);
-        }
+    document.body.appendChild(this.overlay);
+    document.body.appendChild(this.popup);
 
-        this.closeBtn = document.createElement('button');
-        this.closeBtn.className = 'p-btn';
-        this.closeBtn.innerHTML = '×';
-        this.closeBtn.title = 'Close popup';
-        headerDiv.appendChild(this.closeBtn);
-
-        const popupContent = document.createElement('div');
-        popupContent.className = 'popup-content';
-        popupContent.style.marginTop = '20px';
-
-        if (typeof content === 'string') {
-            popupContent.innerHTML = content;
-        } else {
-            popupContent.appendChild(content);
-        }
-
-        this.popup.appendChild(headerDiv);
-        this.popup.appendChild(popupContent);
-
-        this.overlay = document.createElement('div');
-        this.overlay.className = 'p-overlay';
-
-        document.body.appendChild(this.overlay);
-        document.body.appendChild(this.popup);
-
-        this.popup.style.width = this.options.width;
-        if (this.options.height !== 'auto') {
-            this.popup.style.height = this.options.height;
-        }
-
-        if (this.options.lineHeight !== 'normal') {
-          this.popup.style.lineHeight = this.options.lineHeight;
-        }
-
-        this.setPosition();
-        this.storeOriginalStyles();
+    this.popup.style.width = this.options.width;
+    if (this.options.height !== 'auto') {
+      this.popup.style.height = this.options.height;
     }
 
-    storeOriginalStyles() {
-      this.originalStyles = {
-        width: this.popup.style.width,
-        height: this.popup.style.height,
-        top: this.popup.style.top,
-        left: this.popup.style.left,
-        transform: this.popup.style.transform,
-        borderRadius: this.popup.style.borderRadius,
-        margin: this.popup.style.margin,
-        position: this.popup.style.position
-      };
+    if (this.options.lineHeight !== 'normal') {
+      this.popup.style.lineHeight = this.options.lineHeight;
     }
 
-    setupFullscreenButton() {
-        this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+    this.setPosition();
+    this.storeOriginalStyles();
+  }
+
+  storeOriginalStyles() {
+    this.originalStyles = {
+      width: this.popup.style.width,
+      height: this.popup.style.height,
+      top: this.popup.style.top,
+      left: this.popup.style.left,
+      transform: this.popup.style.transform,
+      borderRadius: this.popup.style.borderRadius,
+      margin: this.popup.style.margin,
+      position: this.popup.style.position
+    };
+  }
+
+  setupFullscreenButton() {
+    this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+  }
+
+  toggleFullscreen() {
+    this.isFullscreen = !this.isFullscreen;
+
+    if (this.isFullscreen) {
+      this.popup.style.width = '100%';
+      this.popup.style.height = '100%';
+      this.popup.style.top = '0';
+      this.popup.style.left = '0';
+      this.popup.style.transform = 'none';
+      this.popup.style.position = 'fixed';
+
+      this.fullscreenBtn.innerHTML = '⧉';
+      this.fullscreenBtn.title = 'Exit fullscreen';
+    } else {
+      Object.assign(this.popup.style, this.originalStyles);
+
+      this.fullscreenBtn.innerHTML = '⛶';
+      this.fullscreenBtn.title = 'Fullscreen';
     }
+  }
 
-    toggleFullscreen() {
-        this.isFullscreen = !this.isFullscreen;
-
-        if (this.isFullscreen) {
-            this.popup.style.width = '100%';
-            this.popup.style.height = '100%';
-            this.popup.style.top = '0';
-            this.popup.style.left = '0';
-            this.popup.style.transform = 'none';
-            this.popup.style.position = 'fixed';
-
-            this.fullscreenBtn.innerHTML = '⧉';
-            this.fullscreenBtn.title = 'Exit fullscreen';
-        } else {
-            Object.assign(this.popup.style, this.originalStyles);
-
-            this.fullscreenBtn.innerHTML = '⛶';
-            this.fullscreenBtn.title = 'Fullscreen';
-        }
+  setPosition() {
+    if (!this.isFullscreen) {
+      if (this.options.position === 'center') {
+        this.popup.style.top = '50%';
+        this.popup.style.left = '50%';
+        this.popup.style.transform = 'translate(-50%, -50%)';
+      } else {
+        this.popup.style.top = `${this.options.position.y}px`;
+        this.popup.style.left = `${this.options.position.x}px`;
+        this.popup.style.transform = 'none';
+      }
     }
+  }
 
-    setPosition() {
-        if (!this.isFullscreen) {
-            if (this.options.position === 'center') {
-                this.popup.style.top = '50%';
-                this.popup.style.left = '50%';
-                this.popup.style.transform = 'translate(-50%, -50%)';
-            } else {
-                this.popup.style.top = `${this.options.position.y}px`;
-                this.popup.style.left = `${this.options.position.x}px`;
-                this.popup.style.transform = 'none';
-            }
-        }
+  setupCloseHandlers() {
+    this.closeBtn.addEventListener('click', () => this.close());
+
+    if (this.options.closeOnClickOutside) {
+      this.overlay.addEventListener('click', () => this.close());
     }
+  }
 
-    setupCloseHandlers() {
-        this.closeBtn.addEventListener('click', () => this.close());
+  show() {
+    this.popup.style.display = 'block';
+    this.overlay.style.display = 'block';
+  }
 
-        if (this.options.closeOnClickOutside) {
-            this.overlay.addEventListener('click', () => this.close());
-        }
+  close() {
+    if (this.options.onClose) {
+      this.options.onClose();
     }
-
-    show() {
-        this.popup.style.display = 'block';
-        this.overlay.style.display = 'block';
-    }
-
-    close() {
-        if (this.options.onClose) {
-            this.options.onClose();
-        }
-        this.popup.remove();
-        this.overlay.remove();
-        cache.popup = null;
-    }
+    this.popup.remove();
+    this.overlay.remove();
+    cache.popup = null;
+  }
 }
 
 function createAddOrRemoveToSelectionButton(propID, shouldAdd) {
@@ -4890,21 +4960,23 @@ async function changeLayout() {
   let skipConsecutiveRender = false;
   if (!layout.isCustom) {
     await graph.setLayout({type: data.selectedLayout, ...layout.internals});
-    await graph.render();
-    skipConsecutiveRender = true;
+    // await preRenderEvent();
+    // await graph.render();
+    // await decideToRenderOrDraw(true);
+    // await handleFilterEvent("foo", "bar");
+    // skipConsecutiveRender = true;
   }
 
   buildFilterUI();
   clearActivePropsCacheOnLayoutChange();
 
-  await conditionallyPersistNodePositions();
   await cache.metrics.updateUI();
 
-  if (!skipConsecutiveRender) {
-    await decideToRenderOrDraw(true);
-  }
+  await decideToRenderOrDraw(true);
+  // if (!skipConsecutiveRender) {
+  // }
 
-  await graph.fitView();
+  // await graph.fitView();
   info(`Switched to view: ${data.selectedLayout}`);
 }
 
@@ -5312,6 +5384,7 @@ function initCache() {
 
   cache.styleChanged = false;
   cache.labelStyleChanged = false;
+  cache.visibleElementsChanged = false;
 
   cache.metrics = new NetworkMetrics();
   cache.popup = null;
@@ -5717,6 +5790,7 @@ function encodeQuery(asciiStr) {
 
   /* ------------------------------------------------------------------ */
   /* 7. Brackets with depth tracking                                    */
+
   /* ------------------------------------------------------------------ */
   function findUnmatchedBracketIndices(str) {
     const stack = [];
@@ -6277,6 +6351,9 @@ async function destroyGraphAndRollBackUI() {
   await graph.destroy();
   graph = null;
 
+  isPositionsDirty = false;
+  syncPositionsDebounced.cancel?.();
+
   const status = document.getElementById("sidebarStatusContainer");
   status.innerHTML = "";
   status.style.height = "0";
@@ -6496,4 +6573,64 @@ async function debugQuery(query) {
   query.text.textContent = query;
   handleQueryValidationEvent();
   await handleQueryUpdateEvent();
+}
+
+// SIMPLE DIRECT FUNCTIONS
+async function updateNodeStyle() {
+  graph.updateNodeData([{id: 'A', style: {size: 120}}]);
+  await graph.draw();
+}
+
+async function getSelectedNodes() {
+  return await graph.getNodeData().filter(n => n.states.includes("selected"));
+}
+
+async function fixBubbleGroups() {
+  await graph.updateData(createSimplifiedDataForGraphObject());
+  await graph.draw();
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+async function restoreBubbleSetStates() {
+  for (const bubbleGroup of traverseBubbleSets()) {
+    const plugin = graph.getPluginInstance(`bubbleSetPlugin-${bubbleGroup}`);
+    const cachedMembers = cache.lastBubbleSetMembers.get(bubbleGroup);
+    if (cache.bubbleSetChanged && cachedMembers.size > 0 && plugin.members.size !== cachedMembers.size) {
+      // this happens once only when a bubble set exists and a node is selected
+      console.log("Restoring bubble set state for group", bubbleGroup);
+      await showLoading("Syncing bubble set state");
+      await updateBubbleSet(bubbleGroup, Array.from(cachedMembers));
+      // await graph.render();
+      await redrawBubbleSets();
+      await hideLoading();
+    }
+  }
+}
+
+async function redrawBubbleSets() {
+  return new Promise(resolve => {
+    requestAnimationFrame(async () => {
+      for (const bubbleGroup of traverseBubbleSets()) {
+        const cachedMembers = cache.lastBubbleSetMembers.get(bubbleGroup);
+        if (cachedMembers.size > 0) {
+          const plugin = graph.getPluginInstance(`bubbleSetPlugin-${bubbleGroup}`);
+          await new Promise(r => requestAnimationFrame(r));
+          await plugin.drawBubbleSets();
+        }
+      }
+
+      setTimeout(resolve, 50);
+    });
+  });
 }
