@@ -356,16 +356,22 @@ const DEFAULTS = {
     LASSO_SELECT: {
       type: "lasso-select",
       key: "lasso-select",
-      trigger: "drag",
+      trigger: ["drag"],
       style: {
         fill: '#C33D35',
         fillOpacity: 0.3,
         stroke: '#C33D35'
       },
-      // enable: (event) => {
-      //   console.log("K");
-      //   return event.targetType === "node" || event.targetType === "edge"
-      // }
+      enable: (event) => {
+        debug("LASSO CANVAS CLICK");
+        // TODO: the commented code below triggers a loading event instead of freezing the UI, but would prevent the
+        //  bubbled deselection ..
+        // const selected = graph.getNodeData().filter(n => n.states?.includes("selected"));
+        // if (selected.length > 0) {
+        //   showLoading("Rendering", "Deselecting after lasso selection event");
+        // }
+        return true;
+      }
     },
     CLICK_SELECT: {
       type: "click-select",
@@ -373,7 +379,28 @@ const DEFAULTS = {
       multiple: true,
       trigger: ["shift"],
       // skip event.targetType === "canvas" since de-selection on large graphs is extremely slow
-      enable: (event) => event.targetType === "node" || event.targetType === "edge",
+      // enable: (event) => {
+      //   debug(`CLICK SELECT | ${event.targetType}`);
+      //   const selected = graph.getNodeData().filter(n => n.states?.includes("selected"));
+      //   debug(`Selected: ${selected.length}`);
+      //   if (selected.length === 1) {
+      //     // TODO: check if target node is currectly selected; if yes -> return false (de-select event)
+      //     const selNodeXMax = selected[0].style.x + selected[0].style.size;
+      //     const selNodeXMin = selected[0].style.x - selected[0].style.size;
+      //     const selNodeYMax = selected[0].style.y + selected[0].style.size;
+      //     const selNodeYMin = selected[0].style.y - selected[0].style.size;
+      //
+      //     // 1 node selected; cursor is on top of it; means this would be a de-select event leaving no remaining selected nodes
+      //     if (event.canvas.x <= selNodeXMax
+      //       && event.canvas.x >= selNodeXMin
+      //       && event.canvas.y <= selNodeYMax
+      //       && event.canvas.y >= selNodeYMin) {
+      //       debug("PREVENTING DE-SELECTION");
+      //       return false;
+      //     }
+      //   }
+      //   return event.targetType === "node" || event.targetType === "edge"
+      // },
     },
   },
 };
@@ -389,11 +416,11 @@ const EVENT_LOCKS = {
   ONCE_AFTER_RENDER_RUNNING: false,
   ONCE_AFTER_RENDER_COMPLETED: false,
   IS_DESELECTING: false,
-  REDRAW_BUBBLE_SETS_RUNNING: false,
+  REDRAW_BUBBLE_GROUPS_RUNNING: false,
 }
 
 const INSTANCES = {
-  BUBBLE_SETS: {}
+  BUBBLE_GROUPS: {}
 }
 
 const INVISIBLE_DUMMY_NODE = {
@@ -1481,20 +1508,20 @@ function getTargetEdges(propID) {
   );
 }
 
+async function getSelectedNodes() {
+  return await graph.getNodeData().filter(n => n.states?.includes("selected"));
+}
+
 async function layoutSelectedNodes(action) {
   if (cache.selectedNodes.length === 0) return;
-
-  async function getSelectedNodes() {
-    return await graph.getNodeData().filter((node) => cache.selectedNodes.includes(node.id));
-  }
 
   async function groupOrSpreadSelectedNodes(scale) {
     for (const node of await getSelectedNodes()) {
       const oldX = node.style.x;
       const oldY = node.style.y;
 
-      node.style.x = avgX + (oldX - avgX) * scale;
-      node.style.y = avgY + (oldY - avgY) * scale;
+      node.style.x = origAvgX + (oldX - origAvgX) * scale;
+      node.style.y = origAvgY + (oldY - origAvgY) * scale;
     }
   }
 
@@ -1505,8 +1532,8 @@ async function layoutSelectedNodes(action) {
     let i = 0;
     for (const node of await getSelectedNodes()) {
       const angle = i * angleStep;
-      node.style.x = avgX + radius * Math.cos(angle);
-      node.style.y = avgY + radius * Math.sin(angle);
+      node.style.x = origAvgX + radius * Math.cos(angle);
+      node.style.y = origAvgY + radius * Math.sin(angle);
       i++;
     }
   }
@@ -1527,7 +1554,7 @@ async function layoutSelectedNodes(action) {
     // -----------------------------
     // Larger initial placement range
     // -----------------------------
-    const nodes = getSelectedNodes();
+    const nodes = await getSelectedNodes();
     for (const node of nodes) {
       node.style.x = Math.random() * 1000 - 500;  // Range: [-500, 500]
       node.style.y = Math.random() * 1000 - 500;  // Range: [-500, 500]
@@ -1622,42 +1649,94 @@ async function layoutSelectedNodes(action) {
       for (let col = 0; col < columns; col++) {
         if (idx >= count) break;
         const node = nodes[idx];
-        node.style.x = avgX - totalWidth / 2 + col * spacing;
-        node.style.y = avgY - totalHeight / 2 + row * spacing;
+        node.style.x = origAvgX - totalWidth / 2 + col * spacing;
+        node.style.y = origAvgY - totalHeight / 2 + row * spacing;
         idx++;
       }
     }
   }
 
-  async function applyRandomLayout() {
-    for (const node of await getSelectedNodes()) {
-      node.style.x = minX + Math.random() * xDistance;
-      node.style.y = minY + Math.random() * yDistance;
-    }
-  }
+ async function applyRandomLayout() {
+  const nodes = await getSelectedNodes();
+  if (nodes.length < 2) return;
 
-  const selectedNodes = new Map(
-    [...data.layouts[data.selectedLayout].positions]
-      .filter(([key]) => cache.selectedNodes.includes(key))
-  );
-  const selectedNodesCoords = [...selectedNodes.values()];
-  const avgX = selectedNodesCoords.reduce((sum, pos) => sum + pos.x, 0) / selectedNodesCoords.length;
-  const avgY = selectedNodesCoords.reduce((sum, pos) => sum + pos.y, 0) / selectedNodesCoords.length;
-  const minX = Math.min(...selectedNodesCoords.map((pos) => pos.x));
-  const maxX = Math.max(...selectedNodesCoords.map((pos) => pos.x));
-  const minY = Math.min(...selectedNodesCoords.map((pos) => pos.y));
-  const maxY = Math.max(...selectedNodesCoords.map((pos) => pos.y));
-  const xDistance = maxX - minX;
-  const yDistance = maxY - minY;
+  // ALWAYS use the fixed original bounding‐box:
+  const centerX = origCenterX;
+  const centerY = origCenterY;
+  const width   = origWidth;
+  const height  = origHeight;
+
+  // If you really want rotation (see note below), be aware a rotated
+  // rectangle has a larger AABB—but we’re not recomputing the AABB,
+  // so the outer box stays fixed at origWidth × origHeight.
+  const angle = Math.random() * 2 * Math.PI;
+
+  // Pick two anchors to go to two opposite corners of the ROTATED rectangle
+  // (but the *axis‐aligned* bounding-box of that rotated rectangle is still
+  // held “virtually” at origWidth×origHeight; we do not “re‐read” min/max from it).
+  const [anchor1, anchor2] = getRandomElements(nodes, 2);
+
+  // Rotate those two anchors to the “corners” of a width×height box at random angle:
+  // corner1 ( +width/2, +height/2 ) after rotation; corner2 ( -width/2, -height/2 ).
+  anchor1.style.x = centerX + ( width / 2 ) * Math.cos(angle) - ( height / 2 ) * Math.sin(angle);
+  anchor1.style.y = centerY + ( width / 2 ) * Math.sin(angle) + ( height / 2 ) * Math.cos(angle);
+
+  anchor2.style.x = centerX - ( width / 2 ) * Math.cos(angle) + ( height / 2 ) * Math.sin(angle);
+  anchor2.style.y = centerY - ( width / 2 ) * Math.sin(angle) - ( height / 2 ) * Math.cos(angle);
+
+  // Now scatter the rest uniformly inside that same rotated box:
+  for (const node of nodes) {
+    if (node === anchor1 || node === anchor2) continue;
+
+    // pick a random (u,v) in [–0.5..+0.5] × [–0.5..+0.5]
+    const u = Math.random() - 0.5;
+    const v = Math.random() - 0.5;
+
+    // scale to [–width/2..+width/2], [–height/2..+height/2]
+    const dx = u * width;
+    const dy = v * height;
+
+    // rotate (dx,dy) around origin by “angle”
+    node.style.x = centerX + dx * Math.cos(angle) - dy * Math.sin(angle);
+    node.style.y = centerY + dx * Math.sin(angle) + dy * Math.cos(angle);
+  }
+}
+
+function getRandomElements(array, n) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, n);
+}
+
+  const sel = await getSelectedNodes();
+  if (sel.length == 0) return;
+
+  const coords = sel.map(n => ({x: n.style.x, y: n.style.y}));
+
+  const origAvgX = coords.reduce((sum, pos) => sum + pos.x, 0) / coords.length;
+  const origAvgY = coords.reduce((sum, pos) => sum + pos.y, 0) / coords.length;
+  const origMinX = Math.min(...coords.map((pos) => pos.x));
+  const origMaxX = Math.max(...coords.map((pos) => pos.x));
+  const origMinY = Math.min(...coords.map((pos) => pos.y));
+  const origMaxY = Math.max(...coords.map((pos) => pos.y));
+
+  const origCenterX = (origMinX + origMaxX) / 2;
+  const origCenterY = (origMinY + origMaxY) / 2;
+  const origWidth = origMaxX - origMinX;
+  const origHeight = origMaxY - origMinY;
+
 
   const eventLabels = {
-    "shrink": "Shrinking Selected Nodes in Layout",
-    "expand": "Expanding Selected Nodes in Layout",
-    "circle": "Applying Circular Layout to Selected Nodes",
-    "force": "Applying Force Layout to Selected Nodes",
-    "grid": "Applying Grid Layout to Selected Nodes",
-    "random": "Applying Random Layout to Selected Nodes",
-  }
+    "shrink": "Shrink selected nodes toward their center",
+    "expand": "Expand selected nodes outward from their center",
+    "circle": "Arrange selected nodes evenly in a circular layout",
+    "force": "Apply a force-directed layout to selected nodes",
+    "grid": "Align selected nodes in a uniform grid layout",
+    "random": "Distribute selected nodes randomly while preserving the original layout bounds"
+  };
 
   const layoutActions = {
     "shrink": () => groupOrSpreadSelectedNodes(0.5),
@@ -1670,7 +1749,7 @@ async function layoutSelectedNodes(action) {
 
   await layoutActions[action]();
   await persistNodePositions();
-  await handleStyleChangeLoadingEvent(action, eventLabels[action]);
+  await handleLayoutChangeLoadingEvent(action, eventLabels[action]);
 }
 
 async function getPositions() {
@@ -1685,6 +1764,12 @@ async function getPositions() {
     });
   }
   return posCopy;
+}
+
+async function debugPositions() {
+  for (const node of await getPositions()) {
+    debug(`${node.id} | ${node.style.x} | ${node.style.y}`);
+  }
 }
 
 async function persistNodePositions() {
@@ -2246,9 +2331,9 @@ function createStyleDiv() {
       () => layoutSelectedNodes("circle"));
     appendButton(rowOne, "Force", "Apply a force-directed layout to the selected nodes.",
       () => layoutSelectedNodes("force"));
-    appendButton(rowOne, "Grid", "Apply a grid layout to the selected nodes.",
+    appendButton(rowOne, "Grid", "Apply a uniform grid layout to the selected nodes.",
       () => layoutSelectedNodes("grid"));
-    appendButton(rowOne, "Random", "Apply a random layout to the selected nodes.",
+    appendButton(rowOne, "Random", "Apply a random layout to the selected nodes while preserving the original layout bonds.",
       () => layoutSelectedNodes("random"));
   }
 
@@ -2471,12 +2556,13 @@ async function updateNodes(overrides = {}, commands = []) {
 
 function toggleStyleElementsThatRequireAtLeastOneSelectedNode(enable) {
   toggleStyleElements([
-    "Node Configuration", "Expand Edges", "Reduce Edges", "Expand Neighbors", "Reduce Neighbors"
+    "Node Configuration", "Expand Edges", "Reduce Edges", "Expand Neighbors", "Reduce Neighbors",
+    "deselectNodesBtn"
   ], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneSelectedEdge(enable) {
-  toggleStyleElements(["Edge Configuration"], enable);
+  toggleStyleElements(["Edge Configuration", "deselectEdgesBtn"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(enable) {
@@ -2512,64 +2598,6 @@ function toggleStyleElements(headingLabels, enable) {
   }
 }
 
-async function updateSelectedStateForNodes(nodesData, enable) {
-    await showLoading(enable ? "Selecting" : "Deselecting", `Modifying selection of ${nodesData.length} nodes`);
-  await new Promise(resolve => requestAnimationFrame(resolve));
-
-    const updatedNodeData = [];
-  for (const node of nodesData) {
-    // debug("DOES THIS TRIGGER A REDRAW?");
-    const realNode = graph.getNodeData(node.id);
-    if (!realNode.states) {
-      realNode.states = [];
-    }
-    if (enable && !realNode.states.includes("selected")) {
-      realNode.states.push("selected");
-    }
-    if (!enable && realNode.states.includes("selected")) {
-      realNode.states.splice(realNode.states.indexOf("selected"), 1);
-    }
-    updatedNodeData.push(realNode);
-    // const states = graph.getNodeData(item.id).states;
-    // debug("K");
-    // await graph.setElementState(item.id, enable ? 'selected' : '');
-
-  }
-  await graph.updateNodeData(updatedNodeData);
-  await graph.draw();
-  await hideLoading();
-  await new Promise(resolve => requestAnimationFrame(resolve));
-}
-
-async function updateSelectedStateForEdges(edgesData, enable) {
-    await showLoading(enable ? "Selecting" : "Deselecting", `Modifying selection of ${edgesData.length} edges`);
-  await new Promise(resolve => requestAnimationFrame(resolve));
-
-    const updatedEdgeData = [];
-  for (const edge of edgesData) {
-    // debug("DOES THIS TRIGGER A REDRAW?");
-    const realEdge = graph.getEdgeData(edge.id);
-    if (!realEdge.states) {
-      realEdge.states = [];
-    }
-    if (enable && !realEdge.states.includes("selected")) {
-      realEdge.states.push("selected");
-    }
-    if (!enable && realEdge.states.includes("selected")) {
-      realEdge.states.splice(realEdge.states.indexOf("selected"), 1);
-    }
-    updatedEdgeData.push(realEdge);
-    // const states = graph.getNodeData(item.id).states;
-    // debug("K");
-    // await graph.setElementState(item.id, enable ? 'selected' : '');
-
-  }
-  await graph.updateData(updatedEdgeData);
-  await graph.draw();
-  await hideLoading();
-  await new Promise(resolve => requestAnimationFrame(resolve));
-}
-
 async function updateSelectedState(elemData, enable) {
   await showLoading(enable ? "Selecting" : "Deselecting", `Modifying selection of ${elemData.length} elements`);
   await new Promise(resolve => requestAnimationFrame(resolve));
@@ -2578,25 +2606,26 @@ async function updateSelectedState(elemData, enable) {
   const updatedData = [];
   for (const item of elemData) {
     const elem = graph.getElementData(item.id);
-    if (!elem.states) {
-      elem.states = [];
-    }
-    if (enable && !elem.states.includes("selected")) {
-      elem.states.push("selected");
-    }
-    if (!enable && elem.states.includes("selected")) {
-      elem.states.splice(elem.states.indexOf("selected"), 1);
-    }
+    updateElementSelectedState(elem, enable);
     updatedData.push(elem);
-
-    // alternatively .. also, remove graph.updateData() and graph.render() below
-    // await graph.setElementState(item.id, enable ? 'selected' : '');
   }
   await graph.updateData(updatedData);
   await graph.render();
 
   await hideLoading();
   await new Promise(resolve => requestAnimationFrame(resolve));
+}
+
+function updateElementSelectedState(element, shouldSelect) {
+  if (!element.states) {
+    element.states = [];
+  }
+  if (shouldSelect && !element.states.includes("selected")) {
+    element.states.push("selected");
+  }
+  if (!shouldSelect && element.states.includes("selected")) {
+    element.states.splice(element.states.indexOf("selected"), 1);
+  }
 }
 
 async function toggleSelectionForAllNodes(enable) {
@@ -2610,26 +2639,18 @@ async function toggleSelectionForAllEdges(enable) {
 }
 
 async function syncSelectionCacheAndElementStates() {
-  const nodesToShow = [];
-  const nodesToHide = [];
-  const edgesToShow = [];
-  const edgesToHide = [];
-
   const snapshot = cache.selectionMemory[cache.selectedMemoryIndex];
 
   cache.selectedNodes = snapshot.nodes;
   cache.selectedEdges = snapshot.edges;
 
   for (const node of graph.getNodeData()) {
-    snapshot.nodes.includes(node.id) ? nodesToShow.push(node) : nodesToHide.push(node);
+    updateElementSelectedState(node, snapshot.nodes.includes(node.id));
   }
   for (const edge of graph.getEdgeData()) {
-    snapshot.edges.includes(edge.id) ? edgesToShow.push(edge) : edgesToHide.push(edge);
+    updateElementSelectedState(edge, snapshot.edges.includes(edge.id));
   }
-  await updateSelectedState(nodesToShow, true);
-  await updateSelectedState(nodesToHide, false);
-  await updateSelectedState(edgesToShow, true);
-  await updateSelectedState(edgesToHide, false);
+  await graph.render();
 }
 
 function undoSelection() {
@@ -3247,26 +3268,22 @@ async function createGraphInstance() {
           style: pos.style
         })));
         await graph.draw();
-        await graph.fitView();
+        // await graph.fitView();
       }
       EVENT_LOCKS.AFTER_LAYOUT_RUNNING = false;
     })
 
-    graph.on("canvas:click", async (evt) => {
+    graph.on("canvas:click", async (event) => {
       debug("CANVAS CLICK");
-      if (cache.selectedNodes?.length > 0 || cache.selectedEdges?.length > 0) {
-        debug("CANVAS CLICK DESELECTION EVENT");
-
-        await showLoading("Deselecting", "Deselecting ..");
-        EVENT_LOCKS.IS_DESELECTING = true;
-      }
     });
 
-    graph.on("node:click", async (evt) => {
+    // graph.off("canvas:click");
+
+    graph.on("node:click", async (event) => {
       debug("NODE CLICK");
     })
 
-    graph.on("edge:click", async (evt) => {
+    graph.on("edge:click", async (event) => {
       debug("EDGE CLICK");
     })
 
@@ -3282,7 +3299,7 @@ async function createGraphInstance() {
       EVENT_LOCKS.BEFORE_DRAW_RUNNING = false;
     });
 
-    graph.on(GraphEvent.AFTER_DRAW, async () => {
+    graph.on(GraphEvent.AFTER_DRAW, async (event) => {
       if (EVENT_LOCKS.AFTER_DRAW_RUNNING) return;
 
       EVENT_LOCKS.AFTER_DRAW_RUNNING = true;
@@ -3302,12 +3319,12 @@ async function createGraphInstance() {
         if (EVENT_LOCKS.AFTER_RENDER_RUNNING) return;
 
         EVENT_LOCKS.AFTER_RENDER_RUNNING = true;
-        const posInSync = await nodePositionsAreInSync();
-        debug(`NODE POSITIONS IN SYNC: ${posInSync}`);
 
         await updateSelectedNodesAndEdges();
         await redrawBubbleSets();
+        
         EVENT_LOCKS.AFTER_RENDER_RUNNING = false;
+
         await hideLoading();
       } else {
         await initialAfterRenderEvent();
@@ -3452,7 +3469,11 @@ async function updateSelectedNodesAndEdges() {
   const atLeastOneNodeOrEdgeSelected = atLeastOneNodeSelected || atLeastOneEdgeSelected;
   const moreThanOneNodeSelected = selectedNodesCount > 1;
 
-  document.getElementById("selectedNodes").style.display = atLeastOneNodeSelected ? "block" : "none";
+  if (atLeastOneNodeOrEdgeSelected || cache.selectionMemory.length > 1) {
+    document.getElementById("selectedElementsContainer").classList.remove("hidden");
+  } else {
+    document.getElementById("selectedElementsContainer").classList.add("hidden");
+  }
 
   toggleStyleElementsThatRequireAtLeastOneSelectedNode(atLeastOneNodeSelected);
   toggleStyleElementsThatRequireAtLeastOneSelectedEdge(atLeastOneEdgeSelected);
@@ -3492,8 +3513,11 @@ async function toggleEditMode() {
 
   const editBehaviors = [
     DEFAULTS.BEHAVIOURS.LASSO_SELECT,
-    // DEFAULTS.BEHAVIOURS.CLICK_SELECT
   ];
+
+  if (!PERFORMANCE_MODE) {
+    editBehaviors.push(DEFAULTS.BEHAVIOURS.CLICK_SELECT)
+  }
 
   // reduce behaviors to clean up existing edit/non-edit behaviors
   let behaviors = await graph.getBehaviors()
@@ -3509,6 +3533,23 @@ async function toggleEditMode() {
   await graph.updatePlugin({key: 'tooltip', enable: editModeActive});
 
   handleEditModeUIChanges();
+}
+
+function lassoEvent(event) {
+  graph.off("canvas:click");
+  return true;
+  const selected = graph.getNodeData().filter(n => n.states?.includes("selected"));
+    debug(`LASSO EVENT | ${event.targetType} | ${event.type} | ${event.eventPhase} | selectedLength: ${selected.length}`);
+    // prevent deselection
+  if (selected.length !== 0) {
+    debug("PREVENTING LASSO DESELECT EVENT");
+    // TODO: thats the only thing that works, but where should i re-register the click event?
+    // graph.off("canvas:click");
+    // graph.off(GraphEvent.BEFORE_DRAW);
+    // graph.off(GraphEvent.AFTER_DRAW);
+    return false;
+  }
+  return true;
 }
 
 function handleEditModeUIChanges() {
@@ -3590,14 +3631,14 @@ async function updateBubbleSet(group, members) {
 
   const avoidMembers = getAvoidMembers();
 
-  await INSTANCES.BUBBLE_SETS[group].update({
+  await INSTANCES.BUBBLE_GROUPS[group].update({
     members: empty ? [] : membersAsArray,
     avoidMembers: avoidMembers,
     fillOpacity: empty ? 0 : DEFAULTS.BUBBLE_GROUP_STYLE[group].fillOpacity,
     strokeOpacity: empty ? 0 : DEFAULTS.BUBBLE_GROUP_STYLE[group].strokeOpacity,
     label: empty ? false : DEFAULTS.BUBBLE_GROUP_STYLE[group].label,
   });
-  await INSTANCES.BUBBLE_SETS[group].drawBubbleSets();
+  await INSTANCES.BUBBLE_GROUPS[group].drawBubbleSets();
 }
 
 function setsAreEqual(setA, setB) {
@@ -4765,22 +4806,12 @@ function createCircleGroupButtonWithQuadrants(propID) {
         quadrant.title = `Remove ${propID} from ${group}.`;
         members.delete(propID);
         quadrant.classList.remove("active");
-        // await handleFilterEvent(`Reduce Group`, `Removing ${propID} from ${group}`, propID);
-        // await fixBubbleGroups();
-        // await decideToRenderOrDraw();
-        // await updateBubbleSetIfChanged();
-        // await persistNodePositions();
         await decideToRenderOrDraw();
       } else {
         data.layouts[data.selectedLayout][`${group}Props`].add(propID);
         quadrant.title = `Highlight ${propID} and add to bubble-group (${group})`;
         members.add(propID);
         quadrant.classList.add("active");
-        // await handleFilterEvent(`Add to Group`, `Adding ${propID} to ${group}`, propID);
-        // await fixBubbleGroups();
-        // await decideToRenderOrDraw();
-        // await updateBubbleSetIfChanged();
-        // await persistNodePositions();
         await decideToRenderOrDraw();
       }
     });
@@ -4999,7 +5030,7 @@ async function decideToRenderOrDraw(forceRender = false) {
   await cache.metrics.updateUI();
 
   try {
-    if (cache.bubbleSetChanged || cache.styleChanged || forceRender) {
+    if (cache.bubbleSetChanged || cache.styleChanged || cache.layoutChanged || forceRender) {
       if (cache.styleChanged) {
         await showLoading("Loading", "Updating graph data ..");
         await new Promise(resolve => requestAnimationFrame(resolve));
@@ -5045,6 +5076,13 @@ async function handleStyleChangeLoadingEvent(header, text) {
   cache.styleChanged = true;
   await decideToRenderOrDraw();
   debug(`Graph updated after style event with message ${header} ${text}`);
+}
+
+async function handleLayoutChangeLoadingEvent(header, text) {
+  await showLoading(header, text);
+  cache.layoutChanged = true;
+  await decideToRenderOrDraw();
+  debug(`Graph updated after layout event with message ${header} ${text}`);
 }
 
 function showUI(show) {
@@ -5316,7 +5354,7 @@ function preProcessData(fileData) {
   cache.nodePositionsFromExcelImport = new Map();
 
   if (PERFORMANCE_MODE) {
-    warning(`Large graph detected (${fileData.nodes.length}/${MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT} nodes) - Performance mode enabled: disabled labels, hover effects and group collision checks.`);
+    warning(`Large graph detected (${fileData.nodes.length}/${MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT} nodes) - Performance mode enabled: disabled labels, hover effects, group collision checks and click select.`);
   }
 
   // takes excel header and pre-populates data.filterDefaults to maintain order
@@ -5481,6 +5519,7 @@ function initCache() {
   cache.styleChanged = false;
   cache.labelStyleChanged = false;
   cache.visibleElementsChanged = false;
+  cache.layoutChanged = false;
 
   cache.metrics = new NetworkMetrics();
   cache.popup = null;
@@ -6506,7 +6545,7 @@ function registerGlobalEventListeners() {
 async function registerPluginStates() {
   debug("Registering bubble set plugin instances ..");
   for (const group of traverseBubbleSets()) {
-    INSTANCES.BUBBLE_SETS[group] = await graph.getPluginInstance(`bubbleSetPlugin-${group}`);
+    INSTANCES.BUBBLE_GROUPS[group] = await graph.getPluginInstance(`bubbleSetPlugin-${group}`);
   }
 }
 
@@ -6691,9 +6730,9 @@ async function debugQuery(query) {
 
 async function redrawBubbleSets() {
   if (!EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED) return;
-  if (EVENT_LOCKS.REDRAW_BUBBLE_SETS_RUNNING) return;
+  if (EVENT_LOCKS.REDRAW_BUBBLE_GROUPS_RUNNING) return;
 
-  EVENT_LOCKS.REDRAW_BUBBLE_SETS_RUNNING = true;
+  EVENT_LOCKS.REDRAW_BUBBLE_GROUPS_RUNNING = true;
   for (const group of traverseBubbleSets()) {
 
     const cachedMembers = cache.lastBubbleSetMembers.get(group);
@@ -6704,5 +6743,24 @@ async function redrawBubbleSets() {
     }
 
   }
-  EVENT_LOCKS.REDRAW_BUBBLE_SETS_RUNNING = false;
+  EVENT_LOCKS.REDRAW_BUBBLE_GROUPS_RUNNING = false;
+}
+
+function getEventProps(evt) {
+  const eventDetails = {};
+  for (let prop in evt) {
+    try {
+      if (typeof evt[prop] !== 'object' && typeof evt[prop] !== 'function') {
+        eventDetails[prop] = evt[prop];
+      } else if (typeof evt[prop] === 'function') {
+        eventDetails[`${prop}()`] = 'function';
+      } else {
+        eventDetails[prop] = 'object';
+      }
+    } catch (e) {
+      eventDetails[prop] = 'unable to access';
+    }
+  }
+  debug('Event properties and methods:');
+  debug(JSON.stringify(eventDetails, null, 2));
 }

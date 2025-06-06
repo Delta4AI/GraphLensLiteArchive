@@ -215,10 +215,32 @@
           left: auto !important;
       }
 
+      #selectedElementsContainer {
+          position: absolute !important;
+          top: 10px !important;
+          right: 10px !important;
+          bottom: auto !important;
+          left: auto !important;
+          border: 1px solid #403C53;
+          border-radius: 5px;
+          background-color: #E4E3EA80;
+          transition: opacity 0.1s ease-in-out;
+          text-align: center;
+          padding: 2px;
+          font-size: 13px;
+          z-index: 1000;
+      }
+
+      #selectedElementsContainer.hidden {
+          display: none;
+          pointer-events: none;
+          width: 0;
+          height: 0;
+      }
+
       #selectView {
           margin-bottom: 10px;
       }
-
 
       h4 {
           margin: 0.2rem;
@@ -453,9 +475,9 @@
           align-items: center;
       }
 
-      #selectedNodes, #selectedEdges {
-          display: inline !important;
-      }
+      /*#selectedNodes, #selectedEdges {*/
+      /*    display: inline !important;*/
+      /*}*/
 
       /* use with: <div class="card-labeled" data-label="My Header">{CONTENT}</div> */
       .card-labeled {
@@ -760,6 +782,18 @@
 
       .no-background {
           background: none;
+      }
+
+      .tiny-btn {
+          width: 14px;
+          height: 14px;
+          text-align: center;
+          line-height: 14px;
+          font-size: 12px;
+          border: 1px solid black;
+          border-radius: 3px;
+          cursor: pointer;
+          padding: 0;
       }
 
       .small-btn {
@@ -1861,14 +1895,6 @@
         <h5 class="purple">Shown:
           <span id="visibleNodes" class="red">0</span>/<span id="totalNodes">0</span> nodes,
           <span id="visibleEdges" class="red">0</span>/<span id="totalEdges">0</span> edges
-          <span class="show-on-edit"> | Selection:
-            <span class="red" id="selectedNodes">0</span> nodes,
-            <span class="red" id="selectedEdges">0</span> edges |
-            <button class="small-btn disabled" title="Undo Selection" id="undoSelectionBtn"
-                    onclick="undoSelection()">↩</button>
-            <button class="small-btn disabled" title="Redo Selection" id="redoSelectionButton"
-                    onclick="redoSelection()">↪</button>
-          </span>
         </h5>
         <hr>
         <div id="metricsContainer"></div>
@@ -1882,6 +1908,20 @@
     <div id="sidebarStatusContainer"></div>
   </div>
   <div id="outerGraphContainer">
+    <div id="selectedElementsContainer" class="hidden">
+      Selected nodes: <span id="selectedNodes" class="red"></span>
+      <button id="deselectNodesBtn" class="tiny-btn red is-disabled ml-1"
+              onclick="toggleSelectionForAllNodes(false)">×</button>
+      <br>
+      Selected edges: <span id="selectedEdges" class="red"></span>
+      <button id="deselectEdgesBtn" class="tiny-btn red is-disabled ml-1"
+              onclick="toggleSelectionForAllEdges(false)">×</button>
+      <hr>
+      <button class="small-btn disabled" title="Undo Selection" id="undoSelectionBtn"
+              onclick="undoSelection()">↩</button>
+      <button class="small-btn disabled" title="Redo Selection" id="redoSelectionButton"
+              onclick="redoSelection()">↪</button>
+    </div>
     <div id="innerGraphContainer"></div>
   </div>
 </div>
