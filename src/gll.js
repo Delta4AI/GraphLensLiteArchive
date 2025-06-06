@@ -1,6 +1,7 @@
 const {
   Graph,
   NodeEvent,
+  EdgeEvent,
   GraphEvent,
   CanvasEvent,
   CommonEvent,
@@ -67,6 +68,10 @@ let cache = {
   initialized: false
 };
 
+let debugEnabled = false;
+
+let PERFORMANCE_MODE = false;
+
 // Stores available network metrics and their calculation function references
 const metrics = {
   centrality: {id: "centrality", label: "Degree Centrality", calculate: async () => await calculateDegreeCentrality()},
@@ -119,7 +124,8 @@ const TOOLTIP_HIDE_NULL_VALUES = false;
 // Node count threshold beyond which labels and hover effects are disabled to keep the application responsive
 const MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT = 300;
 
-// If true, bubble groups avoid all non-bubble group members per default
+// If true, bubble groups avoid all non-bubble group members per default; overruled if network exceeds
+// MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT
 const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
 
 // Maximum capacity of selection memory
@@ -263,13 +269,13 @@ const DEFAULTS = {
     "grid": {sortBy: "id", nodeSize: 32},
     "mds": {nodeSize: 32, linkDistance: 100},
   },
-  BUBBLE_SET_STYLE: {
+  BUBBLE_GROUP_STYLE: {
     "groupOne": {fill: '#403C53', fillOpacity: 0.25, stroke: '#C33D35', strokeOpacity: 1, virtualEdges: true, labelFill: '#fff', labelPadding: 2, labelBackgroundFill: '#403C53', labelBackgroundRadius: 5, label: true, labelText: 'group one'},
     "groupTwo": {fill: '#c33d35', fillOpacity: 0.25, stroke: '#403c53', strokeOpacity: 1, virtualEdges: true, labelFill: '#fff', labelPadding: 2, labelBackgroundFill: '#c33d35', labelBackgroundRadius: 5, label: true, labelText: 'group two'},
     "groupThree": {fill: '#EFB0AA', fillOpacity: 0.4, stroke: '#8CA6D9', strokeOpacity: 1, virtualEdges: true, labelFill: '#fff', labelPadding: 2, labelBackgroundFill: '#EFB0AA', labelBackgroundRadius: 5, label: true, labelText: 'group three'},
     "groupFour": {fill: '#8CA6D9', fillOpacity: 0.4, stroke: '#EFB0AA', strokeOpacity: 1, virtualEdges: true, labelFill: '#fff', labelPadding: 2, labelBackgroundFill: '#8CA6D9', labelBackgroundRadius: 5, label: true, labelText: 'group four'},
   },
-  BUBBLE_SET_QUADRANT_POSITIONS: {
+  BUBBLE_GROUP_QUADRANT_POSITIONS: {
     groupOne: "top-left", groupTwo: "top-right", groupThree: "bottom-left", groupFour: "bottom-right"
   },
   STYLES: {
@@ -355,18 +361,24 @@ const DEFAULTS = {
         fill: '#C33D35',
         fillOpacity: 0.3,
         stroke: '#C33D35'
-      }
+      },
+      // enable: (event) => {
+      //   console.log("K");
+      //   return event.targetType === "node" || event.targetType === "edge"
+      // }
     },
     CLICK_SELECT: {
       type: "click-select",
       key: "click-select",
       multiple: true,
-      trigger: ["shift"]
+      trigger: ["shift"],
+      // skip event.targetType === "canvas" since de-selection on large graphs is extremely slow
+      enable: (event) => event.targetType === "node" || event.targetType === "edge",
     },
   },
 };
 
-const LOCKS = {
+const EVENT_LOCKS = {
   BEFORE_DRAW_RUNNING: false,
   AFTER_DRAW_RUNNING: false,
   DRAG_END_RUNNING: false,
@@ -375,9 +387,37 @@ const LOCKS = {
   BEFORE_LAYOUT_RUNNING: false,
   AFTER_LAYOUT_RUNNING: false,
   ONCE_AFTER_RENDER_RUNNING: false,
-  INITIAL_RENDER_DONE: false
+  ONCE_AFTER_RENDER_COMPLETED: false,
+  IS_DESELECTING: false,
+  REDRAW_BUBBLE_SETS_RUNNING: false,
 }
 
+const INSTANCES = {
+  BUBBLE_SETS: {}
+}
+
+const INVISIBLE_DUMMY_NODE = {
+  id: "INVISIBLEDUMMYNODEWITHIMPOSSIBLEID",
+  style: {
+    visibility: "hidden"
+  }
+}
+
+// TODO: problem:
+// 1. add bubble group
+// 3. switch view
+// 4. switch back to original view
+// 5. change bubble group content by adjusting filtering
+// 6. graph jumps out of place
+
+// possible fix:
+// await graph.layout()
+// await graph.render()
+// await updateBubbleSet("groupTwo", [])
+// await redrawBubbleSets()
+// await updateBubbleSet("groupTwo", cache.lastBubbleSetMembers.get("groupTwo"))
+// await updateBubbleSetIfChanged();
+// some parts might be obsolete ..
 
 class NetworkMetrics {
   constructor() {
@@ -1365,7 +1405,7 @@ function createDefaultLayout(key) {
     positions: new Map(),
     filters: structuredClone(data.filterDefaults),
     isCustom: false,
-    query: undefined
+    query: undefined,
   };
 
   for (const [nodeID, positions] of cache.nodePositionsFromExcelImport) {
@@ -1645,6 +1685,13 @@ async function getPositions() {
     });
   }
   return posCopy;
+}
+
+async function persistNodePositions() {
+  debug("PERSISTING NODE POSITIONS ..");
+  for (const node of await graph.getNodeData()) {
+    data.layouts[data.selectedLayout].positions.set(node.id, {style: {x: node.style.x, y: node.style.y}});
+  }
 }
 
 function createStyleDiv() {
@@ -1947,7 +1994,7 @@ function createStyleDiv() {
     colorInput.type = "text";
     colorInput.value = defaultColor;
     colorInput.classList.add("style-input");
-    colorInput.title = `Set ${property} of the selected elements to a color of choice (RGBA hex color code).`;
+    colorInput.title = `Set ${property} of the selected elements to a color of choice (RGBA hex color code). Confirm with Enter`;
     colorInput.placeholder = `Enter Color`;
 
     colorInput.addEventListener("keypress", async function (event) {
@@ -2465,12 +2512,89 @@ function toggleStyleElements(headingLabels, enable) {
   }
 }
 
+async function updateSelectedStateForNodes(nodesData, enable) {
+    await showLoading(enable ? "Selecting" : "Deselecting", `Modifying selection of ${nodesData.length} nodes`);
+  await new Promise(resolve => requestAnimationFrame(resolve));
+
+    const updatedNodeData = [];
+  for (const node of nodesData) {
+    // debug("DOES THIS TRIGGER A REDRAW?");
+    const realNode = graph.getNodeData(node.id);
+    if (!realNode.states) {
+      realNode.states = [];
+    }
+    if (enable && !realNode.states.includes("selected")) {
+      realNode.states.push("selected");
+    }
+    if (!enable && realNode.states.includes("selected")) {
+      realNode.states.splice(realNode.states.indexOf("selected"), 1);
+    }
+    updatedNodeData.push(realNode);
+    // const states = graph.getNodeData(item.id).states;
+    // debug("K");
+    // await graph.setElementState(item.id, enable ? 'selected' : '');
+
+  }
+  await graph.updateNodeData(updatedNodeData);
+  await graph.draw();
+  await hideLoading();
+  await new Promise(resolve => requestAnimationFrame(resolve));
+}
+
+async function updateSelectedStateForEdges(edgesData, enable) {
+    await showLoading(enable ? "Selecting" : "Deselecting", `Modifying selection of ${edgesData.length} edges`);
+  await new Promise(resolve => requestAnimationFrame(resolve));
+
+    const updatedEdgeData = [];
+  for (const edge of edgesData) {
+    // debug("DOES THIS TRIGGER A REDRAW?");
+    const realEdge = graph.getEdgeData(edge.id);
+    if (!realEdge.states) {
+      realEdge.states = [];
+    }
+    if (enable && !realEdge.states.includes("selected")) {
+      realEdge.states.push("selected");
+    }
+    if (!enable && realEdge.states.includes("selected")) {
+      realEdge.states.splice(realEdge.states.indexOf("selected"), 1);
+    }
+    updatedEdgeData.push(realEdge);
+    // const states = graph.getNodeData(item.id).states;
+    // debug("K");
+    // await graph.setElementState(item.id, enable ? 'selected' : '');
+
+  }
+  await graph.updateData(updatedEdgeData);
+  await graph.draw();
+  await hideLoading();
+  await new Promise(resolve => requestAnimationFrame(resolve));
+}
+
 async function updateSelectedState(elemData, enable) {
   await showLoading(enable ? "Selecting" : "Deselecting", `Modifying selection of ${elemData.length} elements`);
   await new Promise(resolve => requestAnimationFrame(resolve));
+
+  // faster routine than setting each individual setElementState
+  const updatedData = [];
   for (const item of elemData) {
-    await graph.setElementState(item.id, enable ? 'selected' : '');
+    const elem = graph.getElementData(item.id);
+    if (!elem.states) {
+      elem.states = [];
+    }
+    if (enable && !elem.states.includes("selected")) {
+      elem.states.push("selected");
+    }
+    if (!enable && elem.states.includes("selected")) {
+      elem.states.splice(elem.states.indexOf("selected"), 1);
+    }
+    updatedData.push(elem);
+
+    // alternatively .. also, remove graph.updateData() and graph.render() below
+    // await graph.setElementState(item.id, enable ? 'selected' : '');
   }
+  await graph.updateData(updatedData);
+  await graph.render();
+
   await hideLoading();
   await new Promise(resolve => requestAnimationFrame(resolve));
 }
@@ -3025,7 +3149,7 @@ async function createGraphInstance() {
       DEFAULTS.BEHAVIOURS.DRAG_ELEMENT
     ];
 
-    if (cache.showLabelsAndEnableHoverEffect) {
+    if (!PERFORMANCE_MODE) {
       behaviors.push(DEFAULTS.BEHAVIOURS.HOVER_ACTIVATE);
     }
 
@@ -3046,13 +3170,15 @@ async function createGraphInstance() {
         key: `bubbleSetPlugin-${group}`,
         type: "bubble-sets",
         members: [],
-        avoidMembers: [...cache.nodeRef.keys()],
-        ...DEFAULTS.BUBBLE_SET_STYLE[group],
+        avoidMembers: [INVISIBLE_DUMMY_NODE.id],
+        // avoidMembers: [...cache.nodeRef.keys()],
+        ...DEFAULTS.BUBBLE_GROUP_STYLE[group],
         strokeOpacity: 0,  // hide bubble groups initially (1 node persists due to bug)
         fillOpacity: 0,
         label: false,
       })),
     ];
+    // foo
 
     graph = new Graph({
       container: 'innerGraphContainer',
@@ -3084,43 +3210,30 @@ async function createGraphInstance() {
       plugins: plugins,
     });
 
-    // graph.on(NodeEvent.DRAG_END, async (event) => {
-    //   if (STATES.DRAG_END_RUNNING) return;
-    //
-    //   try {
-    //     STATES.DRAG_END_RUNNING = true;
-    //     await persistNodePositions();
-    //   } catch (errorMsg) {
-    //     error(`Error in NodeEvent.DRAG_END: ${errorMsg}`);;
-    //   } finally {
-    //     STATES.DRAG_END_RUNNING = false;
-    //   }
-    // });
-
     graph.on("node:dragend", async () => {
       /**
        * Persist all positions on every drag event
        */
-      if (LOCKS.DRAG_END_RUNNING) return;
+      if (EVENT_LOCKS.DRAG_END_RUNNING) return;
 
-      LOCKS.DRAG_END_RUNNING = true;
-      for (const node of await graph.getNodeData()) {
-        data.layouts[data.selectedLayout].positions.set(node.id, {style: {x: node.style.x, y: node.style.y}});
-      }
-      LOCKS.DRAG_END_RUNNING = false;
+      debug("DRAG END");
+      EVENT_LOCKS.DRAG_END_RUNNING = true;
+      await persistNodePositions();
+      EVENT_LOCKS.DRAG_END_RUNNING = false;
     })
 
-    // graph.on("beforelayout", () => {
-    //   console.log("BEFORE LAYOUT");
-    // })
+    graph.on("beforelayout", async () => {
+      debug("BEFORE LAYOUT");
+    })
 
     graph.on("afterlayout", async () => {
       /**
        * Applies persisted positions (excel data or after moving nodes) after layouting has finished
        */
-      if (LOCKS.AFTER_LAYOUT_RUNNING) return;
+      if (EVENT_LOCKS.AFTER_LAYOUT_RUNNING) return;
 
-      LOCKS.AFTER_LAYOUT_RUNNING = true;
+      debug("AFTER LAYOUT");
+      EVENT_LOCKS.AFTER_LAYOUT_RUNNING = true;
       if (!cache.initialNodePositions.has(data.selectedLayout)) {
         cache.initialNodePositions.set(data.selectedLayout, new Map());
       }
@@ -3129,123 +3242,94 @@ async function createGraphInstance() {
       }
 
       if (data.layouts[data.selectedLayout].positions.size > 0) {
-        graph.updateNodeData(Array.from(data.layouts[data.selectedLayout].positions, ([id, pos]) => ({id, style: pos.style})));
+        graph.updateNodeData(Array.from(data.layouts[data.selectedLayout].positions, ([id, pos]) => ({
+          id,
+          style: pos.style
+        })));
         await graph.draw();
         await graph.fitView();
       }
-      LOCKS.AFTER_LAYOUT_RUNNING = false;
+      EVENT_LOCKS.AFTER_LAYOUT_RUNNING = false;
     })
 
-    // graph.on(GraphEvent.BEFORE_DRAW, async () => {
-    //   if (LOCKS.BEFORE_DRAW_RUNNING) return;
-    //
-    //   LOCKS.BEFORE_DRAW_RUNNING = true;
-    //   const members = graph.getPluginInstance("bubbleSetPlugin-groupOne").members;
-    //   console.log(`BEFORE DRAW: ${members.size} | bubble set changed: ${cache.bubbleSetChanged}`);
-    //
-    // });
+    graph.on("canvas:click", async (evt) => {
+      debug("CANVAS CLICK");
+      if (cache.selectedNodes?.length > 0 || cache.selectedEdges?.length > 0) {
+        debug("CANVAS CLICK DESELECTION EVENT");
 
-    graph.on(GraphEvent.AFTER_DRAW, async () => {
-      // const members = graph.getPluginInstance("bubbleSetPlugin-groupOne").members;
-      // console.log(`AFTER DRAW: ${members.size} | bubble set changed: ${cache.bubbleSetChanged}`);
-      if (LOCKS.AFTER_DRAW_RUNNING) return;
-
-      LOCKS.AFTER_DRAW_RUNNING = true;
-      await restoreBubbleSetStates();
-      LOCKS.AFTER_DRAW_RUNNING = false;
+        await showLoading("Deselecting", "Deselecting ..");
+        EVENT_LOCKS.IS_DESELECTING = true;
+      }
     });
 
-    // graph.on(GraphEvent.AFTER_DRAW, async () => {
-    //   // if (STATES.AFTER_DRAW_RUNNNING) return;
-    //   //
-    //   // try {
-    //   //   STATES.AFTER_DRAW_RUNNNING = true;
-    //   //   await updateSelectedNodesAndEdges();
-    //   // } catch (errorMsg) {
-    //   //   error(`Error in GraphEvent.AFTER_DRAW: ${errorMsg}`);
-    //   // } finally {
-    //   //   await hideLoading();
-    //   //   await new Promise(resolve => requestAnimationFrame(resolve));
-    //   //   STATES.AFTER_DRAW_RUNNNING = false;
-    //   // }
-    // });
+    graph.on("node:click", async (evt) => {
+      debug("NODE CLICK");
+    })
 
-    // graph.on(GraphEvent.BEFORE_RENDER, async () => {
-      // if (STATES.BEFORE_RENDER_RUNNING) return;
-      //
-      // try {
-      //   STATES.BEFORE_RENDER_RUNNING = true;
-      //   await showLoading("Rendering", "Rendering graph ..");
-      //   await new Promise(resolve => requestAnimationFrame(resolve));
-      // } catch (errorMsg) {
-      //   error(`Error in GraphEvent.BEFORE_RENDER: ${errorMsg}`);
-      // } finally {
-      //   STATES.BEFORE_RENDER_RUNNING = false;
-      // }
-    // });
+    graph.on("edge:click", async (evt) => {
+      debug("EDGE CLICK");
+    })
 
-    // graph.on(GraphEvent.AFTER_RENDER, async () => {
-    //   if (STATES.AFTER_RENDER_RUNNING) return;
-    //   if (!STATES.INITIAL_RENDER_DONE) return;
-    //
-    //   try {
-    //     STATES.AFTER_RENDER_RUNNING = true;
-    //     // console.log("Sleeping for 500 ms ..");
-    //     // await new Promise(resolve => setTimeout(resolve, 500));
-    //     // console.log("Done sleeping; Checking positions ..");
-    //     const inSync = await nodePositionsAreInSyncWithPersistedPositions();
-    //     // console.log(`inSync: ${inSync}`);
-    //     if (!inSync) {
-    //       await showLoading("Post-processing", "Syncing node positions and redrawing graph ..");
-    //       await new Promise(resolve => requestAnimationFrame(resolve));
-    //       await syncNodePositions();
-    //       STATES.AFTER_RENDER_RUNNING = false;
-    //       await graph.draw();
-    //       // console.log("Checking positions again ..");
-    //       // const inSync = await nodePositionsAreInSyncWithPersistedPositions();
-    //       // console.log(`inSync: ${inSync}`);
-    //     }
-    //   } catch (errorMsg) {
-    //     error(`Error in GraphEvent.AFTER_RENDER: ${errorMsg}`);
-    //   } finally {
-    //     await hideLoading();
-    //     await new Promise(resolve => requestAnimationFrame(resolve));
-    //     STATES.AFTER_RENDER_RUNNING = false;
-    //   }
-    // });
+    graph.on(GraphEvent.BEFORE_DRAW, async (event) => {
+      if (EVENT_LOCKS.BEFORE_DRAW_RUNNING) return;
 
-    graph.on(GraphEvent.AFTER_RENDER, async () => {
-      // if (!STATES.INITIAL_RENDER_DONE) return;
-      //
-      // try {
-      //   if (isPositionsDirty) {
-      //     await showLoading("Syncing positions...");
-      //     await syncPositionsDebounced();
-      //   }
-      // } catch (error) {
-      //   console.error('Error in render handler:', error);
-      // } finally {
-      //   await hideLoading();
-      // }
+      EVENT_LOCKS.BEFORE_DRAW_RUNNING = true;
+      debug("BEFORE DRAW");
+      if (EVENT_LOCKS.IS_DESELECTING) {
+        debug("BEFORE DRAW DESELECTION EVENT");
+        EVENT_LOCKS.IS_DESELECTING = false;
+      }
+      EVENT_LOCKS.BEFORE_DRAW_RUNNING = false;
+    });
+
+    graph.on(GraphEvent.AFTER_DRAW, async () => {
+      if (EVENT_LOCKS.AFTER_DRAW_RUNNING) return;
+
+      EVENT_LOCKS.AFTER_DRAW_RUNNING = true;
+      debug("AFTER DRAW");
+      await updateSelectedNodesAndEdges();
+      await redrawBubbleSets();
+
+      EVENT_LOCKS.AFTER_DRAW_RUNNING = false;
       await hideLoading();
     });
 
 
-    // after initial rendering when loading a file; this is called prior to the regular after render event
-    graph.once(GraphEvent.AFTER_RENDER, async () => {
-      if (LOCKS.ONCE_AFTER_RENDER_RUNNING) return;
+    graph.on(GraphEvent.AFTER_RENDER, async () => {
+      debug("AFTER RENDER");
+
+      if (EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED) {
+        if (EVENT_LOCKS.AFTER_RENDER_RUNNING) return;
+
+        EVENT_LOCKS.AFTER_RENDER_RUNNING = true;
+        const posInSync = await nodePositionsAreInSync();
+        debug(`NODE POSITIONS IN SYNC: ${posInSync}`);
+
+        await updateSelectedNodesAndEdges();
+        await redrawBubbleSets();
+        EVENT_LOCKS.AFTER_RENDER_RUNNING = false;
+        await hideLoading();
+      } else {
+        await initialAfterRenderEvent();
+      }
+    });
+
+    async function initialAfterRenderEvent() {
+      if (EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING) return;
 
       try {
+        debug("ONCE AFTER RENDER");
         await showLoading("Post-processing", "Persisting positions and saving filters to stash ..");
         await new Promise(resolve => requestAnimationFrame(resolve));
-        LOCKS.ONCE_AFTER_RENDER_RUNNING = true;
-        // await conditionallyPersistNodePositions();
+        EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING = true;
+
         await saveFiltersToStash(false);
 
         await showLoading("Post-processing", "Registering event listeners ..");
         await new Promise(resolve => requestAnimationFrame(resolve));
         registerHotkeyEvents();
         registerGlobalEventListeners();
+        await registerPluginStates();
 
         // to initially fill caches related to the query/filters, preRenderEvent is called without rendering afterwards
         await showLoading("Post-processing", "Pre-render event ..");
@@ -3255,23 +3339,35 @@ async function createGraphInstance() {
         await showLoading("Post-processing", "Updating metrics UI ..");
         await new Promise(resolve => requestAnimationFrame(resolve));
         await cache.metrics.updateUI();
-        LOCKS.INITIAL_RENDER_DONE = true;
 
         await showLoading("Post-processing", "Finalizing rendering ..");
         await new Promise(resolve => requestAnimationFrame(resolve));
+
+        EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED = true;
         await graph.render();
       } catch (errorMsg) {
         error(`Error in GraphEvent.AFTER_RENDER: ${errorMsg}`);
       } finally {
-        LOCKS.ONCE_AFTER_RENDER_RUNNING = false;
+        EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING = false;
       }
-    })
+    }
 
     let layout = data.layouts[data.selectedLayout];
     if (!layout.isCustom) {
       await graph.setLayout({type: data.selectedLayout, ...layout.internals});
     }
   }
+}
+
+async function nodePositionsAreInSync() {
+  for (const node of await graph.getNodeData()) {
+    const existing = data.layouts[data.selectedLayout].positions?.get(node.id);
+    if (!existing) continue;
+    if (node.style.x !== existing.style.x || node.style.y !== existing.style.y) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function arraysAreEqual(a, b) {
@@ -3390,13 +3486,13 @@ async function toggleEditMode() {
     DEFAULTS.BEHAVIOURS.DRAG_ELEMENT
   ];
 
-  if (cache.showLabelsAndEnableHoverEffect) {
+  if (!PERFORMANCE_MODE) {
     nonEditBehaviors.push(DEFAULTS.BEHAVIOURS.HOVER_ACTIVATE);
   }
 
   const editBehaviors = [
     DEFAULTS.BEHAVIOURS.LASSO_SELECT,
-    DEFAULTS.BEHAVIOURS.CLICK_SELECT
+    // DEFAULTS.BEHAVIOURS.CLICK_SELECT
   ];
 
   // reduce behaviors to clean up existing edit/non-edit behaviors
@@ -3474,29 +3570,34 @@ function handleEditModeUIChanges() {
 }
 
 function* traverseBubbleSets() {
-  for (let group of Object.keys(DEFAULTS.BUBBLE_SET_STYLE)) {
+  for (let group of Object.keys(DEFAULTS.BUBBLE_GROUP_STYLE)) {
     yield group;
   }
 }
 
 async function updateBubbleSet(group, members) {
-  console.log(`Updating bubble set ${group} ..`);
-  const plugin = await graph.getPluginInstance("bubbleSetPlugin-" + group);
+  debug(`Updating bubble set ${group} ..`);
+
   let empty = !members || members.size === 0;
   const membersAsArray = [...members];
 
-  function getMembers() {
-    return AVOID_NON_BUBBLE_GROUP_MEMBERS ?
-      [...cache.nodeRef.keys()].filter(nodeID => !membersAsArray.includes(nodeID)) : [];
+  function getAvoidMembers() {
+    if (empty) return [];
+    if (PERFORMANCE_MODE) return [];
+    if (AVOID_NON_BUBBLE_GROUP_MEMBERS) return [];
+    return [...cache.nodeRef.keys()].filter(nodeID => !membersAsArray.includes(nodeID));
   }
 
-  await plugin.update({
+  const avoidMembers = getAvoidMembers();
+
+  await INSTANCES.BUBBLE_SETS[group].update({
     members: empty ? [] : membersAsArray,
-    avoidMembers: empty ? [] : getMembers(),
-    fillOpacity: empty ? 0 : DEFAULTS.BUBBLE_SET_STYLE[group].fillOpacity,
-    strokeOpacity: empty ? 0 : DEFAULTS.BUBBLE_SET_STYLE[group].strokeOpacity,
-    label: empty ? false : DEFAULTS.BUBBLE_SET_STYLE[group].label,
+    avoidMembers: avoidMembers,
+    fillOpacity: empty ? 0 : DEFAULTS.BUBBLE_GROUP_STYLE[group].fillOpacity,
+    strokeOpacity: empty ? 0 : DEFAULTS.BUBBLE_GROUP_STYLE[group].strokeOpacity,
+    label: empty ? false : DEFAULTS.BUBBLE_GROUP_STYLE[group].label,
   });
+  await INSTANCES.BUBBLE_SETS[group].drawBubbleSets();
 }
 
 function setsAreEqual(setA, setB) {
@@ -3551,7 +3652,7 @@ function createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
     });
 
   return {
-    nodes: filteredNodes, edges: filteredEdges, combos: data.combos || [],
+    nodes: [...filteredNodes, INVISIBLE_DUMMY_NODE], edges: filteredEdges, combos: data.combos || [],
   };
 }
 
@@ -3582,7 +3683,7 @@ async function preRenderEvent() {
         }
       });
     }
-    // else console.log(`Node ${node.id} did not fulfill filter!`);
+    // else debug(`Node ${node.id} did not fulfill filter!`);
   }
 
   for (const edge of cache.edgeRef.values()) {
@@ -3600,7 +3701,7 @@ async function preRenderEvent() {
         }
       });
     }
-    // else console.log(`Edge ${edge.id} did not fulfill filter!`);
+    // else debug(`Edge ${edge.id} did not fulfill filter!`);
   }
 
   const nodeIDsToBeHidden = [...cache.nodeRef.keys()].filter(nodeID => !cache.nodeIDsToBeShown.has(nodeID));
@@ -4270,7 +4371,7 @@ class DropdownChecklist {
     this.anchor.textContent = `${this.selectedCategories.size}/${this.categories.size} selected`;
     await handleFilterEvent(ev.target.checked ? "Showing" : "Hiding" + " Elements",
       `Nodes and related edges for ${this.propID} ${ev.target.value}`, this.propID);
-    // console.log(`${this.propID} ${ev.target.value} ${ev.target.checked}`);
+    // debug(`${this.propID} ${ev.target.value} ${ev.target.checked}`);
   }
 
   appendListeners() {
@@ -4649,7 +4750,7 @@ function createCircleGroupButtonWithQuadrants(propID) {
   const circleButton = document.createElement('div');
   circleButton.className = `circle-button`;
 
-  for (let [group, quadrantPosition] of Object.entries(DEFAULTS.BUBBLE_SET_QUADRANT_POSITIONS)) {
+  for (let [group, quadrantPosition] of Object.entries(DEFAULTS.BUBBLE_GROUP_QUADRANT_POSITIONS)) {
     const quadrant = document.createElement('button');
     quadrant.classList.add("quadrant");
     quadrant.classList.add(quadrantPosition);
@@ -4668,6 +4769,7 @@ function createCircleGroupButtonWithQuadrants(propID) {
         // await fixBubbleGroups();
         // await decideToRenderOrDraw();
         // await updateBubbleSetIfChanged();
+        // await persistNodePositions();
         await decideToRenderOrDraw();
       } else {
         data.layouts[data.selectedLayout][`${group}Props`].add(propID);
@@ -4678,6 +4780,7 @@ function createCircleGroupButtonWithQuadrants(propID) {
         // await fixBubbleGroups();
         // await decideToRenderOrDraw();
         // await updateBubbleSetIfChanged();
+        // await persistNodePositions();
         await decideToRenderOrDraw();
       }
     });
@@ -4706,7 +4809,7 @@ class Popup {
    *     width: '400px',
    *     position: { x: 100, y: 100 },
    *     closeOnClickOutside: false,
-   *     onClose: () => console.log('Popup closed!')
+   *     onClose: () => debug('Popup closed!')
    * });
    */
   constructor(content, options = {}) {
@@ -4941,7 +5044,7 @@ async function handleStyleChangeLoadingEvent(header, text) {
   await new Promise(resolve => requestAnimationFrame(resolve));
   cache.styleChanged = true;
   await decideToRenderOrDraw();
-  console.log(`Graph updated after style event with message ${header} ${text}`);
+  debug(`Graph updated after style event with message ${header} ${text}`);
 }
 
 function showUI(show) {
@@ -4957,14 +5060,8 @@ async function changeLayout() {
   await new Promise(resolve => requestAnimationFrame(resolve));
   let layout = data.layouts[data.selectedLayout];
 
-  let skipConsecutiveRender = false;
   if (!layout.isCustom) {
     await graph.setLayout({type: data.selectedLayout, ...layout.internals});
-    // await preRenderEvent();
-    // await graph.render();
-    // await decideToRenderOrDraw(true);
-    // await handleFilterEvent("foo", "bar");
-    // skipConsecutiveRender = true;
   }
 
   buildFilterUI();
@@ -4972,11 +5069,10 @@ async function changeLayout() {
 
   await cache.metrics.updateUI();
 
-  await decideToRenderOrDraw(true);
-  // if (!skipConsecutiveRender) {
-  // }
+  EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED = false;
 
-  // await graph.fitView();
+  await decideToRenderOrDraw(true);
+
   info(`Switched to view: ${data.selectedLayout}`);
 }
 
@@ -5048,7 +5144,7 @@ function getNodeStyleOrDefaults(node) {
   };
 
   // ----- label style ------------------------------------------------------
-  if (cache.showLabelsAndEnableHoverEffect || src.label) {
+  if (!PERFORMANCE_MODE || src.label) {
     const l = DEFAULTS.NODE.LABEL;
 
     Object.assign(defaultNode.style, {
@@ -5104,7 +5200,7 @@ function getEdgeStyleOrDefaults(edge) {
   };
 
   // ---- label style ------------------------------------------------------
-  if (cache.showLabelsAndEnableHoverEffect || src.label) {
+  if (!PERFORMANCE_MODE || src.label) {
     const l = DEFAULTS.EDGE.LABEL;
 
     Object.assign(defaultEdge.style, {
@@ -5216,11 +5312,11 @@ function preProcessData(fileData) {
     data.filterDefaults.get(propHash).upperThreshold = Math.max(nodeOrEdgeValue, data.filterDefaults.get(propHash).upperThreshold);
   }
 
-  cache.showLabelsAndEnableHoverEffect = fileData.nodes.length <= MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT;
+  PERFORMANCE_MODE = fileData.nodes.length > MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT;
   cache.nodePositionsFromExcelImport = new Map();
 
-  if (!cache.showLabelsAndEnableHoverEffect) {
-    warning(`Large graph with more than ${MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT} nodes (${fileData.nodes.length}) detected. Labels and hover effects are disabled to improve performance.`);
+  if (PERFORMANCE_MODE) {
+    warning(`Large graph detected (${fileData.nodes.length}/${MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT} nodes) - Performance mode enabled: disabled labels, hover effects and group collision checks.`);
   }
 
   // takes excel header and pre-populates data.filterDefaults to maintain order
@@ -5301,7 +5397,7 @@ function preProcessData(fileData) {
   });
 
   // option to re-configure bubble set styles per model if wanted
-  data.bubbleSetStyle = fileData.bubbleSetStyle || DEFAULTS.BUBBLE_SET_STYLE;
+  data.bubbleSetStyle = fileData.bubbleSetStyle || DEFAULTS.BUBBLE_GROUP_STYLE;
 
   // currently selected layout
   data.selectedLayout = fileData.selectedLayout || DEFAULTS.LAYOUT;
@@ -5334,7 +5430,7 @@ function preProcessData(fileData) {
     data.stash.triggered = true;
   }
 
-  console.log("Done pre-processing data");
+  debug("Done pre-processing data");
 }
 
 function initCache() {
@@ -6334,7 +6430,7 @@ async function loadFileWrapper(event) {
       }
       await graph.render();
       await graph.fitView();
-      console.log("Initial graph rendered.");
+      debug("Initial graph rendered.");
     })
     .catch(async (error) => {
       alert(`Error loading graph: ${error}`);
@@ -6351,8 +6447,8 @@ async function destroyGraphAndRollBackUI() {
   await graph.destroy();
   graph = null;
 
-  isPositionsDirty = false;
-  syncPositionsDebounced.cancel?.();
+  // isPositionsDirty = false;
+  // syncPositionsDebounced.cancel?.();
 
   const status = document.getElementById("sidebarStatusContainer");
   status.innerHTML = "";
@@ -6407,6 +6503,13 @@ function registerGlobalEventListeners() {
   );
 }
 
+async function registerPluginStates() {
+  debug("Registering bubble set plugin instances ..");
+  for (const group of traverseBubbleSets()) {
+    INSTANCES.BUBBLE_SETS[group] = await graph.getPluginInstance(`bubbleSetPlugin-${group}`);
+  }
+}
+
 async function resetLayout() {
   if (data.layouts[data.selectedLayout].isCustom) {
     alert("Cannot reset custom layout.");
@@ -6423,7 +6526,7 @@ async function resetLayout() {
     await graph.setLayout({type: data.selectedLayout, ...layout.internals});
   }
 
-  await decideToRenderOrDraw(true).then(r => console.log(`Reset layout ${data.selectedLayout}`));
+  await decideToRenderOrDraw(true).then(r => debug(`Reset layout ${data.selectedLayout}`));
 }
 
 async function exportPNG() {
@@ -6462,7 +6565,7 @@ async function showLoading(header, text = "") {
 
   let logInfo = header;
   if (text) logInfo += `: ${text}`;
-  console.log(logInfo);
+  debug(logInfo);
 
   // Force reflow
   overlay.getBoundingClientRect();
@@ -6514,12 +6617,20 @@ window.addEventListener('resize', () => {
   }
 })
 
-function logMessage(text, colorClass, bold = false, iconPrefix = "") {
+function getTimestamp(includeMilliseconds = false) {
   const now = new Date();
   const hh = String(now.getHours()).padStart(2, '0');
   const mm = String(now.getMinutes()).padStart(2, '0');
   const ss = String(now.getSeconds()).padStart(2, '0');
-  const timestamp = `${hh}:${mm}:${ss}`;
+  if (includeMilliseconds) {
+    const ms = String(now.getMilliseconds()).padStart(3, '0');
+    return `${hh}:${mm}:${ss}.${ms}`;
+  }
+  return `${hh}:${mm}:${ss}`;
+}
+
+function logMessage(text, colorClass, bold = false, iconPrefix = "") {
+  const timestamp = getTimestamp();
 
   const container = document.getElementById('sidebarStatusContainer');
   container.style.height = "8%";
@@ -6566,7 +6677,10 @@ function success(message) {
 }
 
 function debug(message) {
-  logMessage(message, "grey", false);
+  console.log(`${getTimestamp(true)} | ${message}`);
+  if (debugEnabled) {
+    logMessage(message, "grey", false);
+  }
 }
 
 async function debugQuery(query) {
@@ -6575,62 +6689,20 @@ async function debugQuery(query) {
   await handleQueryUpdateEvent();
 }
 
-// SIMPLE DIRECT FUNCTIONS
-async function updateNodeStyle() {
-  graph.updateNodeData([{id: 'A', style: {size: 120}}]);
-  await graph.draw();
-}
-
-async function getSelectedNodes() {
-  return await graph.getNodeData().filter(n => n.states.includes("selected"));
-}
-
-async function fixBubbleGroups() {
-  await graph.updateData(createSimplifiedDataForGraphObject());
-  await graph.draw();
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-async function restoreBubbleSetStates() {
-  for (const bubbleGroup of traverseBubbleSets()) {
-    const plugin = graph.getPluginInstance(`bubbleSetPlugin-${bubbleGroup}`);
-    const cachedMembers = cache.lastBubbleSetMembers.get(bubbleGroup);
-    if (cache.bubbleSetChanged && cachedMembers.size > 0 && plugin.members.size !== cachedMembers.size) {
-      // this happens once only when a bubble set exists and a node is selected
-      console.log("Restoring bubble set state for group", bubbleGroup);
-      await showLoading("Syncing bubble set state");
-      await updateBubbleSet(bubbleGroup, Array.from(cachedMembers));
-      // await graph.render();
-      await redrawBubbleSets();
-      await hideLoading();
-    }
-  }
-}
-
 async function redrawBubbleSets() {
-  return new Promise(resolve => {
-    requestAnimationFrame(async () => {
-      for (const bubbleGroup of traverseBubbleSets()) {
-        const cachedMembers = cache.lastBubbleSetMembers.get(bubbleGroup);
-        if (cachedMembers.size > 0) {
-          const plugin = graph.getPluginInstance(`bubbleSetPlugin-${bubbleGroup}`);
-          await new Promise(r => requestAnimationFrame(r));
-          await plugin.drawBubbleSets();
-        }
-      }
+  if (!EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED) return;
+  if (EVENT_LOCKS.REDRAW_BUBBLE_SETS_RUNNING) return;
 
-      setTimeout(resolve, 50);
-    });
-  });
+  EVENT_LOCKS.REDRAW_BUBBLE_SETS_RUNNING = true;
+  for (const group of traverseBubbleSets()) {
+
+    const cachedMembers = cache.lastBubbleSetMembers.get(group);
+    if (cachedMembers.size > 0) {
+      debug(`Redrawing bubble set ${group} ..`);
+      await updateBubbleSet(group, []);
+      await updateBubbleSet(group, Array.from(cachedMembers));
+    }
+
+  }
+  EVENT_LOCKS.REDRAW_BUBBLE_SETS_RUNNING = false;
 }
