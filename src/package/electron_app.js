@@ -7,14 +7,14 @@ function createWindow() {
     height: 800,
     backgroundColor: '#ffffff',
     autoHideMenuBar: true,               // menu stays hidden until user presses Alt (Win/Linux)
-    icon: path.join(__dirname, '..', 'static', 'delta-4-icon.png'),
+    icon: path.join(__dirname, '..', '..', 'static', 'delta-4-icon.png'),
     webPreferences: {
       contextIsolation: true,
       sandbox: true
     }
   });
 
-  win.loadFile(path.join(__dirname, 'graph_lens_lite.html'));
+  win.loadFile(path.join(__dirname, '..', 'graph_lens_lite.html'));
 
   win.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
