@@ -273,10 +273,58 @@ const DEFAULTS = {
     "mds": {nodeSize: 32, linkDistance: 100},
   },
   BUBBLE_GROUP_STYLE: {
-    "groupOne": {fill: '#403C53', fillOpacity: 0.25, stroke: '#C33D35', strokeOpacity: 1, virtualEdges: true, labelFill: '#fff', labelPadding: 2, labelBackgroundFill: '#403C53', labelBackgroundRadius: 5, label: true, labelText: 'group one'},
-    "groupTwo": {fill: '#c33d35', fillOpacity: 0.25, stroke: '#403c53', strokeOpacity: 1, virtualEdges: true, labelFill: '#fff', labelPadding: 2, labelBackgroundFill: '#c33d35', labelBackgroundRadius: 5, label: true, labelText: 'group two'},
-    "groupThree": {fill: '#EFB0AA', fillOpacity: 0.4, stroke: '#8CA6D9', strokeOpacity: 1, virtualEdges: true, labelFill: '#fff', labelPadding: 2, labelBackgroundFill: '#EFB0AA', labelBackgroundRadius: 5, label: true, labelText: 'group three'},
-    "groupFour": {fill: '#8CA6D9', fillOpacity: 0.4, stroke: '#EFB0AA', strokeOpacity: 1, virtualEdges: true, labelFill: '#fff', labelPadding: 2, labelBackgroundFill: '#8CA6D9', labelBackgroundRadius: 5, label: true, labelText: 'group four'},
+    "groupOne": {
+      fill: '#403C53',
+      fillOpacity: 0.25,
+      stroke: '#C33D35',
+      strokeOpacity: 1,
+      virtualEdges: true,
+      labelFill: '#fff',
+      labelPadding: 2,
+      labelBackgroundFill: '#403C53',
+      labelBackgroundRadius: 5,
+      label: true,
+      labelText: 'group one'
+    },
+    "groupTwo": {
+      fill: '#c33d35',
+      fillOpacity: 0.25,
+      stroke: '#403c53',
+      strokeOpacity: 1,
+      virtualEdges: true,
+      labelFill: '#fff',
+      labelPadding: 2,
+      labelBackgroundFill: '#c33d35',
+      labelBackgroundRadius: 5,
+      label: true,
+      labelText: 'group two'
+    },
+    "groupThree": {
+      fill: '#EFB0AA',
+      fillOpacity: 0.4,
+      stroke: '#8CA6D9',
+      strokeOpacity: 1,
+      virtualEdges: true,
+      labelFill: '#fff',
+      labelPadding: 2,
+      labelBackgroundFill: '#EFB0AA',
+      labelBackgroundRadius: 5,
+      label: true,
+      labelText: 'group three'
+    },
+    "groupFour": {
+      fill: '#8CA6D9',
+      fillOpacity: 0.4,
+      stroke: '#EFB0AA',
+      strokeOpacity: 1,
+      virtualEdges: true,
+      labelFill: '#fff',
+      labelPadding: 2,
+      labelBackgroundFill: '#8CA6D9',
+      labelBackgroundRadius: 5,
+      label: true,
+      labelText: 'group four'
+    },
   },
   BUBBLE_GROUP_QUADRANT_POSITIONS: {
     groupOne: "top-left", groupTwo: "top-right", groupThree: "bottom-left", groupFour: "bottom-right"
@@ -1660,60 +1708,60 @@ async function layoutSelectedNodes(action) {
     }
   }
 
- async function applyRandomLayout() {
-  const nodes = await getSelectedNodes();
-  if (nodes.length < 2) return;
+  async function applyRandomLayout() {
+    const nodes = await getSelectedNodes();
+    if (nodes.length < 2) return;
 
-  // ALWAYS use the fixed original bounding‐box:
-  const centerX = origCenterX;
-  const centerY = origCenterY;
-  const width   = origWidth;
-  const height  = origHeight;
+    // ALWAYS use the fixed original bounding‐box:
+    const centerX = origCenterX;
+    const centerY = origCenterY;
+    const width = origWidth;
+    const height = origHeight;
 
-  // If you really want rotation (see note below), be aware a rotated
-  // rectangle has a larger AABB—but we’re not recomputing the AABB,
-  // so the outer box stays fixed at origWidth × origHeight.
-  const angle = Math.random() * 2 * Math.PI;
+    // If you really want rotation (see note below), be aware a rotated
+    // rectangle has a larger AABB—but we’re not recomputing the AABB,
+    // so the outer box stays fixed at origWidth × origHeight.
+    const angle = Math.random() * 2 * Math.PI;
 
-  // Pick two anchors to go to two opposite corners of the ROTATED rectangle
-  // (but the *axis‐aligned* bounding-box of that rotated rectangle is still
-  // held “virtually” at origWidth×origHeight; we do not “re‐read” min/max from it).
-  const [anchor1, anchor2] = getRandomElements(nodes, 2);
+    // Pick two anchors to go to two opposite corners of the ROTATED rectangle
+    // (but the *axis‐aligned* bounding-box of that rotated rectangle is still
+    // held “virtually” at origWidth×origHeight; we do not “re‐read” min/max from it).
+    const [anchor1, anchor2] = getRandomElements(nodes, 2);
 
-  // Rotate those two anchors to the “corners” of a width×height box at random angle:
-  // corner1 ( +width/2, +height/2 ) after rotation; corner2 ( -width/2, -height/2 ).
-  anchor1.style.x = centerX + ( width / 2 ) * Math.cos(angle) - ( height / 2 ) * Math.sin(angle);
-  anchor1.style.y = centerY + ( width / 2 ) * Math.sin(angle) + ( height / 2 ) * Math.cos(angle);
+    // Rotate those two anchors to the “corners” of a width×height box at random angle:
+    // corner1 ( +width/2, +height/2 ) after rotation; corner2 ( -width/2, -height/2 ).
+    anchor1.style.x = centerX + (width / 2) * Math.cos(angle) - (height / 2) * Math.sin(angle);
+    anchor1.style.y = centerY + (width / 2) * Math.sin(angle) + (height / 2) * Math.cos(angle);
 
-  anchor2.style.x = centerX - ( width / 2 ) * Math.cos(angle) + ( height / 2 ) * Math.sin(angle);
-  anchor2.style.y = centerY - ( width / 2 ) * Math.sin(angle) - ( height / 2 ) * Math.cos(angle);
+    anchor2.style.x = centerX - (width / 2) * Math.cos(angle) + (height / 2) * Math.sin(angle);
+    anchor2.style.y = centerY - (width / 2) * Math.sin(angle) - (height / 2) * Math.cos(angle);
 
-  // Now scatter the rest uniformly inside that same rotated box:
-  for (const node of nodes) {
-    if (node === anchor1 || node === anchor2) continue;
+    // Now scatter the rest uniformly inside that same rotated box:
+    for (const node of nodes) {
+      if (node === anchor1 || node === anchor2) continue;
 
-    // pick a random (u,v) in [–0.5..+0.5] × [–0.5..+0.5]
-    const u = Math.random() - 0.5;
-    const v = Math.random() - 0.5;
+      // pick a random (u,v) in [–0.5..+0.5] × [–0.5..+0.5]
+      const u = Math.random() - 0.5;
+      const v = Math.random() - 0.5;
 
-    // scale to [–width/2..+width/2], [–height/2..+height/2]
-    const dx = u * width;
-    const dy = v * height;
+      // scale to [–width/2..+width/2], [–height/2..+height/2]
+      const dx = u * width;
+      const dy = v * height;
 
-    // rotate (dx,dy) around origin by “angle”
-    node.style.x = centerX + dx * Math.cos(angle) - dy * Math.sin(angle);
-    node.style.y = centerY + dx * Math.sin(angle) + dy * Math.cos(angle);
+      // rotate (dx,dy) around origin by “angle”
+      node.style.x = centerX + dx * Math.cos(angle) - dy * Math.sin(angle);
+      node.style.y = centerY + dx * Math.sin(angle) + dy * Math.cos(angle);
+    }
   }
-}
 
-function getRandomElements(array, n) {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  function getRandomElements(array, n) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled.slice(0, n);
   }
-  return shuffled.slice(0, n);
-}
 
   const sel = await getSelectedNodes();
   if (sel.length == 0) return;
@@ -3022,10 +3070,24 @@ function parseExcelToJson(file) {
 
   function decodeKey(key) {
     let subGroup = EXCEL_UNCATEGORIZED_SUBHEADER;
-    if (key.indexOf("[") > -1 && key.indexOf("]") > -1) {
-      subGroup = key.substring(key.indexOf("[") + 1, key.indexOf("]")).trim();
+    let trimmedKey;
+
+    const matches = key.match(/\[.*?\]/g);
+    if (matches && matches.length >= 2) {
+      const lastBracketContent = matches[matches.length - 1];
+      subGroup = lastBracketContent.substring(1, lastBracketContent.length - 1).trim();
+
+      // For multiple brackets, preserve all except the last one in the key
+      const lastBracketIndex = key.lastIndexOf(matches[matches.length - 1]);
+      trimmedKey = key.substring(0, lastBracketIndex).trim();
+    } else if (matches && matches.length === 1) {
+      const bracketContent = matches[0];
+      subGroup = bracketContent.substring(1, bracketContent.length - 1).trim();
+      trimmedKey = key.substring(0, key.indexOf('[')).trim();
+    } else {
+      trimmedKey = key.trim();
     }
-    const trimmedKey = key.split("[")[0].trim();
+
     return {"subGroup": subGroup, "key": trimmedKey};
   }
 
@@ -3326,7 +3388,7 @@ async function createGraphInstance() {
 
         await updateSelectedNodesAndEdges();
         await redrawBubbleSets();
-        
+
         EVENT_LOCKS.AFTER_RENDER_RUNNING = false;
 
         await hideLoading();
@@ -3543,8 +3605,8 @@ function lassoEvent(event) {
   graph.off("canvas:click");
   return true;
   const selected = graph.getNodeData().filter(n => n.states?.includes("selected"));
-    debug(`LASSO EVENT | ${event.targetType} | ${event.type} | ${event.eventPhase} | selectedLength: ${selected.length}`);
-    // prevent deselection
+  debug(`LASSO EVENT | ${event.targetType} | ${event.type} | ${event.eventPhase} | selectedLength: ${selected.length}`);
+  // prevent deselection
   if (selected.length !== 0) {
     debug("PREVENTING LASSO DESELECT EVENT");
     // TODO: thats the only thing that works, but where should i re-register the click event?
