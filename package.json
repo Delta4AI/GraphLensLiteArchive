@@ -14,7 +14,7 @@
     "clean": "rimraf dist && mkdir -p dist",
     "create-inline-html": "node src/package/inline_html.js src/graph_lens_lite.html dist/graph-lens-lite_${npm_package_version}.html",
     "create-gll-zip": "cd src && zip -r ../dist/GLL-source-bundle_${npm_package_version}.zip lib/g6.min.js gll.js graph_lens_lite.html lib/xlsx.full.min.js ../templates/GLL_template.xlsx",
-    "dist": "npm run clean && npm run create-gll-zip && electron-builder --linux --win"
+    "dist": "npm run clean && npm run create-gll-zip && npm run create-inline-html && electron-builder --linux --win"
   },
   "build": {
     "appId": "com.delta4ai.graphlenslite",
