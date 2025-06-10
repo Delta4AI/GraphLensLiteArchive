@@ -146,6 +146,9 @@ const EXCEL_NODE_HEADER = "Node filters";
 // Edge filter header
 const EXCEL_EDGE_HEADER = "Edge filters";
 
+// Set to true in case original g6.min.js is used (https://github.com/antvis/G6/issues/7195)
+const APPLY_BUBBLE_SET_HOTFIX = false;
+
 // The following constants define the columns in the Excel template for mapping node and edge properties
 // allowed types: "str", "num", "bool", "rgba", "oneOf:a|b|c"
 // @formatter:off
@@ -364,12 +367,29 @@ const DEFAULTS = {
       },
       enable: (event) => {
         debug("LASSO CANVAS CLICK");
-        // TODO: the commented code below triggers a loading event instead of freezing the UI, but would prevent the
-        //  bubbled deselection ..
+
+        if (!APPLY_BUBBLE_SET_HOTFIX) return true;
+
+        const selected = graph.getNodeData().filter(n => n.states?.includes("selected"));
+
+        // the code below triggers a loading event instead of freezing the UI, but prevents the bubble-deselection ..
         // const selected = graph.getNodeData().filter(n => n.states?.includes("selected"));
         // if (selected.length > 0) {
         //   showLoading("Rendering", "Deselecting after lasso selection event");
         // }
+
+        // TODO: this does not allow for consecutive lasso-selections without deselection
+        if (selected.length !== 0) {
+          debug("PREVENTING LASSO DESELECT EVENT BY REMOVING CANVAS CLICK EVENT");
+          const eventHandler = graph.getEvents()["canvas:click"];
+          graph.off("canvas:click");
+          setTimeout(() => {
+            debug("RESTORING CANVAS CLICK EVENT");
+            graph.on("canvas:click", eventHandler);
+          }, 1000);
+
+          return false;
+        }
         return true;
       }
     },
@@ -429,22 +449,6 @@ const INVISIBLE_DUMMY_NODE = {
     visibility: "hidden"
   }
 }
-
-// TODO: problem:
-// 1. add bubble group
-// 3. switch view
-// 4. switch back to original view
-// 5. change bubble group content by adjusting filtering
-// 6. graph jumps out of place
-
-// possible fix:
-// await graph.layout()
-// await graph.render()
-// await updateBubbleSet("groupTwo", [])
-// await redrawBubbleSets()
-// await updateBubbleSet("groupTwo", cache.lastBubbleSetMembers.get("groupTwo"))
-// await updateBubbleSetIfChanged();
-// some parts might be obsolete ..
 
 class NetworkMetrics {
   constructor() {
@@ -3515,8 +3519,8 @@ async function toggleEditMode() {
     DEFAULTS.BEHAVIOURS.LASSO_SELECT,
   ];
 
-  if (!PERFORMANCE_MODE) {
-    editBehaviors.push(DEFAULTS.BEHAVIOURS.CLICK_SELECT)
+  if (!APPLY_BUBBLE_SET_HOTFIX || (APPLY_BUBBLE_SET_HOTFIX && !PERFORMANCE_MODE)) {
+    editBehaviors.push(DEFAULTS.BEHAVIOURS.CLICK_SELECT);
   }
 
   // reduce behaviors to clean up existing edit/non-edit behaviors
@@ -3624,7 +3628,7 @@ async function updateBubbleSet(group, members) {
 
   function getAvoidMembers() {
     if (empty) return [];
-    if (PERFORMANCE_MODE) return [];
+    if (APPLY_BUBBLE_SET_HOTFIX && PERFORMANCE_MODE) return [];
     if (AVOID_NON_BUBBLE_GROUP_MEMBERS) return [];
     return [...cache.nodeRef.keys()].filter(nodeID => !membersAsArray.includes(nodeID));
   }
@@ -5354,7 +5358,14 @@ function preProcessData(fileData) {
   cache.nodePositionsFromExcelImport = new Map();
 
   if (PERFORMANCE_MODE) {
-    warning(`Large graph detected (${fileData.nodes.length}/${MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT} nodes) - Performance mode enabled: disabled labels, hover effects, group collision checks and click select.`);
+    let msg = `Large graph detected (${fileData.nodes.length}/${MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT} nodes) - Performance mode enabled: disabled labels, hover effects, group collision checks`;
+    if (APPLY_BUBBLE_SET_HOTFIX) {
+      msg += " and click select.";
+    } else {
+      msg = msg.replace(", group", " and group");
+      msg += "."
+    }
+    warning(msg);
   }
 
   // takes excel header and pre-populates data.filterDefaults to maintain order
