@@ -2958,25 +2958,72 @@ function parseExcelToJson(file) {
     }
   }
 
+  function sanitizeColumns(sheetJson, sheetDescriptor) {
+    if (!sheetJson || sheetJson.length === 0) return;
+
+    const firstRow = sheetJson[0];
+    const columnMapping = {};
+
+    Object.keys(firstRow).forEach(originalKey => {
+      if (originalKey.startsWith('__EMPTY')) return;
+
+      if (originalKey.includes('(') || originalKey.includes(')')) {
+        columnMapping[originalKey] = originalKey.replace(/\(/g, '[').replace(/\)/g, ']');
+      }
+    });
+
+    sheetJson.forEach(row => {
+      Object.entries(columnMapping).forEach(([originalKey, sanitizedKey]) => {
+        if (row.hasOwnProperty(originalKey)) {
+          row[sanitizedKey] = row[originalKey];
+          delete row[originalKey];
+        }
+      });
+    });
+
+    Object.entries(columnMapping).forEach(([original, sanitized]) => {
+      warning(`Column "${original}" in "${sheetDescriptor}" sheet was renamed to "${sanitized}" for proper group parsing.`);
+    });
+  }
+
   function removeEmptyColumns(sheetJson, sheetDescriptor) {
     const allCols = Object.keys(sheetJson[0]).filter(c => !c.startsWith("__EMPTY"));
 
-    const emptyCols = allCols.filter(col =>
-      sheetJson.every(row => {
-        const v = row[col];
-        return v === null || v.toString().trim() === "";
-      })
+    const isColumnEmpty = (col) => sheetJson.every(row => {
+      const v = row[col];
+      return v === null || v.toString().trim() === "";
+    });
+
+    const emptyRequiredColumns = allCols.filter(col =>
+      requiredCols.includes(col) && isColumnEmpty(col)
     );
 
-    if (emptyCols.length) {
-      for (const col of emptyCols) {
-        warning(`Column "${col}" in "${sheetDescriptor}" sheet is empty and will be removed.`);
-      }
-    }
-
-    sheetJson.forEach(row =>
-      emptyCols.forEach(col => delete row[col])
+    const emptyOptionalColumns = allCols.filter(col =>
+      optionalCols.includes(col) && isColumnEmpty(col)
     );
+
+    const emptyUserColumns = allCols.filter(col =>
+      !requiredCols.includes(col) &&
+      !optionalCols.includes(col) &&
+      isColumnEmpty(col)
+    );
+
+    emptyRequiredColumns.forEach(col => {
+      error(`Required column "${col}" in "${sheetDescriptor}" sheet is empty.`);
+    });
+
+    emptyOptionalColumns.forEach(col => {
+      info(`Optional column "${col}" in "${sheetDescriptor}" sheet is empty.`);
+    });
+
+    emptyUserColumns.forEach(col => {
+      warning(`User defined column "${col}" in "${sheetDescriptor}" sheet is empty.`);
+    });
+
+    const allEmptyColumns = [...emptyRequiredColumns, ...emptyOptionalColumns, ...emptyUserColumns];
+    sheetJson.forEach(row => {
+      allEmptyColumns.forEach(col => delete row[col]);
+    });
   }
 
   const nodesData = XLSX.utils.sheet_to_json(nodesSheet, {defval: null});
@@ -2991,6 +3038,12 @@ function parseExcelToJson(file) {
     error('The "edges" sheet is empty or invalid.');
     return;
   }
+
+  const optionalCols = EXCEL_NODE_PROPERTIES.filter(p => !p.required).map(p => p.column);
+  const requiredCols = EXCEL_NODE_PROPERTIES.filter(p => p.required).map(p => p.column);
+
+  sanitizeColumns(nodesData, "nodes");
+  sanitizeColumns(edgesData, "edges");
 
   removeEmptyColumns(nodesData, "nodes");
   removeEmptyColumns(edgesData, "edges");
@@ -3430,6 +3483,8 @@ async function createGraphInstance() {
         await graph.render();
       } catch (errorMsg) {
         error(`Error in GraphEvent.AFTER_RENDER: ${errorMsg}`);
+        error("Graph setup failed. Please check your input data.");
+        await hideLoading();
       } finally {
         EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING = false;
       }
@@ -6777,7 +6832,7 @@ function info(message) {
 }
 
 function warning(message) {
-  logMessage(message, "orange", false, "⚠️");
+  logMessage(message, "dark-orange", false, "⚠️");
 }
 
 function error(message) {
