@@ -146,7 +146,7 @@ const EXCEL_NODE_HEADER = "Node filters";
 // Edge filter header
 const EXCEL_EDGE_HEADER = "Edge filters";
 
-// Set to true in case original g6.min.js is used (https://github.com/antvis/G6/issues/7195)
+// Set to true in case original g6.min.js is used and issue #7195 is NOT resolved (https://github.com/antvis/G6/issues/7195)
 const APPLY_BUBBLE_SET_HOTFIX = false;
 
 // The following constants define the columns in the Excel template for mapping node and edge properties
@@ -484,7 +484,7 @@ const EVENT_LOCKS = {
   ONCE_AFTER_RENDER_RUNNING: false,
   ONCE_AFTER_RENDER_COMPLETED: false,
   IS_DESELECTING: false,
-  REDRAW_BUBBLE_GROUPS_RUNNING: false,
+  BUBBLE_GROUP_REDRAW_RUNNING: false,
 }
 
 const INSTANCES = {
@@ -2987,6 +2987,10 @@ function parseExcelToJson(file) {
   }
 
   function removeEmptyColumns(sheetJson, sheetDescriptor) {
+    const propertyDefs = sheetDescriptor === 'edges' ? EXCEL_EDGE_PROPERTIES : EXCEL_NODE_PROPERTIES;
+    const requiredCols = propertyDefs.filter(prop => prop.required).map(prop => prop.column);
+    const optionalCols = propertyDefs.filter(prop => !prop.required).map(prop => prop.column);
+
     const allCols = Object.keys(sheetJson[0]).filter(c => !c.startsWith("__EMPTY"));
 
     const isColumnEmpty = (col) => sheetJson.every(row => {
@@ -3007,6 +3011,7 @@ function parseExcelToJson(file) {
       !optionalCols.includes(col) &&
       isColumnEmpty(col)
     );
+
 
     emptyRequiredColumns.forEach(col => {
       error(`Required column "${col}" in "${sheetDescriptor}" sheet is empty.`);
@@ -3738,8 +3743,6 @@ function* traverseBubbleSets() {
 }
 
 async function updateBubbleSet(group, members) {
-  debug(`Updating bubble set ${group} ..`);
-
   let empty = !members || members.size === 0;
   const membersAsArray = [...members];
 
@@ -3752,6 +3755,11 @@ async function updateBubbleSet(group, members) {
 
   const avoidMembers = getAvoidMembers();
 
+  if (arraysAreEqual(membersAsArray, [...INSTANCES.BUBBLE_GROUPS[group].members.keys()])) {
+    debug("BUBBLE GROUPS IN SYNC - SKIPPING UPDATE");
+    return;
+  }
+
   await INSTANCES.BUBBLE_GROUPS[group].update({
     members: empty ? [] : membersAsArray,
     avoidMembers: avoidMembers,
@@ -3761,6 +3769,67 @@ async function updateBubbleSet(group, members) {
   });
   await INSTANCES.BUBBLE_GROUPS[group].drawBubbleSets();
 }
+
+function debugBubbleSets() {
+  Array.from(cache.lastBubbleSetMembers.get("groupOne")).has("")
+}
+
+// async function updateBubbleSet(group, members) {
+//   if (EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING) return;
+//
+//   let empty = !members || members.size === 0;
+//
+//   function getAvoidMembers() {
+//     if (empty) return [];
+//     if (APPLY_BUBBLE_SET_HOTFIX && PERFORMANCE_MODE) return [];
+//     if (AVOID_NON_BUBBLE_GROUP_MEMBERS) return [];
+//     return [...cache.nodeRef.keys()].filter(nodeID => !membersAsArray.includes(nodeID));
+//   }
+//
+//   try {
+//     EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING = true;
+//
+//     const validMembers = Array.isArray(members) ? members.filter(Boolean) : [];
+//
+//     const existingMembers = INSTANCES.BUBBLE_GROUPS[group]?.members?.keys() || new Set();
+//     const existingMembersArray = Array.from(existingMembers);
+//
+//     const existingAvoidMembers = INSTANCES.BUBBLE_GROUPS[group]?.avoidMembers?.keys() || new Set();
+//     const existingAvoidMembersArray = Array.from(existingAvoidMembers);
+//
+//     if (JSON.stringify(validMembers.sort()) !== JSON.stringify(existingMembersArray.sort())) {
+//       debug(`Updating bubble set ${group} ..`);
+//
+//       // Store the previous members for rollback
+//       const previousMembers = new Set(existingMembersArray);
+//       const previousAvoidMembers = new Set(existingAvoidMembersArray);
+//
+//       try {
+//         const avoidMembers = getAvoidMembers();
+//         await INSTANCES.BUBBLE_GROUPS[group].update({
+//           members: empty ? [] : validMembers,
+//           avoidMembers: avoidMembers,
+//           fillOpacity: empty ? 0 : DEFAULTS.BUBBLE_GROUP_STYLE[group].fillOpacity,
+//           strokeOpacity: empty ? 0 : DEFAULTS.BUBBLE_GROUP_STYLE[group].strokeOpacity,
+//           label: empty ? false : DEFAULTS.BUBBLE_GROUP_STYLE[group].label,
+//         });
+//         await INSTANCES.BUBBLE_GROUPS[group].drawBubbleSets();
+//       } catch (error) {
+//         console.error(`Error updating bubble set ${group}:`, error);
+//         await INSTANCES.BUBBLE_GROUPS[group].update({
+//           members: previousMembers,
+//           avoidMembers: previousAvoidMembers,
+//           fillOpacity: empty ? 0 : DEFAULTS.BUBBLE_GROUP_STYLE[group].fillOpacity,
+//           strokeOpacity: empty ? 0 : DEFAULTS.BUBBLE_GROUP_STYLE[group].strokeOpacity,
+//           label: empty ? false : DEFAULTS.BUBBLE_GROUP_STYLE[group].label,
+//         });
+//         await INSTANCES.BUBBLE_GROUPS[group].drawBubbleSets();
+//       }
+//     }
+//   } finally {
+//     EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING = false;
+//   }
+// }
 
 function setsAreEqual(setA, setB) {
   if (setA.size !== setB.size) return false;
@@ -6610,6 +6679,18 @@ async function loadFileWrapper(event) {
     });
 }
 
+const debounce = (func, wait) => {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
+
 async function destroyGraphAndRollBackUI() {
   await graph.destroy();
   graph = null;
@@ -6856,23 +6937,24 @@ async function debugQuery(query) {
   await handleQueryUpdateEvent();
 }
 
-async function redrawBubbleSets() {
+const redrawBubbleSets = debounce(async () => {
   if (!EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED) return;
-  if (EVENT_LOCKS.REDRAW_BUBBLE_GROUPS_RUNNING) return;
+  if (EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING) return;
 
-  EVENT_LOCKS.REDRAW_BUBBLE_GROUPS_RUNNING = true;
-  for (const group of traverseBubbleSets()) {
-
-    const cachedMembers = cache.lastBubbleSetMembers.get(group);
-    if (cachedMembers.size > 0) {
-      debug(`Redrawing bubble set ${group} ..`);
-      await updateBubbleSet(group, []);
-      await updateBubbleSet(group, Array.from(cachedMembers));
+  EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING = true;
+  try {
+    for (const group of traverseBubbleSets()) {
+      const cachedMembers = cache.lastBubbleSetMembers.get(group);
+      if (cachedMembers?.size > 0) {
+        debug(`Redrawing bubble set ${group} ..`);
+        await updateBubbleSet(group, []);
+        await updateBubbleSet(group, Array.from(cachedMembers));
+      }
     }
-
+  } finally {
+    EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING = false;
   }
-  EVENT_LOCKS.REDRAW_BUBBLE_GROUPS_RUNNING = false;
-}
+}, 50);
 
 function getEventProps(evt) {
   const eventDetails = {};
