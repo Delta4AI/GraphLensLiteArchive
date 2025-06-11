@@ -2280,6 +2280,63 @@ function createStyleDiv() {
     });
   }
 
+  function createFocusCard() {
+    const focDiv = createCard("Focus Elements");
+    const row = createNewRow(focDiv);
+
+    appendLabel(row, "Node ID/Label", "Select the Node ID or Label to focus.", "nodeFocusLabel");
+    appendEditableDropdown(row, true);
+
+    appendVerticalRule(row);
+
+    appendLabel(row, "Edge ID/Label", "Select the Edge ID or Label to focus.", "edgeFocusLabel");
+    appendEditableDropdown(row, false);
+  }
+
+  function appendEditableDropdown(parent, isNode, widthInPx=220) {
+    const input = document.createElement('input');
+    const dataListID = `focusOptions${isNode ? 'Node' : 'Edge'}`;
+    input.setAttribute('list', dataListID);
+    input.placeholder = `Search ${isNode ? 'node' : 'edge'} ID or label...`;
+    input.classList.add('style-input');
+    input.style.width = `${widthInPx}px`;
+
+    const datalist = document.createElement('datalist');
+    datalist.id = dataListID;
+
+    const sourceMap = isNode
+      ? cache.nodeIDOrLabelToNodeIDs
+      : cache.edgeIDOrLabelToEdgeIDs;
+
+    for (const key of sourceMap.keys()) {
+      const option = document.createElement('option');
+      option.value = key;
+      datalist.appendChild(option);
+    }
+
+    const focusButton = document.createElement('button');
+    focusButton.textContent = 'Focus';
+    focusButton.classList.add('style-inner-button');
+    focusButton.onclick = async () => {
+      const selectedValue = input.value;
+      if (selectedValue) {
+        const ids = sourceMap.get(selectedValue);
+        if (ids) {
+          if (ids.size !== 1) {
+            warning(`Ambiguous selection: ${selectedValue} matches ${ids.size} ${isNode ? 'nodes' : 'edges'} (${Array.from(ids).join(',')}).`);
+          }
+          await graph.focusElement([...ids]);
+        } else {
+          warning(`No ${isNode ? 'node' : 'edge'} found for: ${selectedValue}`);
+        }
+      }
+    };
+
+    parent.appendChild(input);
+    parent.appendChild(datalist);
+    parent.appendChild(focusButton);
+  }
+
   function createSelectCard() {
     const selDiv = createCard("Select Elements");
 
@@ -2314,7 +2371,7 @@ function createStyleDiv() {
     const topTwoNodeIDs = data?.nodes?.slice(0, 2).map(n => n.id).join(',') || 'Node1,Node2';
     const nodeIDsInput = createInput(204, topTwoNodeIDs, nodeIDsTT, undefined,
       async (val) => {
-        await addNodeOrEdgeIDsToSelection(val, true);
+        await addNodeOrEdgeIDsToSelectionWrapper(val, true);
       });
     nodeIDsInput.id = "selectByNodeIDsInput";
     rowTwo.appendChild(nodeIDsInput);
@@ -2334,7 +2391,7 @@ function createStyleDiv() {
     const includeNodesByIdBtn = createButton("Include", "Add the selected nodes to the selection", async () => {
       const elements = document.getElementById("selectByNodeIDsInput").value;
       if (elements) {
-        await addNodeOrEdgeIDsToSelection(elements, true);
+        await addNodeOrEdgeIDsToSelectionWrapper(elements, true);
       }
     }, "selectByNodeIDsButton");
     rowTwo.appendChild(includeNodesByIdBtn);
@@ -2344,7 +2401,7 @@ function createStyleDiv() {
     const topTwoEdgeIDs = data?.edges?.slice(0, 2).map(e => e.id).join(',') || 'Node1::Node2,Node1::Node3';
     const edgeIDsInput = createInput(204, topTwoEdgeIDs, edgeIDsTT, undefined,
       async (val) => {
-        await addNodeOrEdgeIDsToSelection(val, false);
+        await addNodeOrEdgeIDsToSelectionWrapper(val, false);
       });
     edgeIDsInput.id = "selectByEdgeIDsInput";
     rowTwo.appendChild(edgeIDsInput);
@@ -2364,10 +2421,83 @@ function createStyleDiv() {
     const includeEdgesByIdBtn = createButton("Include", "Add the selected nodes to the selection", async () => {
       const elements = document.getElementById("selectByEdgeIDsInput").value;
       if (elements) {
-        await addNodeOrEdgeIDsToSelection(elements, false);
+        await addNodeOrEdgeIDsToSelectionWrapper(elements, false);
       }
     }, "selectByEdgeIDsButton");
     rowTwo.appendChild(includeEdgesByIdBtn);
+
+    conditionallyCreateNodeOrEdgeSelectionRow(selDiv);
+  }
+
+  function conditionallyCreateNodeOrEdgeSelectionRow(selDiv) {
+    let row;
+    if (cache.nodeLabels.length > 0 || cache.edgeLabels.length > 0) {
+      row = createNewRow(selDiv);
+    }
+
+    if (cache.nodeLabels.length > 0) {
+      const nodeLabelsTT = "Enter comma-separated list of node labels to add/remove to/from selection\nConfirm with Enter";
+      appendLabel(row, "Node Label(s)", nodeLabelsTT);
+      const topTwoNodeLabels = cache.nodeLabels?.slice(0, 2).join(',') || 'Label1,Label2';
+      const nodeLabelsInput = createInput(200, topTwoNodeLabels, nodeLabelsTT, undefined,
+        async (val) => {
+          await addNodeOrEdgeLabelsToSelectionWrapper(val, true);
+        });
+      nodeLabelsInput.id = "selectByNodeLabelsInput";
+      row.appendChild(nodeLabelsInput);
+      const nodeLabelsInputSwitch = createSwitch(e => {
+        const btn = document.getElementById("selectByNodeLabelsButton");
+        if (e.target.checked) {
+          btn.textContent = "Exclude";
+          btn.classList.add("red");
+          btn.title = "Remove the selected nodes from the selection";
+        } else {
+          btn.textContent = "Include";
+          btn.classList.remove("red");
+          btn.title = "Add the selected nodes to the selection";
+        }
+      }, "selectByNodeLabelsSwitch");
+      row.appendChild(nodeLabelsInputSwitch);
+      const includeNodesByLabelBtn = createButton("Include", "Add the selected nodes to the selection", async () => {
+        const elements = document.getElementById("selectByNodeLabelsInput").value;
+        if (elements) {
+          await addNodeOrEdgeLabelsToSelectionWrapper(elements, true);
+        }
+      }, "selectByNodeLabelsButton");
+      row.appendChild(includeNodesByLabelBtn);
+    }
+
+    if (cache.edgeLabels.length > 0) {
+      const edgeLabelsTT = "Enter comma-separated list of edge Labels to add/remove to/from selection\nConfirm with Enter";
+      appendVerticalRule(row, "Edge Label(s)", edgeLabelsTT);
+      const topTwoEdgeLabels = cache.edgeLabels.slice(0, 2).join(',') || 'Label1,Label2';
+      const edgeLabelsInput = createInput(200, topTwoEdgeLabels, edgeLabelsTT, undefined,
+        async (val) => {
+          await addNodeOrEdgeLabelsToSelectionWrapper(val, false);
+        });
+      edgeLabelsInput.id = "selectByEdgeLabelsInput";
+      row.appendChild(edgeLabelsInput);
+      const edgeLabelsInputSwitch = createSwitch(e => {
+        const btn = document.getElementById("selectByEdgeLabelsButton");
+        if (e.target.checked) {
+          btn.textContent = "Exclude";
+          btn.classList.add("red");
+          btn.title = "Remove the selected edges from the selection";
+        } else {
+          btn.textContent = "Include";
+          btn.classList.remove("red");
+          btn.title = "Add the selected edges to the selection";
+        }
+      }, "selectByEdgeLabelsSwitch");
+      row.appendChild(edgeLabelsInputSwitch);
+      const includeEdgesByLabelBtn = createButton("Include", "Add the selected nodes to the selection", async () => {
+        const elements = document.getElementById("selectByEdgeLabelsInput").value;
+        if (elements) {
+          await addNodeOrEdgeLabelsToSelectionWrapper(elements, false);
+        }
+      }, "selectByEdgeLabelsButton");
+      row.appendChild(includeEdgesByLabelBtn);
+    }
   }
 
   function createArrangeNodesCard() {
@@ -2515,6 +2645,7 @@ function createStyleDiv() {
       {min: 1, max: 30, step: 1}, "Define the halo width for the selected edges.");
   }
 
+  createFocusCard();
   createSelectCard();
   createArrangeNodesCard();
   createNodeConfigCard();
@@ -2723,20 +2854,42 @@ function redoSelection() {
   }
 }
 
-async function addNodeOrEdgeIDsToSelection(elementIDs, isNode) {
+async function addNodeOrEdgeIDsToSelectionWrapper(elementIDs, isNode) {
   const shouldAdd = isNode
     ? !document.getElementById("selectByNodeIDsSwitch").checked
     : !document.getElementById("selectByEdgeIDsSwitch").checked;
+  const elementIDsAsArray = elementIDs ? elementIDs.split(",") : [];
+
+  await addNodeOrEdgeIDsToSelection(elementIDsAsArray, isNode, shouldAdd);
+}
+
+async function addNodeOrEdgeLabelsToSelectionWrapper(elementLabels, isNode) {
+  const elementLabelsAsArray = elementLabels ? elementLabels.split(",") : [];
+
+  const elementIDs = elementLabelsAsArray.flatMap(label => {
+    const set = isNode
+      ? cache.nodeLabelToNodeIDs.get(label)
+      : cache.edgeLabelToEdgeIDs.get(label);
+    return set ? Array.from(set) : [];
+  });
+
+  const shouldAdd = isNode
+    ? !document.getElementById("selectByNodeLabelsSwitch").checked
+    : !document.getElementById("selectByEdgeLabelsSwitch").checked;
+
+  await addNodeOrEdgeIDsToSelection(elementIDs, isNode, shouldAdd);
+}
+
+async function addNodeOrEdgeIDsToSelection(elementIDs, isNode, shouldAdd) {
 
   const elemDescription = isNode ? "Node" : "Edge";
-  const idArray = elementIDs ? elementIDs.split(",") : [];
 
   const visibleElements = isNode ? cache.nodeIDsToBeShown : cache.edgeIDsToBeShown;
   const existingElements = isNode ? cache.nodeRef.keys().toArray() : cache.edgeRef.keys().toArray();
   const selectedElements = isNode ? cache.selectedNodes : cache.selectedEdges;
   const ref = isNode ? cache.nodeRef : cache.edgeRef;
 
-  for (const elemID of idArray) {
+  for (const elemID of elementIDs) {
     if (!existingElements.includes(elemID)) {
       error(`${elemDescription} with ID: '${elemID}' does not exist!`);
       continue;
@@ -2987,7 +3140,8 @@ function parseExcelToJson(file) {
   }
 
   function removeEmptyColumns(sheetJson, sheetDescriptor) {
-    const propertyDefs = sheetDescriptor === 'edges' ? EXCEL_EDGE_PROPERTIES : EXCEL_NODE_PROPERTIES;
+    const propertyDefs = sheetDescriptor === 'edges'
+      ? EXCEL_EDGE_PROPERTIES : EXCEL_NODE_PROPERTIES;
     const requiredCols = propertyDefs.filter(prop => prop.required).map(prop => prop.column);
     const optionalCols = propertyDefs.filter(prop => !prop.required).map(prop => prop.column);
 
@@ -3043,9 +3197,6 @@ function parseExcelToJson(file) {
     error('The "edges" sheet is empty or invalid.');
     return;
   }
-
-  const optionalCols = EXCEL_NODE_PROPERTIES.filter(p => !p.required).map(p => p.column);
-  const requiredCols = EXCEL_NODE_PROPERTIES.filter(p => p.required).map(p => p.column);
 
   sanitizeColumns(nodesData, "nodes");
   sanitizeColumns(edgesData, "edges");
@@ -5721,6 +5872,14 @@ function initCache() {
   cache.metrics = new NetworkMetrics();
   cache.popup = null;
 
+  cache.nodeLabels = [];
+  cache.edgeLabels = [];
+  cache.nodeLabelToNodeIDs = new Map();
+  cache.edgeLabelToEdgeIDs = new Map();
+
+  cache.nodeIDOrLabelToNodeIDs = new Map();
+  cache.edgeIDOrLabelToEdgeIDs = new Map();
+
   function populateUniquePropGroups(propHash) {
     const [mainGroup, subGroup, prop] = decodePropHashId(propHash);
     if (!cache.uniquePropHierarchy[mainGroup]) {
@@ -5742,6 +5901,25 @@ function initCache() {
     cache.nodeRef.set(node.id, node);
     cache.toolTips.set(node.id, buildToolTipText(node.id, false));
     cache.nodeIDToPropIDs.set(node.id, new Set());
+    if (node.label) {
+      cache.nodeLabels.push(node.label);
+
+      if (!cache.nodeLabelToNodeIDs.has(node.label)) {
+        cache.nodeLabelToNodeIDs.set(node.label, new Set());
+      }
+      cache.nodeLabelToNodeIDs.get(node.label).add(node.id);
+
+      if (!cache.nodeIDOrLabelToNodeIDs.has(node.label)) {
+        cache.nodeIDOrLabelToNodeIDs.set(node.label, new Set());
+      }
+      cache.nodeIDOrLabelToNodeIDs.get(node.label).add(node.id);
+    }
+
+    if (!cache.nodeIDOrLabelToNodeIDs.has(node.id)) {
+      cache.nodeIDOrLabelToNodeIDs.set(node.id, new Set());
+    }
+    cache.nodeIDOrLabelToNodeIDs.get(node.id).add(node.id);
+
     for (let prop of node.features) {
       populateUniquePropGroups(prop);
       if (!cache.propToNodes.has(prop)) cache.propToNodes.set(prop, new Set());
@@ -5758,6 +5936,25 @@ function initCache() {
     cache.edgeRef.set(edge.id, edge);
     cache.toolTips.set(edge.id, buildToolTipText(edge.id, true));
     cache.edgeIDToPropIDs.set(edge.id, new Set());
+    if (edge.label) {
+      cache.edgeLabels.push(edge.label);
+
+      if (!cache.edgeLabelToEdgeIDs.has(edge.label)) {
+        cache.edgeLabelToEdgeIDs.set(edge.label, new Set());
+      }
+      cache.edgeLabelToEdgeIDs.get(edge.label).add(edge.id);
+
+      if (!cache.edgeIDOrLabelToEdgeIDs.has(edge.label)) {
+        cache.edgeIDOrLabelToEdgeIDs.set(edge.label, new Set());
+      }
+      cache.edgeIDOrLabelToEdgeIDs.get(edge.label).add(edge.id);
+    }
+
+    if (!cache.edgeIDOrLabelToEdgeIDs.has(edge.id)) {
+      cache.edgeIDOrLabelToEdgeIDs.set(edge.id, new Set());
+    }
+    cache.edgeIDOrLabelToEdgeIDs.get(edge.id).add(edge.id);
+
     for (let prop of edge.features) {
       populateUniquePropGroups(prop);
       if (!cache.propToEdges.has(prop)) cache.propToEdges.set(prop, new Set());
