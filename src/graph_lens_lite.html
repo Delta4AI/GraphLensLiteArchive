@@ -24,28 +24,28 @@
 <div id="mainContent">
   <div id="sidebar">
     <div id="sidebarContentContainer">
-      <h3>Graph Lens Lite</h3>
+      <div class="header-row">
+        <h3>Graph Lens Lite</h3>
+        <div class="showOnLoad button-group">
+          <button id="exportModel" class="showOnLoad medium-btn" onclick="exportGraphAsJSON()" title="Save Model (S)">💾</button>
+          <button id="exportImage" class="showOnLoad medium-btn" onclick="exportPNG()" title="Save Image (P)">📷️</button>
+          <button id="metricsToggleBtn" class="showOnLoad medium-btn" title="Toggle network metrics panel (M)" onclick="cache.metrics.toggleUI()">📊</button>
+          <button id="queryToggleBtn" class="showOnLoad medium-btn" title="Toggle query editor (Q)" onclick="toggleQueryEditor()">📝</button>
+          <button id="editBtn" class="showOnLoad medium-btn" title="Toggle Edit mode (E)" onclick="toggleEditMode()">⚙️</button>
+        </div>
+      </div>
       <input type="file" id="fileInput" name="fileInput" onchange="loadFileWrapper(event);"
              accept=".json, .xls, .xlsx, .csv, .tab"/>
-      <div class="showOnLoad button-group">
-        <button id="exportModel" class="showOnLoad medium-btn" onclick="exportGraphAsJSON()" title="Save Model (S)">💾</button>
-        <button id="exportImage" class="showOnLoad medium-btn" onclick="exportPNG()" title="Save Image (P)">📷️</button>
-        <button id="metricsToggleBtn" class="showOnLoad medium-btn" title="Toggle network metrics panel (M)" onclick="cache.metrics.toggleUI()">📊</button>
-        <button id="queryToggleBtn" class="showOnLoad medium-btn" title="Toggle query editor (Q)" onclick="toggleQueryEditor()">📝</button>
-        <button id="editBtn" class="showOnLoad medium-btn" title="Toggle Edit mode (E)" onclick="toggleEditMode()">⚙️</button>
-      </div>
       <div class="showOnLoad">
         <hr>
-        <h3>View Options</h3>
-        <label for="selectView">Network View:</label>
+        <label for="selectView">View Preset:</label>
         <select name="selectView" id="selectView" onchange="changeLayout()"></select>
-        <button class="small-btn" id="resetLayoutButton" title="Reset View (R)" onclick="resetLayout()">⭯</button>
-        <button class="small-btn" title="Fit View (F)" onclick="graph.fitView()">⛶</button>
+        <button class="small-btn red disabled" id="removeSelectedLayoutButton" title="Delete current view preset" onclick="removeSelectedLayout()">&nbsp;✗&nbsp;</button>
+        <button class="small-btn green" title="Create new view preset" onclick="addLayout()" >&nbsp;✚&nbsp;</button>
+        <div class="button-separator"></div>
+        <button class="small-btn" id="resetLayoutButton" title="Reset layout to default (R)" onclick="resetLayout()">⭯</button>
+        <button class="small-btn" title="Fit graph to screen (F)" onclick="graph.fitView()">⛶</button>
         <button class="small-btn red" title="Hide all nodes and edges that are not connected to any other node or edge" onclick="toggleCleanUpDanglingElements(this)">🚫</button>
-        <button class="small-btn green show-on-edit" title="Create New View" onclick="addLayout()" >&nbsp;✚&nbsp;</button>
-        <button class="small-btn red show-on-edit disabled" id="removeSelectedLayoutButton" title="Remove View" onclick="removeSelectedLayout()">&nbsp;✗&nbsp;</button>
-        <button class="small-btn show-on-edit" title="Save filter settings to stash (to be reapplied in different view)" onclick="saveFiltersToStash(true)">📥</button>
-        <button class="small-btn show-on-edit disabled" id="loadFromStashBtn" title="Load filter settings from stash" onclick="loadFiltersFromStash()">📤</button>
         <div id="debugDiv" class="inline"></div>
         <br>
         <h5 class="purple">Shown:
@@ -53,6 +53,27 @@
           <span id="visibleEdges" class="red">0</span>/<span id="totalEdges">0</span> edges
         </h5>
         <hr>
+        <div class="show-on-edit-full-width">
+          <label for="selectStash">Filter Profiles:</label>
+          <button class="small-btn" id="addStash"
+                  title="Save current filter settings and bubble groups as a new profile (can be reapplied in different view)"
+                  onclick="saveStash()">📥
+          </button>
+          <select class="disabled" name="selectStash" id="selectStash"></select>
+          <button class="small-btn red disabled" id="removeStash"
+                  title="Delete selected profile"
+                  onclick="removeStash()">✗
+          </button>
+          <button class="small-btn orange disabled" id="overwriteStash"
+                  title="Overwrite selected profile with current settings"
+                  onclick="overwriteStash()">⟳
+          </button>
+          <button class="small-btn green disabled" id="applyStash"
+                  title="Apply selected profile to current view"
+                  onclick="loadStash()">✔
+          </button>
+          <hr>
+        </div>
         <div id="metricsContainer"></div>
         <div class="edit-container show-on-edit">
           <div id="staticStyleDiv"></div>
