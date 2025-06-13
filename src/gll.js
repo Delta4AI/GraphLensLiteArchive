@@ -390,10 +390,13 @@ const DEFAULTS = {
     DRAG_CANVAS: {
       type: 'drag-canvas',
       key: 'drag-canvas',
+      animation: false,
     },
     ZOOM_CANVAS: {
       type: 'zoom-canvas',
-      key: 'zoom-canvas'
+      key: 'zoom-canvas',
+      animation: false,
+
     },
     HOVER_ACTIVATE: {
       type: 'hover-activate',
@@ -3608,7 +3611,6 @@ async function createGraphInstance() {
         await redrawBubbleSets();
 
         EVENT_LOCKS.AFTER_RENDER_RUNNING = false;
-
         await hideLoading();
       } else {
         await initialAfterRenderEvent();
@@ -3926,6 +3928,14 @@ async function updateBubbleSet(group, members) {
     label: empty ? false : DEFAULTS.BUBBLE_GROUP_STYLE[group].label,
   });
   await INSTANCES.BUBBLE_GROUPS[group].drawBubbleSets();
+}
+
+async function clearBubbleSetInstanceMembers() {
+  for (const group of traverseBubbleSets()) {
+    await INSTANCES.BUBBLE_GROUPS[group].update({
+      members: [],
+    });
+  }
 }
 
 function debugBubbleSets() {
@@ -4552,14 +4562,42 @@ async function captureStashSnapshot(stashName) {
     groupedProps: {},
     filters: structuredClone(data.layouts[data.selectedLayout].filters),
     bubbleSets: {},
-    zoom: await graph.getZoom(),
-    position: await graph.getPosition(),  // TODO: position seems a bit off.. debug with getPos()
   }
 
   for (const group of traverseBubbleSets()) {
     data.stash[stashName].bubbleSets[group] = [...INSTANCES.BUBBLE_GROUPS[group].members.keys()];
     data.stash[stashName].groupedProps[group] = new Set([...data.layouts[data.selectedLayout][`${group}Props`]]);
   }
+
+  await captureStashViewport(stashName);
+}
+
+async function captureStashViewport(stashName) {
+  const currentZoom = await graph.getZoom();
+
+  await graph.zoomTo(1, false);
+
+  const position = await graph.getPosition();
+
+  data.stash[stashName].zoom = currentZoom;
+  data.stash[stashName].position = position;
+
+  await graph.zoomTo(currentZoom, false);
+
+  debug(`Captured viewport for filter profile: ${stashName} | zoom: ${currentZoom} | position: ${position}`);
+}
+
+async function restoreStashViewport() {
+  const selected = document.getElementById("selectStash").value;
+  if (selected === null || selected === "") return;
+
+  const {zoom, position} = data.stash[selected];
+
+  await graph.zoomTo(1, false);
+  await graph.translateTo(position, false);
+  await graph.zoomTo(zoom, false);
+
+  debug(`Viewport restored. Zoom: ${zoom}, Position: ${position}`);
 }
 
 async function loadStash() {
@@ -4577,26 +4615,11 @@ async function loadStash() {
 
   buildFilterUI();
 
-  // TODO: when doing the following:
-  // 1. create bubble group 1
-  // 2. create stash 1
-  // 3. deselect bubble group 1
-  // 4. create bubble group 2
-  // 5. create stash 2
-  // 6. select and load stash 1
-  // > bubble group 2 is still active
-
-  console.log(data.stash["1"].bubbleSets["groupTwo"]);  // empty
-  console.log(data.layouts[data.selectedLayout].filters);  // also not the culprit
-  console.log(cache.lastBubbleSetMembers);  // also not
-  console.log(data.layouts[data.selectedLayout]["groupTwoProps"]);  // also not;
-  console.log(INSTANCES.BUBBLE_GROUPS["groupTwo"].members.keys());  // TODO: the problem
-  // TODO: updateBubbleSetIfChanged() doesnt help - can i simply clear the instances .members and .avoidMembers?
-
-  await showLoading("Loading filter profile", `Applying filters from profile ${selected} ..`);
+  await showLoading("Loading filter profile", `Applying profile ${selected} ..`);
+  await clearBubbleSetInstanceMembers();
   await decideToRenderOrDraw(true);
-  await graph.zoomTo(data.stash[selected].zoom);
-  await graph.translateTo(data.stash[selected].position);
+  await restoreStashViewport();
+
   info(`Applied filter profile: ${selected}`);
 }
 
