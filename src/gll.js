@@ -389,7 +389,7 @@ const DEFAULTS = {
     },
     DRAG_CANVAS: {
       type: 'drag-canvas',
-      key: 'drag-canvas'
+      key: 'drag-canvas',
     },
     ZOOM_CANVAS: {
       type: 'zoom-canvas',
@@ -497,6 +497,8 @@ const INVISIBLE_DUMMY_NODE = {
     visibility: "hidden"
   }
 }
+
+const INVISIBLE_CHAR = "\u200B";
 
 class NetworkMetrics {
   constructor() {
@@ -1517,9 +1519,7 @@ function parseLayouts(jsonLayouts) {
     parsedLayouts[key] = {
       internals: layout.internals || null,
       positions: new Map(Object.entries(layout.positions || {})),
-      filters: new Map(Object.entries(layout.filters || {}).map(([key, value]) => [key, {
-        ...value, ...parseGroups(value),
-      },])),
+      filters: parseFiltersAsMap(layout.filters),
       isCustom: layout.isCustom || false,
       query: layout["query"] || undefined
     };
@@ -1529,6 +1529,15 @@ function parseLayouts(jsonLayouts) {
     }
   });
   return parsedLayouts;
+}
+
+function parseFiltersAsMap(filtersObj) {
+  if (filtersObj instanceof Map) {
+    return structuredClone(filtersObj);
+  }
+
+  return new Map(Object.entries(filtersObj || {})
+    .map(([key, value]) => [key, {...value, ...parseGroups(value)}]));
 }
 
 function getReadableForegroundColor(hex) {
@@ -2162,8 +2171,8 @@ function createStyleDiv() {
         labelInput.value = "";
         const sharedOverride = {
           style: {
-            label: false,
-            labelText: undefined
+            label: true,
+            labelText: INVISIBLE_CHAR
           }
         };
         isNode ? await updateNodes(sharedOverride) : await updateEdges(sharedOverride);
@@ -3611,11 +3620,9 @@ async function createGraphInstance() {
 
       try {
         debug("ONCE AFTER RENDER");
-        await showLoading("Post-processing", "Persisting positions and saving filters to stash ..");
+        await showLoading("Post-processing", "Post-processing ..");
         await new Promise(resolve => requestAnimationFrame(resolve));
         EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING = true;
-
-        await saveFiltersToStash(false);
 
         await showLoading("Post-processing", "Registering event listeners ..");
         await new Promise(resolve => requestAnimationFrame(resolve));
@@ -3842,7 +3849,7 @@ function handleEditModeUIChanges() {
   container.style.paddingRight = editModeActive ? "6px" : "0";
 
   // handle all edit elements
-  const editElements = document.querySelectorAll('.show-on-edit');
+  const editElements = document.querySelectorAll('.show-on-edit, .show-on-edit-full-width');
   editElements.forEach(el => {
     editModeActive ? el.classList.add("show") : el.classList.remove("show");
     el.style.height = editModeActive ? `${el.scrollHeight}px` : "0";
@@ -4511,21 +4518,129 @@ function buildMetricsUI() {
   div.appendChild(cache.metrics.buildUI());
 }
 
-async function saveFiltersToStash(manualTriggered = false) {
-  data.stash = {
-    filters: structuredClone(data.layouts[data.selectedLayout].filters),
-    query: structuredClone(data.layouts[data.selectedLayout]["query"]),
-    triggered: manualTriggered
-  };
-  await showLoading("Saving filter", "Saving filter settings to stash");
-  await new Promise(resolve => requestAnimationFrame(resolve));
+async function saveStash() {
+  const select = document.getElementById("selectStash");
+  let stashName = prompt("Enter Stash Description: ");
+  let existing = Object.keys(data.stash);
+
+  if (stashName == null || stashName === "") {
+    info("Creating filter profile canceled");
+    return false;
+  } else if (existing.includes(stashName)) {
+    error(`Filter profile with name "${stashName}" already exists.`);
+    return false;
+  }
+
+  await captureStashSnapshot(stashName);
+
+  refreshStashUI();
+  select.value = stashName;
+  info(`Created filter profile: ${stashName}`)
 }
 
-async function loadFiltersFromStash() {
-  data.layouts[data.selectedLayout].filters = structuredClone(data.stash.filters);
-  data.layouts[data.selectedLayout]["query"] = structuredClone(data.stash["query"]);
+async function overwriteStash() {
+  const stashName = document.getElementById("selectStash").value;
+  if (stashName == null || stashName === "") return;
+
+  await captureStashSnapshot(stashName);
+  info(`Overwrote filter profile: ${stashName}`);
+}
+
+async function captureStashSnapshot(stashName) {
+  data.stash[stashName] = {
+    query: structuredClone(query.text.textContent),
+    groupedProps: {},
+    filters: structuredClone(data.layouts[data.selectedLayout].filters),
+    bubbleSets: {},
+    zoom: await graph.getZoom(),
+    position: await graph.getPosition(),  // TODO: position seems a bit off.. debug with getPos()
+  }
+
+  for (const group of traverseBubbleSets()) {
+    data.stash[stashName].bubbleSets[group] = [...INSTANCES.BUBBLE_GROUPS[group].members.keys()];
+    data.stash[stashName].groupedProps[group] = new Set([...data.layouts[data.selectedLayout][`${group}Props`]]);
+  }
+}
+
+async function loadStash() {
+  const selected = document.getElementById("selectStash").value;
+
+  const query = data.stash[selected]["query"];
+  const groupedProps = data.stash[selected].groupedProps;
+
+  data.layouts[data.selectedLayout]["query"] = query;
+  data.layouts[data.selectedLayout].filters = parseFiltersAsMap(data.stash[selected].filters);
+  for (const group of traverseBubbleSets()) {
+    data.layouts[data.selectedLayout][`${group}Props`] = new Set([...groupedProps[group]]);
+    cache.lastBubbleSetMembers.set(group, new Set(data.stash[selected].bubbleSets[group]));
+  }
+
   buildFilterUI();
-  await handleFilterEvent("Restoring filter", "Restoring filter settings from stash");
+
+  // TODO: when doing the following:
+  // 1. create bubble group 1
+  // 2. create stash 1
+  // 3. deselect bubble group 1
+  // 4. create bubble group 2
+  // 5. create stash 2
+  // 6. select and load stash 1
+  // > bubble group 2 is still active
+
+  console.log(data.stash["1"].bubbleSets["groupTwo"]);  // empty
+  console.log(data.layouts[data.selectedLayout].filters);  // also not the culprit
+  console.log(cache.lastBubbleSetMembers);  // also not
+  console.log(data.layouts[data.selectedLayout]["groupTwoProps"]);  // also not;
+  console.log(INSTANCES.BUBBLE_GROUPS["groupTwo"].members.keys());  // TODO: the problem
+  // TODO: updateBubbleSetIfChanged() doesnt help - can i simply clear the instances .members and .avoidMembers?
+
+  await showLoading("Loading filter profile", `Applying filters from profile ${selected} ..`);
+  await decideToRenderOrDraw(true);
+  await graph.zoomTo(data.stash[selected].zoom);
+  await graph.translateTo(data.stash[selected].position);
+  info(`Applied filter profile: ${selected}`);
+}
+
+async function removeStash() {
+  const select = document.getElementById("selectStash");
+  const confirmed = confirm(`Are you sure you want to delete stash "${select.value}"?`);
+
+  if (confirmed) {
+    delete data.stash[select.value];
+    select.value = '';
+    refreshStashUI();
+    info(`Removed filter profile: ${select.value}`);
+  }
+}
+
+function refreshStashUI() {
+  const select = document.getElementById("selectStash");
+  const remove = document.getElementById("removeStash");
+  const apply = document.getElementById("applyStash");
+  const overwrite = document.getElementById("overwriteStash");
+  const currentlySelected = select.value;
+
+  select.innerHTML = '';
+
+  for (const elem of [select, remove, apply, overwrite]) {
+    if (Object.keys(data.stash).length > 0) {
+      elem.classList.remove("disabled");
+    } else {
+      elem.classList.add("disabled");
+    }
+  }
+
+  for (const key of Object.keys(data.stash)) {
+    const option = document.createElement("option");
+    option.value = key;
+    option.textContent = key;
+    select.appendChild(option);
+  }
+
+  if (currentlySelected) {
+    select.value = currentlySelected;
+  } else if (Object.keys(data.stash).length > 0) {
+    select.value = Object.keys(data.stash)[0];
+  }
 }
 
 function manageDynamicWidgets() {
@@ -5804,7 +5919,7 @@ function preProcessData(fileData) {
   }
 
   if (fileData.stash) {
-    data.stash = new Map(
+    data.stash = Object.fromEntries(
       Object.entries(fileData.stash || {}).map(([key, value]) => [
         key,
         {
@@ -5813,7 +5928,8 @@ function preProcessData(fileData) {
         },
       ])
     );
-    data.stash.triggered = true;
+  } else {
+    data.stash = {};
   }
 
   debug("Done pre-processing data");
@@ -6834,6 +6950,8 @@ function humanFileSize(size) {
 
 async function loadFileWrapper(event) {
   let file = event.target.files[0];
+  if (!file) return;
+
   await showLoading("Loading", `Loading ${file.name} (${file.type} with ${humanFileSize(file.size)})`);
   await new Promise(resolve => requestAnimationFrame(resolve));
 
@@ -7039,8 +7157,8 @@ async function hideLoading() {
 function refreshUI() {
   if (!cache.initialized) return;
 
-  const loadFromStashBtn = document.getElementById("loadFromStashBtn");
-  data.stash?.triggered ? loadFromStashBtn.classList.remove("disabled") : loadFromStashBtn.classList.add("disabled");
+  // const loadFromStashBtn = document.getElementById("loadFromStashBtn");
+  // data.stash ? loadFromStashBtn.classList.remove("disabled") : loadFromStashBtn.classList.add("disabled");
 
   toggleStyleElementsThatRequireAtLeastOneVisibleNode(cache.nodeIDsToBeShown.size > 0);
   toggleStyleElementsThatRequireAtLeastOneVisibleEdge(cache.edgeIDsToBeShown.size > 0);
@@ -7050,6 +7168,8 @@ function refreshUI() {
   document.getElementById("totalNodes").innerHTML = `${data.nodes.length}`;
   document.getElementById("visibleEdges").innerHTML = `${cache.edgeIDsToBeShown.size - cache.hiddenDanglingEdgeIDs.size}`;
   document.getElementById("totalEdges").innerHTML = `${data.edges.length}`;
+
+  refreshStashUI();
 }
 
 window.addEventListener('resize', () => {
@@ -7143,7 +7263,7 @@ const redrawBubbleSets = debounce(async () => {
     for (const group of traverseBubbleSets()) {
       const cachedMembers = cache.lastBubbleSetMembers.get(group);
       if (cachedMembers?.size > 0) {
-        debug(`Redrawing bubble set ${group} ..`);
+        debug(`Redrawing bubble set ${group} with ${cachedMembers.size} members ..`);
         await updateBubbleSet(group, []);
         await updateBubbleSet(group, Array.from(cachedMembers));
       }
@@ -7153,21 +7273,9 @@ const redrawBubbleSets = debounce(async () => {
   }
 }, 50);
 
-function getEventProps(evt) {
-  const eventDetails = {};
-  for (let prop in evt) {
-    try {
-      if (typeof evt[prop] !== 'object' && typeof evt[prop] !== 'function') {
-        eventDetails[prop] = evt[prop];
-      } else if (typeof evt[prop] === 'function') {
-        eventDetails[`${prop}()`] = 'function';
-      } else {
-        eventDetails[prop] = 'object';
-      }
-    } catch (e) {
-      eventDetails[prop] = 'unable to access';
-    }
-  }
-  debug('Event properties and methods:');
-  debug(JSON.stringify(eventDetails, null, 2));
+async function getPos() {
+  const zoom = await graph.getZoom();
+  const pos = await graph.getPosition();
+  console.log(`Zoom: ${zoom}`);
+  console.log(`Position: ${pos}`);
 }
