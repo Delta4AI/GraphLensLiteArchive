@@ -514,10 +514,12 @@ class ColorScalePicker {
     };
     this.handles = [];
     this.element = null;
-    this.draggedHandle = null;
     this.resolvePromise = null;
     this.minValue = 0;
     this.maxValue = 0;
+    this.categories = [];
+    this.defaultColorForMissing = '#CCCCCC';
+    this.elementType = "nodes";
   }
 
   createDom() {
@@ -549,30 +551,51 @@ class ColorScalePicker {
     removeButton.textContent = '-';
     removeButton.onclick = () => this.removeHandle();
 
-    controls.append(addButton, removeButton);
+    const categoryContainer = document.createElement('div');
+    categoryContainer.className = 'picker-category-container';
+    categoryContainer.style.display = 'none';
 
+    controls.append(addButton, removeButton);
     const buttons = document.createElement('div');
     buttons.className = 'picker-button-container';
-
-    const applyButton = document.createElement('button');
-    applyButton.className = 'picker-button primary';
-    applyButton.textContent = 'Apply';
-    applyButton.onclick = () => this.apply();
 
     const cancelButton = document.createElement('button');
     cancelButton.className = 'picker-button secondary';
     cancelButton.textContent = 'Cancel';
     cancelButton.onclick = () => this.cancel();
 
-    buttons.append(cancelButton, applyButton);
-    content.append(dropdown, gradient, handleContainer, controls, buttons);
+    const defaultColorContainer = document.createElement('div');
+    defaultColorContainer.className = 'picker-default-color-container disabled';
+
+    const label = document.createElement('span');
+    label.textContent = 'Default color:';
+    label.title = 'Default color for elements with missing values';
+
+    const defaultColorEl = document.createElement('input');
+    defaultColorEl.type = 'color';
+    defaultColorEl.className = 'picker-default-color';
+    defaultColorEl.value = this.defaultColorForMissing;
+    defaultColorEl.addEventListener('input', (e) => {
+      this.defaultColorForMissing = e.target.value;
+    });
+
+    defaultColorContainer.append(label, defaultColorEl);
+
+    const applyButton = document.createElement('button');
+    applyButton.className = 'picker-button primary';
+    applyButton.textContent = 'Apply';
+    applyButton.onclick = () => this.apply();
+
+    buttons.append(cancelButton, defaultColorContainer, applyButton);
+    content.append(dropdown, gradient, handleContainer, controls, categoryContainer, buttons);
     overlay.appendChild(content);
 
     this.element = overlay;
     return overlay;
   }
 
-  async pickColors() {
+  async pickColors(elementType = 'nodes') {
+    this.elementType = elementType;
     return new Promise(resolve => {
       this.resolvePromise = resolve;
       document.body.appendChild(this.createDom());
@@ -584,31 +607,121 @@ class ColorScalePicker {
   initializeFilters() {
     const dropdown = this.element.querySelector('.picker-dropdown');
     const filters = new Map(data.layouts[data.selectedLayout].filters);
-    const availableProperties = new Set();
+    const available = new Set();
 
-    Array.from(cache.selectedNodes).forEach(nodeId => {
-      const node = cache.nodeRef.get(nodeId);
-      if (node?.features) {
-        node.features.forEach(feature => {
-          if (filters.has(feature)) availableProperties.add(feature);
-        });
-      }
+    const selectedElements = this.elementType === 'nodes' ? cache.selectedNodes : cache.selectedEdges;
+
+    selectedElements.forEach(elementId => {
+      const element = this.elementType === 'nodes'
+        ? cache.nodeRef.get(elementId)
+        : cache.edgeRef.get(elementId);
+
+      element?.features.forEach(f => {
+        if (filters.has(f)) available.add(f);
+      });
     });
 
     dropdown.innerHTML = '<option value="">Select property</option>';
-    Array.from(availableProperties).sort().forEach(property => {
-      const option = document.createElement('option');
-      option.value = property;
-      option.textContent = property;
-      dropdown.appendChild(option);
+    Array.from(available).sort().forEach(prop => {
+      const opt = document.createElement('option');
+      opt.value = prop;
+      opt.textContent = prop;
+      dropdown.appendChild(opt);
     });
 
-    dropdown.onchange = () => this.initializeGradient(dropdown.value);
+    dropdown.onchange = () => this.selectProperty(dropdown.value, filters.get(dropdown.value));
+  }
+
+  selectProperty(property, filterObj) {
+    if (!property) return;
+
+    const selectedElements = this.elementType === 'nodes' ? cache.selectedNodes : cache.selectedEdges;
+    const elementRef = this.elementType === 'nodes' ? cache.nodeRef : cache.edgeRef;
+
+    const elementsWithProperty = Array.from(selectedElements)
+      .filter(id => {
+        const element = elementRef.get(id);
+        return element?.featureValues.has(property);
+      });
+
+    const totalElements = selectedElements.length;
+    const elementsWithPropertyCount = elementsWithProperty.length;
+
+    const existingCounter = this.element.querySelector('.picker-property-counter');
+    if (existingCounter) {
+      existingCounter.remove();
+    }
+
+    const counterEl = document.createElement('div');
+    counterEl.className = 'picker-property-counter';
+    this.element.querySelector('.picker-content').insertBefore(
+      counterEl,
+      this.element.querySelector('.picker-gradient')
+    );
+
+    const elementTypeLabel = this.elementType === 'nodes' ? 'Nodes' : 'Edges';
+    counterEl.textContent = `Affected ${elementTypeLabel}: ${elementsWithPropertyCount} / ${totalElements}`;
+
+    const defaultColorContainer = this.element.querySelector('.picker-default-color-container');
+    if (defaultColorContainer) {
+      if (elementsWithPropertyCount === totalElements) {
+        defaultColorContainer.classList.add('disabled');
+      } else {
+        defaultColorContainer.classList.remove('disabled');
+      }
+    }
+
+    if (filterObj.isCategory) {
+      this.categories = ([...filterObj.categories] || [])
+        .map(name => ({name, color: this.generateRandomColor()}));
+      this.renderCategories();
+    } else {
+      this.initializeGradient(property);
+    }
+  }
+
+  renderCategories() {
+    const gradient = this.element.querySelector('.picker-gradient');
+    const handleContainer = this.element.querySelector('.picker-handle-container');
+    const controls = this.element.querySelector('.picker-controls');
+    const categoryContainer = this.element.querySelector('.picker-category-container');
+
+    gradient.style.display = 'none';
+    handleContainer.style.display = 'none';
+    controls.style.display = 'none';
+    categoryContainer.innerHTML = '';
+    categoryContainer.style.display = 'block';
+
+    // now cat is an object {name, color}
+    this.categories.forEach(cat => {
+      const row = document.createElement('div');
+      row.className = 'picker-category-row';
+
+      const label = document.createElement('span');
+      label.textContent = cat.name;
+
+      const colorInput = document.createElement('input');
+      colorInput.type = 'color';
+      colorInput.value = cat.color;
+      colorInput.oninput = e => {
+        cat.color = e.target.value;
+      };
+
+      row.append(label, colorInput);
+      categoryContainer.appendChild(row);
+    });
+  }
+
+  generateRandomColor() {
+    return `#${Math.floor(Math.random() * 0xFFFFFF).toString(16).padStart(6, '0')}`;
   }
 
   initializeGradient(property) {
-    const values = Array.from(cache.selectedNodes)
-      .map(id => cache.nodeRef.get(id)?.featureValues.get(property))
+    const selectedElements = this.elementType === 'nodes' ? cache.selectedNodes : cache.selectedEdges;
+    const elementRef = this.elementType === 'nodes' ? cache.nodeRef : cache.edgeRef;
+
+    const values = Array.from(selectedElements)
+      .map(id => elementRef.get(id)?.featureValues.get(property))
       .filter(v => v !== undefined);
 
     this.minValue = Math.min(...values);
@@ -620,10 +733,14 @@ class ColorScalePicker {
       {pos: 100, color: this.defaultColors.max, value: this.maxValue, fixed: true}
     ];
 
+    this.element.querySelector('.picker-gradient').style.display = 'block';
+    this.element.querySelector('.picker-handle-container').style.display = 'block';
+    this.element.querySelector('.picker-controls').style.display = 'flex';
+    this.element.querySelector('.picker-category-container').style.display = 'none';
+
     this.renderHandles();
     this.updateGradient();
   }
-
 
   setupHandleDragging() {
     const container = this.element.querySelector('.picker-handle-container');
@@ -677,7 +794,6 @@ class ColorScalePicker {
       value.className = 'picker-handle-value';
       value.textContent = handle.value.toFixed(2);
 
-      // Add color picker
       const colorPicker = document.createElement('input');
       colorPicker.type = 'color';
       colorPicker.value = handle.color;
@@ -717,7 +833,7 @@ class ColorScalePicker {
   addHandle() {
     if (this.handles.length >= 10) return;
 
-    const newColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+    const newColor = this.generateRandomColor();
 
     // Find two adjacent handles with the largest gap
     const sortedHandles = [...this.handles].sort((a, b) => a.pos - b.pos);
@@ -752,24 +868,46 @@ class ColorScalePicker {
 
   apply() {
     const dropdown = this.element.querySelector('.picker-dropdown');
-    const result = {
-      property: dropdown.value,
-      handles: this.handles,
-      colorMap: new Map()
-    };
+    const colorMap = new Map();
 
-    Array.from(cache.selectedNodes).forEach(nodeId => {
-      const node = cache.nodeRef.get(nodeId);
-      const value = node?.featureValues.get(dropdown.value);
+    const selectedElements = this.elementType === 'nodes' ? cache.selectedNodes : cache.selectedEdges;
+    const elementRef = this.elementType === 'nodes' ? cache.nodeRef : cache.edgeRef;
 
-      if (value !== undefined) {
-        const normalizedValue = ((value - this.minValue) / (this.maxValue - this.minValue)) * 100;
-        const color = this.getColorForValue(normalizedValue);
-        result.colorMap.set(nodeId, color);
-      }
-    });
+    const filterObj = data.layouts[data.selectedLayout].filters.get(dropdown.value);
+    const isCategory = filterObj?.isCategory;
 
-    this.resolvePromise(result);
+    if (isCategory) {
+      const categoryColorMap = new Map(
+        this.categories.map(cat => [cat.name, cat.color])
+      );
+
+      Array.from(selectedElements).forEach(elementId => {
+        const element = elementRef.get(elementId);
+        const valueSet = element?.featureValues.get(dropdown.value);
+        const value = valueSet instanceof Set ? Array.from(valueSet)[0] : valueSet;
+
+        if (value !== undefined && categoryColorMap.has(value)) {
+          colorMap.set(elementId, categoryColorMap.get(value));
+        } else {
+          colorMap.set(elementId, this.defaultColorForMissing);
+        }
+      });
+    } else {
+      Array.from(selectedElements).forEach(elementId => {
+        const element = elementRef.get(elementId);
+        const value = element?.featureValues.get(dropdown.value);
+
+        if (value !== undefined) {
+          const normalizedValue = ((value - this.minValue) / (this.maxValue - this.minValue)) * 100;
+          const color = this.getColorForValue(normalizedValue);
+          colorMap.set(elementId, color);
+        } else {
+          colorMap.set(elementId, this.defaultColorForMissing);
+        }
+      });
+    }
+
+    this.resolvePromise(colorMap);
     this.close();
   }
 
@@ -2998,6 +3136,15 @@ function createStyleDiv() {
 }
 
 async function updateEdges(overrides = {}, commands = []) {
+  let colorMap = null;
+  if (commands.includes("set_continuous_color_scale")) {
+    colorMap = await picker.pickColors("edges");
+    if (!colorMap) {
+      info("Aborted color picker");
+      return;
+    }
+  }
+
   for (const edgeID of cache.selectedEdges) {
     const edge = cache.edgeRef.get(edgeID);
 
@@ -3013,7 +3160,13 @@ async function updateEdges(overrides = {}, commands = []) {
     }
 
     // apply overrides
-    deepMerge(edge, overrides);
+    if (colorMap) {
+      const overridesCopy = structuredClone(overrides);
+      replaceColorScale(overrides, edgeID, colorMap);
+      deepMerge(edge, overridesCopy);
+    } else {
+      deepMerge(edge, overrides);
+    }
     cache.edgeRef.set(edgeID, edge);
   }
 
@@ -3045,14 +3198,15 @@ function isObject(obj) {
 }
 
 async function updateNodes(overrides = {}, commands = []) {
+  let colorMap = null;
   if (commands.includes("set_continuous_color_scale")) {
-    const res = await picker.pickColors();
-    if (!res) {
+    colorMap = await picker.pickColors("nodes");
+    if (!colorMap) {
       info("Aborted color picker");
       return;
     }
-    console.log("foo");
   }
+
   for (const nodeID of cache.selectedNodes) {
     const node = cache.nodeRef.get(nodeID);
 
@@ -3082,10 +3236,34 @@ async function updateNodes(overrides = {}, commands = []) {
     }
 
     // apply overrides
-    deepMerge(node, overrides);
+    if (colorMap) {
+      const overridesCopy = structuredClone(overrides);
+      replaceColorScale(overridesCopy, nodeID, colorMap);
+      deepMerge(node, overridesCopy);
+    } else {
+      deepMerge(node, overrides);
+    }
     cache.nodeRef.set(nodeID, node);
   }
   await handleStyleChangeLoadingEvent("Style", `Updating Node Styles`);
+}
+
+function replaceColorScale(obj, elemID, colorMap) {
+  if (typeof obj !== 'object' || obj === null) {
+    return obj;
+  }
+
+  for (let key in obj) {
+    const value = obj[key];
+
+    if (value === "set_continuous_color_scale") {
+      obj[key] = colorMap.get(elemID);
+    } else if (typeof value === 'object') {
+      replaceColorScale(value, elemID, colorMap);
+    }
+  }
+
+  return obj;
 }
 
 function toggleStyleElementsThatRequireAtLeastOneSelectedNode(enable) {
@@ -6157,7 +6335,7 @@ function preProcessData(fileData) {
     }
 
     if (node.style?.x && node.style?.y) {
-      cache.nodePositionsFromExcelsImport.set(node.id, {x: node.style.x, y: node.style.y});
+      cache.nodePositionsFromExcelImport.set(node.id, {x: node.style.x, y: node.style.y});
     }
 
     return {
