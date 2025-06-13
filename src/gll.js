@@ -68,6 +68,8 @@ let cache = {
   initialized: false
 };
 
+let picker;
+
 let debugEnabled = false;
 
 let PERFORMANCE_MODE = false;
@@ -502,6 +504,318 @@ const INVISIBLE_DUMMY_NODE = {
 }
 
 const INVISIBLE_CHAR = "\u200B";
+
+class ColorScalePicker {
+  constructor() {
+    this.defaultColors = {
+      min: '#403C53',
+      zero: '#FFFFFF',
+      max: '#C33D35'
+    };
+    this.handles = [];
+    this.element = null;
+    this.draggedHandle = null;
+    this.resolvePromise = null;
+    this.minValue = 0;
+    this.maxValue = 0;
+  }
+
+  createDom() {
+    const overlay = document.createElement('div');
+    overlay.className = 'picker-overlay';
+
+    const content = document.createElement('div');
+    content.className = 'picker-content';
+
+    const dropdown = document.createElement('select');
+    dropdown.className = 'picker-dropdown';
+
+    const gradient = document.createElement('div');
+    gradient.className = 'picker-gradient';
+
+    const handleContainer = document.createElement('div');
+    handleContainer.className = 'picker-handle-container';
+
+    const controls = document.createElement('div');
+    controls.className = 'picker-controls';
+
+    const addButton = document.createElement('button');
+    addButton.className = 'picker-button';
+    addButton.textContent = '+';
+    addButton.onclick = () => this.addHandle();
+
+    const removeButton = document.createElement('button');
+    removeButton.className = 'picker-button';
+    removeButton.textContent = '-';
+    removeButton.onclick = () => this.removeHandle();
+
+    controls.append(addButton, removeButton);
+
+    const buttons = document.createElement('div');
+    buttons.className = 'picker-button-container';
+
+    const applyButton = document.createElement('button');
+    applyButton.className = 'picker-button primary';
+    applyButton.textContent = 'Apply';
+    applyButton.onclick = () => this.apply();
+
+    const cancelButton = document.createElement('button');
+    cancelButton.className = 'picker-button secondary';
+    cancelButton.textContent = 'Cancel';
+    cancelButton.onclick = () => this.cancel();
+
+    buttons.append(cancelButton, applyButton);
+    content.append(dropdown, gradient, handleContainer, controls, buttons);
+    overlay.appendChild(content);
+
+    this.element = overlay;
+    return overlay;
+  }
+
+  async pickColors() {
+    return new Promise(resolve => {
+      this.resolvePromise = resolve;
+      document.body.appendChild(this.createDom());
+      this.initializeFilters();
+      this.setupHandleDragging();
+    });
+  }
+
+  initializeFilters() {
+    const dropdown = this.element.querySelector('.picker-dropdown');
+    const filters = new Map(data.layouts[data.selectedLayout].filters);
+    const availableProperties = new Set();
+
+    Array.from(cache.selectedNodes).forEach(nodeId => {
+      const node = cache.nodeRef.get(nodeId);
+      if (node?.features) {
+        node.features.forEach(feature => {
+          if (filters.has(feature)) availableProperties.add(feature);
+        });
+      }
+    });
+
+    dropdown.innerHTML = '<option value="">Select property</option>';
+    Array.from(availableProperties).sort().forEach(property => {
+      const option = document.createElement('option');
+      option.value = property;
+      option.textContent = property;
+      dropdown.appendChild(option);
+    });
+
+    dropdown.onchange = () => this.initializeGradient(dropdown.value);
+  }
+
+  initializeGradient(property) {
+    const values = Array.from(cache.selectedNodes)
+      .map(id => cache.nodeRef.get(id)?.featureValues.get(property))
+      .filter(v => v !== undefined);
+
+    this.minValue = Math.min(...values);
+    this.maxValue = Math.max(...values);
+
+    this.handles = [
+      {pos: 0, color: this.defaultColors.min, value: this.minValue, fixed: true},
+      {pos: 50, color: this.defaultColors.zero, value: (this.maxValue + this.minValue) / 2, fixed: false},
+      {pos: 100, color: this.defaultColors.max, value: this.maxValue, fixed: true}
+    ];
+
+    this.renderHandles();
+    this.updateGradient();
+  }
+
+
+  setupHandleDragging() {
+    const container = this.element.querySelector('.picker-handle-container');
+
+    container.addEventListener('mousedown', e => {
+      const handleEl = e.target.closest('.picker-handle');
+      if (!handleEl) return;
+
+      const idx = parseInt(handleEl.dataset.index, 10);
+      const handleObj = this.handles[idx];
+      if (handleObj.fixed) return;
+
+      const onMove = moveEvent => {
+        const rect = container.getBoundingClientRect();
+        let pos = ((moveEvent.clientX - rect.left) / rect.width) * 100;
+        pos = Math.max(0, Math.min(100, pos));
+        this.updateHandlePosition(handleObj, pos);
+      };
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', () => {
+        document.removeEventListener('mousemove', onMove);
+      }, {once: true});
+    });
+  }
+
+  updateHandlePosition(handle, newPos) {
+    handle.pos = newPos;
+    handle.value = this.minValue + (newPos / 100) * (this.maxValue - this.minValue);
+
+    this.handles.sort((a, b) => a.pos - b.pos);
+
+    this.renderHandles();
+    this.updateGradient();
+  }
+
+  renderHandles() {
+    const container = this.element.querySelector('.picker-handle-container');
+    container.innerHTML = '';
+
+    this.handles.forEach((handle, i) => {
+      const element = document.createElement('div');
+      element.className = 'picker-handle';
+      element.style.left = `${handle.pos}%`;
+      element.style.backgroundColor = handle.color;
+      element.dataset.index = i;
+      element.dataset.fixed = handle.fixed;
+      element.style.zIndex = handle.fixed ? 1 : 2;
+
+      const value = document.createElement('div');
+      value.className = 'picker-handle-value';
+      value.textContent = handle.value.toFixed(2);
+
+      // Add color picker
+      const colorPicker = document.createElement('input');
+      colorPicker.type = 'color';
+      colorPicker.value = handle.color;
+      colorPicker.className = 'picker-handle-color';
+      colorPicker.style.opacity = '0';
+      colorPicker.style.position = 'absolute';
+      colorPicker.style.width = '100%';
+      colorPicker.style.height = '100%';
+      colorPicker.style.cursor = 'pointer';
+
+      colorPicker.addEventListener('input', (e) => {
+        handle.color = e.target.value;
+        element.style.backgroundColor = e.target.value;
+        this.updateGradient();
+      });
+
+      if (!handle.fixed) {
+        element.style.cursor = 'move';
+      }
+
+      element.appendChild(value);
+      element.appendChild(colorPicker);
+      container.appendChild(element);
+    });
+  }
+
+  updateGradient() {
+    const gradient = this.element.querySelector('.picker-gradient');
+    const stops = [...this.handles]
+      .sort((a, b) => a.pos - b.pos)
+      .map(h => `${h.color} ${h.pos}%`)
+      .join(', ');
+    gradient.style.background = `linear-gradient(to right, ${stops})`;
+  }
+
+
+  addHandle() {
+    if (this.handles.length >= 10) return;
+
+    const newColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+
+    // Find two adjacent handles with the largest gap
+    const sortedHandles = [...this.handles].sort((a, b) => a.pos - b.pos);
+    let maxGap = 0;
+    let insertIndex = 1;
+
+    for (let i = 0; i < sortedHandles.length - 1; i++) {
+      const gap = sortedHandles[i + 1].pos - sortedHandles[i].pos;
+      if (gap > maxGap) {
+        maxGap = gap;
+        insertIndex = i + 1;
+      }
+    }
+
+    // Insert new handle at the midpoint of the largest gap
+    const pos = (sortedHandles[insertIndex - 1].pos + sortedHandles[insertIndex].pos) / 2;
+    const value = this.minValue + (pos / 100) * (this.maxValue - this.minValue);
+
+    this.handles.push({pos, color: newColor, value, fixed: false});
+    this.handles.sort((a, b) => a.pos - b.pos);
+
+    this.renderHandles();
+    this.updateGradient();
+  }
+
+  removeHandle() {
+    if (this.handles.length <= 3) return;
+    this.handles.splice(Math.floor(this.handles.length / 2), 1);
+    this.renderHandles();
+    this.updateGradient();
+  }
+
+  apply() {
+    const dropdown = this.element.querySelector('.picker-dropdown');
+    const result = {
+      property: dropdown.value,
+      handles: this.handles,
+      colorMap: new Map()
+    };
+
+    Array.from(cache.selectedNodes).forEach(nodeId => {
+      const node = cache.nodeRef.get(nodeId);
+      const value = node?.featureValues.get(dropdown.value);
+
+      if (value !== undefined) {
+        const normalizedValue = ((value - this.minValue) / (this.maxValue - this.minValue)) * 100;
+        const color = this.getColorForValue(normalizedValue);
+        result.colorMap.set(nodeId, color);
+      }
+    });
+
+    this.resolvePromise(result);
+    this.close();
+  }
+
+  cancel() {
+    this.resolvePromise(null);
+    this.close();
+  }
+
+  getColorForValue(normalizedValue) {
+    const sortedHandles = [...this.handles].sort((a, b) => a.pos - b.pos);
+    let lower = sortedHandles[0];
+    let upper = sortedHandles[sortedHandles.length - 1];
+
+    for (let i = 0; i < sortedHandles.length - 1; i++) {
+      if (sortedHandles[i].pos <= normalizedValue && sortedHandles[i + 1].pos >= normalizedValue) {
+        lower = sortedHandles[i];
+        upper = sortedHandles[i + 1];
+        break;
+      }
+    }
+
+    const t = (normalizedValue - lower.pos) / (upper.pos - lower.pos);
+    return this.interpolateColor(lower.color, upper.color, t);
+  }
+
+  interpolateColor(color1, color2, t) {
+    const r1 = parseInt(color1.slice(1, 3), 16);
+    const g1 = parseInt(color1.slice(3, 5), 16);
+    const b1 = parseInt(color1.slice(5, 7), 16);
+
+    const r2 = parseInt(color2.slice(1, 3), 16);
+    const g2 = parseInt(color2.slice(3, 5), 16);
+    const b2 = parseInt(color2.slice(5, 7), 16);
+
+    const r = Math.round(r1 + (r2 - r1) * t);
+    const g = Math.round(g1 + (g2 - g1) * t);
+    const b = Math.round(b1 + (b2 - b1) * t);
+
+    return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
+  }
+
+  close() {
+    this.element?.remove();
+    this.element = null;
+  }
+}
 
 class NetworkMetrics {
   constructor() {
@@ -1911,90 +2225,96 @@ function createStyleDiv() {
   }
 
   async function handleStyleChangeEvent(property, value) {
+    const commands = [];
+
+    if (value === "set_continuous_color_scale") {
+      commands.push("set_continuous_color_scale");
+    }
+
     switch (property) {
       case "Node Size":
-        await updateNodes({style: {size: value}});
+        await updateNodes({style: {size: value}}, commands);
         break;
       case "Node Border Size":
-        await updateNodes({style: {lineWidth: value}});
+        await updateNodes({style: {lineWidth: value}}, commands);
         break;
       case "Node Label Font Size":
-        await updateNodes({style: {labelFontSize: value}});
+        await updateNodes({style: {labelFontSize: value}}, commands);
         break;
       case "Node Label Font Color":
-        await updateNodes({style: {labelFill: value}});
+        await updateNodes({style: {labelFill: value}}, commands);
         break;
       case "Node Label Background Color":
-        await updateNodes({style: {labelBackground: true, labelBackgroundFill: value}});
+        await updateNodes({style: {labelBackground: true, labelBackgroundFill: value}}, commands);
         break;
       case "Node Fill Color":
-        await updateNodes({style: {fill: value}});
+        await updateNodes({style: {fill: value}}, commands);
         break;
       case "Node Border Color":
-        await updateNodes({style: {stroke: value}});
+        await updateNodes({style: {stroke: value}}, commands);
         break;
       case "Node Label Color":
-        await updateNodes({style: {labelFill: value}});
+        await updateNodes({style: {labelFill: value}}, commands);
         break;
       case "Node Label Placement":
-        await updateNodes({style: {labelPlacement: value}});
+        await updateNodes({style: {labelPlacement: value}}, commands);
         break;
       case "Edge Color":
-        await updateEdges({style: {stroke: value}});
+        await updateEdges({style: {stroke: value}}, commands);
         break;
       case "Edge Width":
-        await updateEdges({style: {lineWidth: value}});
+        await updateEdges({style: {lineWidth: value}}, commands);
         break;
       case "Edge Dash":
-        await updateEdges({style: {lineDash: value}});
+        await updateEdges({style: {lineDash: value}}, commands);
         break;
       case "Edge Label Font Size":
-        await updateEdges({style: {labelFontSize: value}});
+        await updateEdges({style: {labelFontSize: value}}, commands);
         break;
       case "Edge Label Offset X":
-        await updateEdges({style: {labelOffsetX: value}});
+        await updateEdges({style: {labelOffsetX: value}}, commands);
         break;
       case "Edge Label Offset Y":
-        await updateEdges({style: {labelOffsetY: value}});
+        await updateEdges({style: {labelOffsetY: value}}, commands);
         break;
       case "Edge Label Placement":
-        await updateEdges({style: {labelPlacement: value}});
+        await updateEdges({style: {labelPlacement: value}}, commands);
         break;
       case "Edge Label Font Color":
-        await updateEdges({style: {labelFill: value}});
+        await updateEdges({style: {labelFill: value}}, commands);
         break;
       case "Edge Label Background Color":
-        await updateEdges({style: {labelBackground: true, labelBackgroundFill: value}});
+        await updateEdges({style: {labelBackground: true, labelBackgroundFill: value}}, commands);
         break;
       case "Edge Label Auto Rotate":
-        await updateEdges({style: {labelAutoRotate: value}});
+        await updateEdges({style: {labelAutoRotate: value}}, commands);
         break;
       case "Edge Start Arrow":
-        await updateEdges({style: {startArrow: value}});
+        await updateEdges({style: {startArrow: value}}, commands);
         break;
       case "Edge End Arrow":
-        await updateEdges({style: {endArrow: value}});
+        await updateEdges({style: {endArrow: value}}, commands);
         break;
       case "Edge Start Arrow Size":
-        await updateEdges({style: {startArrowSize: value}});
+        await updateEdges({style: {startArrowSize: value}}, commands);
         break;
       case "Edge End Arrow Size":
-        await updateEdges({style: {endArrowSize: value}});
+        await updateEdges({style: {endArrowSize: value}}, commands);
         break;
       case "Edge Start Arrow Type":
-        await updateEdges({style: {startArrowType: value}});
+        await updateEdges({style: {startArrowType: value}}, commands);
         break;
       case "Edge End Arrow Type":
-        await updateEdges({style: {endArrowType: value}});
+        await updateEdges({style: {endArrowType: value}}, commands);
         break;
       case "Edge Halo":
-        await updateEdges({style: {halo: value}});
+        await updateEdges({style: {halo: value}}, commands);
         break;
       case "Edge Halo Width":
-        await updateEdges({style: {haloLineWidth: value}});
+        await updateEdges({style: {haloLineWidth: value}}, commands);
         break;
       case "Edge Halo Color":
-        await updateEdges({style: {haloStroke: value}});
+        await updateEdges({style: {haloStroke: value}}, commands);
         break;
       default:
         break;
@@ -2103,7 +2423,7 @@ function createStyleDiv() {
     return colorPicker;
   }
 
-  function createColorControls(parent, property, defaultColor, colors) {
+  function createColorControls(parent, property, defaultColor, colors, continuousScaleBtn=true) {
     const colorButtonDiv = document.createElement("div");
     colorButtonDiv.className = "style-color-button-container";
 
@@ -2155,6 +2475,17 @@ function createStyleDiv() {
 
     parent.appendChild(colorPicker);
     parent.appendChild(colorInput);
+
+    if (continuousScaleBtn) {
+      const contScaleBtn = document.createElement("button");
+      contScaleBtn.className = "style-inner-button style-color-button style-color-gradient-button";
+      contScaleBtn.title = `Set ${property} of the selected elements to a continuous scale.`;
+      contScaleBtn.onclick = async () => {
+        colorInput.value = "";
+        await handleStyleChangeEvent(property, "set_continuous_color_scale");
+      };
+      parent.appendChild(contScaleBtn);
+    }
   }
 
   function createLabelControls(parent, property, isNode = null) {
@@ -2714,6 +3045,14 @@ function isObject(obj) {
 }
 
 async function updateNodes(overrides = {}, commands = []) {
+  if (commands.includes("set_continuous_color_scale")) {
+    const res = await picker.pickColors();
+    if (!res) {
+      info("Aborted color picker");
+      return;
+    }
+    console.log("foo");
+  }
   for (const nodeID of cache.selectedNodes) {
     const node = cache.nodeRef.get(nodeID);
 
@@ -3043,8 +3382,8 @@ function loadFile(event) {
       case 'ods':
         return file.arrayBuffer().then((buffer) => {
           return parseExcelToJson(buffer);
-        }).catch((error) => {
-          error(`Error reading Excel file: ${error.message}`);
+        }).catch((errorMsg) => {
+          error(`Error reading Excel file: ${errorMsg}`);
           return null;
         });
 
@@ -3052,8 +3391,8 @@ function loadFile(event) {
       default:
         error(`Unsupported file type: ${fileType}`);
     }
-  } catch (error) {
-    error(`Failed to load file: ${error.message}`);
+  } catch (errorMsg) {
+    error(`Failed to load file: ${errorMsg}`);
   }
 
   // Reset the file input for subsequent uploads
@@ -3072,8 +3411,8 @@ function parseJSON(file) {
         } else {
           resolve(jsonContent);
         }
-      } catch (error) {
-        error(`Failed to parse file as JSON: ${error}`);
+      } catch (errorMsg) {
+        error(`Failed to parse file as JSON: ${errorMsg}`);
         resolve(null);
       }
     };
@@ -3937,67 +4276,6 @@ async function clearBubbleSetInstanceMembers() {
     });
   }
 }
-
-function debugBubbleSets() {
-  Array.from(cache.lastBubbleSetMembers.get("groupOne")).has("")
-}
-
-// async function updateBubbleSet(group, members) {
-//   if (EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING) return;
-//
-//   let empty = !members || members.size === 0;
-//
-//   function getAvoidMembers() {
-//     if (empty) return [];
-//     if (APPLY_BUBBLE_SET_HOTFIX && PERFORMANCE_MODE) return [];
-//     if (AVOID_NON_BUBBLE_GROUP_MEMBERS) return [];
-//     return [...cache.nodeRef.keys()].filter(nodeID => !membersAsArray.includes(nodeID));
-//   }
-//
-//   try {
-//     EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING = true;
-//
-//     const validMembers = Array.isArray(members) ? members.filter(Boolean) : [];
-//
-//     const existingMembers = INSTANCES.BUBBLE_GROUPS[group]?.members?.keys() || new Set();
-//     const existingMembersArray = Array.from(existingMembers);
-//
-//     const existingAvoidMembers = INSTANCES.BUBBLE_GROUPS[group]?.avoidMembers?.keys() || new Set();
-//     const existingAvoidMembersArray = Array.from(existingAvoidMembers);
-//
-//     if (JSON.stringify(validMembers.sort()) !== JSON.stringify(existingMembersArray.sort())) {
-//       debug(`Updating bubble set ${group} ..`);
-//
-//       // Store the previous members for rollback
-//       const previousMembers = new Set(existingMembersArray);
-//       const previousAvoidMembers = new Set(existingAvoidMembersArray);
-//
-//       try {
-//         const avoidMembers = getAvoidMembers();
-//         await INSTANCES.BUBBLE_GROUPS[group].update({
-//           members: empty ? [] : validMembers,
-//           avoidMembers: avoidMembers,
-//           fillOpacity: empty ? 0 : DEFAULTS.BUBBLE_GROUP_STYLE[group].fillOpacity,
-//           strokeOpacity: empty ? 0 : DEFAULTS.BUBBLE_GROUP_STYLE[group].strokeOpacity,
-//           label: empty ? false : DEFAULTS.BUBBLE_GROUP_STYLE[group].label,
-//         });
-//         await INSTANCES.BUBBLE_GROUPS[group].drawBubbleSets();
-//       } catch (error) {
-//         console.error(`Error updating bubble set ${group}:`, error);
-//         await INSTANCES.BUBBLE_GROUPS[group].update({
-//           members: previousMembers,
-//           avoidMembers: previousAvoidMembers,
-//           fillOpacity: empty ? 0 : DEFAULTS.BUBBLE_GROUP_STYLE[group].fillOpacity,
-//           strokeOpacity: empty ? 0 : DEFAULTS.BUBBLE_GROUP_STYLE[group].strokeOpacity,
-//           label: empty ? false : DEFAULTS.BUBBLE_GROUP_STYLE[group].label,
-//         });
-//         await INSTANCES.BUBBLE_GROUPS[group].drawBubbleSets();
-//       }
-//     }
-//   } finally {
-//     EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING = false;
-//   }
-// }
 
 function setsAreEqual(setA, setB) {
   if (setA.size !== setB.size) return false;
@@ -5879,7 +6157,7 @@ function preProcessData(fileData) {
     }
 
     if (node.style?.x && node.style?.y) {
-      cache.nodePositionsFromExcelImport.set(node.id, {x: node.style.x, y: node.style.y});
+      cache.nodePositionsFromExcelsImport.set(node.id, {x: node.style.x, y: node.style.y});
     }
 
     return {
@@ -6018,6 +6296,8 @@ function initCache() {
 
   cache.nodeIDOrLabelToNodeIDs = new Map();
   cache.edgeIDOrLabelToEdgeIDs = new Map();
+
+  picker = new ColorScalePicker();
 
   function populateUniquePropGroups(propHash) {
     const [mainGroup, subGroup, prop] = decodePropHashId(propHash);
@@ -7006,8 +7286,8 @@ async function loadFileWrapper(event) {
       await graph.fitView();
       debug("Initial graph rendered.");
     })
-    .catch(async (error) => {
-      error(`Error loading graph: ${error}`);
+    .catch(async (errorMsg) => {
+      error(`Error loading graph: ${errorMsg}`);
       await hideLoading();
       await new Promise(resolve => requestAnimationFrame(resolve));
     })
