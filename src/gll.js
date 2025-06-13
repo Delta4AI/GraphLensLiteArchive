@@ -3027,7 +3027,7 @@ function decodePropHashId(propId) {
 function loadFile(event) {
   const file = event.target.files[0];
   if (!file) {
-    alert("No file selected.");
+    error("No file selected.");
     return Promise.resolve(null);
   }
 
@@ -3044,16 +3044,16 @@ function loadFile(event) {
         return file.arrayBuffer().then((buffer) => {
           return parseExcelToJson(buffer);
         }).catch((error) => {
-          alert(`Error reading Excel file: ${error.message}`);
+          error(`Error reading Excel file: ${error.message}`);
           return null;
         });
 
 
       default:
-        alert(`Unsupported file type: ${fileType}`);
+        error(`Unsupported file type: ${fileType}`);
     }
   } catch (error) {
-    alert(`Failed to load file: ${error.message}`);
+    error(`Failed to load file: ${error.message}`);
   }
 
   // Reset the file input for subsequent uploads
@@ -3067,18 +3067,18 @@ function parseJSON(file) {
       try {
         const jsonContent = JSON.parse(reader.result);
         if (!jsonContent.edges || !jsonContent.nodes) {
-          alert("File does not contain edges or nodes.");
+          error("File does not contain edges or nodes.");
           resolve(null);
         } else {
           resolve(jsonContent);
         }
       } catch (error) {
-        alert(`Failed to parse file as JSON: ${error}`);
+        error(`Failed to parse file as JSON: ${error}`);
         resolve(null);
       }
     };
     reader.onerror = () => {
-      alert(`Failed to load file: ${reader.error}`);
+      error(`Failed to load file: ${reader.error}`);
       resolve(null);
     };
     reader.readAsText(file);
@@ -5311,7 +5311,7 @@ class Popup {
    * const popup2 = new Popup(`
    *     <h2>Welcome!</h2>
    *     <p>This is a popup with <strong>HTML</strong> content.</p>
-   *     <button onclick="alert('Button clicked!')">Click me</button>
+   *     <button onclick="error('Button clicked!')">Click me</button>
    * `);
    *
    * // Popup with custom options
@@ -5626,7 +5626,7 @@ async function addLayout() {
 
 async function removeSelectedLayout() {
   if (!data.layouts[data.selectedLayout].isCustom) {
-    alert("Cannot delete default layout.");
+    error("Cannot delete default layout.");
     return false;
   }
 
@@ -5756,7 +5756,7 @@ function getEdgeStyleOrDefaults(edge) {
 
 async function exportGraphAsJSON() {
   if (data === null) {
-    alert("No graph data to save.");
+    error("No graph data to save.");
     return false;
   }
 
@@ -6985,7 +6985,7 @@ async function loadFileWrapper(event) {
   loadFile(event)
     .then(async (fileData) => {
       if (!fileData) {
-        alert("File data is empty.");
+        error("File data is empty.");
         await hideLoading();
         await new Promise(resolve => requestAnimationFrame(resolve));
         return;
@@ -6997,7 +6997,7 @@ async function loadFileWrapper(event) {
       await createGraphInstance();
 
       if (!graph) {
-        alert("Graph not initialized, aborting.");
+        error("Graph not initialized, aborting.");
         await hideLoading();
         await new Promise(resolve => requestAnimationFrame(resolve));
         return;
@@ -7007,7 +7007,7 @@ async function loadFileWrapper(event) {
       debug("Initial graph rendered.");
     })
     .catch(async (error) => {
-      alert(`Error loading graph: ${error}`);
+      error(`Error loading graph: ${error}`);
       await hideLoading();
       await new Promise(resolve => requestAnimationFrame(resolve));
     })
@@ -7098,7 +7098,7 @@ async function registerPluginStates() {
 
 async function resetLayout() {
   if (data.layouts[data.selectedLayout].isCustom) {
-    alert("Cannot reset custom layout.");
+    error("Cannot reset custom layout.");
     return false;
   }
 
