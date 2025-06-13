@@ -1900,47 +1900,53 @@ input:checked + .slider:before {
  ColorScalePicker
  **************************/
 .picker-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(2px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
 .picker-content {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  min-width: 400px;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    min-width: 400px;
 }
 
 .picker-dropdown {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 15px;
-  border-radius: 4px;
-  border: 1px solid #403C53;
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    border: 1px solid #403C53;
+}
+
+.picker-property-counter {
+    font-size: 14px;
+    display: flex;
+    justify-content: center;
 }
 
 .picker-gradient {
-  width: 100%;
-  height: 40px;
-  border: 1px solid #403C53;
-  border-radius: 4px;
-  margin: 15px 0;
-  position: relative;
+    width: 100%;
+    height: 40px;
+    border: 1px solid #403C53;
+    border-radius: 4px;
+    margin: 15px 0;
+    position: relative;
 }
 
 .picker-handle-container {
-  position: relative;
-  height: 30px;
-  margin: 10px 0;
+    position: relative;
+    height: 30px;
+    margin: 10px 0;
 }
 
 .picker-handle {
@@ -1973,30 +1979,96 @@ input:checked + .slider:before {
 }
 
 .picker-button-container {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    gap: 10px;
 }
 
+.picker-default-color-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+}
+
+.picker-default-color-container span {
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.picker-default-color {
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+
 .picker-button {
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  border: 1px solid #403C53;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid #403C53;
 }
 
 .picker-button.primary {
-  background: #403C53;
-  color: white;
+    background: #403C53;
+    color: white;
 }
 
 .picker-button.secondary {
-  background: white;
-  color: #403C53;
+    background: white;
+    color: #403C53;
 }
 
 .picker-controls {
-  display: flex;
-  gap: 10px;
-  margin: 10px 0;
+    display: flex;
+    gap: 10px;
+    margin: 10px 0;
+    justify-content: center;
+}
+
+.picker-category-container {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 15px;
+    margin-bottom: 25px;
+    border: 1px solid #403C53;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+.picker-category-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid #E4E3EA;
+}
+
+.picker-category-row:last-child {
+    border-bottom: none;
+}
+
+.picker-category-row span {
+    font-size: 14px;
+    flex-grow: 1;
+    margin-right: 15px;
+}
+
+.picker-category-row input[type="color"] {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.picker-category-row:hover {
+    background-color: #F8F8F8;
 }
