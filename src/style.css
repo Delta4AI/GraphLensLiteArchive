@@ -1918,6 +1918,7 @@ input:checked + .slider:before {
     padding: 20px;
     border-radius: 8px;
     min-width: 400px;
+    border: 1px solid black;
 }
 
 .picker-dropdown {
@@ -1939,7 +1940,8 @@ input:checked + .slider:before {
     height: 40px;
     border: 1px solid #403C53;
     border-radius: 4px;
-    margin: 15px 0;
+    margin-top: 15px;
+    margin-bottom: 25px;
     position: relative;
 }
 
@@ -2014,6 +2016,9 @@ input:checked + .slider:before {
     cursor: pointer;
     border: 1px solid #403C53;
 }
+.picker-button:hover {
+    border-color: #C33D35;
+}
 
 .picker-button.primary {
     background: #403C53;
@@ -2023,6 +2028,11 @@ input:checked + .slider:before {
 .picker-button.secondary {
     background: white;
     color: #403C53;
+}
+
+.picker-button.plus-minus {
+    padding: 4px 8px;
+    background-color: #f4f4f4;
 }
 
 .picker-controls {

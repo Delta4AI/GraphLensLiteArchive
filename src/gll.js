@@ -274,6 +274,7 @@ const DEFAULTS = {
     "grid": {sortBy: "id", nodeSize: 32},
     "mds": {nodeSize: 32, linkDistance: 100},
   },
+  CUSTOM_LAYOUT_NAME: "custom",
   BUBBLE_GROUP_STYLE: {
     "groupOne": {
       fill: '#403C53',
@@ -490,6 +491,7 @@ const EVENT_LOCKS = {
   ONCE_AFTER_RENDER_COMPLETED: false,
   IS_DESELECTING: false,
   BUBBLE_GROUP_REDRAW_RUNNING: false,
+  TRIGGER_SET_LAYOUT_ONCE: false,
 }
 
 const INSTANCES = {
@@ -520,56 +522,70 @@ class ColorScalePicker {
     this.categories = [];
     this.defaultColorForMissing = '#CCCCCC';
     this.elementType = "nodes";
+    this.dom = {};
   }
 
   createDom() {
     const overlay = document.createElement('div');
     overlay.className = 'picker-overlay';
+    this.dom.overlay = overlay;
 
     const content = document.createElement('div');
     content.className = 'picker-content';
+    this.dom.content = content;
 
     const dropdown = document.createElement('select');
     dropdown.className = 'picker-dropdown';
+    this.dom.dropdown = dropdown;
 
     const gradient = document.createElement('div');
-    gradient.className = 'picker-gradient';
+    gradient.className = 'picker-gradient disabled';
+    this.dom.gradient = gradient;
 
     const handleContainer = document.createElement('div');
     handleContainer.className = 'picker-handle-container';
+    this.dom.handleContainer = handleContainer;
 
     const controls = document.createElement('div');
-    controls.className = 'picker-controls';
+    controls.className = 'picker-controls disabled';
+    this.dom.controls = controls;
 
     const addButton = document.createElement('button');
-    addButton.className = 'picker-button';
+    addButton.className = 'picker-button plus-minus';
     addButton.textContent = '+';
     addButton.onclick = () => this.addHandle();
+    this.dom.addButton = addButton;
 
     const removeButton = document.createElement('button');
-    removeButton.className = 'picker-button';
+    removeButton.className = 'picker-button plus-minus';
     removeButton.textContent = '-';
     removeButton.onclick = () => this.removeHandle();
+    this.dom.removeButton = removeButton;
 
     const categoryContainer = document.createElement('div');
     categoryContainer.className = 'picker-category-container';
     categoryContainer.style.display = 'none';
+    this.dom.categoryContainer = categoryContainer;
 
     controls.append(addButton, removeButton);
     const buttons = document.createElement('div');
     buttons.className = 'picker-button-container';
+    this.dom.buttons = buttons;
 
     const cancelButton = document.createElement('button');
     cancelButton.className = 'picker-button secondary';
     cancelButton.textContent = 'Cancel';
     cancelButton.onclick = () => this.cancel();
+    this.dom.cancelButton = cancelButton;
 
     const defaultColorContainer = document.createElement('div');
     defaultColorContainer.className = 'picker-default-color-container disabled';
+    this.dom.defaultColorContainer = defaultColorContainer;
 
     const label = document.createElement('span');
     label.textContent = 'Default color:';
     label.title = 'Default color for elements with missing values';
+    this.dom.label = label;
 
     const defaultColorEl = document.createElement('input');
     defaultColorEl.type = 'color';
@@ -578,13 +594,15 @@ class ColorScalePicker {
     defaultColorEl.addEventListener('input', (e) => {
       this.defaultColorForMissing = e.target.value;
     });
+    this.dom.defaultColorEl = defaultColorEl;
 
     defaultColorContainer.append(label, defaultColorEl);
 
     const applyButton = document.createElement('button');
-    applyButton.className = 'picker-button primary';
+    applyButton.className = 'picker-button primary disabled';
     applyButton.textContent = 'Apply';
     applyButton.onclick = () => this.apply();
+    this.dom.applyButton = applyButton;
 
     buttons.append(cancelButton, defaultColorContainer, applyButton);
     content.append(dropdown, gradient, handleContainer, controls, categoryContainer, buttons);
@@ -662,13 +680,16 @@ class ColorScalePicker {
     const elementTypeLabel = this.elementType === 'nodes' ? 'Nodes' : 'Edges';
     counterEl.textContent = `Affected ${elementTypeLabel}: ${elementsWithPropertyCount} / ${totalElements}`;
 
-    const defaultColorContainer = this.element.querySelector('.picker-default-color-container');
-    if (defaultColorContainer) {
+    if (this.dom.defaultColorContainer) {
       if (elementsWithPropertyCount === totalElements) {
-        defaultColorContainer.classList.add('disabled');
+        this.dom.defaultColorContainer.classList.add('disabled');
       } else {
-        defaultColorContainer.classList.remove('disabled');
+        this.dom.defaultColorContainer.classList.remove('disabled');
       }
+    }
+
+    for (const elem of [this.dom.applyButton, this.dom.controls, this.dom.gradient]) {
+      elem.classList.remove("disabled");
     }
 
     if (filterObj.isCategory) {
@@ -692,7 +713,6 @@ class ColorScalePicker {
     categoryContainer.innerHTML = '';
     categoryContainer.style.display = 'block';
 
-    // now cat is an object {name, color}
     this.categories.forEach(cat => {
       const row = document.createElement('div');
       row.className = 'picker-category-row';
@@ -1935,7 +1955,7 @@ function isHexColor(value) {
   return hexRegex.test(value.trim());
 }
 
-function createDefaultLayout(key) {
+function createDefaultLayout(key, overridePositionsFromExcel=false) {
   const defLayout = {
     internals: DEFAULTS.LAYOUT_INTERNALS[key] || null,
     positions: new Map(),
@@ -1944,8 +1964,14 @@ function createDefaultLayout(key) {
     query: undefined,
   };
 
-  for (const [nodeID, positions] of cache.nodePositionsFromExcelImport) {
-    defLayout.positions.set(nodeID, {style: {x: positions.x, y: positions.y}});
+  if (overridePositionsFromExcel) {
+    // applies given coordinates from Excel template; remaining positions will be force layouted
+    for (const [nodeID, positions] of cache.nodePositionsFromExcelImport) {
+      defLayout.positions.set(nodeID, {style: {x: positions.x, y: positions.y}});
+    }
+    defLayout.type = DEFAULTS.LAYOUT;
+    defLayout.internals = DEFAULTS.LAYOUT_INTERNALS[DEFAULTS.LAYOUT];
+    defLayout.isCustom = true;
   }
 
   for (let group of traverseBubbleSets()) {
@@ -4059,12 +4085,6 @@ async function createGraphInstance() {
 
       debug("AFTER LAYOUT");
       EVENT_LOCKS.AFTER_LAYOUT_RUNNING = true;
-      if (!cache.initialNodePositions.has(data.selectedLayout)) {
-        cache.initialNodePositions.set(data.selectedLayout, new Map());
-      }
-      for (const node of await graph.getNodeData()) {
-        cache.initialNodePositions.get(data.selectedLayout).set(node.id, {style: {x: node.style.x, y: node.style.y}});
-      }
 
       if (data.layouts[data.selectedLayout].positions.size > 0) {
         graph.updateNodeData(Array.from(data.layouts[data.selectedLayout].positions, ([id, pos]) => ({
@@ -4072,7 +4092,6 @@ async function createGraphInstance() {
           style: pos.style
         })));
         await graph.draw();
-        // await graph.fitView();
       }
       EVENT_LOCKS.AFTER_LAYOUT_RUNNING = false;
     })
@@ -4161,8 +4180,24 @@ async function createGraphInstance() {
         await showLoading("Post-processing", "Finalizing rendering ..");
         await new Promise(resolve => requestAnimationFrame(resolve));
 
+        if (EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE) {
+          // suppresses the info in case of loading from a json model
+          if (cache.nodePositionsFromExcelImport.size !== 0) {
+            info(`Created view "${DEFAULTS.CUSTOM_LAYOUT_NAME}". Applying ${DEFAULTS.LAYOUT} layout to nodes without coordinates ..`);
+          }
+          await graph.setLayout({type: DEFAULTS.LAYOUT, ...DEFAULTS.LAYOUT_INTERNALS[DEFAULTS.LAYOUT]});
+        }
+
         EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED = true;
         await graph.render();
+
+        if (EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE) {
+          debug("Initially persisting custom layout ..");
+          await persistNodePositions();
+          EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = false;
+        }
+
+        await setInitialNodePositions();
       } catch (errorMsg) {
         error(`Error in GraphEvent.AFTER_RENDER: ${errorMsg}`);
         error("Graph setup failed. Please check your input data.");
@@ -4176,6 +4211,13 @@ async function createGraphInstance() {
     if (!layout.isCustom) {
       await graph.setLayout({type: data.selectedLayout, ...layout.internals});
     }
+  }
+}
+
+async function debugPositions() {
+  for (const nodeID of cache.nodeRef.keys()) {
+    const pos = await graph.getElementPosition(nodeID);
+    console.log(`${nodeID}: ${pos[0]}, ${pos[1]}, ${pos[2]}`);
   }
 }
 
@@ -4509,6 +4551,27 @@ function createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
   return {
     nodes: [...filteredNodes, INVISIBLE_DUMMY_NODE], edges: filteredEdges, combos: data.combos || [],
   };
+}
+
+async function setInitialNodePositions(override = false) {
+  if (!cache.initialNodePositions.has(data.selectedLayout) || override) {
+    debug(`Setting initial node positions for layout "${data.selectedLayout}" ..`);
+    cache.initialNodePositions.set(data.selectedLayout, new Map());
+    for (const nodeID of cache.nodeRef.keys()) {
+      const pos = await graph.getElementPosition(nodeID);
+      cache.initialNodePositions.get(data.selectedLayout).set(nodeID, {style: {x: pos[0], y: pos[1]}});
+    }
+  }
+}
+
+async function restoreInitialNodePositions() {
+  for (const nodeID of cache.nodeRef.keys()) {
+    const currentPos = await graph.getElementPosition(nodeID);
+    const initialPos = cache.initialNodePositions.get(data.selectedLayout).get(nodeID);
+    if (currentPos[0] !== initialPos.style.x || currentPos[1] !== initialPos.style.y) {
+      await graph.translateElementTo(nodeID, [initialPos.style.x, initialPos.style.y]);
+    }
+  }
 }
 
 function decodeQueryAndBuildAST() {
@@ -5125,10 +5188,8 @@ function refreshStashUI() {
 function manageDynamicWidgets() {
   let isCustomLayout = data.layouts[data.selectedLayout].isCustom;
   let removeLayoutBtnCls = document.getElementById("removeSelectedLayoutButton").classList;
-  let resetLayoutBtnCls = document.getElementById("resetLayoutButton").classList;
 
   isCustomLayout ? removeLayoutBtnCls.remove("disabled") : removeLayoutBtnCls.add("disabled");
-  isCustomLayout ? resetLayoutBtnCls.add("disabled") : resetLayoutBtnCls.remove("disabled");
 }
 
 function createSectionToggleButton(enable, section, subSection = null) {
@@ -6376,25 +6437,33 @@ function preProcessData(fileData) {
     }
   });
 
-  // option to re-configure bubble set styles per model if wanted
   data.bubbleSetStyle = fileData.bubbleSetStyle || DEFAULTS.BUBBLE_GROUP_STYLE;
 
-  // currently selected layout
-  data.selectedLayout = fileData.selectedLayout || DEFAULTS.LAYOUT;
+  const excelHasCoordinates = cache.nodePositionsFromExcelImport.size > 0;
+  data.selectedLayout = fileData.selectedLayout || (
+    excelHasCoordinates ? DEFAULTS.CUSTOM_LAYOUT_NAME : DEFAULTS.LAYOUT);
 
   // create individual map for each layout, no matter if default or manual, with positions, current filters, ..
   if (fileData.layouts) {
     data.layouts = parseLayouts(fileData.layouts);
+    if (fileData.selectedLayout === DEFAULTS.CUSTOM_LAYOUT_NAME) {
+      EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = true;
+    }
   } else {
     data.layouts = Object.keys(DEFAULTS.LAYOUT_INTERNALS).reduce((acc, key) => {
       if (data?.layouts?.[key]) {
         warning("Layout with key '" + key + "' already exists.");
         return acc;
       } else {
-        acc[key] = createDefaultLayout(key);
+        acc[key] = createDefaultLayout(key, false);
         return acc;
       }
     }, {});
+
+    if (excelHasCoordinates) {
+      data.layouts[DEFAULTS.CUSTOM_LAYOUT_NAME] = createDefaultLayout(DEFAULTS.CUSTOM_LAYOUT_NAME, true);
+      EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = true;
+    }
   }
 
   if (fileData.stash) {
@@ -7555,22 +7624,21 @@ async function registerPluginStates() {
 }
 
 async function resetLayout() {
-  if (data.layouts[data.selectedLayout].isCustom) {
-    error("Cannot reset custom layout.");
-    return false;
-  }
-
-  await showLoading("Resetting", "Resetting layout to default ..");
-  await new Promise(resolve => requestAnimationFrame(resolve));
-  data.layouts[data.selectedLayout]?.positions?.clear();
-
-  await graph.updateData(createSimplifiedDataForGraphObject(true));
-  let layout = data.layouts[data.selectedLayout];
-  if (!layout.isCustom) {
-    await graph.setLayout({type: data.selectedLayout, ...layout.internals});
-  }
-
-  await decideToRenderOrDraw(true).then(r => debug(`Reset layout ${data.selectedLayout}`));
+  // await showLoading("Resetting", "Resetting layout to default ..");
+  // await new Promise(resolve => requestAnimationFrame(resolve));
+  //
+  // if (!data.layouts[data.selectedLayout].isCustom) {
+  //   data.layouts[data.selectedLayout]?.positions?.clear();
+  // }
+  //
+  // await graph.updateData(createSimplifiedDataForGraphObject(true));
+  // let layout = data.layouts[data.selectedLayout];
+  // await graph.setLayout({type: data.selectedLayout, ...layout.internals});
+  //
+  // await debugPositions();
+  // await decideToRenderOrDraw(true).then(r => debug(`Reset layout ${data.selectedLayout}`));
+  // await debugPositions();
+  await restoreInitialNodePositions();
 }
 
 async function exportPNG() {
