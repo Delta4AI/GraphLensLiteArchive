@@ -7199,10 +7199,13 @@ function encodeQuery(asciiStr) {
     .join('');
 
   const updateQueryBtn = document.getElementById("queryUpdateBtn");
+  const selectQueryBtn = document.getElementById("querySelectBtn");
   if (query.valid) {
     updateQueryBtn.classList.remove("disabled");
+    selectQueryBtn.classList.remove("disabled");
   } else {
     updateQueryBtn.classList.add("disabled");
+    selectQueryBtn.classList.add("disabled");
   }
 
   return asciiStr;
@@ -7332,6 +7335,44 @@ function handleQueryValidationEvent() {
 async function handleQueryUpdateEvent() {
   updateUIFromQueryInstructions();
   await handleFilterEvent("Updating Graph from Query", query.text.textContent, null, false);
+}
+
+async function handleQuerySelectEvent() {
+  await showLoading("Updating Selection", `Modifying selection from query`);
+  await new Promise(resolve => requestAnimationFrame(resolve));
+
+  decodeQueryAndBuildAST();
+
+  const visibility = {};
+
+  async function addUpdatedState(nodeOrEdgeID, shouldSelect) {
+    const state = await graph.getElementState(nodeOrEdgeID);
+    if (shouldSelect && !state.includes("selected")) {
+      state.push("selected");
+    }
+    if (!shouldSelect && state.includes("selected")) {
+      state.splice(state.indexOf("selected"), 1);
+    }
+    visibility[nodeOrEdgeID] = state;
+  }
+
+  let shouldSelect;
+  for (const node of cache.nodeRef.values()) {
+    shouldSelect = query.ast.testNode(node) && cache.nodeIDsToBeShown.has(node.id);
+    await addUpdatedState(node.id, shouldSelect);
+
+  }
+
+  for (const edge of cache.edgeRef.values()) {
+    shouldSelect = query.ast.testEdge(edge) && cache.edgeIDsToBeShown.has(edge.id);
+    await addUpdatedState(edge.id, shouldSelect);
+  }
+
+  await graph.setElementState(visibility);
+
+  await hideLoading();
+  await new Promise(resolve => requestAnimationFrame(resolve));
+
 }
 
 /**

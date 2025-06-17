@@ -115,9 +115,10 @@
   </div>
   <div class="query-buttons">
     <button id="queryUpdateBtn" class="disabled" onclick="handleQueryUpdateEvent()"
-            title="Apply changes from query to the graph">Update
-    </button>
-    <button id="queryResetBtn" class="red" onclick="resetQuery();" title="Reset query to match UI">Reset</button>
+            title="Apply the query to filter the graph">Update</button>
+    <button id="querySelectBtn" class="disabled" onclick="handleQuerySelectEvent()"
+            title="Apply the query to select nodes in the graph without filtering">Select</button>
+    <button id="queryResetBtn" class="red" onclick="resetQuery();" title="Reset query to match UI filters">Reset</button>
   </div>
   <div class="query-help-icon">
     <button id="foo" class="info-btn" title="Display help" onclick="showQueryHelp();">🛈</button>
