@@ -830,11 +830,17 @@ h5 {
  **************************/
 
 .checkboxWrapper {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 4px;
     cursor: pointer;
 }
+
+.checkboxContainer {
+    display: flex;
+    align-items: center;
+}
+
 
 .checkboxLabel {
     padding-left: 2px;
@@ -844,15 +850,48 @@ h5 {
 
 .checkbox {
     display: inline-block;
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     position: relative;
     text-align: center;
     line-height: 12px;
-    font-size: 10px;
+    font-size: 12px;
     font-family: sans-serif;
     flex-shrink: 0;
+    box-sizing: border-box;
 }
+
+.add-to-query-button {
+    padding: 0;
+    width: 0;
+    height: 14px;
+    font-size: 10px;
+    border: 1px solid #403C53;
+    border-radius: 3px;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0;
+    box-sizing:border-box;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out, width 0.2s ease-in-out, margin 0.2s ease-in-out;
+}
+
+.add-to-query-button.show {
+    opacity: 1;
+    pointer-events: auto;
+    width: 14px;
+    margin-left: 1px;
+}
+
+.add-to-query-button:hover {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+
 
 .checkbox-red,
 .checkbox-green {
@@ -2052,6 +2091,7 @@ input:checked + .slider:before {
     font-family: "Courier New", monospace;
     font-size: 12px;
     line-height: 1.5;
+    padding-right: 16px;
     word-wrap: break-word;
     tab-size: 4;
     margin: 0;
@@ -2121,6 +2161,32 @@ input:checked + .slider:before {
     border: 1px solid black;
     text-overflow: ellipsis;
     font-size: 1.5vh;
+}
+
+.query-clear-button {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    width: 16px;
+    height: 16px;
+    font-size: 14px;
+    line-height: 14px;
+    border: 1px solid #C33D35;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease-in-out;
+    opacity: 0.7;
+    z-index: 999;
+    color: #C33D35;
+}
+
+.query-clear-button:hover {
+    background: rgba(0, 0, 0, 0.1);
+    opacity: 1;
 }
 
 #queryUpdateBtn {
