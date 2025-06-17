@@ -84,105 +84,6 @@ body, html {
     /*margin: 0.25em;*/
 }
 
-#queryEditor {
-    position: relative;
-    flex: 0 0 90%;
-    height: 100%;
-    outline: 1px solid #403C53;
-    outline-offset: 4px;
-    border-radius: 5px;
-    box-sizing: border-box;
-}
-
-#queryTextArea,
-#queryOverlay {
-    font-family: "Courier New", monospace;
-    font-size: 12px;
-    line-height: 1.5;
-    word-wrap: break-word;
-    tab-size: 4;
-    margin: 0;
-    inset: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-#queryOverlay {
-    position: absolute;
-    pointer-events: none;
-    z-index: 0;
-}
-
-#queryTextArea {
-    position: relative;
-    height: 100%;
-    box-sizing: border-box;
-    resize: none;
-    outline: none;
-    background: transparent;
-    color: transparent;
-    caret-color: transparent;
-    z-index: 1;
-}
-
-#queryEditor .custom-caret {
-    position: absolute;
-    width: 2px;
-    background: red;
-    animation: blink 1s steps(1) infinite;
-    pointer-events: none;
-    z-index: 2;
-}
-
-@keyframes blink {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0;
-    }
-}
-
-.query-buttons {
-    display: flex;
-    flex-direction: column;
-    flex: 0 0 6%;
-    margin: 0 10px;
-}
-
-.query-help-icon {
-    display: flex;
-    flex-direction: column;
-    flex: 0 0 2%;
-}
-
-.query-buttons button {
-    height: 2.5em;
-    cursor: pointer;
-    border-radius: 5px;
-    color: #fff;
-    border: 1px solid black;
-}
-
-#queryUpdateBtn {
-    background-color: #403C53;
-}
-
-#queryUpdateBtn:hover {
-    border-color: #C33D35;
-    border-width: 2px;
-}
-
-#queryResetBtn {
-    background-color: #C33D35;
-    margin-top: 0.5em;
-}
-
-#queryResetBtn:hover {
-    border-color: black;
-    border-width: 2px;
-}
-
 #outerGraphContainer {
     flex: 1 1 auto;
     min-width: 0;
@@ -2130,6 +2031,116 @@ input:checked + .slider:before {
     height: var(--size);
 }
 
-/*.lasso-icon.active {*/
-/*    box-shadow: 0 0 5px #C33D35;*/
-/*}*/
+/*************************
+ Query editor
+ **************************/
+
+#queryEditor {
+    position: relative;
+    flex: 0 0 90%;
+    height: 100%;
+    outline: 1px solid #403C53;
+    outline-offset: 4px;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+#queryTextArea,
+#queryOverlay {
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    word-wrap: break-word;
+    tab-size: 4;
+    margin: 0;
+    inset: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#queryOverlay {
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+}
+
+#queryTextArea {
+    position: relative;
+    height: 100%;
+    box-sizing: border-box;
+    resize: none;
+    outline: none;
+    background: transparent;
+    color: transparent;
+    caret-color: transparent;
+    z-index: 1;
+}
+
+#queryEditor .custom-caret {
+    position: absolute;
+    width: 2px;
+    background: red;
+    animation: blink 1s steps(1) infinite;
+    pointer-events: none;
+    z-index: 2;
+}
+
+@keyframes blink {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+}
+
+.query-buttons {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 6%;
+    margin: 0 10px;
+}
+
+.query-help-icon {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 2%;
+}
+
+.query-buttons button {
+    height: 2.5em;
+    cursor: pointer;
+    border-radius: 5px;
+    color: #fff;
+    border: 1px solid black;
+}
+
+#queryUpdateBtn {
+    background-color: #403C53;
+}
+
+#queryUpdateBtn:hover {
+    border-color: #C33D35;
+    border-width: 2px;
+}
+
+#querySelectBtn {
+    margin-top: 0.2em;
+    background-color: #8CA6D9;
+    color: black;
+}
+
+#querySelectBtn:hover {
+    border-color: #403C53;
+    border-width: 2px;
+}
+
+#queryResetBtn {
+    background-color: #C33D35;
+    margin-top: 0.2em;
+}
+
+#queryResetBtn:hover {
+    border-color: black;
+    border-width: 2px;
+}
