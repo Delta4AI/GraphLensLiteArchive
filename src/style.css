@@ -1880,7 +1880,7 @@ input:checked + .slider:before {
     z-index: 999;
 }
 
-.p-btn {
+.p-icon {
     border: none;
     background: none;
     font-size: 24px;
@@ -1892,8 +1892,32 @@ input:checked + .slider:before {
     text-align: center;
 }
 
-.p-btn:hover {
+.p-icon:hover {
     color: #C33D35;
+}
+
+.p-button {
+    float: right;
+    font-size: 18px;
+    margin-top: 10px;
+    background-color: #403C53;
+    color: white;
+    border-radius: 4px;
+    border: 1px solid #403C53;
+    cursor: pointer;
+}
+
+.p-button:hover {
+    background-color: #C33D35;
+}
+
+.p-prompt {
+    width: 100%;
+    padding: 8px;
+    margin-top: 10px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
 
 /*************************

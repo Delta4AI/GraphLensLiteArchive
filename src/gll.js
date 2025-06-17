@@ -5055,15 +5055,17 @@ function buildMetricsUI() {
 
 async function saveStash() {
   const select = document.getElementById("selectStash");
-  let stashName = prompt("Enter Stash Description: ");
+  let stashName = await Popup.prompt("Enter Filter Profile Name: ");
+  if (!stashName) {
+    info("Creating filter profile canceled");
+    return;
+  }
+
   let existing = Object.keys(data.stash);
 
-  if (stashName == null || stashName === "") {
-    info("Creating filter profile canceled");
-    return false;
-  } else if (existing.includes(stashName)) {
+  if (existing.includes(stashName)) {
     error(`Filter profile with name "${stashName}" already exists.`);
-    return false;
+    return;
   }
 
   await captureStashSnapshot(stashName);
@@ -5150,13 +5152,14 @@ async function loadStash() {
 
 async function removeStash() {
   const select = document.getElementById("selectStash");
-  const confirmed = confirm(`Are you sure you want to delete stash "${select.value}"?`);
+  const val = select.value;
+  const confirmed = await Popup.confirm(`Are you sure you want to delete the profile "${select.value}"?`);
 
   if (confirmed) {
-    delete data.stash[select.value];
+    delete data.stash[val];
     select.value = '';
     refreshStashUI();
-    info(`Removed filter profile: ${select.value}`);
+    info(`Removed filter profile: ${val}`);
   }
 }
 
@@ -5867,6 +5870,98 @@ class Popup {
     this.init(content);
   }
 
+static async prompt(message) {
+    return new Promise((resolve) => {
+      const inputField = document.createElement('input');
+      inputField.type = 'text';
+      inputField.className = "p-prompt";
+
+      const content = document.createElement('div');
+      content.innerHTML = `<div>${message}</div>`;
+      content.appendChild(inputField);
+
+      const confirmBtn = document.createElement('button');
+      confirmBtn.textContent = 'OK';
+      confirmBtn.className = "p-button";
+      content.appendChild(confirmBtn);
+
+      let isConfirmed = false;
+
+      const handleConfirm = () => {
+        isConfirmed = true;
+        const value = inputField.value.trim();
+        popup.close();
+        resolve(value);
+      };
+
+      const popup = new Popup(content, {
+        width: '300px',
+        showFullscreenButton: false,
+        closeOnClickOutside: false,
+        onClose: () => {
+          if (!isConfirmed) {
+            resolve(null);
+          }
+        }
+      });
+
+      confirmBtn.addEventListener('click', handleConfirm);
+      inputField.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          handleConfirm();
+        }
+      });
+
+      setTimeout(() => inputField.focus(), 0);
+    });
+  }
+
+
+  static async confirm(message) {
+    return new Promise((resolve) => {
+      const content = document.createElement('div');
+      content.innerHTML = `<div>${message}</div>`;
+
+      const confirmBtn = document.createElement('button');
+      confirmBtn.textContent = 'OK';
+      confirmBtn.className="p-button ml-1";
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.className="p-button";
+
+      content.appendChild(confirmBtn);
+      content.appendChild(cancelBtn);
+
+      let isResolved = false;
+
+      const popup = new Popup(content, {
+        width: '300px',
+        showFullscreenButton: false,
+        closeOnClickOutside: false,
+        onClose: () => {
+          if (!isResolved) {
+            resolve(null);
+          }
+        }
+      });
+
+      confirmBtn.addEventListener('click', () => {
+        isResolved = true;
+        popup.close();
+        resolve(true);
+      });
+
+      cancelBtn.addEventListener('click', () => {
+        isResolved = true;
+        popup.close();
+        resolve(false);
+      });
+
+      setTimeout(() => confirmBtn.focus(), 0);
+    });
+  }
+
   init(content) {
     this.createPopup(content);
     this.setupCloseHandlers();
@@ -5885,14 +5980,14 @@ class Popup {
 
     if (this.options.showFullscreenButton) {
       this.fullscreenBtn = document.createElement('button');
-      this.fullscreenBtn.className = 'p-btn';
+      this.fullscreenBtn.className = 'p-icon';
       this.fullscreenBtn.innerHTML = '⛶';
       this.fullscreenBtn.title = 'Toggle fullscreen';
       headerDiv.appendChild(this.fullscreenBtn);
     }
 
     this.closeBtn = document.createElement('button');
-    this.closeBtn.className = 'p-btn';
+    this.closeBtn.className = 'p-icon';
     this.closeBtn.innerHTML = '×';
     this.closeBtn.title = 'Close popup';
     headerDiv.appendChild(this.closeBtn);
@@ -6118,15 +6213,17 @@ async function changeLayout() {
 }
 
 async function addLayout() {
-  let layoutName = prompt("Enter View Name: ");
+  let layoutName = await Popup.prompt("Enter View Name: ");
+  if (!layoutName) {
+    info("Creating view canceled");
+    return;
+  }
+
   let existing = Object.keys(data.layouts);
 
-  if (layoutName == null || layoutName === "") {
-    info("Creating layout canceled");
-    return false;
-  } else if (existing.includes(layoutName)) {
-    error(`Layout with name "${layoutName}" already exists.`);
-    return false;
+  if (existing.includes(layoutName)) {
+    error(`View with name "${layoutName}" already exists.`);
+    return;
   }
 
   const currentLayout = data.layouts[data.selectedLayout];
@@ -6151,10 +6248,11 @@ async function addLayout() {
 async function removeSelectedLayout() {
   if (!data.layouts[data.selectedLayout].isCustom) {
     error("Cannot delete default layout.");
-    return false;
+    return;
   }
 
-  if (!confirm(`Are you sure you want to delete the following layout? ${data.selectedLayout}`)) return false;
+  const confirmed = await Popup.confirm(`Are you sure you want to delete view "${data.selectedLayout}"?`);
+  if (!confirmed) return false;
 
   delete data.layouts[data.selectedLayout];
   buildDropdownOptions();
