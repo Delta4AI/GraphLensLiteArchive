@@ -2037,7 +2037,9 @@ input:checked + .slider:before {
 
 #queryEditor {
     position: relative;
-    flex: 0 0 90%;
+    flex: 1 1 0;
+    min-width: 200px;
+    max-width: calc(100% - 100px);
     height: 100%;
     outline: 1px solid #403C53;
     outline-offset: 4px;
@@ -2062,6 +2064,8 @@ input:checked + .slider:before {
     position: absolute;
     pointer-events: none;
     z-index: 0;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 #queryTextArea {
@@ -2097,8 +2101,10 @@ input:checked + .slider:before {
 .query-buttons {
     display: flex;
     flex-direction: column;
-    flex: 0 0 6%;
-    margin: 0 10px;
+    height: 100%;
+    width: 80px;
+    margin-left: 10px;
+    margin-right: 4px;
 }
 
 .query-help-icon {
@@ -2108,11 +2114,13 @@ input:checked + .slider:before {
 }
 
 .query-buttons button {
-    height: 2.5em;
+    height: 30%;
     cursor: pointer;
     border-radius: 5px;
     color: #fff;
     border: 1px solid black;
+    text-overflow: ellipsis;
+    font-size: 1.5vh;
 }
 
 #queryUpdateBtn {
