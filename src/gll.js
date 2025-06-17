@@ -156,6 +156,10 @@ const EXCEL_EDGE_HEADER = "Edge filters";
 // Set to true in case original g6.min.js is used and issue #7195 is NOT resolved (https://github.com/antvis/G6/issues/7195)
 const APPLY_BUBBLE_SET_HOTFIX = false;
 
+// Set to true to use current filter configuration for pushing property to query editor, e.g. if slider is inverted
+// false uses defaults (non-inverted) and min/max
+const QUERY_BTN_USE_CURRENT_FILTER = true;
+
 // The following constants define the columns in the Excel template for mapping node and edge properties
 // allowed types: "str", "num", "bool", "rgba", "oneOf:a|b|c"
 // @formatter:off
@@ -4354,11 +4358,14 @@ function toggleQueryEditor() {
 
   const mainContent = document.getElementById("mainContent");
   const bottomBar = document.getElementById("bottomBar");
+  const queryButtons = document.querySelectorAll('.add-to-query-button');
 
   mainContent.style.height = shouldEnable ? "90%" : "100%";
   bottomBar.style.height = shouldEnable ? "10%" : "0";
   bottomBar.classList.toggle("active", shouldEnable);
   btn.classList.toggle("highlight", shouldEnable);
+
+  queryButtons.forEach(btn => btn.classList.toggle("show", shouldEnable));
 }
 
 async function toggleEditMode() {
@@ -5245,47 +5252,118 @@ function toggleCheckboxesForSetOfPropIDs(enable, propIDPrefixToSearchFor) {
   }
 }
 
-function createCheckbox(propID, prop) {
-  const wrapper = document.createElement('label');
-  wrapper.className = 'checkboxWrapper';
-  wrapper.id = `filter-${propID}-checkbox-wrapper`;
-
-  const input = document.createElement('input');
-  input.id = `filter-${propID}-checkbox`;
-  input.type = 'checkbox';
-  input.checked = data.layouts[data.selectedLayout].filters.get(propID).active;
-  input.style.display = 'none';
-
-  const customCheckbox = document.createElement('span');
-  customCheckbox.id = `filter-${propID}-checkbox-inner`;
-  customCheckbox.className = "checkbox checkbox-green";
-
-  const updateCheckbox = () => {
-    customCheckbox.textContent = input.checked ? '✔' : '';
-    wrapper.title = getCheckboxTT(input.checked, propID);
+function createQueryButton(propID, prop) {
+  const btn = document.createElement("button");
+  btn.className = "showOnQuery tiny-btn";
+  btn.textContent = "Q";
+  btn.title = `Query for nodes with the property:\n * ${propID}`;
+  btn.onclick = async () => {
+    console.log("foo");
   };
-  updateCheckbox();
+  return btn;
+}
 
-  input.addEventListener('change', updateCheckbox);
+function createCheckboxContainer(propID) {
+    const container = document.createElement('div');
+    container.className = 'checkboxContainer';
+    container.id = `filter-${propID}-container`;
+    return container;
+}
 
-  const displayField = document.createElement('span');
-  displayField.className = 'checkboxLabel';
-  displayField.textContent = prop;
+function createCheckboxInput(propID, initialState) {
+    const input = document.createElement('input');
+    input.id = `filter-${propID}-checkbox`;
+    input.type = 'checkbox';
+    input.checked = initialState;
+    input.style.display = 'none';
+    return input;
+}
 
-  wrapper.append(input, customCheckbox, displayField);
+function createCustomCheckbox(propID) {
+    const customCheckbox = document.createElement('span');
+    customCheckbox.id = `filter-${propID}-checkbox-inner`;
+    customCheckbox.className = "checkbox checkbox-green";
+    return customCheckbox;
+}
 
-  wrapper.addEventListener('change', async (ev) => {
-    // const slider = document.getElementById(`filter-${propID}-slider`);
-    // slider && input.checked ? slider.classList.remove("is-disabled") : slider && slider.classList.add("is-disabled");
-    data.layouts[data.selectedLayout].filters.get(propID).active = input.checked;
-    input.checked ? cache.activeProps.add(propID) : cache.activeProps.delete(propID);
-    let status = input.checked ? "Showing" : "Hiding";
-    await handleFilterEvent(`${status} Elements`, `Nodes and related edges for ${propID}`);
+function createAddToQueryButton(propID) {
+  const actionButton = document.createElement('button');
+  actionButton.className = 'add-to-query-button';
+  actionButton.textContent = '📝';
+  actionButton.title = `Add ${propID} to the query`;
+
+  actionButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const slider = cache.propIDToInvertibleRangeSliders.get(propID);
+    const dropdown = cache.propIDToDropdownChecklists.get(propID);
+
+    let queryFragment;
+    if (slider) {
+      if (QUERY_BTN_USE_CURRENT_FILTER) {
+        queryFragment = slider.isInverted
+          ? `${propID} LOWER THAN ${slider.currentMax} OR GREATER THAN ${slider.currentMin}`
+          : `${propID} BETWEEN ${slider.currentMin} AND ${slider.currentMax}`;
+      } else {
+        queryFragment = `(${propID} BETWEEN ${slider.sliderMin} AND ${slider.sliderMax}`;
+      }
+    } else if (dropdown) {
+      if (QUERY_BTN_USE_CURRENT_FILTER) {
+        queryFragment = `${propID} IN [${[...dropdown.selectedCategories].join(",")}]`
+      } else {
+        queryFragment = `${propID} IN [${[...dropdown.categories].join(",")}]`
+      }
+    }
+
+    if (data.layouts[data.selectedLayout]["query"] === undefined) {
+      handleQueryValidationEvent();
+    }
+
+    if (!query.text.textContent.trim()) {
+      data.layouts[data.selectedLayout]["query"] = `(${queryFragment})`;
+    } else {
+      data.layouts[data.selectedLayout]["query"] += ` OR (${queryFragment})`;
+    }
+    updateQueryTextArea();
   });
 
-  input.checked ? cache.activeProps.add(propID) : cache.activeProps.delete(propID);
+  return actionButton;
+}
 
-  return wrapper;
+
+function createCheckbox(propID, prop) {
+    const container = createCheckboxContainer(propID);
+    const wrapper = document.createElement('label');
+    wrapper.className = 'checkboxWrapper';
+    wrapper.id = `filter-${propID}-checkbox-wrapper`;
+
+    const input = createCheckboxInput(propID, data.layouts[data.selectedLayout].filters.get(propID).active);
+    const customCheckbox = createCustomCheckbox(propID);
+    const actionButton = createAddToQueryButton(propID);
+    const displayField = document.createElement("span");
+    displayField.className = 'checkboxLabel';
+    displayField.textContent = prop;
+
+    const updateCheckbox = () => {
+        customCheckbox.textContent = input.checked ? '✔' : '';
+        wrapper.title = getCheckboxTT(input.checked, propID);
+    };
+    updateCheckbox();
+
+    input.addEventListener('change', updateCheckbox);
+    wrapper.addEventListener('change', async () => {
+        data.layouts[data.selectedLayout].filters.get(propID).active = input.checked;
+        input.checked ? cache.activeProps.add(propID) : cache.activeProps.delete(propID);
+        let status = input.checked ? "Showing" : "Hiding";
+        await handleFilterEvent(`${status} Elements`, `Nodes and related edges for ${propID}`);
+    });
+
+    wrapper.append(input, customCheckbox);
+    container.append(wrapper, actionButton, displayField);
+
+    input.checked ? cache.activeProps.add(propID) : cache.activeProps.delete(propID);
+
+    return container;
 }
 
 function uncheckAllCheckboxes() {
@@ -7235,6 +7313,12 @@ function updateQueryTextArea() {
 
   query.text.textContent = queryStr;
   query.overlay.innerHTML = encodeQuery(queryStr);
+}
+
+function clearQuery() {
+  query.text.textContent = "";
+  handleQueryValidationEvent();
+  query.caret.style.display = "none";
 }
 
 function getCursorPosition() {
