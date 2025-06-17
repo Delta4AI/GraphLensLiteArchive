@@ -31,6 +31,7 @@
           <button id="exportImage" class="showOnLoad medium-btn" onclick="exportPNG()" title="Save Image (P)">📷️</button>
           <button id="metricsToggleBtn" class="showOnLoad medium-btn" title="Toggle network metrics panel (M)" onclick="cache.metrics.toggleUI()">📊</button>
           <button id="queryToggleBtn" class="showOnLoad medium-btn" title="Toggle query editor (Q)" onclick="toggleQueryEditor()">📝</button>
+          <div id="lassoWrapper" class="showOnLoad medium-btn"><button id="lassoToggleBtn" class="lasso-icon" title="Toggle lasso selection (L)" onclick="toggleLassoSelection()"></button></div>
           <button id="editBtn" class="showOnLoad medium-btn" title="Toggle Edit mode (E)" onclick="toggleEditMode()">⚙️</button>
         </div>
       </div>
@@ -87,11 +88,15 @@
   <div id="outerGraphContainer">
     <div id="selectedElementsContainer" class="hidden">
       Selected nodes: <span id="selectedNodes" class="red"></span>
-      <button id="deselectNodesBtn" class="tiny-btn red is-disabled ml-1"
+      <button id="focusNodesBtn" class="tiny-btn is-disabled ml-1"
+              onclick="focusNodes()">🔍</button>
+      <button id="deselectNodesBtn" class="tiny-btn red is-disabled"
               onclick="toggleSelectionForAllNodes(false)">×</button>
       <br>
       Selected edges: <span id="selectedEdges" class="red"></span>
-      <button id="deselectEdgesBtn" class="tiny-btn red is-disabled ml-1"
+      <button id="focusEdgesBtn" class="tiny-btn is-disabled ml-1"
+              onclick="focusEdges()">🔍</button>
+      <button id="deselectEdgesBtn" class="tiny-btn red is-disabled"
               onclick="toggleSelectionForAllEdges(false)">×</button>
       <hr>
       <button class="small-btn disabled" title="Undo Selection" id="undoSelectionBtn"
