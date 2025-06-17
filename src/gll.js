@@ -40,6 +40,11 @@ register(ExtensionCategory.LAYOUT, 'custom', CustomForceLayout);
 // persistNodePositions();
 // handleFilterEvent("Custom", "foo");
 
+// 1. load custom file
+// 2. drag node
+// 3. switch to force layout
+// 4. that dragged node is somewhere it shouldnt be
+
 /**
  *  Essential objects
  */
@@ -3161,6 +3166,20 @@ function createStyleDiv() {
   return root;
 }
 
+async function focusNodes(nodeIDs = undefined) {
+  if (!nodeIDs) {
+    nodeIDs = cache.selectedNodes;
+  }
+  await graph.focusElement([...nodeIDs]);
+}
+
+async function focusEdges(edgeIDs = undefined) {
+  if (!edgeIDs) {
+    edgeIDs = cache.selectedEdges;
+  }
+  await graph.focusElement([...edgeIDs]);
+}
+
 async function updateEdges(overrides = {}, commands = []) {
   let colorMap = null;
   if (commands.includes("set_continuous_color_scale")) {
@@ -3295,12 +3314,12 @@ function replaceColorScale(obj, elemID, colorMap) {
 function toggleStyleElementsThatRequireAtLeastOneSelectedNode(enable) {
   toggleStyleElements([
     "Node Configuration", "Expand Edges", "Reduce Edges", "Expand Neighbors", "Reduce Neighbors",
-    "deselectNodesBtn"
+    "deselectNodesBtn", "focusNodesBtn"
   ], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneSelectedEdge(enable) {
-  toggleStyleElements(["Edge Configuration", "deselectEdgesBtn"], enable);
+  toggleStyleElements(["Edge Configuration", "deselectEdgesBtn", "focusEdgesBtn"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(enable) {
@@ -4347,54 +4366,41 @@ async function toggleEditMode() {
   let editModeActive = editBtn.classList.contains("active");
   editModeActive ? editBtn.classList.remove("active") : editBtn.classList.add("active");
 
-  const nonEditBehaviors = [
+  handleEditModeUIChanges();
+}
+
+async function toggleLassoSelection() {
+  const lassoWrapper = document.getElementById("lassoWrapper");
+  let lassoIsActive = lassoWrapper.classList.contains("active");
+  lassoIsActive ? lassoWrapper.classList.remove("active") : lassoWrapper.classList.add("active");
+
+  const clickAndDragBehaviors = [
     DEFAULTS.BEHAVIOURS.DRAG_CANVAS,
     DEFAULTS.BEHAVIOURS.DRAG_ELEMENT
   ];
 
   if (!PERFORMANCE_MODE) {
-    nonEditBehaviors.push(DEFAULTS.BEHAVIOURS.HOVER_ACTIVATE);
+    clickAndDragBehaviors.push(DEFAULTS.BEHAVIOURS.HOVER_ACTIVATE);
   }
 
-  const editBehaviors = [
+  const lassoBehaviors = [
     DEFAULTS.BEHAVIOURS.LASSO_SELECT,
   ];
 
   if (!APPLY_BUBBLE_SET_HOTFIX || (APPLY_BUBBLE_SET_HOTFIX && !PERFORMANCE_MODE)) {
-    editBehaviors.push(DEFAULTS.BEHAVIOURS.CLICK_SELECT);
+    lassoBehaviors.push(DEFAULTS.BEHAVIOURS.CLICK_SELECT);
   }
 
-  // reduce behaviors to clean up existing edit/non-edit behaviors
   let behaviors = await graph.getBehaviors()
     .filter(b => ![
-      ...nonEditBehaviors.map(b => b.type),
-      ...editBehaviors.map(b => b.type)
+      ...clickAndDragBehaviors.map(b => b.type),
+      ...lassoBehaviors.map(b => b.type)
     ].includes(b.type));
 
-  // re-add behaviors for current mode
-  await graph.setBehaviors([...behaviors, ...editModeActive ? nonEditBehaviors : editBehaviors]);
+  lassoIsActive ? info("Switched to click and drag mode") : info("Switched to lasso selection mode");
 
-  // control tooltip plugin
-  await graph.updatePlugin({key: 'tooltip', enable: editModeActive});
-
-  handleEditModeUIChanges();
-}
-
-function lassoEvent(event) {
-  graph.off("canvas:click");
-  return true;
-  const selected = graph.getNodeData().filter(n => n.states?.includes("selected"));
-  debug(`LASSO EVENT | ${event.targetType} | ${event.type} | ${event.eventPhase} | selectedLength: ${selected.length}`);
-  // prevent deselection
-  if (selected.length !== 0) {
-    debug("PREVENTING LASSO DESELECT EVENT");
-    // TODO: thats the only thing that works, but where should i re-register the click event?
-    // graph.off("canvas:click");
-    // graph.off(GraphEvent.BEFORE_DRAW);
-    // graph.off(GraphEvent.AFTER_DRAW);
-    return false;
-  }
-  return true;
+  await graph.setBehaviors([...behaviors, ...lassoIsActive ? clickAndDragBehaviors : lassoBehaviors]);
+  await graph.updatePlugin({key: 'tooltip', enable: lassoIsActive});
 }
 
 function handleEditModeUIChanges() {
@@ -6096,6 +6102,7 @@ async function changeLayout() {
 
   if (!layout.isCustom) {
     await graph.setLayout({type: data.selectedLayout, ...layout.internals});
+    await graph.layout();
   }
 
   buildFilterUI();
