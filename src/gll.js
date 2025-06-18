@@ -2844,7 +2844,7 @@ function createStyleDiv() {
           if (ids.size !== 1) {
             warning(`Ambiguous selection: ${selectedValue} matches ${ids.size} ${isNode ? 'nodes' : 'edges'} (${Array.from(ids).join(',')}).`);
           }
-          await graph.focusElement([...ids]);
+          await focusElements(ids, isNode);
         } else {
           warning(`No ${isNode ? 'node' : 'edge'} found for: ${selectedValue}`);
         }
@@ -3177,16 +3177,28 @@ async function focusNodes(nodeIDs = undefined) {
   if (!nodeIDs) {
     nodeIDs = cache.selectedNodes;
   }
-  // TODO: check zoom, if its below a threshold, apply zoom
-  await graph.focusElement([...nodeIDs]);
+  await focusElements(nodeIDs);
 }
 
 async function focusEdges(edgeIDs = undefined) {
   if (!edgeIDs) {
     edgeIDs = cache.selectedEdges;
   }
-  // TODO: check zoom, if its below a threshold, apply zoom
-  await graph.focusElement([...edgeIDs]);
+  await focusElements(edgeIDs);
+}
+
+async function focusElements(elementIDs, isNode) {
+  const zoom = await graph.getZoom();
+  if (zoom < 2) {
+    await graph.zoomTo(2);
+  }
+  await graph.focusElement([...elementIDs]);
+
+  const targetMap = isNode ? cache.nodeRef : cache.edgeRef;
+  await selectElements(elementIDs, targetMap, "highlight");
+  setTimeout(async () => {
+    await selectElements([], targetMap, "highlight");
+  }, 2500);
 }
 
 async function updateEdges(overrides = {}, commands = []) {
@@ -7495,11 +7507,8 @@ async function selectEdges(edgeIDs) {
 
 /**
  * Selects given element IDs while deselecting all others
- * @param elementIDs
- * @param refMap
- * @returns {Promise<void>}
  */
-async function selectElements(elementIDs, refMap) {
+async function selectElements(elementIDs, refMap, stateOverride = "selected") {
   const visibility = {};
   const elementIDsAsSet = new Set(elementIDs);
 
@@ -7508,8 +7517,8 @@ async function selectElements(elementIDs, refMap) {
     const state = await graph.getElementState(nodeOrEdgeID);
     const shouldSelect = elementIDsAsSet.has(nodeOrEdgeID);
 
-    if (shouldSelect && !state.includes("selected")) state.push("selected");
-    if (!shouldSelect && state.includes("selected")) state.splice(state.indexOf("selected"), 1);
+    if (shouldSelect && !state.includes(stateOverride)) state.push(stateOverride);
+    if (!shouldSelect && state.includes(stateOverride)) state.splice(state.indexOf(stateOverride), 1);
 
     visibility[nodeOrEdgeID] = state;
   }
