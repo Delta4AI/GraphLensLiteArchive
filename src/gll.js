@@ -5220,8 +5220,8 @@ function createSectionToggleButton(enable, section, subSection = null) {
   if (subSection) btn.classList.add("extra-small");
   btn.textContent = enable ? "✔" : "✗";
   btn.title = `${enable ? 'Enable' : 'Disable'} all filters for the ${subSection
-    ? 'group: ' + "\n * " + subSection
-    : 'section: ' + "\n * " + section}`;
+    ? 'group: ' + "\n └─ " + section + "\n        └─ " + subSection
+    : 'section: ' + "\n └─ " + section}`;
   btn.onclick = async () => {
     subSection ? await toggleSubSection(enable, section, subSection) : await toggleSection(enable, section);
   };
@@ -5234,8 +5234,8 @@ function createSectionResetButton(section, subSection = undefined) {
   if (subSection) btn.classList.add("extra-small");
   btn.textContent = "⟳";
   btn.title = `Reset all filters for the ${subSection
-    ? 'group: ' + "\n * " + subSection
-    : 'section: ' + "\n * " + section} to their default values`;
+    ? 'group to their default values: ' + "\n └─ " + section + "\n        └─ " + subSection
+    : 'section to their default values: ' + "\n └─ " + section}`;
   btn.onclick = async () => {
     await resetFilters(section, subSection);
   };
