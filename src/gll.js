@@ -5096,6 +5096,8 @@ async function captureStashSnapshot(stashName) {
     groupedProps: {},
     filters: structuredClone(data.layouts[data.selectedLayout].filters),
     bubbleSets: {},
+    selectedNodes: [...cache.selectedNodes],
+    selectedEdges: [...cache.selectedEdges],
   }
 
   for (const group of traverseBubbleSets()) {
@@ -5153,6 +5155,8 @@ async function loadStash() {
   await clearBubbleSetInstanceMembers();
   await decideToRenderOrDraw(true);
   await restoreStashViewport();
+  await selectNodes(data.stash[selected].selectedNodes);
+  await selectEdges(data.stash[selected].selectedEdges);
 
   info(`Applied filter profile: ${selected}`);
 }
@@ -7427,37 +7431,53 @@ async function handleQuerySelectEvent() {
 
   decodeQueryAndBuildAST();
 
-  const visibility = {};
+  const nodeIDsToSelect = cache.nodeRef.values()
+    .filter(node => query.ast.testNode(node) && cache.nodeIDsToBeShown.has(node.id))
+    .map(node => node.id);
 
-  async function addUpdatedState(nodeOrEdgeID, shouldSelect) {
+  const edgeIDsToSelect = cache.edgeRef.values()
+    .filter(edge => query.ast.testEdge(edge) && cache.edgeIDsToBeShown.has(edge.id))
+    .map(edge => edge.id);
+
+  await selectNodes(nodeIDsToSelect);
+  await selectEdges(edgeIDsToSelect);
+  await hideLoading();
+  await new Promise(resolve => requestAnimationFrame(resolve));
+}
+
+async function selectNodes(nodeIDs) {
+  await selectElements(nodeIDs, cache.nodeRef);
+}
+
+async function selectEdges(edgeIDs) {
+  await selectElements(edgeIDs, cache.edgeRef);
+}
+
+/**
+ * Selects given element IDs while deselecting all others
+ * @param elementIDs
+ * @param refMap
+ * @returns {Promise<void>}
+ */
+async function selectElements(elementIDs, refMap) {
+  const visibility = {};
+  const elementIDsAsSet = new Set(elementIDs);
+
+  for (const elem of refMap.values()) {
+    const nodeOrEdgeID = elem.id;
     const state = await graph.getElementState(nodeOrEdgeID);
-    if (shouldSelect && !state.includes("selected")) {
-      state.push("selected");
-    }
-    if (!shouldSelect && state.includes("selected")) {
-      state.splice(state.indexOf("selected"), 1);
-    }
+    const shouldSelect = elementIDsAsSet.has(nodeOrEdgeID);
+
+    if (shouldSelect && !state.includes("selected")) state.push("selected");
+    if (!shouldSelect && state.includes("selected")) state.splice(state.indexOf("selected"), 1);
+
     visibility[nodeOrEdgeID] = state;
   }
 
-  let shouldSelect;
-  for (const node of cache.nodeRef.values()) {
-    shouldSelect = query.ast.testNode(node) && cache.nodeIDsToBeShown.has(node.id);
-    await addUpdatedState(node.id, shouldSelect);
-
-  }
-
-  for (const edge of cache.edgeRef.values()) {
-    shouldSelect = query.ast.testEdge(edge) && cache.edgeIDsToBeShown.has(edge.id);
-    await addUpdatedState(edge.id, shouldSelect);
-  }
-
   await graph.setElementState(visibility);
-
-  await hideLoading();
-  await new Promise(resolve => requestAnimationFrame(resolve));
-
 }
+
+
 
 /**
  * Turn the HTML produced by `encodeQuery()` back into a nested data
