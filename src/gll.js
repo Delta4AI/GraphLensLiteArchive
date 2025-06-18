@@ -7731,13 +7731,17 @@ function resetQuery() {
 function showQueryHelp() {
   cache.popup = new Popup(`
 <h3>Query Editor</h3>
-The query editor allows filtering of the graph using nested AND, OR and NOT expressions.
+The query editor allows complex filtering using nested AND, OR and NOT expressions.
 
 <ul>
-  <li>The query is validated during typing</li>
-  <li>Valid queries are stored per view and exported to a model.json upon export</li>
-  <li>Changes in the UI updates the query and resets custom AND/NOT logics and nested brackets</li>
+  <li>Queries are saved for each view and included when saving the model</li>
+  <li>UI changes will update the query and clear existing non-UI logic (AND/NOT, nested brackets)</li>
   <li>Invalid syntax is <span class="q-error-unrecognized">highlighted</span></li>
+  <li><span class="tooltip-dummy-buttons">Update</span> filters the graph</li>
+  <li><span class="tooltip-dummy-buttons red">Select</span> selects matching elements</li>
+  <li><span class="tooltip-dummy-buttons blue">Reset</span> resets and syncs the query with the filtering UI</li>
+  <li><span class="query-clear-button tt">×</span> (top right corner) clears query</li>
+  <li><span class="add-to-query-button show tt">📝</span> (filtering panel) Adds an parameter to the query</li>
 </ul>
 <hr>
 <h3>Query Structure Explained</h3>
