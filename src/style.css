@@ -429,8 +429,8 @@ h5 {
     font-size: 11px;
 }
 
-.is-disabled .vr-label,
-.vr-label.is-disabled {
+.disabled .vr-label,
+.vr-label.disabled {
     color: #878996;
     background-color: transparent;
     outline: 1px solid #878996;
@@ -526,12 +526,6 @@ h5 {
     100% {
         transform: rotate(.5turn)
     }
-}
-
-.is-disabled {
-    pointer-events: none;
-    opacity: 0.5;
-    cursor: default;
 }
 
 .tooltip {
@@ -817,6 +811,7 @@ h5 {
     opacity: 0.5;
     pointer-events: none;
     color: black;
+    cursor: default;
 }
 
 .showOnLoad {

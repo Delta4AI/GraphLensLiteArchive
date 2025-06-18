@@ -160,6 +160,9 @@ const APPLY_BUBBLE_SET_HOTFIX = false;
 // false uses defaults (non-inverted) and min/max
 const QUERY_BTN_USE_CURRENT_FILTER = true;
 
+// Set to true to reset positions of selected elements when clicking the reset selection button in the top right selection frame
+const RESET_SELECTION_BUTTON_RESETS_POSITIONS = true;
+
 // The following constants define the columns in the Excel template for mapping node and edge properties
 // allowed types: "str", "num", "bool", "rgba", "oneOf:a|b|c"
 // @formatter:off
@@ -3174,6 +3177,7 @@ async function focusNodes(nodeIDs = undefined) {
   if (!nodeIDs) {
     nodeIDs = cache.selectedNodes;
   }
+  // TODO: check zoom, if its below a threshold, apply zoom
   await graph.focusElement([...nodeIDs]);
 }
 
@@ -3181,6 +3185,7 @@ async function focusEdges(edgeIDs = undefined) {
   if (!edgeIDs) {
     edgeIDs = cache.selectedEdges;
   }
+  // TODO: check zoom, if its below a threshold, apply zoom
   await graph.focusElement([...edgeIDs]);
 }
 
@@ -3294,6 +3299,7 @@ async function updateNodes(overrides = {}, commands = []) {
     }
     cache.nodeRef.set(nodeID, node);
   }
+
   await handleStyleChangeLoadingEvent("Style", `Updating Node Styles`);
 }
 
@@ -3316,43 +3322,43 @@ function replaceColorScale(obj, elemID, colorMap) {
 }
 
 function toggleStyleElementsThatRequireAtLeastOneSelectedNode(enable) {
-  toggleStyleElements([
+  toggleDisabledElements([
     "Node Configuration", "Expand Edges", "Reduce Edges", "Expand Neighbors", "Reduce Neighbors",
     "deselectNodesBtn", "focusNodesBtn"
   ], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneSelectedEdge(enable) {
-  toggleStyleElements(["Edge Configuration", "deselectEdgesBtn", "focusEdgesBtn"], enable);
+  toggleDisabledElements(["Edge Configuration", "deselectEdgesBtn", "focusEdgesBtn"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(enable) {
-  toggleStyleElements([], enable);
+  toggleDisabledElements(["resetSelectedElementsStyleBtn"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleNode(enable) {
-  toggleStyleElements(["selectByNodeIDsInput", "Node ID(s)", "selectByNodeIDsSwitch",
+  toggleDisabledElements(["selectByNodeIDsInput", "Node ID(s)", "selectByNodeIDsSwitch",
     "selectByNodeIDsSwitchLabel", "selectByNodeIDsButton"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleEdge(enable) {
-  toggleStyleElements(["selectByEdgeIDsInput", "Edge ID(s)", "selectByEdgeIDsSwitch",
+  toggleDisabledElements(["selectByEdgeIDsInput", "Edge ID(s)", "selectByEdgeIDsSwitch",
     "selectByEdgeIDsSwitchLabel", "selectByEdgeIDsButton"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(enable) {
-  toggleStyleElements(["Select Elements"], enable);
+  toggleDisabledElements(["Select Elements"], enable);
 }
 
 function toggleStyleElementsThatRequireMoreThanOneSelectedNode(enable) {
-  toggleStyleElements(["Arrange Selection"], enable);
+  toggleDisabledElements(["Arrange Selection"], enable);
 }
 
-function toggleStyleElements(headingLabels, enable) {
+function toggleDisabledElements(headingLabels, enable) {
   for (let elemID of headingLabels) {
     const elem = document.getElementById(elemID);
     if (elem) {
-      enable ? elem.classList.remove("is-disabled") : elem.classList.add("is-disabled");
+      enable ? elem.classList.remove("disabled") : elem.classList.add("disabled");
     } else {
       debug("Element not found: " + elemID);
     }
@@ -4311,11 +4317,8 @@ function updateEnabledStateUndoRedoSelectionButtons() {
   const canUndo = (selectedMemoryIndex > 0);
   const canRedo = (selectedMemoryIndex < selectionMemory.length - 1);
 
-  const undoButton = document.getElementById("undoSelectionBtn");
-  const redoButton = document.getElementById("redoSelectionButton");
-
-  canUndo ? undoButton.classList.remove("disabled") : undoButton.classList.add("disabled");
-  canRedo ? redoButton.classList.remove("disabled") : redoButton.classList.add("disabled");
+  toggleDisabledElements(["undoSelectionBtn"], canUndo);
+  toggleDisabledElements(["redoSelectionBtn"], canRedo);
 }
 
 async function updateSelectedNodesAndEdges() {
@@ -4531,7 +4534,8 @@ function createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
   // Process nodes and exclude their unwanted properties
   const filteredNodes = data.nodes
     .map(node => {
-      const filteredNode = filterObject(node, ["D4Data", "features", "featureValues", "featureWithinThreshold"]);
+      const filteredNode = filterObject(node, [
+        "D4Data", "features", "featureValues", "featureWithinThreshold", "originalStyle"]);
 
       // load positions from the layouts position Map
       const position = data.layouts[data.selectedLayout].positions.get(node.id);
@@ -4554,7 +4558,8 @@ function createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
   // Process edges if provided, and exclude unwanted properties
   const filteredEdges = data.edges
     .map(edge => {
-      const filteredEdge = filterObject(edge, ["D4Data", "features", "featureValues", "featureWithinThreshold"]);
+      const filteredEdge = filterObject(edge, [
+        "D4Data", "features", "featureValues", "featureWithinThreshold", "originalStyle"]);
 
       Object.assign(filteredEdge, getEdgeStyleOrDefaults(edge));
 
@@ -4577,10 +4582,13 @@ async function setInitialNodePositions(override = false) {
   }
 }
 
-async function restoreInitialNodePositions() {
+async function restoreInitialNodePositions(selectedNodesOnly = false) {
   for (const nodeID of cache.nodeRef.keys()) {
+    if (selectedNodesOnly && !cache.selectedNodes.includes(nodeID)) continue;
+
     const currentPos = await graph.getElementPosition(nodeID);
     const initialPos = cache.initialNodePositions.get(data.selectedLayout).get(nodeID);
+
     if (currentPos[0] !== initialPos.style.x || currentPos[1] !== initialPos.style.y) {
       await graph.translateElementTo(nodeID, [initialPos.style.x, initialPos.style.y]);
     }
@@ -4944,6 +4952,7 @@ function buildUI() {
   buildDropdownOptions();
   buildMetricsUI();
   buildFilterUI();
+  alignUIWithJSConstants();
   showUI(true);
 
   query.lastGoodWidth = query.editorDiv.offsetWidth;
@@ -5054,6 +5063,12 @@ function buildFilterUI() {
   manageDynamicWidgets();
   handleEditModeUIChanges();
   updateQueryTextArea();
+}
+
+function alignUIWithJSConstants() {
+  document.getElementById("resetSelectedElementsStyleBtn").title = RESET_SELECTION_BUTTON_RESETS_POSITIONS
+  ? "Reset the visual appearance and positions of the selected elements to their defaults"
+  : "Reset the visual appearance of the selected elements to their defaults";
 }
 
 function buildMetricsUI() {
@@ -6612,6 +6627,7 @@ function preProcessData(fileData) {
     return {
       ...node,
       ...getNodeStyleOrDefaults(node),
+      originalStyle: structuredClone(getNodeStyleOrDefaults(node).style),
       features: nodeFeatures,
       featureValues: nodeFeatureValues,
       featureIsWithinThreshold: nodeFeatureWithinThreshold,
@@ -6641,6 +6657,7 @@ function preProcessData(fileData) {
     return {
       ...edge,
       ...getEdgeStyleOrDefaults(edge),
+      originalStyle: structuredClone(getEdgeStyleOrDefaults(edge).style),
       features: edgeFeatures,
       featureValues: edgeFeatureValues,
       featureIsWithinThreshold: edgeFeatureWithinThreshold,
@@ -8116,4 +8133,24 @@ async function resetFilters(section, subSection=undefined) {
   }
 
   await handleFilterEvent("Filtering", `Resetting filters for ${idPrefix} ..`);
+}
+
+async function resetStyleForSelectedElements() {
+  for (const node of cache.nodeRef.values()) {
+    if (cache.selectedNodes.includes(node.id)) {
+      if (RESET_SELECTION_BUTTON_RESETS_POSITIONS) {
+        console.log("bar");
+      }
+      node.style = structuredClone(node.originalStyle);
+    }
+  }
+
+  for (const edge of cache.edgeRef.values()) {
+    if (cache.selectedEdges.includes(edge.id)) {
+      edge.style = structuredClone(edge.originalStyle);
+    }
+  }
+
+  await handleStyleChangeLoadingEvent("Style", `Resetting Styles`);
+  await restoreInitialNodePositions(true);
 }

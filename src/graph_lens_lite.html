@@ -88,20 +88,23 @@
   <div id="outerGraphContainer">
     <div id="selectedElementsContainer" class="hidden">
       Selected nodes: <span id="selectedNodes" class="red"></span>
-      <button id="focusNodesBtn" class="tiny-btn is-disabled ml-1"
+      <button id="focusNodesBtn" class="tiny-btn disabled ml-1" title="Center and zoom the viewport to show all selected nodes"
               onclick="focusNodes()">🔍</button>
-      <button id="deselectNodesBtn" class="tiny-btn red is-disabled"
+      <button id="deselectNodesBtn" class="tiny-btn red disabled" title="Clear node selection"
               onclick="toggleSelectionForAllNodes(false)">×</button>
       <br>
       Selected edges: <span id="selectedEdges" class="red"></span>
-      <button id="focusEdgesBtn" class="tiny-btn is-disabled ml-1"
+      <button id="focusEdgesBtn" class="tiny-btn disabled ml-1" title="Center and zoom the viewport to show all selected edges"
               onclick="focusEdges()">🔍</button>
-      <button id="deselectEdgesBtn" class="tiny-btn red is-disabled"
+      <button id="deselectEdgesBtn" class="tiny-btn red disabled" title="Clear edge selection"
               onclick="toggleSelectionForAllEdges(false)">×</button>
       <hr>
+      <button class="small-btn disabled" title="changed from alignUIWIthJSConstants()" id="resetSelectedElementsStyleBtn"
+              onclick="resetStyleForSelectedElements()">⟳</button>
+      <div class="button-separator"></div>
       <button class="small-btn disabled" title="Undo Selection" id="undoSelectionBtn"
               onclick="undoSelection()">↩</button>
-      <button class="small-btn disabled" title="Redo Selection" id="redoSelectionButton"
+      <button class="small-btn disabled" title="Redo Selection" id="redoSelectionBtn"
               onclick="redoSelection()">↪</button>
     </div>
     <div id="innerGraphContainer"></div>
