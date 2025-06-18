@@ -5255,6 +5255,20 @@ function createSectionToggleButton(enable, section, subSection = null) {
   return btn;
 }
 
+function formatPropsAsTree(propID=undefined, section=undefined, subSection=undefined, prop=undefined) {
+    if (propID) {
+        const decoded = decodePropHashId(propID);
+        section = decoded[0];
+        subSection = decoded[1];
+        prop = decoded[2];
+    }
+
+  let retStr = `\n └─ ${section}`;
+  if (subSection) retStr += `\n        └─ ${subSection}`;
+  if (prop) retStr += `\n                └─ ${prop}`;
+  return retStr;
+}
+
 function createSectionResetButton(section, subSection = undefined) {
   const btn = document.createElement("button");
   btn.className = "small-btn toggle-section-btn ml-1";
@@ -5280,7 +5294,7 @@ async function toggleSubSection(enable, section, subSection) {
 }
 
 function getCheckboxTT(enable, propID) {
-  return `Click to ${enable ? 'hide' : 'show'} elements with the property:\n * ${propID}`;
+  return `Click to ${enable ? 'hide' : 'show'} elements with the property:${formatPropsAsTree(propID)}`;
 }
 
 function toggleCheckboxesForSetOfPropIDs(enable, propIDPrefixToSearchFor) {
@@ -5769,7 +5783,7 @@ class InvertibleRangeSlider {
     div.innerHTML = this.createDivInnerHTML();
     const slider = div.firstElementChild;
     slider.style.width = '100%';
-    slider.title = `Thresholds for ${this.propID}.\n  - Move handles to set min/max (≥ min ∧ ≤ max).\n  - Swap handles to invert (≤ min ∨ ≥ max).\n  - Double-click to reset.`;
+    slider.title = `Set the thresholds for the numeric property: ${formatPropsAsTree(this.propID)}\n---\n  - Move handles to set min/max (≥ min ∧ ≤ max).\n  - Swap handles to invert (≤ min ∨ ≥ max).\n  - Double-click to reset.`;
 
     parent.appendChild(div);
     parent.appendChild(colLeft);
