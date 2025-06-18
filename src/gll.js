@@ -4986,8 +4986,9 @@ function buildFilterUI() {
       header.className = "m-0 white";
       headerDiv.appendChild(header);
 
-      headerDiv.appendChild(createSectionToggleButton(true, section));
       headerDiv.appendChild(createSectionToggleButton(false, section));
+      headerDiv.appendChild(createSectionResetButton(section));
+      headerDiv.appendChild(createSectionToggleButton(true, section));
 
       div.appendChild(headerDiv);
       div.appendChild(document.createElement("br"));
@@ -5003,8 +5004,9 @@ function buildFilterUI() {
       subHeader.className = "m-0 inline";
       subHeaderDiv.appendChild(subHeader);
 
-      subHeaderDiv.appendChild(createSectionToggleButton(true, section, subSection));
       subHeaderDiv.appendChild(createSectionToggleButton(false, section, subSection));
+      subHeaderDiv.appendChild(createSectionResetButton(section, subSection));
+      subHeaderDiv.appendChild(createSectionToggleButton(true, section, subSection));
 
       div.appendChild(subHeaderDiv);
 
@@ -5216,13 +5218,26 @@ function createSectionToggleButton(enable, section, subSection = null) {
   const btn = document.createElement("button");
   btn.className = "small-btn toggle-section-btn ml-1";
   if (subSection) btn.classList.add("extra-small");
-  if (enable) btn.classList.add("ml-2");
   btn.textContent = enable ? "✔" : "✗";
   btn.title = `${enable ? 'Enable' : 'Disable'} all filters for the ${subSection
     ? 'group: ' + "\n * " + subSection
     : 'section: ' + "\n * " + section}`;
   btn.onclick = async () => {
     subSection ? await toggleSubSection(enable, section, subSection) : await toggleSection(enable, section);
+  };
+  return btn;
+}
+
+function createSectionResetButton(section, subSection = undefined) {
+  const btn = document.createElement("button");
+  btn.className = "small-btn toggle-section-btn ml-1";
+  if (subSection) btn.classList.add("extra-small");
+  btn.textContent = "⟳";
+  btn.title = `Reset all filters for the ${subSection
+    ? 'group: ' + "\n * " + subSection
+    : 'section: ' + "\n * " + section} to their default values`;
+  btn.onclick = async () => {
+    await resetFilters(section, subSection);
   };
   return btn;
 }
@@ -5571,10 +5586,12 @@ class DropdownChecklist {
     this.anchor.textContent = `${this.selectedCategories.size}/${this.categories.size} selected`;
   }
 
-  async selectAllCategories() {
+  async selectAllCategories(skipFilterEvent = false) {
     this.categories.forEach(category => this.selectedCategories.add(category)); // Add all categories
     this.updateCheckboxStates(true);
-    await handleFilterEvent("Showing Elements", `Nodes and related edges for ${this.propID}`, this.propID);
+    if (!skipFilterEvent) {
+      await handleFilterEvent("Showing Elements", `Nodes and related edges for ${this.propID}`, this.propID);
+    }
   }
 
   async deselectAllCategories(skipFilterEvent = false) {
@@ -5692,6 +5709,16 @@ class InvertibleRangeSlider {
     return input;
   }
 
+  reset() {
+    // Reset to min/max values in non-inverted state
+    this.setTo(this.sliderMin, this.sliderMax, false);
+
+    this.isInverted = false;
+    this.currentMin = this.sliderMin;
+    this.currentMax = this.sliderMax;
+    this.writeCurrentFilterSettings();
+  }
+
   appendTo(parent) {
     if (HIDE_SLIDERS_WITH_SAME_MIN_MAX_VALUES && this.sliderMin === this.sliderMax) {
       parent.appendChild(document.createElement("span"));
@@ -5753,11 +5780,7 @@ class InvertibleRangeSlider {
     this.getDOMReferences();
 
     this.slider.addEventListener('dblclick', () => {
-      this.sliderStart.value = this.sliderMin;
-      this.sliderStart.dispatchEvent(new Event('input'));
-      data.layouts[data.selectedLayout].filters.get(this.propID).lowerThreshold = this.sliderMin;
-      this.sliderEnd.value = this.sliderMax;
-      this.sliderEnd.dispatchEvent(new Event('input'));
+      this.reset();
       this.sliderEnd.dispatchEvent(new Event('change'));
     });
 
@@ -8077,4 +8100,20 @@ async function getPos() {
   const pos = await graph.getPosition();
   console.log(`Zoom: ${zoom}`);
   console.log(`Position: ${pos}`);
+}
+
+async function resetFilters(section, subSection=undefined) {
+  const idPrefix = section + (subSection ? `::${subSection}` : "");
+  const affectedPropIDs = Array.from(cache.propIDs).filter(id => id.startsWith(idPrefix));
+
+  for (const propID of affectedPropIDs) {
+    checkCheckbox(propID, true);
+    const slider = cache.propIDToInvertibleRangeSliders.get(propID);
+    const dropdown = cache.propIDToDropdownChecklists.get(propID);
+
+    if (slider) await slider.reset();
+    if (dropdown) await dropdown.selectAllCategories(true);
+  }
+
+  await handleFilterEvent("Filtering", `Resetting filters for ${idPrefix} ..`);
 }
