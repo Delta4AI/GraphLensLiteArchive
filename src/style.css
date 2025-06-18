@@ -614,6 +614,24 @@ h5 {
     margin: 1px;
 }
 
+.tooltip-dummy-buttons {
+    background-color: #403C53;
+    border: 1px solid black;
+    border-radius: 5px;
+    color: white;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+.tooltip-dummy-buttons.red {
+    background-color: #C33D35;
+    color: white;
+}
+
+.tooltip-dummy-buttons.blue {
+    background-color: #8CA6D9;
+    color: black;
+}
 
 .black {
     color: #000000;
@@ -879,6 +897,12 @@ h5 {
     pointer-events: auto;
     width: 14px;
     margin-left: 1px;
+}
+
+.add-to-query-button.show.tt {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
 }
 
 .add-to-query-button:hover {
@@ -2149,6 +2173,7 @@ input:checked + .slider:before {
 
 .query-buttons button {
     height: 30%;
+    max-height: 30px;
     cursor: pointer;
     border-radius: 5px;
     color: #fff;
@@ -2176,6 +2201,15 @@ input:checked + .slider:before {
     opacity: 0.7;
     z-index: 999;
     color: #C33D35;
+}
+
+.query-clear-button.tt {
+    position: unset;
+    display: inline-flex;
+    /*padding-left: 4px;*/
+    /*padding-right: 4px;*/
+    width: 18px;
+    height: 18px;
 }
 
 .query-clear-button:hover {
