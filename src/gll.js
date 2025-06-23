@@ -61,289 +61,1843 @@ let excelData = {
     "data": [
       [
         "Color Codes Explained",
-        "Description"
+        "Description",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Required",
-        "Strictly required property"
+        "Strictly required property",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Optional",
-        "Optional property; Column name can not be re-used for user-defined data"
+        "Optional property; Column name can not be re-used for user-defined data",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "User Data [group]",
-        "Add custom properties in new columns. Use [brackets] for grouping (e.g., \"Temperature [Celsius] [Physics]\"). The last [bracket] becomes the group name."
+        "Add custom properties in new columns. Use [brackets] for grouping (e.g., \"Temperature [Celsius] [Physics]\"). The last [bracket] becomes the group name.",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Data Types Explained",
-        "Description"
+        "Description",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "text",
-        "any text"
+        "any text",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "number",
-        "whole decimal numbers or floating point numbers"
+        "whole decimal numbers or floating point numbers",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "boolean",
-        "true or TRUE or 1, false or FALSE or 0"
+        "true or TRUE or 1, false or FALSE or 0",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "RGBA",
-        "RGBA hex color code (e.g. #C33D3580 for 50% opacity) (last 2 digits are optional)"
+        "RGBA hex color code (e.g. #C33D3580 for 50% opacity) (last 2 digits are optional)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "value 1 | value 2",
-        "List of categorical values of which one must be matched (excluding optional information in brackets)"
+        "List of categorical values of which one must be matched (excluding optional information in brackets)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "any",
-        "Categorical view when text is given, slider-based view when numerical input is given"
+        "Categorical view when text is given, slider-based view when numerical input is given",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Node Properties Explained",
         "Description",
         "Default Value",
-        "Type"
+        "Type",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "ID",
         "Unique identifier for a node",
         "-",
-        "text (unique)"
+        "text (unique)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Description",
         "Description of the node, displayed in the tooltip text",
         "-",
-        "text"
+        "text",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Shape",
         "The shape of the node",
         "hexagon",
-        "circle (●) | diamond (◆) | hexagon (⬢) | rect (■) | triangle (▲) | star (★)"
+        "circle (●) | diamond (◆) | hexagon (⬢) | rect (■) | triangle (▲) | star (★)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Size",
         "The size of the node",
-        20,
-        "number"
+        "20",
+        "number",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Fill Color",
         "The fill color of the node in RGBA format (e.g. #FF000080 for a red node with 50% opacity)",
         "#C33D35",
-        "rgba"
+        "rgba",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Border Size",
         "The stroke width",
-        1,
-        "number"
+        "1",
+        "number",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Border Color",
         "The stroke color of the node in RGBA format",
         "-",
-        "rgba"
+        "rgba",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Label",
         "Label of the node; if no Label is given, the ID is displayed per default",
         "-",
-        "text"
+        "text",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Label Font Size",
         "Label font size",
-        12,
-        "number"
+        "12",
+        "number",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Label Placement",
         "Label position relative to the main shape of the node",
         "bottom",
-        "left | right | top | bottom | left-top | left-bottom | right-top | right-bottom | top-left | top-right | bottom-left | bottom-right | center"
+        "left | right | top | bottom | left-top | left-bottom | right-top | right-bottom | top-left | top-right | bottom-left | bottom-right | center",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Label Color",
         "The color of the nodes label",
         "-",
-        "rgba"
+        "rgba",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Label Background Color",
         "Label background fill color",
         "-",
-        "rgba"
+        "rgba",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "X Coordinate",
         "The x coordinate of the node",
         "-",
-        "number"
+        "number",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Y Coordinate",
         "The y coordinate of the node",
         "-",
-        "number"
+        "number",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "property A [group A]",
         "User-defined custom node properties",
         "-",
-        "any"
+        "any",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Edge Properties Explained",
         "Description",
         "Default Value",
-        "Type"
+        "Type",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Source ID",
         "The ID of the source node",
         "-",
-        "text"
+        "text",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Target ID",
         "The ID of the target node",
         "-",
-        "text"
+        "text",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Type",
         "The edge type",
         "line",
-        "line | cubic | quadratic | polyline"
+        "line | cubic | quadratic | polyline",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Line Width",
         "The border width of the edge",
-        0.75,
-        "number"
+        "0.75",
+        "number",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Line Dash",
         "The dash offset of the edge line",
-        0,
-        "number"
+        "0",
+        "number",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Color",
         "The stroke color of the edge in RGBA format",
         "#403C5390",
-        "rgba"
+        "rgba",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Label",
         "Label of the edge; if no Label is given, the edge is only visible as line without any text",
         "-",
-        "text"
+        "text",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Label Font Size",
         "The font size of the edges label",
         "center",
-        "number"
+        "number",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Label Placement",
         "The position of the label relative to the edge",
         "#000000",
-        "start | center | end"
+        "start | center | end",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Label Auto Rotate",
         "Whether to automatically rotate the label to match the edge’s direction",
-        1,
-        "boolean"
+        "TRUE",
+        "boolean",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Label Offset X",
         "The offset of the label on the X-Axis",
-        0,
-        "number"
+        "0",
+        "number",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Label Offset Y",
         "The offset of the label on the Y-Axis",
-        0,
-        "number"
+        "0",
+        "number",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Label Color",
         "The color of the edges label text",
         "-",
-        "rgba"
+        "rgba",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Label Background Color",
         "The color for the edge label’s background",
         "#E4E3EA",
-        "rgba"
+        "rgba",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Start Arrow",
         "Whether to display the start arrow on the edge",
-        0,
-        "boolean"
+        "FALSE",
+        "boolean",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Start Arrow Size",
         "The size of the start arrow",
-        8,
-        "number"
+        "8",
+        "number",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Start Arrow Type",
         "The type of the start arrow",
         "triangle",
-        "triangle | circle | diamond | vee | rect | triangleRect | simple"
+        "triangle | circle | diamond | vee | rect | triangleRect | simple",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "End Arrow",
         "Whether to display the end arrow on the edge",
-        0,
-        "boolean"
+        "FALSE",
+        "boolean",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "End Arrow Size",
         "The size of the end arrow",
-        8,
-        "number"
+        "8",
+        "number",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "End Arrow Type",
         "The type of the end arrow",
         "triangle",
-        "triangle | circle | diamond | vee | rect | triangleRect | simple"
+        "triangle | circle | diamond | vee | rect | triangleRect | simple",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Halo Color",
         "Whether to display a halo around the edge; The stroke color of the halo",
         "-",
-        "rgba"
+        "rgba",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "Halo Width",
         "The stroke width of the halo",
-        3,
-        "number"
+        "3",
+        "number",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "property A [group A]",
         "User-defined custom edge properties",
         "-",
-        "any"
+        "any",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ]
-    ]
+    ],
+    "styles": {
+      "A1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "E4E3EA"
+        },
+        "bgColor": {
+          "rgb": "FEFFE1"
+        }
+      },
+      "B1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "E4E3EA"
+        },
+        "bgColor": {
+          "rgb": "FEFFE1"
+        }
+      },
+      "G1": {
+        "patternType": "none"
+      },
+      "H1": {
+        "patternType": "none"
+      },
+      "I1": {
+        "patternType": "none"
+      },
+      "J1": {
+        "patternType": "none"
+      },
+      "K1": {
+        "patternType": "none"
+      },
+      "L1": {
+        "patternType": "none"
+      },
+      "M1": {
+        "patternType": "none"
+      },
+      "A2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "B2": {
+        "patternType": "none"
+      },
+      "G2": {
+        "patternType": "none"
+      },
+      "H2": {
+        "patternType": "none"
+      },
+      "I2": {
+        "patternType": "none"
+      },
+      "J2": {
+        "patternType": "none"
+      },
+      "K2": {
+        "patternType": "none"
+      },
+      "L2": {
+        "patternType": "none"
+      },
+      "M2": {
+        "patternType": "none"
+      },
+      "A3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B3": {
+        "patternType": "none"
+      },
+      "G3": {
+        "patternType": "none"
+      },
+      "H3": {
+        "patternType": "none"
+      },
+      "I3": {
+        "patternType": "none"
+      },
+      "J3": {
+        "patternType": "none"
+      },
+      "K3": {
+        "patternType": "none"
+      },
+      "L3": {
+        "patternType": "none"
+      },
+      "M3": {
+        "patternType": "none"
+      },
+      "A4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "B4": {
+        "patternType": "none"
+      },
+      "C4": {
+        "patternType": "none"
+      },
+      "D4": {
+        "patternType": "none"
+      },
+      "E4": {
+        "patternType": "none"
+      },
+      "F4": {
+        "patternType": "none"
+      },
+      "G4": {
+        "patternType": "none"
+      },
+      "H4": {
+        "patternType": "none"
+      },
+      "I4": {
+        "patternType": "none"
+      },
+      "J4": {
+        "patternType": "none"
+      },
+      "K4": {
+        "patternType": "none"
+      },
+      "L4": {
+        "patternType": "none"
+      },
+      "M4": {
+        "patternType": "none"
+      },
+      "A6": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "E4E3EA"
+        },
+        "bgColor": {
+          "rgb": "FEFFE1"
+        }
+      },
+      "B6": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "E4E3EA"
+        },
+        "bgColor": {
+          "rgb": "FEFFE1"
+        }
+      },
+      "C6": {
+        "patternType": "none"
+      },
+      "D6": {
+        "patternType": "none"
+      },
+      "A7": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "E4E3EA"
+        },
+        "bgColor": {
+          "rgb": "FEFFE1"
+        }
+      },
+      "B7": {
+        "patternType": "none"
+      },
+      "C7": {
+        "patternType": "none"
+      },
+      "A8": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "E4E3EA"
+        },
+        "bgColor": {
+          "rgb": "FEFFE1"
+        }
+      },
+      "B8": {
+        "patternType": "none"
+      },
+      "C8": {
+        "patternType": "none"
+      },
+      "A9": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "E4E3EA"
+        },
+        "bgColor": {
+          "rgb": "FEFFE1"
+        }
+      },
+      "B9": {
+        "patternType": "none"
+      },
+      "C9": {
+        "patternType": "none"
+      },
+      "A10": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "E4E3EA"
+        },
+        "bgColor": {
+          "rgb": "FEFFE1"
+        }
+      },
+      "B10": {
+        "patternType": "none"
+      },
+      "C10": {
+        "patternType": "none"
+      },
+      "A11": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "E4E3EA"
+        },
+        "bgColor": {
+          "rgb": "FEFFE1"
+        }
+      },
+      "B11": {
+        "patternType": "none"
+      },
+      "C11": {
+        "patternType": "none"
+      },
+      "A12": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "E4E3EA"
+        },
+        "bgColor": {
+          "rgb": "FEFFE1"
+        }
+      },
+      "B12": {
+        "patternType": "none"
+      },
+      "C12": {
+        "patternType": "none"
+      },
+      "A14": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "E4E3EA"
+        },
+        "bgColor": {
+          "rgb": "FEFFE1"
+        }
+      },
+      "B14": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "E4E3EA"
+        },
+        "bgColor": {
+          "rgb": "FEFFE1"
+        }
+      },
+      "C14": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "E4E3EA"
+        },
+        "bgColor": {
+          "rgb": "FEFFE1"
+        }
+      },
+      "D14": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "E4E3EA"
+        },
+        "bgColor": {
+          "rgb": "FEFFE1"
+        }
+      },
+      "A15": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "B15": {
+        "patternType": "none"
+      },
+      "C15": {
+        "patternType": "none"
+      },
+      "D15": {
+        "patternType": "none"
+      },
+      "A16": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B16": {
+        "patternType": "none"
+      },
+      "C16": {
+        "patternType": "none"
+      },
+      "D16": {
+        "patternType": "none"
+      },
+      "A17": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B17": {
+        "patternType": "none"
+      },
+      "C17": {
+        "patternType": "none"
+      },
+      "D17": {
+        "patternType": "none"
+      },
+      "A18": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B18": {
+        "patternType": "none"
+      },
+      "C18": {
+        "patternType": "none"
+      },
+      "D18": {
+        "patternType": "none"
+      },
+      "A19": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B19": {
+        "patternType": "none"
+      },
+      "C19": {
+        "patternType": "none"
+      },
+      "D19": {
+        "patternType": "none"
+      },
+      "A20": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B20": {
+        "patternType": "none"
+      },
+      "C20": {
+        "patternType": "none"
+      },
+      "D20": {
+        "patternType": "none"
+      },
+      "A21": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B21": {
+        "patternType": "none"
+      },
+      "C21": {
+        "patternType": "none"
+      },
+      "D21": {
+        "patternType": "none"
+      },
+      "A22": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B22": {
+        "patternType": "none"
+      },
+      "C22": {
+        "patternType": "none"
+      },
+      "D22": {
+        "patternType": "none"
+      },
+      "A23": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B23": {
+        "patternType": "none"
+      },
+      "C23": {
+        "patternType": "none"
+      },
+      "D23": {
+        "patternType": "none"
+      },
+      "A24": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B24": {
+        "patternType": "none"
+      },
+      "C24": {
+        "patternType": "none"
+      },
+      "D24": {
+        "patternType": "none"
+      },
+      "A25": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B25": {
+        "patternType": "none"
+      },
+      "C25": {
+        "patternType": "none"
+      },
+      "D25": {
+        "patternType": "none"
+      },
+      "A26": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B26": {
+        "patternType": "none"
+      },
+      "C26": {
+        "patternType": "none"
+      },
+      "D26": {
+        "patternType": "none"
+      },
+      "A27": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B27": {
+        "patternType": "none"
+      },
+      "C27": {
+        "patternType": "none"
+      },
+      "D27": {
+        "patternType": "none"
+      },
+      "A28": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B28": {
+        "patternType": "none"
+      },
+      "C28": {
+        "patternType": "none"
+      },
+      "D28": {
+        "patternType": "none"
+      },
+      "A29": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "B29": {
+        "patternType": "none"
+      },
+      "C29": {
+        "patternType": "none"
+      },
+      "D29": {
+        "patternType": "none"
+      },
+      "B30": {
+        "patternType": "none"
+      },
+      "C30": {
+        "patternType": "none"
+      },
+      "A31": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "E4E3EA"
+        },
+        "bgColor": {
+          "rgb": "FEFFE1"
+        }
+      },
+      "B31": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "E4E3EA"
+        },
+        "bgColor": {
+          "rgb": "FEFFE1"
+        }
+      },
+      "C31": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "E4E3EA"
+        },
+        "bgColor": {
+          "rgb": "FEFFE1"
+        }
+      },
+      "D31": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "E4E3EA"
+        },
+        "bgColor": {
+          "rgb": "FEFFE1"
+        }
+      },
+      "A32": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "B32": {
+        "patternType": "none"
+      },
+      "C32": {
+        "patternType": "none"
+      },
+      "D32": {
+        "patternType": "none"
+      },
+      "A33": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "B33": {
+        "patternType": "none"
+      },
+      "C33": {
+        "patternType": "none"
+      },
+      "D33": {
+        "patternType": "none"
+      },
+      "A34": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B34": {
+        "patternType": "none"
+      },
+      "C34": {
+        "patternType": "none"
+      },
+      "D34": {
+        "patternType": "none"
+      },
+      "A35": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B35": {
+        "patternType": "none"
+      },
+      "C35": {
+        "patternType": "none"
+      },
+      "D35": {
+        "patternType": "none"
+      },
+      "A36": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B36": {
+        "patternType": "none"
+      },
+      "C36": {
+        "patternType": "none"
+      },
+      "D36": {
+        "patternType": "none"
+      },
+      "A37": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B37": {
+        "patternType": "none"
+      },
+      "C37": {
+        "patternType": "none"
+      },
+      "D37": {
+        "patternType": "none"
+      },
+      "A38": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B38": {
+        "patternType": "none"
+      },
+      "C38": {
+        "patternType": "none"
+      },
+      "D38": {
+        "patternType": "none"
+      },
+      "A39": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B39": {
+        "patternType": "none"
+      },
+      "C39": {
+        "patternType": "none"
+      },
+      "D39": {
+        "patternType": "none"
+      },
+      "A40": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B40": {
+        "patternType": "none"
+      },
+      "C40": {
+        "patternType": "none"
+      },
+      "D40": {
+        "patternType": "none"
+      },
+      "A41": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B41": {
+        "patternType": "none"
+      },
+      "C41": {
+        "patternType": "none"
+      },
+      "D41": {
+        "patternType": "none"
+      },
+      "A42": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B42": {
+        "patternType": "none"
+      },
+      "C42": {
+        "patternType": "none"
+      },
+      "D42": {
+        "patternType": "none"
+      },
+      "A43": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B43": {
+        "patternType": "none"
+      },
+      "C43": {
+        "patternType": "none"
+      },
+      "D43": {
+        "patternType": "none"
+      },
+      "A44": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B44": {
+        "patternType": "none"
+      },
+      "C44": {
+        "patternType": "none"
+      },
+      "D44": {
+        "patternType": "none"
+      },
+      "A45": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B45": {
+        "patternType": "none"
+      },
+      "C45": {
+        "patternType": "none"
+      },
+      "D45": {
+        "patternType": "none"
+      },
+      "A46": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B46": {
+        "patternType": "none"
+      },
+      "C46": {
+        "patternType": "none"
+      },
+      "D46": {
+        "patternType": "none"
+      },
+      "A47": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B47": {
+        "patternType": "none"
+      },
+      "C47": {
+        "patternType": "none"
+      },
+      "D47": {
+        "patternType": "none"
+      },
+      "A48": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B48": {
+        "patternType": "none"
+      },
+      "C48": {
+        "patternType": "none"
+      },
+      "D48": {
+        "patternType": "none"
+      },
+      "A49": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B49": {
+        "patternType": "none"
+      },
+      "C49": {
+        "patternType": "none"
+      },
+      "D49": {
+        "patternType": "none"
+      },
+      "A50": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B50": {
+        "patternType": "none"
+      },
+      "C50": {
+        "patternType": "none"
+      },
+      "D50": {
+        "patternType": "none"
+      },
+      "A51": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B51": {
+        "patternType": "none"
+      },
+      "C51": {
+        "patternType": "none"
+      },
+      "D51": {
+        "patternType": "none"
+      },
+      "A52": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B52": {
+        "patternType": "none"
+      },
+      "C52": {
+        "patternType": "none"
+      },
+      "D52": {
+        "patternType": "none"
+      },
+      "A53": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "B53": {
+        "patternType": "none"
+      },
+      "C53": {
+        "patternType": "none"
+      },
+      "D53": {
+        "patternType": "none"
+      },
+      "A54": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "B54": {
+        "patternType": "none"
+      },
+      "C54": {
+        "patternType": "none"
+      },
+      "D54": {
+        "patternType": "none"
+      }
+    }
   },
   "nodes": {
     "data": [
@@ -357,79 +1911,741 @@ let excelData = {
         "Border Color",
         "Feature X [group A]",
         "Feature Y [nm] [group A]",
-        "Feature Z [group B]"
+        "Feature Z [group B]",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "A",
         "Node 1",
         "The first node",
         "circle",
-        60,
+        "60",
         "#403C53",
         "#C33D35",
-        1,
+        "1",
         "foo",
-        1
+        "1",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "B",
         "Node 2",
         "The second node",
-        null,
-        null,
-        null,
-        null,
-        0.5,
+        "",
+        "",
+        "",
+        "",
+        "0.5",
         "foo",
-        2
+        "2",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "C",
         "Node 3",
         "The third node",
-        null,
-        null,
-        null,
-        null,
-        1.1,
+        "",
+        "",
+        "",
+        "",
+        "1.1",
         "foo",
-        1
+        "1",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "D",
         "Node 4",
         "The fourth node",
-        null,
-        null,
-        null,
-        null,
-        1.3,
+        "",
+        "",
+        "",
+        "",
+        "1.3",
         "bar",
-        0
+        "0",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "E",
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        0,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "0",
         "bar",
-        -1
+        "-1",
+        "",
+        "",
+        "",
+        ""
       ],
       [
         "F",
         "Lonely Node",
-        null,
-        null,
-        null,
-        null,
-        null,
-        -1
+        "",
+        "",
+        "",
+        "",
+        "",
+        "-1",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ]
-    ]
+    ],
+    "styles": {
+      "A1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "B1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "C1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "D1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "E1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "F1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "G1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "H1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "I1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "J1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "A2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "B2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "C2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "D2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "E2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "F2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "G2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "H2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "I2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "J2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "A3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "B3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "C3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "D3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "E3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "F3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "G3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "H3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "I3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "J3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "A4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "B4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "C4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "D4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "E4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "F4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "G4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "H4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "I4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "J4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "A5": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "B5": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "C5": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "D5": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "E5": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "F5": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "G5": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "H5": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "I5": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "J5": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "A6": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "B6": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "C6": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "D6": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "E6": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "F6": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "G6": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "H6": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "I6": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "J6": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "A7": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "B7": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "C7": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "D7": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "E7": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "F7": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "G7": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "H7": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "I7": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "J7": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      }
+    }
   },
   "edges": {
     "data": [
@@ -447,43 +2663,405 @@ let excelData = {
         "A",
         "B",
         "#FF0000",
-        0.75,
+        "0.75",
         "foo",
-        1,
+        "1",
         "Dummy Category 1",
-        1
+        "1"
       ],
       [
         "A",
         "C",
-        null,
-        null,
-        null,
-        0.5,
+        "",
+        "",
+        "",
+        "0.5",
         "Dummy Category 2",
-        2
+        "2"
       ],
       [
         "C",
         "D",
-        null,
-        null,
-        null,
-        1.1,
+        "",
+        "",
+        "",
+        "1.1",
         "Dummy Category 3",
-        1
+        "1"
       ],
       [
         "D",
         "E",
-        null,
-        null,
-        null,
-        1.3,
+        "",
+        "",
+        "",
+        "1.3",
         "Dummy Category 4",
-        0
+        "0"
       ]
-    ]
+    ],
+    "styles": {
+      "A1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "B1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "C1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "D1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "E1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "F1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "G1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "H1": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "A2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "B2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "C2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "D2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "E2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "F2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "G2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "H2": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "A3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "B3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "C3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "D3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "E3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "F3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "G3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "H3": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "A4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "B4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "C4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "D4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "E4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "F4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "G4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "H4": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "A5": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "B5": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FF9A9A"
+        },
+        "bgColor": {
+          "rgb": "FF8080"
+        }
+      },
+      "C5": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "D5": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "E5": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "FEFFE1"
+        },
+        "bgColor": {
+          "rgb": "FFFFFF"
+        }
+      },
+      "F5": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "G5": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      },
+      "H5": {
+        "patternType": "solid",
+        "fgColor": {
+          "rgb": "81D41A"
+        },
+        "bgColor": {
+          "rgb": "969696"
+        }
+      }
+    }
   }
 };
 
@@ -4465,44 +7043,62 @@ function parseExcelToJson(file) {
 }
 
 function downloadExcelTemplate() {
-  const workbook = XLSX.utils.book_new();
+  const wb = XLSX.utils.book_new();
 
-  Object.entries(excelData).forEach(([sheetName, sheetData]) => {
-    const worksheet = XLSX.utils.aoa_to_sheet(sheetData.data);
+  Object.entries(excelData).forEach(([sheetName, sheet]) => {
+    const ws = XLSX.utils.aoa_to_sheet(sheet.data);
 
-    if (sheetData.merges) worksheet['!merges'] = sheetData.merges;
-    if (sheetData.cols) worksheet['!cols'] = sheetData.cols;
-    if (sheetData.rows) worksheet['!rows'] = sheetData.rows;
+    if (sheet.styles) {
+      Object.entries(sheet.styles).forEach(([ref, style]) => {
+        const cellAddr = XLSX.utils.decode_cell(ref);
+        const range = XLSX.utils.decode_range(ws['!ref']);
 
-    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+        if (cellAddr.r <= range.e.r && cellAddr.c <= range.e.c) {
+          if (!ws[ref]) {
+            ws[ref] = {t: "s", v: ""};
+          }
+
+          // Fix structure - wrap fill properties
+          const fixedStyle = {};
+
+          if (style.patternType || style.fgColor || style.bgColor) {
+            fixedStyle.fill = {
+              patternType: style.patternType || "solid",
+              ...(style.fgColor && {fgColor: style.fgColor}),
+              ...(style.bgColor && {bgColor: style.bgColor})
+            };
+          }
+
+          if (style.font) fixedStyle.font = style.font;
+          if (style.border) fixedStyle.border = style.border;
+          if (style.alignment) fixedStyle.alignment = style.alignment;
+          if (style.numFmt) fixedStyle.numFmt = style.numFmt;
+
+          ws[ref].s = fixedStyle;
+        }
+      });
+    }
+
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
   });
 
-  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
+  const wbout = XLSX.write(wb, {
+    bookType: "xlsx",
+    type: "array",
+    cellStyles: true
+  });
 
-  const blob = new Blob(
-    [stringToArrayBuffer(excelBuffer)],
-    { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
-  );
+  const blob = new Blob([wbout], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
 
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'GLL_template.xlsx';
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "GLL_template.xlsx";
   document.body.appendChild(a);
   a.click();
-
-  // cleanup
-  window.URL.revokeObjectURL(url);
-  document.body.removeChild(a);
-}
-
-function stringToArrayBuffer(s) {
-  const buf = new ArrayBuffer(s.length);
-  const view = new Uint8Array(buf);
-  for (let i = 0; i < s.length; i++) {
-    view[i] = s.charCodeAt(i) & 0xFF;
-  }
-  return buf;
+  a.remove();
+  URL.revokeObjectURL(a.href);
 }
 
 async function createGraphInstance() {

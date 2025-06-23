@@ -1,4 +1,4 @@
-const XLSX = require('xlsx');
+const XLSX = require('xlsx-js-style');
 const fs = require('fs');
 const path = require('path');
 
@@ -6,29 +6,58 @@ const SOURCE_EXCEL_FILE = path.join(__dirname, "..", "..", "templates", "GLL_tem
 const TARGET_JS_FILE = path.join(__dirname, "..", "..", "src", "gll.js");
 
 function parseExcelToObject(filePath) {
-  const workbook = XLSX.readFile(filePath);
+  const wb = XLSX.readFile(filePath, { cellStyles: true });
   const result = {};
 
-  workbook.SheetNames.forEach(sheetName => {
-    const sheet = workbook.Sheets[sheetName];
+  wb.SheetNames.forEach(name => {
+    const ws = wb.Sheets[name];
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
 
-    const data = {
-      data: XLSX.utils.sheet_to_json(sheet, { header: 1 })
-        .filter(row => row.some(cell => cell !== null && cell !== undefined && cell !== '')),
-      merges: sheet['!merges'] || [],
-      cols: (sheet['!cols'] || []).map(col => col ? {
-        width: col.width,
-        hidden: col.hidden
-      } : null).filter(Boolean),
-      rows: sheet['!rows'] || []
-    };
+    const data = [];
+    const styles = {};
 
-    // Remove empty properties
-    if (data.merges.length === 0) delete data.merges;
-    if (data.cols.length === 0) delete data.cols;
-    if (data.rows.length === 0) delete data.rows;
+    // Find last row with data
+    let lastRowWithData = -1;
+    for (let r = range.e.r; r >= range.s.r; r--) {
+      let hasData = false;
+      for (let c = range.s.c; c <= range.e.c; c++) {
+        const ref = XLSX.utils.encode_cell({ r, c });
+        const cell = ws[ref];
+        if (cell && (cell.w || cell.v)) {
+          hasData = true;
+          break;
+        }
+      }
+      if (hasData) {
+        lastRowWithData = r;
+        break;
+      }
+    }
 
-    result[sheetName] = data;
+    for (let r = range.s.r; r <= lastRowWithData; r++) {
+      const row = [];
+
+      for (let c = range.s.c; c <= range.e.c; c++) {
+        const ref = XLSX.utils.encode_cell({ r, c });
+        const cell = ws[ref];
+
+        const value = cell ? (cell.w || cell.v || "") : "";
+        row.push(value);
+
+        if (cell?.s) {
+          styles[ref] = cell.s;
+        }
+      }
+
+      data.push(row);
+    }
+
+    const payload = { data };
+    if (Object.keys(styles).length > 0) {
+      payload.styles = styles;
+    }
+
+    result[name] = payload;
   });
 
   return result;
