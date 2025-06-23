@@ -11,7 +11,24 @@ function parseExcelToObject(filePath) {
 
   workbook.SheetNames.forEach(sheetName => {
     const sheet = workbook.Sheets[sheetName];
-    result[sheetName] = XLSX.utils.sheet_to_json(sheet);
+
+    const data = {
+      data: XLSX.utils.sheet_to_json(sheet, { header: 1 })
+        .filter(row => row.some(cell => cell !== null && cell !== undefined && cell !== '')),
+      merges: sheet['!merges'] || [],
+      cols: (sheet['!cols'] || []).map(col => col ? {
+        width: col.width,
+        hidden: col.hidden
+      } : null).filter(Boolean),
+      rows: sheet['!rows'] || []
+    };
+
+    // Remove empty properties
+    if (data.merges.length === 0) delete data.merges;
+    if (data.cols.length === 0) delete data.cols;
+    if (data.rows.length === 0) delete data.rows;
+
+    result[sheetName] = data;
   });
 
   return result;

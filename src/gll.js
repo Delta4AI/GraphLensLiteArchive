@@ -57,370 +57,434 @@ let data = {};
 
 // updated during build; used for downloading a template through the app
 let excelData = {
-  "readme": [
-    {
-      "Color Codes Explained": "Required",
-      "Description": "Strictly required property"
-    },
-    {
-      "Color Codes Explained": "Optional",
-      "Description": "Optional property; Column name can not be re-used for user-defined data"
-    },
-    {
-      "Color Codes Explained": "User Data [group]",
-      "Description": "Add custom properties in new columns. Use [brackets] for grouping (e.g., \"Temperature [Celsius] [Physics]\"). The last [bracket] becomes the group name."
-    },
-    {
-      "Color Codes Explained": "Data Types Explained",
-      "Description": "Description"
-    },
-    {
-      "Color Codes Explained": "text",
-      "Description": "any text"
-    },
-    {
-      "Color Codes Explained": "number",
-      "Description": "whole decimal numbers or floating point numbers"
-    },
-    {
-      "Color Codes Explained": "boolean",
-      "Description": "true or TRUE or 1, false or FALSE or 0"
-    },
-    {
-      "Color Codes Explained": "RGBA",
-      "Description": "RGBA hex color code (e.g. #C33D3580 for 50% opacity) (last 2 digits are optional)"
-    },
-    {
-      "Color Codes Explained": "value 1 | value 2",
-      "Description": "List of categorical values of which one must be matched (excluding optional information in brackets)"
-    },
-    {
-      "Color Codes Explained": "any",
-      "Description": "Categorical view when text is given, slider-based view when numerical input is given"
-    },
-    {
-      "Color Codes Explained": "Node Properties Explained",
-      "Description": "Description",
-      "__EMPTY": "Default Value",
-      "__EMPTY_1": "Type"
-    },
-    {
-      "Color Codes Explained": "ID",
-      "Description": "Unique identifier for a node",
-      "__EMPTY": "-",
-      "__EMPTY_1": "text (unique)"
-    },
-    {
-      "Color Codes Explained": "Description",
-      "Description": "Description of the node, displayed in the tooltip text",
-      "__EMPTY": "-",
-      "__EMPTY_1": "text"
-    },
-    {
-      "Color Codes Explained": "Shape",
-      "Description": "The shape of the node",
-      "__EMPTY": "hexagon",
-      "__EMPTY_1": "circle (●) | diamond (◆) | hexagon (⬢) | rect (■) | triangle (▲) | star (★)"
-    },
-    {
-      "Color Codes Explained": "Size",
-      "Description": "The size of the node",
-      "__EMPTY": 20,
-      "__EMPTY_1": "number"
-    },
-    {
-      "Color Codes Explained": "Fill Color",
-      "Description": "The fill color of the node in RGBA format (e.g. #FF000080 for a red node with 50% opacity)",
-      "__EMPTY": "#C33D35",
-      "__EMPTY_1": "rgba"
-    },
-    {
-      "Color Codes Explained": "Border Size",
-      "Description": "The stroke width",
-      "__EMPTY": 1,
-      "__EMPTY_1": "number"
-    },
-    {
-      "Color Codes Explained": "Border Color",
-      "Description": "The stroke color of the node in RGBA format",
-      "__EMPTY": "-",
-      "__EMPTY_1": "rgba"
-    },
-    {
-      "Color Codes Explained": "Label",
-      "Description": "Label of the node; if no Label is given, the ID is displayed per default",
-      "__EMPTY": "-",
-      "__EMPTY_1": "text"
-    },
-    {
-      "Color Codes Explained": "Label Font Size",
-      "Description": "Label font size",
-      "__EMPTY": 12,
-      "__EMPTY_1": "number"
-    },
-    {
-      "Color Codes Explained": "Label Placement",
-      "Description": "Label position relative to the main shape of the node",
-      "__EMPTY": "bottom",
-      "__EMPTY_1": "left | right | top | bottom | left-top | left-bottom | right-top | right-bottom | top-left | top-right | bottom-left | bottom-right | center"
-    },
-    {
-      "Color Codes Explained": "Label Color",
-      "Description": "The color of the nodes label",
-      "__EMPTY": "-",
-      "__EMPTY_1": "rgba"
-    },
-    {
-      "Color Codes Explained": "Label Background Color",
-      "Description": "Label background fill color",
-      "__EMPTY": "-",
-      "__EMPTY_1": "rgba"
-    },
-    {
-      "Color Codes Explained": "X Coordinate",
-      "Description": "The x coordinate of the node",
-      "__EMPTY": "-",
-      "__EMPTY_1": "number"
-    },
-    {
-      "Color Codes Explained": "Y Coordinate",
-      "Description": "The y coordinate of the node",
-      "__EMPTY": "-",
-      "__EMPTY_1": "number"
-    },
-    {
-      "Color Codes Explained": "property A [group A]",
-      "Description": "User-defined custom node properties",
-      "__EMPTY": "-",
-      "__EMPTY_1": "any"
-    },
-    {
-      "Color Codes Explained": "Edge Properties Explained",
-      "Description": "Description",
-      "__EMPTY": "Default Value",
-      "__EMPTY_1": "Type"
-    },
-    {
-      "Color Codes Explained": "Source ID",
-      "Description": "The ID of the source node",
-      "__EMPTY": "-",
-      "__EMPTY_1": "text"
-    },
-    {
-      "Color Codes Explained": "Target ID",
-      "Description": "The ID of the target node",
-      "__EMPTY": "-",
-      "__EMPTY_1": "text"
-    },
-    {
-      "Color Codes Explained": "Type",
-      "Description": "The edge type",
-      "__EMPTY": "line",
-      "__EMPTY_1": "line | cubic | quadratic | polyline"
-    },
-    {
-      "Color Codes Explained": "Line Width",
-      "Description": "The border width of the edge",
-      "__EMPTY": 0.75,
-      "__EMPTY_1": "number"
-    },
-    {
-      "Color Codes Explained": "Line Dash",
-      "Description": "The dash offset of the edge line",
-      "__EMPTY": 0,
-      "__EMPTY_1": "number"
-    },
-    {
-      "Color Codes Explained": "Color",
-      "Description": "The stroke color of the edge in RGBA format",
-      "__EMPTY": "#403C5390",
-      "__EMPTY_1": "rgba"
-    },
-    {
-      "Color Codes Explained": "Label",
-      "Description": "Label of the edge; if no Label is given, the edge is only visible as line without any text",
-      "__EMPTY": "-",
-      "__EMPTY_1": "text"
-    },
-    {
-      "Color Codes Explained": "Label Font Size",
-      "Description": "The font size of the edges label",
-      "__EMPTY": "center",
-      "__EMPTY_1": "number"
-    },
-    {
-      "Color Codes Explained": "Label Placement",
-      "Description": "The position of the label relative to the edge",
-      "__EMPTY": "#000000",
-      "__EMPTY_1": "start | center | end"
-    },
-    {
-      "Color Codes Explained": "Label Auto Rotate",
-      "Description": "Whether to automatically rotate the label to match the edge’s direction",
-      "__EMPTY": 1,
-      "__EMPTY_1": "boolean"
-    },
-    {
-      "Color Codes Explained": "Label Offset X",
-      "Description": "The offset of the label on the X-Axis",
-      "__EMPTY": 0,
-      "__EMPTY_1": "number"
-    },
-    {
-      "Color Codes Explained": "Label Offset Y",
-      "Description": "The offset of the label on the Y-Axis",
-      "__EMPTY": 0,
-      "__EMPTY_1": "number"
-    },
-    {
-      "Color Codes Explained": "Label Color",
-      "Description": "The color of the edges label text",
-      "__EMPTY": "-",
-      "__EMPTY_1": "rgba"
-    },
-    {
-      "Color Codes Explained": "Label Background Color",
-      "Description": "The color for the edge label’s background",
-      "__EMPTY": "#E4E3EA",
-      "__EMPTY_1": "rgba"
-    },
-    {
-      "Color Codes Explained": "Start Arrow",
-      "Description": "Whether to display the start arrow on the edge",
-      "__EMPTY": 0,
-      "__EMPTY_1": "boolean"
-    },
-    {
-      "Color Codes Explained": "Start Arrow Size",
-      "Description": "The size of the start arrow",
-      "__EMPTY": 8,
-      "__EMPTY_1": "number"
-    },
-    {
-      "Color Codes Explained": "Start Arrow Type",
-      "Description": "The type of the start arrow",
-      "__EMPTY": "triangle",
-      "__EMPTY_1": "triangle | circle | diamond | vee | rect | triangleRect | simple"
-    },
-    {
-      "Color Codes Explained": "End Arrow",
-      "Description": "Whether to display the end arrow on the edge",
-      "__EMPTY": 0,
-      "__EMPTY_1": "boolean"
-    },
-    {
-      "Color Codes Explained": "End Arrow Size",
-      "Description": "The size of the end arrow",
-      "__EMPTY": 8,
-      "__EMPTY_1": "number"
-    },
-    {
-      "Color Codes Explained": "End Arrow Type",
-      "Description": "The type of the end arrow",
-      "__EMPTY": "triangle",
-      "__EMPTY_1": "triangle | circle | diamond | vee | rect | triangleRect | simple"
-    },
-    {
-      "Color Codes Explained": "Halo Color",
-      "Description": "Whether to display a halo around the edge; The stroke color of the halo",
-      "__EMPTY": "-",
-      "__EMPTY_1": "rgba"
-    },
-    {
-      "Color Codes Explained": "Halo Width",
-      "Description": "The stroke width of the halo",
-      "__EMPTY": 3,
-      "__EMPTY_1": "number"
-    },
-    {
-      "Color Codes Explained": "property A [group A]",
-      "Description": "User-defined custom edge properties",
-      "__EMPTY": "-",
-      "__EMPTY_1": "any"
-    }
-  ],
-  "nodes": [
-    {
-      "ID": "A",
-      "Label": "Node 1",
-      "Description": "The first node",
-      "Shape": "circle",
-      "Size": 60,
-      "Fill Color": "#403C53",
-      "Border Color": "#C33D35",
-      "Feature X [group A]": 1,
-      "Feature Y [nm] [group A]": "foo",
-      "Feature Z [group B]": 1
-    },
-    {
-      "ID": "B",
-      "Label": "Node 2",
-      "Description": "The second node",
-      "Feature X [group A]": 0.5,
-      "Feature Y [nm] [group A]": "foo",
-      "Feature Z [group B]": 2
-    },
-    {
-      "ID": "C",
-      "Label": "Node 3",
-      "Description": "The third node",
-      "Feature X [group A]": 1.1,
-      "Feature Y [nm] [group A]": "foo",
-      "Feature Z [group B]": 1
-    },
-    {
-      "ID": "D",
-      "Label": "Node 4",
-      "Description": "The fourth node",
-      "Feature X [group A]": 1.3,
-      "Feature Y [nm] [group A]": "bar",
-      "Feature Z [group B]": 0
-    },
-    {
-      "ID": "E",
-      "Feature X [group A]": 0,
-      "Feature Y [nm] [group A]": "bar",
-      "Feature Z [group B]": -1
-    },
-    {
-      "ID": "F",
-      "Label": "Lonely Node",
-      "Feature X [group A]": -1
-    }
-  ],
-  "edges": [
-    {
-      "Source ID": "A",
-      "Target ID": "B",
-      "Color": "#FF0000",
-      "Line Width": 0.75,
-      "Label": "foo",
-      "Feature EX [group X]": 1,
-      "Feature EY [group X]": "Dummy Category 1",
-      "Feature EZ [group Y]": 1
-    },
-    {
-      "Source ID": "A",
-      "Target ID": "C",
-      "Feature EX [group X]": 0.5,
-      "Feature EY [group X]": "Dummy Category 2",
-      "Feature EZ [group Y]": 2
-    },
-    {
-      "Source ID": "C",
-      "Target ID": "D",
-      "Feature EX [group X]": 1.1,
-      "Feature EY [group X]": "Dummy Category 3",
-      "Feature EZ [group Y]": 1
-    },
-    {
-      "Source ID": "D",
-      "Target ID": "E",
-      "Feature EX [group X]": 1.3,
-      "Feature EY [group X]": "Dummy Category 4",
-      "Feature EZ [group Y]": 0
-    }
-  ]
+  "readme": {
+    "data": [
+      [
+        "Color Codes Explained",
+        "Description"
+      ],
+      [
+        "Required",
+        "Strictly required property"
+      ],
+      [
+        "Optional",
+        "Optional property; Column name can not be re-used for user-defined data"
+      ],
+      [
+        "User Data [group]",
+        "Add custom properties in new columns. Use [brackets] for grouping (e.g., \"Temperature [Celsius] [Physics]\"). The last [bracket] becomes the group name."
+      ],
+      [
+        "Data Types Explained",
+        "Description"
+      ],
+      [
+        "text",
+        "any text"
+      ],
+      [
+        "number",
+        "whole decimal numbers or floating point numbers"
+      ],
+      [
+        "boolean",
+        "true or TRUE or 1, false or FALSE or 0"
+      ],
+      [
+        "RGBA",
+        "RGBA hex color code (e.g. #C33D3580 for 50% opacity) (last 2 digits are optional)"
+      ],
+      [
+        "value 1 | value 2",
+        "List of categorical values of which one must be matched (excluding optional information in brackets)"
+      ],
+      [
+        "any",
+        "Categorical view when text is given, slider-based view when numerical input is given"
+      ],
+      [
+        "Node Properties Explained",
+        "Description",
+        "Default Value",
+        "Type"
+      ],
+      [
+        "ID",
+        "Unique identifier for a node",
+        "-",
+        "text (unique)"
+      ],
+      [
+        "Description",
+        "Description of the node, displayed in the tooltip text",
+        "-",
+        "text"
+      ],
+      [
+        "Shape",
+        "The shape of the node",
+        "hexagon",
+        "circle (●) | diamond (◆) | hexagon (⬢) | rect (■) | triangle (▲) | star (★)"
+      ],
+      [
+        "Size",
+        "The size of the node",
+        20,
+        "number"
+      ],
+      [
+        "Fill Color",
+        "The fill color of the node in RGBA format (e.g. #FF000080 for a red node with 50% opacity)",
+        "#C33D35",
+        "rgba"
+      ],
+      [
+        "Border Size",
+        "The stroke width",
+        1,
+        "number"
+      ],
+      [
+        "Border Color",
+        "The stroke color of the node in RGBA format",
+        "-",
+        "rgba"
+      ],
+      [
+        "Label",
+        "Label of the node; if no Label is given, the ID is displayed per default",
+        "-",
+        "text"
+      ],
+      [
+        "Label Font Size",
+        "Label font size",
+        12,
+        "number"
+      ],
+      [
+        "Label Placement",
+        "Label position relative to the main shape of the node",
+        "bottom",
+        "left | right | top | bottom | left-top | left-bottom | right-top | right-bottom | top-left | top-right | bottom-left | bottom-right | center"
+      ],
+      [
+        "Label Color",
+        "The color of the nodes label",
+        "-",
+        "rgba"
+      ],
+      [
+        "Label Background Color",
+        "Label background fill color",
+        "-",
+        "rgba"
+      ],
+      [
+        "X Coordinate",
+        "The x coordinate of the node",
+        "-",
+        "number"
+      ],
+      [
+        "Y Coordinate",
+        "The y coordinate of the node",
+        "-",
+        "number"
+      ],
+      [
+        "property A [group A]",
+        "User-defined custom node properties",
+        "-",
+        "any"
+      ],
+      [
+        "Edge Properties Explained",
+        "Description",
+        "Default Value",
+        "Type"
+      ],
+      [
+        "Source ID",
+        "The ID of the source node",
+        "-",
+        "text"
+      ],
+      [
+        "Target ID",
+        "The ID of the target node",
+        "-",
+        "text"
+      ],
+      [
+        "Type",
+        "The edge type",
+        "line",
+        "line | cubic | quadratic | polyline"
+      ],
+      [
+        "Line Width",
+        "The border width of the edge",
+        0.75,
+        "number"
+      ],
+      [
+        "Line Dash",
+        "The dash offset of the edge line",
+        0,
+        "number"
+      ],
+      [
+        "Color",
+        "The stroke color of the edge in RGBA format",
+        "#403C5390",
+        "rgba"
+      ],
+      [
+        "Label",
+        "Label of the edge; if no Label is given, the edge is only visible as line without any text",
+        "-",
+        "text"
+      ],
+      [
+        "Label Font Size",
+        "The font size of the edges label",
+        "center",
+        "number"
+      ],
+      [
+        "Label Placement",
+        "The position of the label relative to the edge",
+        "#000000",
+        "start | center | end"
+      ],
+      [
+        "Label Auto Rotate",
+        "Whether to automatically rotate the label to match the edge’s direction",
+        1,
+        "boolean"
+      ],
+      [
+        "Label Offset X",
+        "The offset of the label on the X-Axis",
+        0,
+        "number"
+      ],
+      [
+        "Label Offset Y",
+        "The offset of the label on the Y-Axis",
+        0,
+        "number"
+      ],
+      [
+        "Label Color",
+        "The color of the edges label text",
+        "-",
+        "rgba"
+      ],
+      [
+        "Label Background Color",
+        "The color for the edge label’s background",
+        "#E4E3EA",
+        "rgba"
+      ],
+      [
+        "Start Arrow",
+        "Whether to display the start arrow on the edge",
+        0,
+        "boolean"
+      ],
+      [
+        "Start Arrow Size",
+        "The size of the start arrow",
+        8,
+        "number"
+      ],
+      [
+        "Start Arrow Type",
+        "The type of the start arrow",
+        "triangle",
+        "triangle | circle | diamond | vee | rect | triangleRect | simple"
+      ],
+      [
+        "End Arrow",
+        "Whether to display the end arrow on the edge",
+        0,
+        "boolean"
+      ],
+      [
+        "End Arrow Size",
+        "The size of the end arrow",
+        8,
+        "number"
+      ],
+      [
+        "End Arrow Type",
+        "The type of the end arrow",
+        "triangle",
+        "triangle | circle | diamond | vee | rect | triangleRect | simple"
+      ],
+      [
+        "Halo Color",
+        "Whether to display a halo around the edge; The stroke color of the halo",
+        "-",
+        "rgba"
+      ],
+      [
+        "Halo Width",
+        "The stroke width of the halo",
+        3,
+        "number"
+      ],
+      [
+        "property A [group A]",
+        "User-defined custom edge properties",
+        "-",
+        "any"
+      ]
+    ]
+  },
+  "nodes": {
+    "data": [
+      [
+        "ID",
+        "Label",
+        "Description",
+        "Shape",
+        "Size",
+        "Fill Color",
+        "Border Color",
+        "Feature X [group A]",
+        "Feature Y [nm] [group A]",
+        "Feature Z [group B]"
+      ],
+      [
+        "A",
+        "Node 1",
+        "The first node",
+        "circle",
+        60,
+        "#403C53",
+        "#C33D35",
+        1,
+        "foo",
+        1
+      ],
+      [
+        "B",
+        "Node 2",
+        "The second node",
+        null,
+        null,
+        null,
+        null,
+        0.5,
+        "foo",
+        2
+      ],
+      [
+        "C",
+        "Node 3",
+        "The third node",
+        null,
+        null,
+        null,
+        null,
+        1.1,
+        "foo",
+        1
+      ],
+      [
+        "D",
+        "Node 4",
+        "The fourth node",
+        null,
+        null,
+        null,
+        null,
+        1.3,
+        "bar",
+        0
+      ],
+      [
+        "E",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        0,
+        "bar",
+        -1
+      ],
+      [
+        "F",
+        "Lonely Node",
+        null,
+        null,
+        null,
+        null,
+        null,
+        -1
+      ]
+    ]
+  },
+  "edges": {
+    "data": [
+      [
+        "Source ID",
+        "Target ID",
+        "Color",
+        "Line Width",
+        "Label",
+        "Feature EX [group X]",
+        "Feature EY [group X]",
+        "Feature EZ [group Y]"
+      ],
+      [
+        "A",
+        "B",
+        "#FF0000",
+        0.75,
+        "foo",
+        1,
+        "Dummy Category 1",
+        1
+      ],
+      [
+        "A",
+        "C",
+        null,
+        null,
+        null,
+        0.5,
+        "Dummy Category 2",
+        2
+      ],
+      [
+        "C",
+        "D",
+        null,
+        null,
+        null,
+        1.1,
+        "Dummy Category 3",
+        1
+      ],
+      [
+        "D",
+        "E",
+        null,
+        null,
+        null,
+        1.3,
+        "Dummy Category 4",
+        0
+      ]
+    ]
+  }
 };
 
 // Stores query related elements (text & overlay), AST, status about validity, widths, ..
@@ -4400,6 +4464,47 @@ function parseExcelToJson(file) {
   };
 }
 
+function downloadExcelTemplate() {
+  const workbook = XLSX.utils.book_new();
+
+  Object.entries(excelData).forEach(([sheetName, sheetData]) => {
+    const worksheet = XLSX.utils.aoa_to_sheet(sheetData.data);
+
+    if (sheetData.merges) worksheet['!merges'] = sheetData.merges;
+    if (sheetData.cols) worksheet['!cols'] = sheetData.cols;
+    if (sheetData.rows) worksheet['!rows'] = sheetData.rows;
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+  });
+
+  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
+
+  const blob = new Blob(
+    [stringToArrayBuffer(excelBuffer)],
+    { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
+  );
+
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'GLL_template.xlsx';
+  document.body.appendChild(a);
+  a.click();
+
+  // cleanup
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+}
+
+function stringToArrayBuffer(s) {
+  const buf = new ArrayBuffer(s.length);
+  const view = new Uint8Array(buf);
+  for (let i = 0; i < s.length; i++) {
+    view[i] = s.charCodeAt(i) & 0xFF;
+  }
+  return buf;
+}
+
 async function createGraphInstance() {
   if (graph === null) {
 
@@ -6700,6 +6805,12 @@ function showUI(show) {
   document.querySelectorAll('.showOnLoad').forEach((element) => {
     element.style.opacity = show ? "1" : "0";
     element.style.pointerEvents = show ? "auto" : "none";
+  });
+
+  document.querySelectorAll('.hideOnLoad').forEach((element) => {
+    element.style.opacity = show ? "0" : "1";
+    element.style.pointerEvents = show ? "none" : "auto";
+    element.style.height = show ? "0" : "auto";
   });
 }
 
