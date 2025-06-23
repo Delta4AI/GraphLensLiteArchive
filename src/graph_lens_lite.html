@@ -37,6 +37,9 @@
       </div>
       <input type="file" id="fileInput" name="fileInput" onchange="loadFileWrapper(event);"
              accept=".json, .xls, .xlsx, .csv, .tab"/>
+      <div class="hideOnLoad">
+        <button onclick="downloadExcelTemplate()" class="mt-2">Download Template</button>
+      </div>
       <div class="showOnLoad">
         <hr>
         <label for="selectView">View Preset:</label>

@@ -163,6 +163,14 @@ h5 {
     margin-left: 0.4em;
 }
 
+.mt-1 {
+    margin-top: 0.2em;
+}
+
+.mt-2 {
+    margin-top: 0.4em;
+}
+
 .q-space {
 }
 
@@ -835,6 +843,12 @@ h5 {
 .showOnLoad {
     opacity: 0;
     pointer-events: none;
+}
+
+.hideOnLoad {
+    opacity: 1;
+    pointer-events: auto;
+    height: auto;
 }
 
 /*************************
