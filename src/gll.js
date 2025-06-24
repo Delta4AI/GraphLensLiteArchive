@@ -12824,11 +12824,12 @@ function createStyleDiv() {
     return row;
   }
 
-  function appendVerticalRule(parent, label = undefined, tooltip = undefined, id = undefined) {
+  function appendVerticalRule(parent, label = undefined, tooltip = undefined, id = undefined, customCSSClass = undefined) {
     const verticalRule = document.createElement("div");
     verticalRule.className = "vr";
+    if (customCSSClass) verticalRule.classList.add(customCSSClass);
     parent.appendChild(verticalRule);
-    appendLabel(parent, label, tooltip, id);
+    appendLabel(parent, label, tooltip, id, customCSSClass);
   }
 
   function createLabel(labelText, tooltip = undefined) {
@@ -12843,27 +12844,33 @@ function createStyleDiv() {
     return null;
   }
 
-  function appendLabel(parent, labelText, tooltip = undefined, id = undefined) {
+  function appendLabel(parent, labelText, tooltip = undefined, id = undefined, customCSSClass = undefined) {
     const label = createLabel(labelText, tooltip);
     if (id) label.id = id;
+    if (customCSSClass) label.classList.add(customCSSClass);
     if (label) parent.appendChild(label);
   }
 
-  function createCard(label) {
+  function createCard(label, parent=undefined) {
     const card = document.createElement("div");
     card.classList.add("card-labeled");
     card.dataset.label = label;
     card.id = label;
-    root.appendChild(card);
+    if (parent) {
+      parent.appendChild(card);
+    } else {
+      root.appendChild(card);
+    }
     return card;
   }
 
-  function createSwitch(callback = undefined, inputId = undefined) {
+  function createSwitch(callback = undefined, inputId = undefined, enabledByDefault = false) {
     const label = document.createElement('label');
     label.className = 'switch';
 
     const input = document.createElement('input');
     input.type = 'checkbox';
+    input.checked = enabledByDefault;
 
     const span = document.createElement('span');
     span.className = 'slider round';
@@ -12878,6 +12885,17 @@ function createStyleDiv() {
     }
 
     label.append(input, span);
+
+    label.setChecked = (checked) => {
+      input.checked = checked;
+    };
+
+    label.toggle = () => {
+      input.checked = !input.checked;
+    };
+
+    label.isChecked = () => input.checked;
+
     return label;
   }
 
@@ -12886,6 +12904,11 @@ function createStyleDiv() {
 
     if (value === "set_continuous_color_scale") {
       commands.push("set_continuous_color_scale");
+    }
+
+    if (property.startsWith("Bubble Set")) {
+      await updateBubbleSetStyle(property, value);
+      return;
     }
 
     switch (property) {
@@ -13080,9 +13103,10 @@ function createStyleDiv() {
     return colorPicker;
   }
 
-  function createColorControls(parent, property, defaultColor, colors, continuousScaleBtn=true) {
+  function createColorControls(parent, property, defaultColor, colors, continuousScaleBtn=true, customCSSClass=undefined) {
     const colorButtonDiv = document.createElement("div");
     colorButtonDiv.className = "style-color-button-container";
+    if (customCSSClass) colorButtonDiv.classList.add(customCSSClass);
 
     for (const [label, value] of Object.entries(colors)) {
       const colorButton = document.createElement("button");
@@ -13100,6 +13124,8 @@ function createStyleDiv() {
         colorInput.value = value;
         await handleStyleChangeEvent(property, value);
       };
+
+      if (customCSSClass) colorButton.classList.add(customCSSClass);
       colorButtonDiv.appendChild(colorButton);
     }
 
@@ -13130,6 +13156,11 @@ function createStyleDiv() {
       }
     });
 
+    if (customCSSClass) {
+      colorPicker.classList.add(customCSSClass);
+      colorInput.classList.add(customCSSClass);
+    }
+
     parent.appendChild(colorPicker);
     parent.appendChild(colorInput);
 
@@ -13141,6 +13172,8 @@ function createStyleDiv() {
         colorInput.value = "";
         await handleStyleChangeEvent(property, "set_continuous_color_scale");
       };
+
+      if (customCSSClass) contScaleBtn.classList.add(customCSSClass)
       parent.appendChild(contScaleBtn);
     }
   }
@@ -13645,11 +13678,59 @@ function createStyleDiv() {
       {min: 1, max: 30, step: 1}, "Define the halo width for the selected edges.");
   }
 
+  function createBubbleSetConfigCard() {
+    const bubbleDiv = createCard("Bubble Set Configuration");
+    const optionalCSSClass = "bubbleSetOptionalLabelConfig";
+
+    let rowCount = 0;
+    for (const group of traverseBubbleSets()) {
+      rowCount++;
+
+      const card = createCard(`Bubble Set ${rowCount}`, bubbleDiv);
+      card.id = `bubbleSetStyleCard${group}`;
+
+      const rowOne = createNewRow(card);
+      appendLabel(rowOne, "Fill Color");
+      createColorControls(rowOne, `Bubble Set ${group} Fill Color`, data.bubbleSetStyle[group].fill, [], false);
+      appendVerticalRule(rowOne, "Fill Opacity");
+      createNumericalSlider(rowOne, `Bubble Set ${group} Fill Opacity`, data.bubbleSetStyle[group].fillOpacity,
+        {min: 0, max: 1, step: 0.01}, `Define the fill opacity of the bubble set ${group}.`);
+      appendVerticalRule(rowOne, "Stroke Color");
+      createColorControls(rowOne, `Bubble Set ${group} Stroke Color`, data.bubbleSetStyle[group].stroke, [], false);
+      appendVerticalRule(rowOne, "Stroke Opacity");
+      createNumericalSlider(rowOne, `Bubble Set ${group} Stroke Opacity`, data.bubbleSetStyle[group].strokeOpacity,
+        {min: 0, max: 1, step: 0.01}, `Define the stroke opacity of the bubble set ${group}.`);
+
+      const rowTwo = createNewRow(card);
+      appendLabel(rowTwo, "Label");
+      const enableTextSwitch = createSwitch(async () => {
+        await updateBubbleSetStyle(`Bubble Set ${group} Label`, enableTextSwitch.isChecked());
+      }, undefined, data.bubbleSetStyle[group].label);
+      rowTwo.appendChild(enableTextSwitch);
+      appendVerticalRule(rowTwo, "Label Text", undefined, undefined, optionalCSSClass);
+      const labelInput = createInput(120, `${group} label text`, `Enter the label text for the bubble set ${group}.`, data.bubbleSetStyle[group].labelText, async () => {
+        const val = labelInput.value.trim();
+        await updateBubbleSetStyle(`Bubble Set ${group} Label Text`, val);
+      });
+      labelInput.classList.add(optionalCSSClass);
+      rowTwo.appendChild(labelInput);
+      appendVerticalRule(rowTwo, "Label Background", undefined, undefined, optionalCSSClass);
+      const enableBackgroundSwitch = createSwitch(async () => {
+        await updateBubbleSetStyle(`Bubble Set ${group} Label Background`, enableBackgroundSwitch.isChecked());
+      }, undefined, data.bubbleSetStyle[group].labelBackground || true);
+      enableBackgroundSwitch.classList.add(optionalCSSClass);
+      rowTwo.appendChild(enableBackgroundSwitch);
+      appendVerticalRule(rowTwo, "Label Background Color", undefined, undefined, optionalCSSClass);
+      createColorControls(rowTwo, `Bubble Set ${group} Label Background Color`, data.bubbleSetStyle[group].labelBackgroundFill || data.bubbleSetStyle[group].fill, [], false, optionalCSSClass);
+    }
+  }
+
   createFocusCard();
   createSelectCard();
   createArrangeNodesCard();
   createNodeConfigCard();
   createEdgeConfigCard();
+  createBubbleSetConfigCard();
 
   return root;
 }
@@ -13742,6 +13823,72 @@ function deepMerge(target, source) {
 
 function isObject(obj) {
   return obj !== null && typeof obj === "object" && !Array.isArray(obj);
+}
+
+async function updateBubbleSetStyle(property, value) {
+  const remainder = property.split('Bubble Set ')[1];
+  const parts = remainder.split(' ');
+  const group = parts[0];
+  const propertyLabel = parts.slice(1).join(' ');
+
+  const bStyle = data.bubbleSetStyle[group];
+
+  switch (propertyLabel) {
+    case "Fill Color":
+      bStyle.fill = value;
+      bStyle.labelBackgroundFill = value;
+      break;
+    case "Fill Opacity":
+      bStyle.fillOpacity = value;
+      break;
+    case "Stroke Color":
+      bStyle.stroke = value;
+      break;
+    case "Stroke Opacity":
+      bStyle.strokeOpacity = value;
+      break;
+    case "Label":
+      bStyle.label = value;
+      break;
+    case "Label Text":
+      bStyle.labelText = value;
+      break;
+    case "Label Background Color":
+      bStyle.labelBackgroundFill = value;
+      break;
+    case "Label Background":
+        bStyle.labelBackground = value;
+        if (!value) {
+          bStyle.labelFill = "#000000";
+        } else {
+          bStyle.labelFill = "#FFFFFF";
+        }
+      break;
+    default:
+      break;
+  }
+  await INSTANCES.BUBBLE_GROUPS[group].update(bStyle);
+  await decideToRenderOrDraw(true);
+}
+
+function refreshBubbleStyleElements() {
+  for (const group of traverseBubbleSets()) {
+    const hasActiveMembers = cache.lastBubbleSetMembers.get(group).size > 0;
+    const labelConfigShouldBeEnabled = data.bubbleSetStyle[group].label;
+
+    // toggle entire cards based on bubble group members
+    const card = document.getElementById(`bubbleSetStyleCard${group}`);
+    hasActiveMembers ? card.classList.remove("disabled") : card.classList.add("disabled");
+
+    // toggle label-related properties
+    for (const elem of card.querySelectorAll(".bubbleSetOptionalLabelConfig")) {
+      labelConfigShouldBeEnabled ? elem.classList.remove("disabled") : elem.classList.add("disabled");
+    }
+
+    // override css properties to style round-button quadrants
+    const fillColor = data.bubbleSetStyle[group].fill || DEFAULTS.BUBBLE_GROUP_STYLE[group].fill;
+    document.documentElement.style.setProperty(`--${group}-color`, fillColor);
+  }
 }
 
 async function updateNodes(overrides = {}, commands = []) {
@@ -14657,7 +14804,7 @@ async function createGraphInstance() {
         members: [],
         avoidMembers: [INVISIBLE_DUMMY_NODE.id],
         // avoidMembers: [...cache.nodeRef.keys()],
-        ...DEFAULTS.BUBBLE_GROUP_STYLE[group],
+        ...data.bubbleSetStyle[group],
         strokeOpacity: 0,  // hide bubble groups initially (1 node persists due to bug)
         fillOpacity: 0,
         label: false,
@@ -15103,9 +15250,9 @@ async function updateBubbleSet(group, members) {
   await INSTANCES.BUBBLE_GROUPS[group].update({
     members: empty ? [] : membersAsArray,
     avoidMembers: avoidMembers,
-    fillOpacity: empty ? 0 : DEFAULTS.BUBBLE_GROUP_STYLE[group].fillOpacity,
-    strokeOpacity: empty ? 0 : DEFAULTS.BUBBLE_GROUP_STYLE[group].strokeOpacity,
-    label: empty ? false : DEFAULTS.BUBBLE_GROUP_STYLE[group].label,
+    fillOpacity: empty ? 0 : data.bubbleSetStyle[group].fillOpacity,
+    strokeOpacity: empty ? 0 : data.bubbleSetStyle[group].strokeOpacity,
+    label: empty ? false : data.bubbleSetStyle[group].label,
   });
   await INSTANCES.BUBBLE_GROUPS[group].drawBubbleSets();
 }
@@ -18635,6 +18782,7 @@ function refreshUI() {
   document.getElementById("totalEdges").innerHTML = `${data.edges.length}`;
 
   refreshStashUI();
+  refreshBubbleStyleElements();
 }
 
 window.addEventListener('resize', () => {

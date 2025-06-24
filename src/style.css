@@ -1047,6 +1047,11 @@ input:checked + .checkbox-green::after {
     cursor: pointer;
 }
 
+.style-row-bottom-border {
+    border-bottom: 1px solid #403C5380;
+    padding-bottom: 4px;
+}
+
 .style-row {
     display: none;
     width: 0;
@@ -1511,7 +1516,6 @@ input:checked + .slider:before {
     cursor: pointer;
     z-index: 99;
 }
-
 .quadrant {
     position: absolute;
     width: 100%;
@@ -1523,65 +1527,75 @@ input:checked + .slider:before {
     transition: background-color 0.3s ease, border-color 0.3s ease;
     pointer-events: all;
     cursor: pointer;
-    /*filter: grayscale(50%);*/
+}
+
+:root {
+  --groupOne-color: #403C53;
+  --groupTwo-color: #C33D35;
+  --groupThree-color: #EFB0AA;
+  --groupFour-color: #8CA6D9;
 }
 
 .top-left {
+    --quadrant-color: var(--groupOne-color);
     clip-path: polygon(0 0, 50% 0, 50% 50%, 0 50%);
     border-top-left-radius: 50%;
     border-width: 0.125rem;
-    border-left-color: #403C53;
-    border-top-color: #403C53;
+    border-left-color: var(--quadrant-color);
+    border-top-color: var(--quadrant-color);
     background-color: #E4E3EA;
 }
 
 .top-left.active {
-    background-color: #403C53;
+    background-color: var(--quadrant-color);
     border-left-color: #000000;
     border-top-color: #000000;
 }
 
 .top-right {
+    --quadrant-color: var(--groupTwo-color);
     clip-path: polygon(50% 0, 100% 0, 100% 50%, 50% 50%);
     border-width: 0.125rem;
     border-top-right-radius: 50%;
-    border-right-color: #C33D35;
-    border-top-color: #C33D35;
+    border-right-color: var(--quadrant-color);
+    border-top-color: var(--quadrant-color);
     background-color: #E4E3EA;
 }
 
 .top-right.active {
-    background-color: #C33D35;
+    background-color: var(--quadrant-color);
     border-right-color: #000000;
     border-top-color: #000000;
 }
 
 .bottom-left {
+    --quadrant-color: var(--groupThree-color);
     clip-path: polygon(0 50%, 50% 50%, 50% 100%, 0 100%);
     border-width: 0.125rem;
     border-bottom-left-radius: 50%;
-    border-left-color: #EFB0AA;
-    border-bottom-color: #EFB0AA;
+    border-left-color: var(--quadrant-color);
+    border-bottom-color: var(--quadrant-color);
     background-color: #E4E3EA;
 }
 
 .bottom-left.active {
-    background-color: #EFB0AA;
+    background-color: var(--quadrant-color);
     border-left-color: #000000;
     border-bottom-color: #000000;
 }
 
 .bottom-right {
+    --quadrant-color: var(--groupFour-color);
     clip-path: polygon(50% 50%, 100% 50%, 100% 100%, 50% 100%);
     border-width: 0.125rem;
     border-bottom-right-radius: 50%;
-    border-right-color: #8CA6D9;
-    border-bottom-color: #8CA6D9;
+    border-right-color: var(--quadrant-color);
+    border-bottom-color: var(--quadrant-color);
     background-color: #E4E3EA;
 }
 
 .bottom-right.active {
-    background-color: #8CA6D9;
+    background-color: var(--quadrant-color);
     border-right-color: #000000;
     border-bottom-color: #000000;
 }
