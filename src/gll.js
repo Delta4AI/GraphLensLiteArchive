@@ -10650,7 +10650,9 @@ const RESET_SELECTION_BUTTON_RESETS_POSITIONS = true;
 // allowed types: "str", "num", "bool", "rgba", "oneOf:a|b|c"
 // @formatter:off
 const EXCEL_NODE_PROPERTIES = [
-  {column: "ID", type: "str", required: true},
+  {column: "ID", type: "str", required: true,
+    get: (n) => {return n.id}
+  },
   {column: "Label", type: "str", apply: (n, v) => {
     n.label = v;
     n.style.label = false;
@@ -10660,32 +10662,69 @@ const EXCEL_NODE_PROPERTIES = [
     n.style.labelBackground = DEFAULTS.NODE.BACKGROUND;
     n.style.labelBackgroundFill = DEFAULTS.NODE.BACKGROUND_COLOR;
     n.style.labelPlacement = DEFAULTS.NODE.PLACEMENT;
-  }},
-  {column: "Label Font Size", type: "num", apply: (n, v) => {n.style.labelFontSize = v; }},
+  },
+    get: (n) => {return n.label}
+  },
+  {column: "Description", type: "str",
+    apply: (n, v) => {n.description = v; },
+    get: (n) => {return n.description}
+  },
+  {column: "Shape", type: "oneOf:circle|diamond|hexagon|rect|triangle|star",
+    apply: (n, v) => {n.type = v; },
+    get: (n) => {return n.type}
+  },
+  {column: "Size", type: "num",
+    apply: (n, v) => {n.style.size = v; },
+    get: (n) => {return n.style.size}
+  },
+  {column: "Fill Color", type: "rgba",
+    apply: (n, v) => {n.style.fill = v; },
+    get: (n) => {return n.style.fill}
+  },
+  {column: "Border Size", type: "num",
+    apply: (n, v) => {n.style.lineWidth = v; },
+    get: (n) => {return n.style.lineWidth}
+  },
+  {column: "Border Color", type: "rgba",
+    apply: (n, v) => {n.style.stroke = v; },
+    get: (n) => {return n.style.stroke}
+  },
+  {column: "Label Font Size", type: "num",
+    apply: (n, v) => {n.style.labelFontSize = v; },
+    get: (n) => {return n.style.labelFontSize}
+  },
   {
     column: "Label Placement",
     type: "oneOf:left|right|top|bottom|left-top|left-bottom|right-top|right-bottom|top-left|top-right|bottom-left|"
       + "bottom-right|center",
-    apply: (n, v) => {n.style.labelPlacement = v; }
+    apply: (n, v) => {n.style.labelPlacement = v; },
+    get: (n) => {return n.style.labelPlacement}
   },
-  {column: "Label Color", type: "rgba", apply: (n, v) => {n.style.labelFill = v; }},
-  {column: "Label Background Color", type: "rgba", apply: (n, v) => {
-    n.style.labelBackground = true;
-    n.style.labelBackgroundFill = v;
-  }},
-  {column: "Description", type: "str", apply: (n, v) => {n.description = v; }},
-  {column: "Shape", type: "oneOf:circle|diamond|hexagon|rect|triangle|star", apply: (n, v) => {n.type = v; }},
-  {column: "Size", type: "num", apply: (n, v) => {n.style.size = v; }},
-  {column: "Fill Color", type: "rgba", apply: (n, v) => {n.style.fill = v; }},
-  {column: "Border Color", type: "rgba", apply: (n, v) => {n.style.stroke = v; }},
-  {column: "Border Size", type: "num", apply: (n, v) => {n.style.lineWidth = v; }},
-  {column: "X Coordinate", type: "num", apply: (n, v) => {n.style.x = v; }},
-  {column: "Y Coordinate", type: "num", apply: (n, v) => {n.style.y = v; }},
+  {column: "Label Color", type: "rgba",
+    apply: (n, v) => {n.style.labelFill = v; },
+    get: (n) => {return n.style.labelFill}
+  },
+  {column: "Label Background Color", type: "rgba",
+    apply: (n, v) => {n.style.labelBackground = true; n.style.labelBackgroundFill = v;},
+    get: (n) => {return n.style.labelBackgroundFill}
+  },
+  {column: "X Coordinate", type: "num",
+    apply: (n, v) => {n.style.x = v; },
+    get: (n) => {return n.style.x}
+  },
+  {column: "Y Coordinate", type: "num",
+    apply: (n, v) => {n.style.y = v; },
+    get: (n) => {return n.style.y}
+  },
 ];
 
 const EXCEL_EDGE_PROPERTIES = [
-  {column: "Source ID", type: "str", required: true},
-  {column: "Target ID", type: "str", required: true},
+  {column: "Source ID", type: "str", required: true,
+    get: (e) => {return e.source}
+  },
+  {column: "Target ID", type: "str", required: true,
+    get: (e) => {return e.target}
+  },
   {column: "Label", type: "str", apply: (e, v) => {
     e.label = v;
     e.style.label = false;
@@ -10696,36 +10735,89 @@ const EXCEL_EDGE_PROPERTIES = [
     e.style.labelAutoRotate = DEFAULTS.EDGE.LABEL.AUTO_ROTATE;
     e.style.labelBackground = DEFAULTS.EDGE.LABEL.BACKGROUND;
     e.style.labelBackgroundFill = DEFAULTS.EDGE.LABEL.BACKGROUND_COLOR;
-  }},
-  {column: "Label Font Size", type: "num", apply: (e, v) => {e.style.labelFontSize = v; }},
-  {column: "Label Placement", type: "oneOf:start|center|end", apply: (e, v) => {e.style.labelPlacement = v; }},
-  {column: "Label Color", type: "rgba", apply: (e, v) => {e.style.labelFill = v; }},
-  {column: "Label Background Color", type: "rgba", apply: (e, v) => {
-    e.style.labelBackground = true;
-    e.style.labelBackgroundFill = v;
-  }},
-  {column: "Label Offset X", type: "num", apply: (e, v) => {e.style.labelOffsetX = v; }},
-  {column: "Label Offset Y", type: "num", apply: (e, v) => {e.style.labelOffsetY = v; }},
-  {column: "Label Auto Rotate", type: "bool", apply: (e, v) => {e.style.labelAutoRotate = v; }},
-  {column: "Color", type: "rgba", apply: (e, v) => {e.style.stroke = v; }},
-  {column: "Line Width", type: "num", apply: (e, v) => {e.style.lineWidth = v; }},
-  {column: "Line Dash", type: "num", apply: (e, v) => {e.style.lineDash = v; }},
-  {column: "Type", type: "oneOf:line|cubic|quadratic|polyline", apply: (e, v) => {e.type = v; }},
-  {column: "Start Arrow", type: "bool", apply: (e, v) => {e.startArrow = v; }},
-  {column: "Start Arrow Size", type: "num", apply: (e, v) => {e.startArrowSize = v; }},
+  },
+    get: (e) => {return e.label}
+  },
+  {column: "Description", type: "str",
+    apply: (e, v) => {e.description = v; },
+    get: (e) => {return e.description}
+  },
+  {column: "Type", type: "oneOf:line|cubic|quadratic|polyline",
+    apply: (e, v) => {e.type = v; },
+    get: (e) => {return e.type}
+  },
+  {column: "Line Width", type: "num",
+    apply: (e, v) => {e.style.lineWidth = v; },
+    get: (e) => {return e.style.lineWidth}
+  },
+  {column: "Line Dash", type: "num",
+    apply: (e, v) => {e.style.lineDash = v; },
+    get: (e) => {return e.style.lineDash}
+  },
+  {column: "Color", type: "rgba",
+    apply: (e, v) => {e.style.stroke = v; },
+    get: (e) => {return e.style.stroke}
+  },
+  {column: "Label Font Size", type: "num",
+    apply: (e, v) => {e.style.labelFontSize = v; },
+    get: (e) => {return e.style.labelFontSize}
+  },
+  {column: "Label Placement", type: "oneOf:start|center|end",
+    apply: (e, v) => {e.style.labelPlacement = v; },
+    get: (e) => {return e.style.labelPlacement}
+  },
+  {column: "Label Auto Rotate", type: "bool",
+    apply: (e, v) => {e.style.labelAutoRotate = v; },
+    get: (e) => {return e.style.labelAutoRotate}
+  },
+  {column: "Label Offset X", type: "num",
+    apply: (e, v) => {e.style.labelOffsetX = v; },
+    get: (e) => {return e.style.labelOffsetX}
+  },
+  {column: "Label Offset Y", type: "num",
+    apply: (e, v) => {e.style.labelOffsetY = v; },
+    get: (e) => {return e.style.labelOffsetY}
+  },
+  {column: "Label Color", type: "rgba",
+    apply: (e, v) => {e.style.labelFill = v; },
+    get: (e) => {return e.style.labelFill}
+  },
+  {column: "Label Background Color", type: "rgba",
+    apply: (e, v) => {e.style.labelBackground = true;e.style.labelBackgroundFill = v;},
+    get: (e) => {return e.style.labelBackgroundFill}
+  },
+  {column: "Start Arrow", type: "bool",
+    apply: (e, v) => {e.startArrow = v; },
+    get: (e) => {return e.startArrow}
+  },
+  {column: "Start Arrow Size", type: "num",
+    apply: (e, v) => {e.startArrowSize = v; },
+    get: (e) => {return e.startArrowSize}
+  },
   {column: "Start Arrow Type", type: "oneOf:triangle|circle|diamond|vee|rect|triangleRect|simple",
-    apply: (e, v) => {e.startArrowType = v; }
+    apply: (e, v) => {e.startArrowType = v; },
+    get: (e) => {return e.startArrowType}
   },
-  {column: "End Arrow", type: "bool", apply: (e, v) => {e.endArrow = v; }},
-  {column: "End Arrow Size", type: "num", apply: (e, v) => {e.endArrowSize = v; }},
+  {column: "End Arrow", type: "bool",
+    apply: (e, v) => {e.endArrow = v; },
+    get: (e) => {return e.endArrow}
+  },
+  {column: "End Arrow Size", type: "num",
+    apply: (e, v) => {e.endArrowSize = v; },
+    get: (e) => {return e.endArrowSize}
+  },
   {column: "End Arrow Type", type: "oneOf:triangle|circle|diamond|vee|rect|triangleRect|simple",
-    apply: (e, v) => { e.endArrowType = v; }
+    apply: (e, v) => { e.endArrowType = v; },
+    get: (e) => {return e.endArrowType}
   },
-  {column: "Halo Color", type: "rgba", apply: (e, v) => {
-    e.style.halo = true;
-    e.style.haloStroke = v;
-  }},
-  {column: "Halo Width", type: "num", apply: (e, v) => {e.style.haloLineWidth = v; }},
+  {column: "Halo Color", type: "rgba",
+    apply: (e, v) => {e.style.halo = true; e.style.haloStroke = v;},
+    get: (e) => {return e.style.haloStroke}
+  },
+  {column: "Halo Width", type: "num",
+    apply: (e, v) => {e.style.haloLineWidth = v; },
+    get: (e) => {return e.style.haloLineWidth}
+  },
 ];
 // @formatter:on
 
@@ -17122,10 +17214,10 @@ function buildDataTable(fileData) {
   dataTable = new DataTable();
   dataTable.populateFromFileData(fileData);
 
-  dataTable.onChange((rowIndex, colIndex, newValue) => {
-    console.log(`Data changed at row ${rowIndex}, column ${colIndex}:`, newValue);
-    // add logic, trigger graph refresh, ..
-  });
+  // dataTable.onChange((rowIndex, colIndex, newValue) => {
+  //   console.log(`Data changed at row ${rowIndex}, column ${colIndex}:`, newValue);
+  //   // add logic, trigger graph refresh, ..
+  // });
 }
 
 class DataTable {
@@ -17171,7 +17263,7 @@ class DataTable {
 
     this.fileData = structuredClone(fileData);
 
-    this.headers = ['Del', 'Row #', 'Type', 'ID'];
+    this.headers = ["Del", "Row #", "Type", "ID", "Label", "Description"];
     this.headers.push(...fileData.nodeDataHeaders.map(o => `${EXCEL_NODE_HEADER}::${o.subGroup}::${o.key}`));
     this.headers.push(...fileData.edgeDataHeaders.map(o => `${EXCEL_EDGE_HEADER}::${o.subGroup}::${o.key}`));
 
@@ -17184,6 +17276,8 @@ class DataTable {
         row[1] = this.tableData.length + 1;  // initial row index
         row[2] = 'Node';
         row[3] = node.id;
+        row[4] = node.label || '';
+        row[5] = node.description || '';
 
         for (let [section, subSection, prop, data] of traverseD4Data(node)) {
           const headerIdx = this.headers.indexOf(`${section}::${subSection}::${prop}`);
@@ -17201,6 +17295,8 @@ class DataTable {
         row[1] = this.tableData.length + 1;
         row[2] = 'Edge';
         row[3] = edge.id;
+        row[4] = edge.label || '';
+        row[5] = edge.description || '';
 
         for (let [section, subSection, prop, data] of traverseD4Data(edge)) {
           const headerIdx = this.headers.indexOf(`${section}::${subSection}::${prop}`);
@@ -17274,9 +17370,10 @@ class DataTable {
           td.textContent = cellData || '';
 
           const isBasicColumn = colIndex <= 3; // Delete, Row #, Type, ID columns
+          const isReservedColumn = colIndex === 4 || colIndex === 5;
           const isMismatchedColumn = (isNodeRow && this.headers[colIndex].startsWith(EXCEL_EDGE_HEADER)) ||
             (!isNodeRow && this.headers[colIndex].startsWith(EXCEL_NODE_HEADER));
-          const shouldBeEditable = !isBasicColumn && !isMismatchedColumn;
+          const shouldBeEditable = (!isBasicColumn || isReservedColumn) && !isMismatchedColumn;
 
           if (shouldBeEditable) {
             td.contentEditable = true;
@@ -17513,6 +17610,8 @@ class DataTable {
     newRow[1] = this.tableData.map(row => row[1]).reduce((a, b) => Math.max(a, b)) + 1;
     newRow[2] = type;
     newRow[3] = id;
+    newRow[4] = '';
+    newRow[5] = '';
     this.tableData.push(newRow);
     this.render();
   }
@@ -17532,6 +17631,7 @@ class DataTable {
   }
 
   async update() {
+    await showLoading("Updating Data", "Updating Data from Data Table ..");
     try {
       const updatedFileData = this.getUpdatedFileData();
 
@@ -17550,6 +17650,8 @@ class DataTable {
       await graph.render();
     } catch (err) {
       error("Error updating graph:", err);
+    } finally {
+      await hideLoading();
     }
   }
 
@@ -17565,6 +17667,8 @@ class DataTable {
     this.tableData.forEach(row => {
       const isNode = row[2] === "Node";
       const id = row[3];
+      const label = row[4] || undefined;
+      const description = row[5] || undefined;
       const elem = isNode ? cache.nodeRef.get(id) || this.createNode(id) : cache.edgeRef.get(id) || this.createEdge(id);
 
       const cleanElem = {};
@@ -17574,10 +17678,18 @@ class DataTable {
         }
       }
 
+      if (label) cleanElem.label = label;
+      if (description) cleanElem.description = description;
+
+      if (isNode && label) {
+        cleanElem.style.label = true;
+        cleanElem.style.labelText = label;
+      }
+
       cleanElem.D4Data = {};
 
-      // Start from index 4 (skip Delete, Row#, Type, ID columns)
-      for (let i = 4; i < row.length; i++) {
+      // Start from index 6 (skip Delete, Row#, Type, ID, Label, Description columns)
+      for (let i = 6; i < row.length; i++) {
         const value = row[i];
         if (value !== null && value !== undefined && String(value).trim() !== '') {
           const headerName = this.headers[i];
@@ -17618,56 +17730,81 @@ class DataTable {
     }
   }
 
-  exportData() {
-    const result = {
-      nodes: [],
-      edges: []
-    };
+  async exportToExcel() {
+    try {
+      const workbook = new ExcelJS.Workbook();
 
-    this.tableData.forEach(row => {
-      const type = row[0];
-      const id = row[1];
+      const nodesSheet = workbook.addWorksheet('nodes');
+      const edgesSheet = workbook.addWorksheet('edges');
 
-      if (!id) return;
+      const nodesHeader = [...EXCEL_NODE_PROPERTIES.map(p => p.column), ...cache.nodeExclusiveProps];
+      nodesSheet.addRow(nodesHeader);
 
-      const dataObj = {id};
-      const d4Data = {};
+      const edgesHeader = [...EXCEL_EDGE_PROPERTIES.map(p => p.column), ...cache.edgeExclusiveProps];
+      edgesSheet.addRow(edgesHeader);
 
-      for (let i = 2; i < row.length; i++) {
-        const value = row[i];
-        // Convert to string first, then check if it's not empty after trimming
-        if (value !== null && value !== undefined && String(value).trim() !== '') {
-          const headerName = this.headers[i];
+      for (const node of cache.nodeRef.values()) {
+        const row = [];
 
-          const parts = headerName.split(' - ');
-          if (parts.length === 2) {
-            const [group, prop] = parts;
-            if (!d4Data[group]) {
-              d4Data[group] = {};
-            }
-            d4Data[group][prop] = isNaN(value) ? value : Number(value);
-          } else {
-            if (!d4Data['default']) {
-              d4Data['default'] = {};
-            }
-            d4Data['default'][headerName] = isNaN(value) ? value : Number(value);
-          }
+        for (const prop of EXCEL_NODE_PROPERTIES) {
+          const value = prop.get ? prop.get(node) : '';
+          row.push(value);
         }
+
+        for (const customProp of cache.nodeExclusiveProps) {
+          const [group, subGroup, prop] = decodePropHashId(customProp);
+
+          const value = node.D4Data && node.D4Data[group] && node.D4Data[group][subGroup]
+            ? node.D4Data[group][subGroup][prop]
+            : '';
+          row.push(value);
+        }
+
+        nodesSheet.addRow(row);
       }
 
-      if (Object.keys(d4Data).length > 0) {
-        dataObj.D4Data = d4Data;
+      for (const edge of cache.edgeRef.values()) {
+        const row = [];
+
+        for (const prop of EXCEL_EDGE_PROPERTIES) {
+          const value = prop.get ? prop.get(edge) : '';
+          row.push(value);
+        }
+
+        for (const customProp of cache.edgeExclusiveProps) {
+          const [group, subGroup, prop] = decodePropHashId(customProp);
+
+          const value = edge.D4Data && edge.D4Data[group] && edge.D4Data[group][subGroup]
+            ? edge.D4Data[group][subGroup][prop]
+            : '';
+          row.push(value);
+        }
+
+        edgesSheet.addRow(row);
       }
 
-      if (type === 'Node') {
-        result.nodes.push(dataObj);
-      } else if (type === 'Edge') {
-        result.edges.push(dataObj);
-      }
-    });
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
 
-    return result;
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `graph_data_export_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.xlsx`;
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      info('Excel file exported successfully!');
+
+    } catch (error) {
+      error('Failed to export Excel file: ' + error.message);
+    }
   }
+
 }
 
 function createAddOrRemoveToSelectionButton(propID, shouldAdd) {
@@ -19352,6 +19489,9 @@ function registerHotkeyEvents() {
         break;
       case "e":
         await toggleEditMode();
+        break;
+      case "d":
+        await toggleDataEditor();
         break;
       case "q":
         toggleQueryEditor();
