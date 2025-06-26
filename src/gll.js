@@ -11079,6 +11079,9 @@ const EVENT_LOCKS = {
   IS_DESELECTING: false,
   BUBBLE_GROUP_REDRAW_RUNNING: false,
   TRIGGER_SET_LAYOUT_ONCE: false,
+  HOTKEY_EVENTS_REGISTERED: false,
+  GLOBAL_EVENTS_REGISTERED: false,
+
 }
 
 const INSTANCES = {
@@ -12510,7 +12513,18 @@ class QueryAST {
 }
 
 function resetEventLocks() {
-  Object.keys(EVENT_LOCKS).forEach(key => EVENT_LOCKS[key] = false);
+  EVENT_LOCKS.BEFORE_DRAW_RUNNING = false;
+  EVENT_LOCKS.AFTER_DRAW_RUNNING = false;
+  EVENT_LOCKS.DRAG_END_RUNNING = false;
+  EVENT_LOCKS.BEFORE_RENDER_RUNNING = false;
+  EVENT_LOCKS.AFTER_RENDER_RUNNING = false;
+  EVENT_LOCKS.BEFORE_LAYOUT_RUNNING = false;
+  EVENT_LOCKS.AFTER_LAYOUT_RUNNING = false;
+  EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING = false;
+  EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED = false;
+  EVENT_LOCKS.IS_DESELECTING = false;
+  EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING = false;
+  EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = false;
 }
 
 function isString(value) {
@@ -15220,19 +15234,23 @@ function toggleQueryEditor() {
   }
 }
 
-function toggleDataEditor() {
+async function toggleDataEditor() {
   const queryBtn = document.getElementById("queryToggleBtn");
   const dataBtn = document.getElementById("dataToggleBtn");
   const shouldEnable = !dataBtn.classList.contains("highlight");
 
   if (shouldEnable) {
+    await showLoading("Data Editor", "Loading Data Editor ..");
     showEditor('data');
     dataBtn.classList.add("highlight");
     queryBtn.classList.remove("highlight");
   } else {
+    await showLoading("Data Editor", "Closing Data Editor ..");
     hideBottomBar();
     dataBtn.classList.remove("highlight");
   }
+
+  await hideLoading();
 }
 
 function showEditor(editorType) {
@@ -15246,8 +15264,8 @@ function showEditor(editorType) {
   const dataHelpIconDiv = document.getElementById("dataHelpIconDiv");
   const queryToggleButtons = document.querySelectorAll('.add-to-query-button');
 
-  mainContent.style.height = "90%";
-  bottomBar.style.height = "10%";
+  mainContent.style.height = "80%";
+  bottomBar.style.height = "20%";
   bottomBar.classList.add("active");
 
   if (editorType === 'query') {
@@ -15287,7 +15305,16 @@ function makeBottomBarResizable() {
   let isResizing = false;
   let startY = 0;
   let startHeight = 0;
-  let animationId = null;
+  let shadowBar = null;
+
+  function createShadowBar() {
+    if (shadowBar) return shadowBar;
+
+    shadowBar = document.createElement('div');
+    shadowBar.classList.add("resize-shadow-bar");
+    document.body.appendChild(shadowBar);
+    return shadowBar;
+  }
 
   resizeHandle.addEventListener('mousedown', (e) => {
     if (!bottomBar.classList.contains('active')) return;
@@ -15295,57 +15322,64 @@ function makeBottomBarResizable() {
     isResizing = true;
     startY = e.clientY;
     startHeight = parseInt(document.defaultView.getComputedStyle(bottomBar).height, 10);
+
+    createShadowBar();
+    shadowBar.style.display = 'block';
+    shadowBar.style.bottom = startHeight + 'px';
+    shadowBar.style.height = startHeight + 'px';
+
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
     e.preventDefault();
 
-    // Add resizing class for smoother transitions
     document.body.style.userSelect = 'none';
-    bottomBar.style.transition = 'none';
-    mainContent.style.transition = 'none';
+    document.body.style.cursor = 'ns-resize';
   });
 
   function handleMouseMove(e) {
     if (!isResizing || !bottomBar.classList.contains('active')) return;
 
-    // Cancel previous animation frame
-    if (animationId) {
-      cancelAnimationFrame(animationId);
-    }
+    const dy = startY - e.clientY;
+    const newHeight = startHeight + dy;
+    const minHeight = 50;
+    const maxHeight = window.innerHeight * 0.5;
+    const clampedHeight = Math.min(Math.max(newHeight, minHeight), maxHeight);
 
-    // Use requestAnimationFrame for smoother updates
-    animationId = requestAnimationFrame(() => {
-      const dy = startY - e.clientY;
-      const newHeight = startHeight + dy;
-      const minHeight = 50;
-      const maxHeight = window.innerHeight * 0.5;
-
-      if (newHeight >= minHeight && newHeight <= maxHeight) {
-        // Use px values instead of calc() for better performance
-        const viewportHeight = window.innerHeight;
-        const newMainHeight = viewportHeight - newHeight;
-
-        bottomBar.style.height = newHeight + 'px';
-        mainContent.style.height = newMainHeight + 'px';
-      }
-    });
+    shadowBar.style.bottom = '0px';
+    shadowBar.style.height = clampedHeight + 'px';
   }
 
-  function handleMouseUp() {
+  function handleMouseUp(e) {
+    if (!isResizing) return;
+
     isResizing = false;
     document.removeEventListener('mousemove', handleMouseMove);
     document.removeEventListener('mouseup', handleMouseUp);
 
-    // Restore transitions and user selection
-    document.body.style.userSelect = '';
-    bottomBar.style.transition = '';
-    mainContent.style.transition = '';
+    const dy = startY - e.clientY;
+    const newHeight = startHeight + dy;
+    const minHeight = 50;
+    const maxHeight = window.innerHeight * 0.5;
+    const finalHeight = Math.min(Math.max(newHeight, minHeight), maxHeight);
 
-    if (animationId) {
-      cancelAnimationFrame(animationId);
-      animationId = null;
+    if (finalHeight !== startHeight) {
+      const viewportHeight = window.innerHeight;
+      const newMainHeight = viewportHeight - finalHeight;
+
+      bottomBar.style.height = finalHeight + 'px';
+      mainContent.style.height = newMainHeight + 'px';
     }
+
+    shadowBar.style.display = 'none';
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
   }
+
+  window.addEventListener('beforeunload', () => {
+    if (shadowBar && shadowBar.parentNode) {
+      shadowBar.parentNode.removeChild(shadowBar);
+    }
+  });
 }
 
 async function toggleEditMode() {
@@ -17228,6 +17262,8 @@ class DataTable {
     this.currentEditingCell = null;
     this.onChangeCallback = null;
     this.sortState = {};
+    this.originalOrder = []; // For fast unsort
+    this.headerIndexMap = new Map(); // Cache for header lookups
 
     this.init();
   }
@@ -17249,12 +17285,65 @@ class DataTable {
     this.table = container.querySelector('#dataTable');
     this.tableHead = container.querySelector('#dataTableHead');
     this.tableBody = container.querySelector('#dataTableBody');
+
+    this.tableBody.addEventListener('click', this.handleTableClick.bind(this));
+    this.tableBody.addEventListener('focus', this.handleTableFocus.bind(this), true);
+    this.tableBody.addEventListener('blur', this.handleTableBlur.bind(this), true);
+    this.tableBody.addEventListener('keydown', this.handleTableKeydown.bind(this));
+    this.tableBody.addEventListener('input', this.handleTableInput.bind(this));
+
+    this.tableHead.addEventListener('click', this.handleHeaderTableClick.bind(this));
   }
 
-  /**
-   * Populate the table with data from fileData (nodes and edges)
-   * @param {Object} fileData - The fileData object containing nodes, edges, and headers
-   */
+  handleTableClick(event) {
+    if (event.target.classList.contains('data-table-delete-row-btn')) {
+      const rowIndex = parseInt(event.target.closest('td').dataset.row);
+      this.handleDeleteRow(rowIndex);
+    }
+  }
+
+  async handleHeaderTableClick(event) {
+    await showLoading("Data Editor", "Sorting ..");
+    const headerDiv = event.target.closest('.data-table-sortable-header');
+    if (headerDiv) {
+      const columnIndex = parseInt(headerDiv.dataset.column);
+      this.handleHeaderClick(columnIndex);
+    }
+    await hideLoading();
+  }
+
+  handleTableFocus(event) {
+    if (event.target.contentEditable === 'true') {
+      const rowIndex = parseInt(event.target.dataset.row);
+      const colIndex = parseInt(event.target.dataset.col);
+      this.handleCellFocus(event, rowIndex, colIndex);
+    }
+  }
+
+  handleTableBlur(event) {
+    if (event.target.contentEditable === 'true') {
+      const rowIndex = parseInt(event.target.dataset.row);
+      const colIndex = parseInt(event.target.dataset.col);
+      this.handleCellBlur(event, rowIndex, colIndex);
+    }
+  }
+
+  handleTableKeydown(event) {
+    if (event.target.contentEditable === 'true') {
+      const rowIndex = parseInt(event.target.dataset.row);
+      const colIndex = parseInt(event.target.dataset.col);
+      this.handleCellKeydown(event, rowIndex, colIndex);
+    }
+  }
+
+  handleTableInput(event) {
+    if (event.target.contentEditable === 'true') {
+      const rowIndex = parseInt(event.target.dataset.row);
+      const colIndex = parseInt(event.target.dataset.col);
+      this.handleCellInput(event, rowIndex, colIndex);
+    }
+  }
+
   populateFromFileData(fileData) {
     if (!fileData) {
       console.error('No fileData provided');
@@ -17267,21 +17356,29 @@ class DataTable {
     this.headers.push(...fileData.nodeDataHeaders.map(o => `${EXCEL_NODE_HEADER}::${o.subGroup}::${o.key}`));
     this.headers.push(...fileData.edgeDataHeaders.map(o => `${EXCEL_EDGE_HEADER}::${o.subGroup}::${o.key}`));
 
+    this.headerIndexMap.clear();
+    this.headers.forEach((header, index) => {
+      this.headerIndexMap.set(header, index);
+    });
+
     this.tableData = [];
 
     if (fileData.nodes) {
       fileData.nodes.forEach(node => {
         const row = new Array(this.headers.length).fill('');
-        row[0] = '';  // delete button, populated in render
-        row[1] = this.tableData.length + 1;  // initial row index
+        row[0] = '';
+        row[1] = this.tableData.length + 1;
         row[2] = 'Node';
         row[3] = node.id;
         row[4] = node.label || '';
         row[5] = node.description || '';
 
         for (let [section, subSection, prop, data] of traverseD4Data(node)) {
-          const headerIdx = this.headers.indexOf(`${section}::${subSection}::${prop}`);
-          row[headerIdx] = data;
+          const headerKey = `${section}::${subSection}::${prop}`;
+          const headerIdx = this.headerIndexMap.get(headerKey);
+          if (headerIdx !== undefined) {
+            row[headerIdx] = data;
+          }
         }
 
         this.tableData.push(row);
@@ -17299,8 +17396,11 @@ class DataTable {
         row[5] = edge.description || '';
 
         for (let [section, subSection, prop, data] of traverseD4Data(edge)) {
-          const headerIdx = this.headers.indexOf(`${section}::${subSection}::${prop}`);
-          row[headerIdx] = data;
+          const headerKey = `${section}::${subSection}::${prop}`;
+          const headerIdx = this.headerIndexMap.get(headerKey);
+          if (headerIdx !== undefined) {
+            row[headerIdx] = data;
+          }
         }
 
         this.tableData.push(row);
@@ -17308,12 +17408,14 @@ class DataTable {
     }
 
     this.tableDataBackup = this.tableData.map(row => [...row]);
+    this.originalOrder = this.tableData.map((_, index) => index);
     this.render();
   }
 
   reset() {
     this.tableData = this.tableDataBackup.map(row => [...row]);
     this.sortState = {};
+    this.originalOrder = this.tableData.map((_, index) => index);
     this.render();
   }
 
@@ -17323,21 +17425,20 @@ class DataTable {
       return;
     }
 
-    this.tableHead.innerHTML = '';
-    this.tableBody.innerHTML = '';
+    const headerFragment = document.createDocumentFragment();
+    const bodyFragment = document.createDocumentFragment();
 
     if (this.tableData.length === 0) {
+      this.tableHead.innerHTML = '';
       this.tableBody.innerHTML = '<tr><td colspan="100%">No data available</td></tr>';
       return;
     }
 
-    // Create header row with sort functionality
     const headerRow = document.createElement('tr');
     this.headers.forEach((header, index) => {
       const th = document.createElement('th');
 
       if (index === 0) {
-        th.innerHTML = '';
         th.classList.add("data-table-delete-row-column");
       } else {
         th.innerHTML = `
@@ -17346,30 +17447,29 @@ class DataTable {
           <span class="data-table-sort-indicator">${this.getSortIndicator(index)}</span>
         </div>
       `;
-
-        th.addEventListener('click', () => this.handleHeaderClick(index));
       }
 
       headerRow.appendChild(th);
     });
-    this.tableHead.appendChild(headerRow);
+    headerFragment.appendChild(headerRow);
 
+    // Create body rows
     this.tableData.forEach((rowData, rowIndex) => {
       const tr = document.createElement('tr');
       const isNodeRow = rowData[2] === 'Node';
 
       rowData.forEach((cellData, colIndex) => {
         const td = document.createElement('td');
+        td.dataset.row = rowIndex;
+        td.dataset.col = colIndex;
 
         if (colIndex === 0) {
           td.innerHTML = `<button class="data-table-delete-row-btn" title="Delete row ${rowIndex + 1} (${rowData[2]} ${rowData[3]})">×</button>`;
           td.classList.add('data-table-delete-row-column');
-          const deleteBtn = td.querySelector('.data-table-delete-row-btn');
-          deleteBtn.addEventListener('click', () => this.handleDeleteRow(rowIndex));
         } else {
           td.textContent = cellData || '';
 
-          const isBasicColumn = colIndex <= 3; // Delete, Row #, Type, ID columns
+          const isBasicColumn = colIndex <= 3;
           const isReservedColumn = colIndex === 4 || colIndex === 5;
           const isMismatchedColumn = (isNodeRow && this.headers[colIndex].startsWith(EXCEL_EDGE_HEADER)) ||
             (!isNodeRow && this.headers[colIndex].startsWith(EXCEL_NODE_HEADER));
@@ -17377,31 +17477,31 @@ class DataTable {
 
           if (shouldBeEditable) {
             td.contentEditable = true;
-            td.addEventListener('focus', (e) => this.handleCellFocus(e, rowIndex, colIndex));
-            td.addEventListener('blur', (e) => this.handleCellBlur(e, rowIndex, colIndex));
-            td.addEventListener('keydown', (e) => this.handleCellKeydown(e, rowIndex, colIndex));
-            td.addEventListener('input', (e) => this.handleCellInput(e, rowIndex, colIndex));
           } else {
             td.classList.add('readonly');
           }
         }
 
-        td.dataset.row = rowIndex;
-        td.dataset.col = colIndex;
         tr.appendChild(td);
       });
 
-      this.tableBody.appendChild(tr);
+      bodyFragment.appendChild(tr);
     });
+
+    this.tableHead.innerHTML = '';
+    this.tableBody.innerHTML = '';
+    this.tableHead.appendChild(headerFragment);
+    this.tableBody.appendChild(bodyFragment);
   }
 
   handleDeleteRow(rowIndex) {
     if (rowIndex >= 0 && rowIndex < this.tableData.length) {
       this.tableData.splice(rowIndex, 1);
+      this.originalOrder.splice(rowIndex, 1);
+      this.originalOrder = this.originalOrder.map(idx => idx > rowIndex ? idx - 1 : idx);
 
       this.render();
 
-      // Trigger change callback if set
       if (this.onChangeCallback) {
         this.onChangeCallback(-1, -1, 'row_deleted');
       }
@@ -17410,10 +17510,8 @@ class DataTable {
 
   handleHeaderClick(columnIndex) {
     const currentSort = this.sortState[columnIndex];
-
     this.sortState = {};
 
-    // Cycle through: null -> asc -> desc -> null
     if (!currentSort) {
       this.sortState[columnIndex] = 'asc';
     } else if (currentSort === 'asc') {
@@ -17427,35 +17525,31 @@ class DataTable {
 
   sortColumn(columnIndex, direction) {
     if (!direction) {
-      // TODO: Reset to original order here?
+      const originalData = this.originalOrder.map(idx => this.tableDataBackup[idx]);
+      this.tableData = originalData.map(row => [...row]);
       this.render();
       return;
     }
 
-    this.tableData.sort((a, b) => {
-      let aVal = a[columnIndex] || '';
-      let bVal = b[columnIndex] || '';
+    const sortIndices = this.tableData.map((_, index) => index);
 
-      // Try to convert to numbers if possible
+    sortIndices.sort((aIdx, bIdx) => {
+      let aVal = this.tableData[aIdx][columnIndex] || '';
+      let bVal = this.tableData[bIdx][columnIndex] || '';
+
       const aNum = parseFloat(aVal);
       const bNum = parseFloat(bVal);
 
       if (!isNaN(aNum) && !isNaN(bNum)) {
-        // Numeric sort
         return direction === 'asc' ? aNum - bNum : bNum - aNum;
       } else {
-        // String sort
         aVal = String(aVal).toLowerCase();
         bVal = String(bVal).toLowerCase();
-
-        if (direction === 'asc') {
-          return aVal.localeCompare(bVal);
-        } else {
-          return bVal.localeCompare(aVal);
-        }
+        return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
       }
     });
 
+    this.tableData = sortIndices.map(idx => this.tableData[idx]);
     this.render();
   }
 
@@ -17471,19 +17565,16 @@ class DataTable {
     this.currentEditingCell = {cell, rowIndex, colIndex};
     cell.classList.add('editing');
 
-    setTimeout(() => {
-      const range = document.createRange();
-      range.selectNodeContents(cell);
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }, 0);
+    const range = document.createRange();
+    range.selectNodeContents(cell);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
   }
 
   handleCellBlur(event, rowIndex, colIndex) {
     const cell = event.target;
     cell.classList.remove('editing');
-
     this.tableData[rowIndex][colIndex] = cell.textContent;
 
     if (this.onChangeCallback) {
@@ -17499,7 +17590,6 @@ class DataTable {
         event.preventDefault();
         this.moveToCell(rowIndex + 1, colIndex);
         break;
-
       case 'Tab':
         event.preventDefault();
         if (event.shiftKey) {
@@ -17508,7 +17598,6 @@ class DataTable {
           this.moveToCell(rowIndex, colIndex + 1);
         }
         break;
-
       case 'Escape':
         event.target.blur();
         break;
@@ -17532,10 +17621,7 @@ class DataTable {
       return;
     }
 
-    const targetCell = this.tableBody.querySelector(
-      `td[data-row="${rowIndex}"][data-col="${colIndex}"]`
-    );
-
+    const targetCell = this.tableBody.querySelector(`td[data-row="${rowIndex}"][data-col="${colIndex}"]`);
     if (targetCell && targetCell.contentEditable === 'true') {
       targetCell.focus();
     }
@@ -17606,19 +17692,21 @@ class DataTable {
   addRow(type = 'Node', id = '') {
     const newRow = new Array(this.headers.length).fill('');
     newRow[0] = '';
-    // newRow[1] = this.tableData.length + 1;
-    newRow[1] = this.tableData.map(row => row[1]).reduce((a, b) => Math.max(a, b)) + 1;
+    newRow[1] = this.tableData.length > 0 ? Math.max(...this.tableData.map(row => row[1])) + 1 : 1;
     newRow[2] = type;
     newRow[3] = id;
     newRow[4] = '';
     newRow[5] = '';
     this.tableData.push(newRow);
+    this.originalOrder.push(this.originalOrder.length);
     this.render();
   }
 
   removeRow(index) {
     if (index >= 0 && index < this.tableData.length) {
       this.tableData.splice(index, 1);
+      this.originalOrder.splice(index, 1);
+      this.originalOrder = this.originalOrder.map(idx => idx > index ? idx - 1 : idx);
       this.render();
     }
   }
@@ -17627,6 +17715,8 @@ class DataTable {
     this.tableData = [];
     this.headers = [];
     this.sortState = {};
+    this.originalOrder = [];
+    this.headerIndexMap.clear();
     this.render();
   }
 
@@ -17731,6 +17821,8 @@ class DataTable {
   }
 
   async exportToExcel() {
+    await showLoading("Data Editor", "Exporting Table to Excel ..");
+
     try {
       const workbook = new ExcelJS.Workbook();
 
@@ -17802,6 +17894,8 @@ class DataTable {
 
     } catch (error) {
       error('Failed to export Excel file: ' + error.message);
+    } finally {
+      await hideLoading();
     }
   }
 
@@ -19461,6 +19555,8 @@ async function destroyGraphAndRollBackUI() {
 }
 
 function registerHotkeyEvents() {
+  if (EVENT_LOCKS.HOTKEY_EVENTS_REGISTERED) return;
+
   document.addEventListener('keydown', async (event) => {
     const activeElement = document.activeElement;
 
@@ -19503,14 +19599,19 @@ function registerHotkeyEvents() {
         break;
     }
   });
+
+  EVENT_LOCKS.HOTKEY_EVENTS_REGISTERED = true;
 }
 
 function registerGlobalEventListeners() {
+  if (EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED) return;
+
   ['input', 'keydown', 'keyup', 'mousedown', 'mouseup', 'focus', 'blur', 'scroll', 'selectionchange'].forEach(evt =>
     query.text.addEventListener(evt, moveCaret)
   );
 
   makeBottomBarResizable();
+  EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED = true;
 }
 
 async function registerPluginStates() {
