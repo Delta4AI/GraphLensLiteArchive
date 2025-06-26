@@ -30,6 +30,7 @@
           <button id="exportModel" class="showOnLoad medium-btn" onclick="exportGraphAsJSON()" title="Save Model (S)">💾</button>
           <button id="exportImage" class="showOnLoad medium-btn" onclick="exportPNG()" title="Save Image (P)">📷️</button>
           <button id="metricsToggleBtn" class="showOnLoad medium-btn" title="Toggle network metrics panel (M)" onclick="cache.metrics.toggleUI()">📊</button>
+          <button id="dataToggleBtn" class="showOnLoad medium-btn" title="Toggle data editor (D)" onclick="toggleDataEditor()">🔢</button>
           <button id="queryToggleBtn" class="showOnLoad medium-btn" title="Toggle query editor (Q)" onclick="toggleQueryEditor()">📝</button>
           <div id="lassoWrapper" class="showOnLoad medium-btn"><button id="lassoToggleBtn" class="lasso-icon" title="Toggle lasso selection (L)" onclick="toggleLassoSelection()"></button></div>
           <button id="editBtn" class="showOnLoad medium-btn" title="Toggle Edit mode (E)" onclick="toggleEditMode()">⚙️</button>
@@ -114,11 +115,20 @@
   </div>
 </div>
 <div id="bottomBar">
-  <div id="queryEditor">
+  <div class="resize-handle"></div>
+  <div id="queryEditor" class="editor-panel">
     <div id="queryOverlay" aria-hidden="true"></div>
     <div id="queryTextArea" contenteditable="true" spellcheck="false" oninput="handleQueryValidationEvent();"></div>
     <div id="queryCaret" class="custom-caret"></div>
     <button class="query-clear-button" title="Clear query" onclick="clearQuery();">×</button>
+  </div>
+  <div id="dataEditor" class="editor-panel" style="display: none;">
+    <div id="dataTableContainer">
+      <table id="dataTable" class="data-table">
+        <thead id="dataTableHead"></thead>
+        <tbody id="dataTableBody"></tbody>
+      </table>
+    </div>
   </div>
   <div class="query-buttons">
     <button id="queryUpdateBtn" class="disabled" onclick="handleQueryUpdateEvent()"
@@ -127,9 +137,23 @@
             title="Apply the query to select nodes in the graph without filtering">Select</button>
     <button id="queryResetBtn" class="red" onclick="resetQuery();" title="Reset query to match UI filters">Reset</button>
   </div>
-  <div class="query-help-icon">
-    <button class="info-btn" title="Display help" onclick="showQueryHelp();">🛈</button>
+
+  <div class="data-buttons" style="display: none;">
+    <button onclick="dataTable.update()" title="Update the graph after modifying the data table">Apply</button>
+    <button onclick="dataTable.reset()" class="red" title="Reset the data table">Reset</button>
+    <button onclick="dataTable.exportData()" class="blue" title="Reset the data table">Export</button>
+    <button onclick="dataTable.addNode()" class="pink" title="Add a node">Add Node</button>
+    <button onclick="dataTable.addEdge()" class="pink" title="Add an edge">Add Edge</button>
   </div>
+
+  <div class="editor-help-icon" id="queryHelpIconDiv">
+    <button class="info-btn" title="Display query editor help" onclick="showQueryHelp();">🛈</button>
+  </div>
+
+  <div class="editor-help-icon" style="display: none;" id="dataHelpIconDiv">
+    <button class="info-btn" title="Display data editor help" onclick="showDataHelp();">🛈</button>
+  </div>
+
 </div>
 </body>
 </html>
