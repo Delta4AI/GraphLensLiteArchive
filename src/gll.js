@@ -10560,6 +10560,8 @@ let debugEnabled = false;
 
 let PERFORMANCE_MODE = false;
 
+let dataTable;
+
 // Stores available network metrics and their calculation function references
 const metrics = {
   centrality: {id: "centrality", label: "Degree Centrality", calculate: async () => await calculateDegreeCentrality()},
@@ -12413,6 +12415,10 @@ class QueryAST {
       return undefined;
     }
   }
+}
+
+function resetEventLocks() {
+  Object.keys(EVENT_LOCKS).forEach(key => EVENT_LOCKS[key] = false);
 }
 
 function isString(value) {
@@ -15108,19 +15114,146 @@ async function updateSelectedNodesAndEdges() {
 }
 
 function toggleQueryEditor() {
-  const btn = document.getElementById("queryToggleBtn");
-  let shouldEnable = !btn.classList.contains("highlight");
+  const queryBtn = document.getElementById("queryToggleBtn");
+  const dataBtn = document.getElementById("dataToggleBtn");
+  const shouldEnable = !queryBtn.classList.contains("highlight");
 
+  if (shouldEnable) {
+    showEditor('query');
+    queryBtn.classList.add("highlight");
+    dataBtn.classList.remove("highlight");
+  } else {
+    hideBottomBar();
+    queryBtn.classList.remove("highlight");
+  }
+}
+
+function toggleDataEditor() {
+  const queryBtn = document.getElementById("queryToggleBtn");
+  const dataBtn = document.getElementById("dataToggleBtn");
+  const shouldEnable = !dataBtn.classList.contains("highlight");
+
+  if (shouldEnable) {
+    showEditor('data');
+    dataBtn.classList.add("highlight");
+    queryBtn.classList.remove("highlight");
+  } else {
+    hideBottomBar();
+    dataBtn.classList.remove("highlight");
+  }
+}
+
+function showEditor(editorType) {
   const mainContent = document.getElementById("mainContent");
   const bottomBar = document.getElementById("bottomBar");
-  const queryButtons = document.querySelectorAll('.add-to-query-button');
+  const queryEditor = document.getElementById("queryEditor");
+  const dataEditor = document.getElementById("dataEditor");
+  const queryButtons = document.querySelector(".query-buttons");
+  const dataButtons = document.querySelector(".data-buttons");
+  const queryHelpIconDiv = document.getElementById("queryHelpIconDiv");
+  const dataHelpIconDiv = document.getElementById("dataHelpIconDiv");
+  const queryToggleButtons = document.querySelectorAll('.add-to-query-button');
 
-  mainContent.style.height = shouldEnable ? "90%" : "100%";
-  bottomBar.style.height = shouldEnable ? "10%" : "0";
-  bottomBar.classList.toggle("active", shouldEnable);
-  btn.classList.toggle("highlight", shouldEnable);
+  mainContent.style.height = "90%";
+  bottomBar.style.height = "10%";
+  bottomBar.classList.add("active");
 
-  queryButtons.forEach(btn => btn.classList.toggle("show", shouldEnable));
+  if (editorType === 'query') {
+    queryEditor.style.display = "block";
+    dataEditor.style.display = "none";
+    queryButtons.style.display = "flex";
+    dataButtons.style.display = "none";
+    queryHelpIconDiv.style.display = "block";
+    dataHelpIconDiv.style.display = "none";
+    queryToggleButtons.forEach(btn => btn.classList.add("show"));
+  } else if (editorType === 'data') {
+    queryEditor.style.display = "none";
+    dataEditor.style.display = "block";
+    queryButtons.style.display = "none";
+    dataButtons.style.display = "flex";
+    queryHelpIconDiv.style.display = "none";
+    dataHelpIconDiv.style.display = "block";
+    queryToggleButtons.forEach(btn => btn.classList.remove("show"));
+  }
+}
+
+function hideBottomBar() {
+  const mainContent = document.getElementById("mainContent");
+  const bottomBar = document.getElementById("bottomBar");
+  const queryToggleButtons = document.querySelectorAll('.add-to-query-button');
+
+  mainContent.style.height = "100%";
+  bottomBar.style.height = "0";
+  bottomBar.classList.remove("active");
+  queryToggleButtons.forEach(btn => btn.classList.remove("show"));
+}
+
+function makeBottomBarResizable() {
+  const bottomBar = document.getElementById('bottomBar');
+  const mainContent = document.getElementById('mainContent');
+  const resizeHandle = bottomBar.querySelector('.resize-handle');
+  let isResizing = false;
+  let startY = 0;
+  let startHeight = 0;
+  let animationId = null;
+
+  resizeHandle.addEventListener('mousedown', (e) => {
+    if (!bottomBar.classList.contains('active')) return;
+
+    isResizing = true;
+    startY = e.clientY;
+    startHeight = parseInt(document.defaultView.getComputedStyle(bottomBar).height, 10);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    e.preventDefault();
+
+    // Add resizing class for smoother transitions
+    document.body.style.userSelect = 'none';
+    bottomBar.style.transition = 'none';
+    mainContent.style.transition = 'none';
+  });
+
+  function handleMouseMove(e) {
+    if (!isResizing || !bottomBar.classList.contains('active')) return;
+
+    // Cancel previous animation frame
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+    }
+
+    // Use requestAnimationFrame for smoother updates
+    animationId = requestAnimationFrame(() => {
+      const dy = startY - e.clientY;
+      const newHeight = startHeight + dy;
+      const minHeight = 50;
+      const maxHeight = window.innerHeight * 0.5;
+
+      if (newHeight >= minHeight && newHeight <= maxHeight) {
+        // Use px values instead of calc() for better performance
+        const viewportHeight = window.innerHeight;
+        const newMainHeight = viewportHeight - newHeight;
+
+        bottomBar.style.height = newHeight + 'px';
+        mainContent.style.height = newMainHeight + 'px';
+      }
+    });
+  }
+
+  function handleMouseUp() {
+    isResizing = false;
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+
+    // Restore transitions and user selection
+    document.body.style.userSelect = '';
+    bottomBar.style.transition = '';
+    mainContent.style.transition = '';
+
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+  }
 }
 
 async function toggleEditMode() {
@@ -16985,6 +17118,558 @@ static async prompt(message) {
   }
 }
 
+function buildDataTable(fileData) {
+  dataTable = new DataTable();
+  dataTable.populateFromFileData(fileData);
+
+  dataTable.onChange((rowIndex, colIndex, newValue) => {
+    console.log(`Data changed at row ${rowIndex}, column ${colIndex}:`, newValue);
+    // add logic, trigger graph refresh, ..
+  });
+}
+
+class DataTable {
+  constructor(containerId = 'dataTableContainer') {
+    this.containerId = containerId;
+    this.tableData = [];
+    this.headers = [];
+    this.currentEditingCell = null;
+    this.onChangeCallback = null;
+    this.sortState = {};
+
+    this.init();
+  }
+
+  init() {
+    const container = document.getElementById(this.containerId);
+    if (!container) {
+      console.error(`Container with ID '${this.containerId}' not found`);
+      return;
+    }
+
+    container.innerHTML = `
+      <table id="dataTable" class="data-table">
+        <thead id="dataTableHead"></thead>
+        <tbody id="dataTableBody"></tbody>
+      </table>
+    `;
+
+    this.table = container.querySelector('#dataTable');
+    this.tableHead = container.querySelector('#dataTableHead');
+    this.tableBody = container.querySelector('#dataTableBody');
+  }
+
+  /**
+   * Populate the table with data from fileData (nodes and edges)
+   * @param {Object} fileData - The fileData object containing nodes, edges, and headers
+   */
+  populateFromFileData(fileData) {
+    if (!fileData) {
+      console.error('No fileData provided');
+      return;
+    }
+
+    this.fileData = structuredClone(fileData);
+
+    this.headers = ['Del', 'Row #', 'Type', 'ID'];
+    this.headers.push(...fileData.nodeDataHeaders.map(o => `${EXCEL_NODE_HEADER}::${o.subGroup}::${o.key}`));
+    this.headers.push(...fileData.edgeDataHeaders.map(o => `${EXCEL_EDGE_HEADER}::${o.subGroup}::${o.key}`));
+
+    this.tableData = [];
+
+    if (fileData.nodes) {
+      fileData.nodes.forEach(node => {
+        const row = new Array(this.headers.length).fill('');
+        row[0] = '';  // delete button, populated in render
+        row[1] = this.tableData.length + 1;  // initial row index
+        row[2] = 'Node';
+        row[3] = node.id;
+
+        for (let [section, subSection, prop, data] of traverseD4Data(node)) {
+          const headerIdx = this.headers.indexOf(`${section}::${subSection}::${prop}`);
+          row[headerIdx] = data;
+        }
+
+        this.tableData.push(row);
+      });
+    }
+
+    if (fileData.edges) {
+      fileData.edges.forEach(edge => {
+        const row = new Array(this.headers.length).fill('');
+        row[0] = '';
+        row[1] = this.tableData.length + 1;
+        row[2] = 'Edge';
+        row[3] = edge.id;
+
+        for (let [section, subSection, prop, data] of traverseD4Data(edge)) {
+          const headerIdx = this.headers.indexOf(`${section}::${subSection}::${prop}`);
+          row[headerIdx] = data;
+        }
+
+        this.tableData.push(row);
+      });
+    }
+
+    this.tableDataBackup = this.tableData.map(row => [...row]);
+    this.render();
+  }
+
+  reset() {
+    this.tableData = this.tableDataBackup.map(row => [...row]);
+    this.sortState = {};
+    this.render();
+  }
+
+  render() {
+    if (!this.tableHead || !this.tableBody) {
+      console.error('Table elements not found');
+      return;
+    }
+
+    this.tableHead.innerHTML = '';
+    this.tableBody.innerHTML = '';
+
+    if (this.tableData.length === 0) {
+      this.tableBody.innerHTML = '<tr><td colspan="100%">No data available</td></tr>';
+      return;
+    }
+
+    // Create header row with sort functionality
+    const headerRow = document.createElement('tr');
+    this.headers.forEach((header, index) => {
+      const th = document.createElement('th');
+
+      if (index === 0) {
+        th.innerHTML = '';
+        th.classList.add("data-table-delete-row-column");
+      } else {
+        th.innerHTML = `
+        <div class="data-table-sortable-header" data-column="${index}">
+          <span class="data-table-header-text">${header}</span>
+          <span class="data-table-sort-indicator">${this.getSortIndicator(index)}</span>
+        </div>
+      `;
+
+        th.addEventListener('click', () => this.handleHeaderClick(index));
+      }
+
+      headerRow.appendChild(th);
+    });
+    this.tableHead.appendChild(headerRow);
+
+    this.tableData.forEach((rowData, rowIndex) => {
+      const tr = document.createElement('tr');
+      const isNodeRow = rowData[2] === 'Node';
+
+      rowData.forEach((cellData, colIndex) => {
+        const td = document.createElement('td');
+
+        if (colIndex === 0) {
+          td.innerHTML = `<button class="data-table-delete-row-btn" title="Delete row ${rowIndex + 1} (${rowData[2]} ${rowData[3]})">×</button>`;
+          td.classList.add('data-table-delete-row-column');
+          const deleteBtn = td.querySelector('.data-table-delete-row-btn');
+          deleteBtn.addEventListener('click', () => this.handleDeleteRow(rowIndex));
+        } else {
+          td.textContent = cellData || '';
+
+          const isBasicColumn = colIndex <= 3; // Delete, Row #, Type, ID columns
+          const isMismatchedColumn = (isNodeRow && this.headers[colIndex].startsWith(EXCEL_EDGE_HEADER)) ||
+            (!isNodeRow && this.headers[colIndex].startsWith(EXCEL_NODE_HEADER));
+          const shouldBeEditable = !isBasicColumn && !isMismatchedColumn;
+
+          if (shouldBeEditable) {
+            td.contentEditable = true;
+            td.addEventListener('focus', (e) => this.handleCellFocus(e, rowIndex, colIndex));
+            td.addEventListener('blur', (e) => this.handleCellBlur(e, rowIndex, colIndex));
+            td.addEventListener('keydown', (e) => this.handleCellKeydown(e, rowIndex, colIndex));
+            td.addEventListener('input', (e) => this.handleCellInput(e, rowIndex, colIndex));
+          } else {
+            td.classList.add('readonly');
+          }
+        }
+
+        td.dataset.row = rowIndex;
+        td.dataset.col = colIndex;
+        tr.appendChild(td);
+      });
+
+      this.tableBody.appendChild(tr);
+    });
+  }
+
+  handleDeleteRow(rowIndex) {
+    if (rowIndex >= 0 && rowIndex < this.tableData.length) {
+      this.tableData.splice(rowIndex, 1);
+
+      this.render();
+
+      // Trigger change callback if set
+      if (this.onChangeCallback) {
+        this.onChangeCallback(-1, -1, 'row_deleted');
+      }
+    }
+  }
+
+  handleHeaderClick(columnIndex) {
+    const currentSort = this.sortState[columnIndex];
+
+    this.sortState = {};
+
+    // Cycle through: null -> asc -> desc -> null
+    if (!currentSort) {
+      this.sortState[columnIndex] = 'asc';
+    } else if (currentSort === 'asc') {
+      this.sortState[columnIndex] = 'desc';
+    } else {
+      this.sortState[columnIndex] = null;
+    }
+
+    this.sortColumn(columnIndex, this.sortState[columnIndex]);
+  }
+
+  sortColumn(columnIndex, direction) {
+    if (!direction) {
+      // TODO: Reset to original order here?
+      this.render();
+      return;
+    }
+
+    this.tableData.sort((a, b) => {
+      let aVal = a[columnIndex] || '';
+      let bVal = b[columnIndex] || '';
+
+      // Try to convert to numbers if possible
+      const aNum = parseFloat(aVal);
+      const bNum = parseFloat(bVal);
+
+      if (!isNaN(aNum) && !isNaN(bNum)) {
+        // Numeric sort
+        return direction === 'asc' ? aNum - bNum : bNum - aNum;
+      } else {
+        // String sort
+        aVal = String(aVal).toLowerCase();
+        bVal = String(bVal).toLowerCase();
+
+        if (direction === 'asc') {
+          return aVal.localeCompare(bVal);
+        } else {
+          return bVal.localeCompare(aVal);
+        }
+      }
+    });
+
+    this.render();
+  }
+
+  getSortIndicator(columnIndex) {
+    const sortState = this.sortState[columnIndex];
+    if (sortState === 'asc') return '▲';
+    if (sortState === 'desc') return '▼';
+    return '⇅';
+  }
+
+  handleCellFocus(event, rowIndex, colIndex) {
+    const cell = event.target;
+    this.currentEditingCell = {cell, rowIndex, colIndex};
+    cell.classList.add('editing');
+
+    setTimeout(() => {
+      const range = document.createRange();
+      range.selectNodeContents(cell);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }, 0);
+  }
+
+  handleCellBlur(event, rowIndex, colIndex) {
+    const cell = event.target;
+    cell.classList.remove('editing');
+
+    this.tableData[rowIndex][colIndex] = cell.textContent;
+
+    if (this.onChangeCallback) {
+      this.onChangeCallback(rowIndex, colIndex, cell.textContent);
+    }
+
+    this.currentEditingCell = null;
+  }
+
+  handleCellKeydown(event, rowIndex, colIndex) {
+    switch (event.key) {
+      case 'Enter':
+        event.preventDefault();
+        this.moveToCell(rowIndex + 1, colIndex);
+        break;
+
+      case 'Tab':
+        event.preventDefault();
+        if (event.shiftKey) {
+          this.moveToCell(rowIndex, colIndex - 1);
+        } else {
+          this.moveToCell(rowIndex, colIndex + 1);
+        }
+        break;
+
+      case 'Escape':
+        event.target.blur();
+        break;
+    }
+  }
+
+  handleCellInput(event, rowIndex, colIndex) {
+    this.tableData[rowIndex][colIndex] = event.target.textContent;
+  }
+
+  moveToCell(rowIndex, colIndex) {
+    if (colIndex >= this.headers.length) {
+      colIndex = 2;
+      rowIndex++;
+    } else if (colIndex < 2) {
+      colIndex = this.headers.length - 1;
+      rowIndex--;
+    }
+
+    if (rowIndex < 0 || rowIndex >= this.tableData.length) {
+      return;
+    }
+
+    const targetCell = this.tableBody.querySelector(
+      `td[data-row="${rowIndex}"][data-col="${colIndex}"]`
+    );
+
+    if (targetCell && targetCell.contentEditable === 'true') {
+      targetCell.focus();
+    }
+  }
+
+  onChange(callback) {
+    this.onChangeCallback = callback;
+  }
+
+  getData() {
+    return {
+      headers: [...this.headers],
+      data: this.tableData.map(row => [...row])
+    };
+  }
+
+  async addNode() {
+    if (typeof dataTable === "undefined") return;
+
+    let nodeID = await Popup.prompt("Enter Node ID: ");
+    if (!nodeID) {
+      info("Adding node canceled");
+      return;
+    }
+
+    if (cache.nodeRef.has(nodeID) || this.tableData.some(row => row[2] === "Node" && row[3] === nodeID)) {
+      error(`Node "${nodeID}" already exists`);
+      return;
+    }
+
+    this.addRow("Node", nodeID);
+  }
+
+  async addEdge() {
+    if (typeof dataTable === "undefined") return;
+
+    let edgeID = await Popup.prompt("Enter Edge ID: ");
+    if (!edgeID) {
+      info("Adding edge canceled");
+      return;
+    }
+
+    if (cache.edgeRef.has(edgeID) || this.tableData.some(row => row[2] === "Edge" && row[3] === edgeID)) {
+      error(`Edge "${edgeID}" already exists`);
+      return;
+    }
+
+    if (!edgeID.includes("::")) {
+      error(`Edge ID must contain a double colon (::) to indicate the source and target nodes`);
+      return;
+    }
+
+    const [source, target] = edgeID.split("::");
+
+    if (!cache.nodeRef.has(source)) {
+      error(`Source node "${source}" does not exist`);
+      return;
+    }
+
+    if (!cache.nodeRef.has(target)) {
+      error(`Target node "${target}" does not exist`);
+      return;
+    }
+
+    this.addRow("Edge", edgeID);
+  }
+
+  addRow(type = 'Node', id = '') {
+    const newRow = new Array(this.headers.length).fill('');
+    newRow[0] = '';
+    // newRow[1] = this.tableData.length + 1;
+    newRow[1] = this.tableData.map(row => row[1]).reduce((a, b) => Math.max(a, b)) + 1;
+    newRow[2] = type;
+    newRow[3] = id;
+    this.tableData.push(newRow);
+    this.render();
+  }
+
+  removeRow(index) {
+    if (index >= 0 && index < this.tableData.length) {
+      this.tableData.splice(index, 1);
+      this.render();
+    }
+  }
+
+  clear() {
+    this.tableData = [];
+    this.headers = [];
+    this.sortState = {};
+    this.render();
+  }
+
+  async update() {
+    try {
+      const updatedFileData = this.getUpdatedFileData();
+
+      if (!updatedFileData || (!updatedFileData.nodes && !updatedFileData.edges)) {
+        error("No data to update with.");
+        return;
+      }
+
+      await destroyGraphAndRollBackUI();
+      resetEventLocks();
+      preProcessData(updatedFileData);
+      initCache();
+      buildUI();
+
+      await createGraphInstance();
+      await graph.render();
+    } catch (err) {
+      error("Error updating graph:", err);
+    }
+  }
+
+  getUpdatedFileData() {
+    const result = {
+      nodes: [],
+      edges: [],
+      nodeDataHeaders: [...this.fileData.nodeDataHeaders],
+      edgeDataHeaders: [...this.fileData.edgeDataHeaders]
+    };
+
+    const allowedKeys = new Set(["D4Data", "id", "label", "source", "style", "target", "description", "type"]);
+    this.tableData.forEach(row => {
+      const isNode = row[2] === "Node";
+      const id = row[3];
+      const elem = isNode ? cache.nodeRef.get(id) || this.createNode(id) : cache.edgeRef.get(id) || this.createEdge(id);
+
+      const cleanElem = {};
+      for (const key of allowedKeys) {
+        if (elem.hasOwnProperty(key)) {
+          cleanElem[key] = elem[key];
+        }
+      }
+
+      cleanElem.D4Data = {};
+
+      // Start from index 4 (skip Delete, Row#, Type, ID columns)
+      for (let i = 4; i < row.length; i++) {
+        const value = row[i];
+        if (value !== null && value !== undefined && String(value).trim() !== '') {
+          const headerName = this.headers[i];
+          const [group, subGroup, prop] = decodePropHashId(headerName);
+
+          if (!cleanElem.D4Data[group]) {
+            cleanElem.D4Data[group] = {};
+          }
+
+          if (!cleanElem.D4Data[group][subGroup]) {
+            cleanElem.D4Data[group][subGroup] = {};
+          }
+          cleanElem.D4Data[group][subGroup][prop] = isNaN(value) ? value : Number(value);
+
+        }
+      }
+
+      isNode ? result.nodes.push(cleanElem) : result.edges.push(cleanElem);
+    });
+
+    return result;
+  }
+
+  createNode(id) {
+    return {
+      id: id,
+      ...getNodeStyleOrDefaults(id)
+    }
+  }
+
+  createEdge(id) {
+    const [source, target] = id.split("::");
+    return {
+      id: id,
+      source: source,
+      target: target,
+      ...getEdgeStyleOrDefaults(id)
+    }
+  }
+
+  exportData() {
+    const result = {
+      nodes: [],
+      edges: []
+    };
+
+    this.tableData.forEach(row => {
+      const type = row[0];
+      const id = row[1];
+
+      if (!id) return;
+
+      const dataObj = {id};
+      const d4Data = {};
+
+      for (let i = 2; i < row.length; i++) {
+        const value = row[i];
+        // Convert to string first, then check if it's not empty after trimming
+        if (value !== null && value !== undefined && String(value).trim() !== '') {
+          const headerName = this.headers[i];
+
+          const parts = headerName.split(' - ');
+          if (parts.length === 2) {
+            const [group, prop] = parts;
+            if (!d4Data[group]) {
+              d4Data[group] = {};
+            }
+            d4Data[group][prop] = isNaN(value) ? value : Number(value);
+          } else {
+            if (!d4Data['default']) {
+              d4Data['default'] = {};
+            }
+            d4Data['default'][headerName] = isNaN(value) ? value : Number(value);
+          }
+        }
+      }
+
+      if (Object.keys(d4Data).length > 0) {
+        dataObj.D4Data = d4Data;
+      }
+
+      if (type === 'Node') {
+        result.nodes.push(dataObj);
+      } else if (type === 'Edge') {
+        result.edges.push(dataObj);
+      }
+    });
+
+    return result;
+  }
+}
+
 function createAddOrRemoveToSelectionButton(propID, shouldAdd) {
   const btn = document.createElement("button");
   btn.classList.add("plus-minus-button", "show-on-edit");
@@ -18556,6 +19241,12 @@ The query editor allows complex filtering using nested AND, OR and NOT expressio
 `, {width: '66vw', height: '50vh', lineHeight: '1.5em'});
 }
 
+function showDataHelp() {
+  cache.popup = new Popup(`<h3>Data Editor</h3>
+Foo bar
+`, {width: '66vw', height: '50vh', lineHeight: '1.5em'});
+}
+
 function humanFileSize(size) {
   let i = size === 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
   return +((size / Math.pow(1024, i)).toFixed(2)) + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
@@ -18582,6 +19273,7 @@ async function loadFileWrapper(event) {
       }
 
       preProcessData(fileData);
+      buildDataTable(fileData);
       initCache();
       buildUI();
       await createGraphInstance();
@@ -18677,6 +19369,8 @@ function registerGlobalEventListeners() {
   ['input', 'keydown', 'keyup', 'mousedown', 'mouseup', 'focus', 'blur', 'scroll', 'selectionchange'].forEach(evt =>
     query.text.addEventListener(evt, moveCaret)
   );
+
+  makeBottomBarResizable();
 }
 
 async function registerPluginStates() {
@@ -18687,20 +19381,6 @@ async function registerPluginStates() {
 }
 
 async function resetLayout() {
-  // await showLoading("Resetting", "Resetting layout to default ..");
-  // await new Promise(resolve => requestAnimationFrame(resolve));
-  //
-  // if (!data.layouts[data.selectedLayout].isCustom) {
-  //   data.layouts[data.selectedLayout]?.positions?.clear();
-  // }
-  //
-  // await graph.updateData(createSimplifiedDataForGraphObject(true));
-  // let layout = data.layouts[data.selectedLayout];
-  // await graph.setLayout({type: data.selectedLayout, ...layout.internals});
-  //
-  // await debugPositions();
-  // await decideToRenderOrDraw(true).then(r => debug(`Reset layout ${data.selectedLayout}`));
-  // await debugPositions();
   await restoreInitialNodePositions();
 }
 

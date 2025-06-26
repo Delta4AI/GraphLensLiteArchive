@@ -70,7 +70,27 @@ body, html {
     border-top: 1px solid #403C53;
     display: flex;
     align-items: center;
+    min-height: 50px;
+    max-height: 50vh;
+    height: auto;
+    position: relative;
 }
+
+.resize-handle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: transparent;
+    cursor: ns-resize;
+    z-index: 1000;
+}
+
+.resize-handle:hover {
+    background: #403C53;
+}
+
 
 .popupQueryContainer {
     outline: 1px solid #403C53;
@@ -2193,7 +2213,7 @@ input:checked + .slider:before {
     margin-right: 4px;
 }
 
-.query-help-icon {
+.editor-help-icon {
     display: flex;
     flex-direction: column;
     flex: 0 0 2%;
@@ -2274,3 +2294,235 @@ input:checked + .slider:before {
     border-color: black;
     border-width: 2px;
 }
+
+.editor-panel {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 200px;
+    max-width: calc(100% - 100px);
+    height: 100%;
+    outline: 1px solid #403C53;
+    outline-offset: 4px;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+#dataTextArea {
+    width: 100%;
+    height: 100%;
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+.data-buttons {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 80px;
+    margin-left: 10px;
+    margin-right: 4px;
+}
+
+.data-buttons button {
+    height: 50%;
+    max-height: 30px;
+    cursor: pointer;
+    border-radius: 5px;
+    color: #fff;
+    border: 1px solid black;
+    background-color: #403C53;
+    margin-bottom: 0.2em;
+    font-size: clamp(0.6rem, 1.5vw, 0.9rem);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 2px 4px;
+}
+
+.data-buttons button.red {
+    background-color: #C33D35;
+}
+
+.data-buttons button.pink {
+    background-color: #EFB0AA;
+    color: black;
+}
+
+.data-buttons button.blue {
+    background-color: #8CA6D9;
+    color: black;
+}
+
+#dataTableContainer {
+    height: 100%;
+    overflow: auto;
+    border: 1px solid #ccc;
+    background: white;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+}
+
+.data-table th {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 6px 8px;
+    text-align: left;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.data-table td {
+    border: 1px solid #ddd;
+    padding: 4px 8px;
+    min-width: 80px;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.data-table td:focus {
+    outline: 2px solid #403C53;
+    background-color: #E4E3EA;
+}
+
+.data-table td.editing {
+    background-color: #fff9c4;
+    border: 2px solid #403C53;
+    white-space: normal;
+    text-overflow: clip;
+    overflow: visible;
+    word-wrap: break-word;
+}
+
+.data-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.data-table tr:hover {
+    background-color: #e6f3ff;
+}
+
+.data-table input {
+    width: 100%;
+    border: none;
+    padding: 2px;
+    font-family: inherit;
+    font-size: inherit;
+    background: transparent;
+}
+
+.data-table input:focus {
+    outline: none;
+}
+
+.data-table td.readonly {
+  background-color: #f8f8f8;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.data-table td.readonly:hover {
+  background-color: #f8f8f8;
+}
+
+
+.data-table-sortable-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.data-table-sortable-header:hover {
+  background-color: #e0e0e0;
+}
+
+.data-table-header-text {
+  flex: 1;
+}
+
+.data-table-sort-indicator {
+  margin-left: 8px;
+  font-size: 12px;
+  color: #666;
+  min-width: 12px;
+  text-align: center;
+}
+
+.data-table th {
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  text-align: left;
+  font-weight: bold;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.data-table th:hover {
+  background-color: #e6e6e6;
+}
+
+.data-table td.readonly {
+  background-color: #f8f8f8;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.data-table td.readonly:hover {
+  background-color: #f8f8f8;
+}
+
+.data-table th.data-table-delete-row-column {
+  cursor: default;
+}
+
+
+.data-table-delete-row-column {
+    width: 20px !important;
+    min-width: 20px !important;
+    max-width: 20px !important;
+    text-align: center;
+    padding: 2px !important;
+}
+
+.data-table-delete-row-btn {
+    background-color: #C33D35;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    width: 18px;
+    height: 18px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.data-table-delete-row-btn:hover {
+    background-color: #ff0000;
+}
+
+ .data-table-apply-button {
+
+ }
