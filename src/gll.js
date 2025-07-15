@@ -14545,17 +14545,20 @@ async function parseExcelToJson(file) {
         }
       });
 
-      const hasData = Object.values(rowData).some(val => val !== null && val !== undefined && val != '');
+      const hasData = Object.values(rowData).some(val => val !== null && val !== undefined && val !== '');
       if (hasData) {
         jsonData.push(rowData);
       }
     });
 
-    return jsonData;
+    return {"headers": headers, "jsonData": jsonData};
   }
 
-  const nodesData = worksheetToJson(nodesSheet);
-  const edgesData = worksheetToJson(edgesSheet);
+  const nodesDataDict = worksheetToJson(nodesSheet);
+  const edgesDataDict = worksheetToJson(edgesSheet);
+
+  const nodesData = nodesDataDict.jsonData;
+  const edgesData = edgesDataDict.jsonData;
 
   if (nodesData.length === 0) {
     error('The "nodes" sheet is empty or invalid.');
@@ -14573,14 +14576,14 @@ async function parseExcelToJson(file) {
   removeEmptyColumns(nodesData, "nodes");
   removeEmptyColumns(edgesData, "edges");
 
-  const firstNodeRowKeys = Object.keys(nodesData[0])
+  const firstNodeRowKeys = nodesDataDict.headers
     .map(k => k.toLowerCase().trim());
   const requiredNodeColumns = EXCEL_NODE_PROPERTIES
     .filter(node => node.required)
     .map(node => node.column.toLowerCase().trim());
   validateColumns(requiredNodeColumns, firstNodeRowKeys, 'nodes');
 
-  const firstEdgeRowKeys = Object.keys(edgesData[0])
+  const firstEdgeRowKeys = edgesDataDict.headers
     .map(k => k.toLowerCase().trim());
   const requiredEdgeColumns = EXCEL_EDGE_PROPERTIES
     .filter(edge => edge.required)
@@ -14588,11 +14591,12 @@ async function parseExcelToJson(file) {
   validateColumns(requiredEdgeColumns, firstEdgeRowKeys, 'edges');
 
   const nonDataNodeColumns = new Set(EXCEL_NODE_PROPERTIES.map((p) => p.column.toLowerCase().trim()));
-  const nodeDataHeaders = Object.keys(nodesData[0])
+  const nodeDataHeaders = nodesDataDict.headers
     .filter(k => !nonDataNodeColumns.has(k.toLowerCase().trim()) && !k.startsWith("__EMPTY") && k !== "__rowNum__")
     .map((k) => decodeKey(k));
+
   const nonDataEdgeColumns = new Set(EXCEL_EDGE_PROPERTIES.map((p) => p.column.toLowerCase().trim()));
-  const edgeDataHeaders = Object.keys(edgesData[0])
+  const edgeDataHeaders = edgesDataDict.headers
     .filter(k => !nonDataEdgeColumns.has(k.toLowerCase().trim()) && !k.startsWith("__EMPTY") && k !== "__rowNum__")
     .map((k) => decodeKey(k));
 
