@@ -1,6 +1,7 @@
 const {
   Graph,
   NodeEvent,
+  EdgeEvent,
   GraphEvent,
   CanvasEvent,
   CommonEvent,
@@ -27,7 +28,6 @@ class CustomForceLayout extends BaseLayout {
         },
       }));
     await graph.updateNodeData(myNodes);
-    await persistNodePositions();
     return {
       nodes: myNodes,
     };
@@ -40,6 +40,11 @@ register(ExtensionCategory.LAYOUT, 'custom', CustomForceLayout);
 // persistNodePositions();
 // handleFilterEvent("Custom", "foo");
 
+// 1. load custom file
+// 2. drag node
+// 3. switch to force layout
+// 4. that dragged node is somewhere it shouldnt be
+
 /**
  *  Essential objects
  */
@@ -49,6 +54,10 @@ let graph = null;
 
 // Stores json serializable data that is essential to reconstruct the graph
 let data = {};
+
+// updated during build; used for downloading a template through the app
+// noinspection ALL
+let excelData = {"s":{"readme":{"d":[[0,0,"Color Codes Explained"],[0,1,"Description"],[1,0,"Required"],[1,1,"Strictly required property"],[2,0,"Optional"],[2,1,"Optional property; Column name can not be re-used for user-defined data"],[3,0,"User Data [group]"],[3,1,"Add custom properties in new columns. Use [brackets] for grouping (e.g., \"Temperature [Celsius] [Physics]\"). The last [bracket] becomes the group name."],[5,0,"Data Types Explained"],[5,1,"Description"],[6,0,"text"],[6,1,"any text"],[7,0,"number"],[7,1,"whole decimal numbers or floating point numbers"],[8,0,"boolean"],[8,1,"true or TRUE or 1, false or FALSE or 0"],[9,0,"RGBA"],[9,1,"RGBA hex color code (e.g. #C33D3580 for 50% opacity) (last 2 digits are optional)"],[10,0,"value 1 | value 2"],[10,1,"List of categorical values of which one must be matched (excluding optional information in brackets)"],[11,0,"any"],[11,1,"Categorical view when text is given, slider-based view when numerical input is given"],[13,0,"Node Properties Explained"],[13,1,"Description"],[13,2,"Default Value"],[13,3,"Type"],[14,0,"ID"],[14,1,"Unique identifier for a node"],[14,2,"-"],[14,3,"text (unique)"],[15,0,"Label"],[15,1,"Label of the node; if no Label is given, the ID is displayed per default"],[15,2,"-"],[15,3,"text"],[16,0,"Description"],[16,1,"Description of the node, displayed in the tooltip text"],[16,2,"-"],[16,3,"text"],[17,0,"Shape"],[17,1,"The shape of the node"],[17,2,"hexagon"],[17,3,"circle (●) | diamond (◆) | hexagon (⬢) | rect (■) | triangle (▲) | star (★)"],[18,0,"Size"],[18,1,"The size of the node"],[18,2,"20"],[18,3,"number"],[19,0,"Fill Color"],[19,1,"The fill color of the node in RGBA format (e.g. #FF000080 for a red node with 50% opacity)"],[19,2,"#C33D35"],[19,3,"rgba"],[20,0,"Border Size"],[20,1,"The stroke width"],[20,2,"1"],[20,3,"number"],[21,0,"Border Color"],[21,1,"The stroke color of the node in RGBA format"],[21,2,"-"],[21,3,"rgba"],[22,0,"Label Font Size"],[22,1,"Label font size"],[22,2,"12"],[22,3,"number"],[23,0,"Label Placement"],[23,1,"Label position relative to the main shape of the node"],[23,2,"bottom"],[23,3,"left | right | top | bottom | left-top | left-bottom | right-top | right-bottom | top-left | top-right | bottom-left | bottom-right | center"],[24,0,"Label Color"],[24,1,"The color of the nodes label"],[24,2,"-"],[24,3,"rgba"],[25,0,"Label Background Color"],[25,1,"Label background fill color"],[25,2,"-"],[25,3,"rgba"],[26,0,"X Coordinate"],[26,1,"The x coordinate of the node"],[26,2,"-"],[26,3,"number"],[27,0,"Y Coordinate"],[27,1,"The y coordinate of the node"],[27,2,"-"],[27,3,"number"],[28,0,"property A [group A]"],[28,1,"User-defined custom node properties"],[28,2,"-"],[28,3,"any"],[30,0,"Edge Properties Explained"],[30,1,"Description"],[30,2,"Default Value"],[30,3,"Type"],[31,0,"Source ID"],[31,1,"The ID of the source node"],[31,2,"-"],[31,3,"text"],[32,0,"Target ID"],[32,1,"The ID of the target node"],[32,2,"-"],[32,3,"text"],[33,0,"Label"],[33,1,"Label of the edge; if no Label is given, the edge is only visible as line without any text"],[33,2,"-"],[33,3,"text"],[34,0,"Description"],[34,1,"Description of the edge, displayed in the tooltip text"],[34,2,"-"],[34,3,"text"],[35,0,"Type"],[35,1,"The edge type"],[35,2,"line"],[35,3,"line | cubic | quadratic | polyline"],[36,0,"Line Width"],[36,1,"The border width of the edge"],[36,2,"0.75"],[36,3,"number"],[37,0,"Line Dash"],[37,1,"The dash offset of the edge line"],[37,2,"0"],[37,3,"number"],[38,0,"Color"],[38,1,"The stroke color of the edge in RGBA format"],[38,2,"#403C5390"],[38,3,"rgba"],[39,0,"Label Font Size"],[39,1,"The font size of the edges label"],[39,2,"center"],[39,3,"number"],[40,0,"Label Placement"],[40,1,"The position of the label relative to the edge"],[40,2,"#000000"],[40,3,"start | center | end"],[41,0,"Label Auto Rotate"],[41,1,"Whether to automatically rotate the label to match the edge’s direction"],[41,2,"1"],[41,3,"boolean"],[42,0,"Label Offset X"],[42,1,"The offset of the label on the X-Axis"],[42,2,"0"],[42,3,"number"],[43,0,"Label Offset Y"],[43,1,"The offset of the label on the Y-Axis"],[43,2,"0"],[43,3,"number"],[44,0,"Label Color"],[44,1,"The color of the edges label text"],[44,2,"-"],[44,3,"rgba"],[45,0,"Label Background Color"],[45,1,"The color for the edge label’s background"],[45,2,"#E4E3EA"],[45,3,"rgba"],[46,0,"Start Arrow"],[46,1,"Whether to display the start arrow on the edge"],[46,2,{"formula":"FALSE()"}],[46,3,"boolean"],[47,0,"Start Arrow Size"],[47,1,"The size of the start arrow"],[47,2,"8"],[47,3,"number"],[48,0,"Start Arrow Type"],[48,1,"The type of the start arrow"],[48,2,"triangle"],[48,3,"triangle | circle | diamond | vee | rect | triangleRect | simple"],[49,0,"End Arrow"],[49,1,"Whether to display the end arrow on the edge"],[49,2,{"formula":"FALSE()"}],[49,3,"boolean"],[50,0,"End Arrow Size"],[50,1,"The size of the end arrow"],[50,2,"8"],[50,3,"number"],[51,0,"End Arrow Type"],[51,1,"The type of the end arrow"],[51,2,"triangle"],[51,3,"triangle | circle | diamond | vee | rect | triangleRect | simple"]],"st":{"A1":0,"B1":0,"C1":1,"D1":2,"A2":3,"B2":2,"C2":1,"D2":2,"A3":4,"B3":2,"C3":1,"D3":2,"A4":5,"B4":2,"C4":1,"D4":2,"A5":2,"B5":2,"C5":1,"D5":2,"A6":0,"B6":0,"C6":6,"D6":7,"A7":8,"B7":2,"C7":1,"D7":2,"A8":8,"B8":2,"C8":1,"D8":2,"A9":8,"B9":2,"C9":1,"D9":2,"A10":8,"B10":2,"C10":1,"D10":2,"A11":9,"B11":2,"C11":1,"D11":2,"A12":8,"B12":2,"C12":1,"D12":2,"A13":2,"B13":2,"C13":1,"D13":2,"A14":10,"B14":10,"C14":11,"D14":10,"A15":3,"B15":2,"C15":1,"D15":2,"A16":4,"B16":2,"C16":1,"D16":2,"A17":4,"B17":2,"C17":1,"D17":2,"A18":4,"B18":2,"C18":1,"D18":12,"A19":4,"B19":2,"C19":1,"D19":2,"A20":4,"B20":2,"C20":1,"D20":2,"A21":4,"B21":2,"C21":1,"D21":2,"A22":4,"B22":2,"C22":1,"D22":2,"A23":4,"B23":2,"C23":1,"D23":2,"A24":4,"B24":2,"C24":1,"D24":12,"A25":4,"B25":2,"C25":1,"D25":2,"A26":4,"B26":2,"C26":1,"D26":2,"A27":4,"B27":2,"C27":1,"D27":2,"A28":4,"B28":2,"C28":1,"D28":2,"A29":5,"B29":2,"C29":1,"D29":2,"A30":2,"B30":2,"C30":1,"D30":2,"A31":10,"B31":10,"C31":11,"D31":10,"A32":3,"B32":2,"C32":1,"D32":2,"A33":3,"B33":2,"C33":1,"D33":2,"A34":4,"B34":2,"C34":1,"D34":2,"A35":4,"B35":2,"C35":1,"D35":2,"A36":4,"B36":2,"C36":1,"D36":12,"A37":4,"B37":2,"C37":1,"D37":2,"A38":4,"B38":2,"C38":1,"D38":2,"A39":4,"B39":2,"C39":1,"D39":2,"A40":4,"B40":2,"C40":1,"D40":2,"A41":4,"B41":2,"C41":1,"D41":12,"A42":4,"B42":2,"C42":13,"D42":2,"A43":4,"B43":2,"C43":1,"D43":2,"A44":4,"B44":2,"C44":1,"D44":2,"A45":4,"B45":2,"C45":1,"D45":2,"A46":4,"B46":2,"C46":13,"D46":2,"A47":4,"B47":2,"C47":13,"D47":2,"A48":4,"B48":2,"C48":1,"D48":2,"A49":4,"B49":2,"C49":13,"D49":12,"A50":4,"B50":2,"C50":13,"D50":2,"A51":4,"B51":2,"C51":1,"D51":14,"A52":4,"B52":2,"C52":13,"D52":12},"dim":[52,4]},"nodes":{"d":[[0,0,"ID"],[0,1,"Label"],[0,2,"Description"],[0,3,"Shape"],[0,4,"Size"],[0,5,"Fill Color"],[0,6,"Border Color"],[0,7,"Feature X [group A]"],[0,8,"Feature Y [nm] [group A]"],[0,9,"Feature Z [group B]"],[1,0,"A"],[1,1,"Node 1"],[1,2,"The first node"],[1,3,"circle"],[1,4,"60"],[1,5,"#403C53"],[1,6,"#C33D35"],[1,7,"1"],[1,8,"foo"],[1,9,"1"],[2,0,"B"],[2,1,"Node 2"],[2,2,"The second node"],[2,7,"0.5"],[2,8,"foo"],[2,9,"2"],[3,0,"C"],[3,1,"Node 3"],[3,2,"The third node"],[3,7,"1.1"],[3,8,"foo"],[3,9,"1"],[4,0,"D"],[4,1,"Node 4"],[4,2,"The fourth node"],[4,7,"1.3"],[4,8,"bar"],[4,9,"0"],[5,0,"E"],[5,7,"0"],[5,8,"bar"],[5,9,"-1"],[6,0,"F"],[6,1,"Lonely Node"],[6,7,"-1"]],"st":{"A1":3,"B1":4,"C1":4,"D1":4,"E1":4,"F1":4,"G1":4,"H1":5,"I1":5,"J1":5,"A2":15,"B2":16,"C2":16,"D2":16,"E2":16,"F2":16,"G2":16,"H2":17,"I2":17,"J2":17,"A3":15,"B3":16,"C3":16,"D3":16,"E3":16,"F3":16,"G3":16,"H3":17,"I3":17,"J3":17,"A4":15,"B4":16,"C4":16,"D4":16,"E4":16,"F4":16,"G4":16,"H4":17,"I4":17,"J4":17,"A5":15,"B5":16,"C5":16,"D5":16,"E5":16,"F5":16,"G5":16,"H5":17,"I5":17,"J5":17,"A6":15,"B6":16,"C6":16,"D6":16,"E6":16,"F6":16,"G6":16,"H6":17,"I6":17,"J6":17,"A7":15,"B7":16,"C7":16,"D7":16,"E7":16,"F7":16,"G7":16,"H7":17,"I7":17,"J7":17},"dim":[7,10]},"edges":{"d":[[0,0,"Source ID"],[0,1,"Target ID"],[0,2,"Color"],[0,3,"Line Width"],[0,4,"Label"],[0,5,"Feature EX [group X]"],[0,6,"Feature EY [group X]"],[0,7,"Feature EZ [group Y]"],[1,0,"A"],[1,1,"B"],[1,2,"#FF0000"],[1,3,"0.75"],[1,4,"foo"],[1,5,"1"],[1,6,"Dummy Category 1"],[1,7,"1"],[2,0,"A"],[2,1,"C"],[2,5,"0.5"],[2,6,"Dummy Category 2"],[2,7,"2"],[3,0,"C"],[3,1,"D"],[3,5,"1.1"],[3,6,"Dummy Category 3"],[3,7,"1"],[4,0,"D"],[4,1,"E"],[4,5,"1.3"],[4,6,"Dummy Category 4"],[4,7,"0"]],"st":{"A1":3,"B1":3,"C1":4,"D1":4,"E1":4,"F1":5,"G1":5,"H1":5,"A2":15,"B2":15,"C2":16,"D2":16,"E2":16,"F2":17,"G2":17,"H2":17,"A3":15,"B3":15,"C3":16,"D3":16,"E3":16,"F3":17,"G3":17,"H3":17,"A4":15,"B4":15,"C4":16,"D4":16,"E4":16,"F4":17,"G4":17,"H4":17,"A5":15,"B5":15,"C5":16,"D5":16,"E5":16,"F5":17,"G5":17,"H5":17},"dim":[5,8]}},"st":{"0":{"f":{"b":1,"sz":12,"n":"Arial"},"fill":{"fg":"E4E3EA","bg":"FEFFE1"},"b":{"t":["thin","000000"],"b":["thin","000000"],"l":["thin","000000"],"r":["thin","000000"]},"a":{"h":"general","v":"bottom"},"nf":"General"},"1":{"f":{"sz":10,"n":"Arial"},"fill":{"p":"none"},"a":{"h":"left","v":"bottom"},"nf":"General"},"2":{"f":{"sz":10,"n":"Arial"},"fill":{"p":"none"},"a":{"h":"general","v":"bottom"},"nf":"General"},"3":{"f":{"b":1,"sz":10,"n":"Arial"},"fill":{"fg":"FF9A9A","bg":"FF8080"},"b":{"t":["thin","000000"],"b":["thin","000000"],"l":["thin","000000"],"r":["thin","000000"]},"a":{"h":"general","v":"bottom"},"nf":"General"},"4":{"f":{"b":1,"sz":10,"n":"Arial"},"fill":{"fg":"FEFFE1","bg":"FFFFFF"},"b":{"t":["thin","000000"],"b":["thin","000000"],"l":["thin","000000"],"r":["thin","000000"]},"a":{"h":"general","v":"bottom"},"nf":"General"},"5":{"f":{"b":1,"sz":10,"n":"Arial"},"fill":{"fg":"81D41A","bg":"969696"},"b":{"t":["thin","000000"],"b":["thin","000000"],"l":["thin","000000"],"r":["thin","000000"]},"a":{"h":"general","v":"bottom"},"nf":"General"},"6":{"f":{"b":1,"sz":12,"n":"Arial"},"fill":{"p":"none"},"a":{"h":"left","v":"bottom"},"nf":"General"},"7":{"f":{"b":1,"sz":12,"n":"Arial"},"fill":{"p":"none"},"a":{"h":"general","v":"bottom"},"nf":"General"},"8":{"f":{"b":1,"sz":10,"n":"Arial"},"fill":{"fg":"E4E3EA","bg":"FEFFE1"},"b":{"t":["thin","000000"],"b":["thin","000000"],"l":["thin","000000"],"r":["thin","000000"]},"a":{"h":"general","v":"bottom"},"nf":"General"},"9":{"f":{"b":1,"i":1,"sz":10,"n":"Arial"},"fill":{"fg":"E4E3EA","bg":"FEFFE1"},"b":{"t":["thin","000000"],"b":["thin","000000"],"l":["thin","000000"],"r":["thin","000000"]},"a":{"h":"general","v":"bottom"},"nf":"General"},"10":{"f":{"b":1,"sz":12,"n":"Arial"},"fill":{"fg":"E4E3EA","bg":"FEFFE1"},"b":{"t":["thin","000000"],"b":["thin","000000"]},"a":{"h":"general","v":"bottom"},"nf":"General"},"11":{"f":{"b":1,"sz":12,"n":"Arial"},"fill":{"fg":"E4E3EA","bg":"FEFFE1"},"b":{"t":["thin","000000"],"b":["thin","000000"]},"a":{"h":"left","v":"bottom"},"nf":"General"},"12":{"f":{"i":1,"sz":10,"n":"Arial"},"fill":{"p":"none"},"a":{"h":"general","v":"bottom"},"nf":"General"},"13":{"f":{"sz":10,"n":"Arial"},"fill":{"p":"none"},"a":{"h":"left","v":"bottom"},"nf":"\"TRUE\";\"TRUE\";\"FALSE\""},"14":{"f":{"u":1,"sz":10,"n":"Arial"},"fill":{"p":"none"},"a":{"h":"general","v":"bottom"},"nf":"General"},"15":{"f":{"sz":10,"n":"Arial"},"fill":{"fg":"FF9A9A","bg":"FF8080"},"b":{"t":["thin","000000"],"b":["thin","000000"],"l":["thin","000000"],"r":["thin","000000"]},"a":{"h":"general","v":"bottom"},"nf":"General"},"16":{"f":{"sz":10,"n":"Arial"},"fill":{"fg":"FEFFE1","bg":"FFFFFF"},"b":{"t":["thin","000000"],"b":["thin","000000"],"l":["thin","000000"],"r":["thin","000000"]},"a":{"h":"general","v":"bottom"},"nf":"General"},"17":{"f":{"sz":10,"n":"Arial"},"fill":{"fg":"81D41A","bg":"969696"},"b":{"t":["thin","000000"],"b":["thin","000000"],"l":["thin","000000"],"r":["thin","000000"]},"a":{"h":"general","v":"bottom"},"nf":"General"}},"sc":18};
 
 // Stores query related elements (text & overlay), AST, status about validity, widths, ..
 let query = {
@@ -68,12 +77,32 @@ let cache = {
   initialized: false
 };
 
+let picker;
+
+let debugEnabled = false;
+
+let PERFORMANCE_MODE = false;
+
+let dataTable;
+
 // Stores available network metrics and their calculation function references
 const metrics = {
   centrality: {id: "centrality", label: "Degree Centrality", calculate: async () => await calculateDegreeCentrality()},
-  betweenness: {id: "betweenness", label: "Betweenness Centrality", calculate: async () => await calculateBetweennessCentrality()},
-  closeness: {id: "closeness", label: "Closeness Centrality", calculate: async () => await calculateClosenessCentrality()},
-  eigenvector: {id: "eigenvector", label: "Eigenvector Centrality", calculate: async () => await calculateEigenvectorCentrality()},
+  betweenness: {
+    id: "betweenness",
+    label: "Betweenness Centrality",
+    calculate: async () => await calculateBetweennessCentrality()
+  },
+  closeness: {
+    id: "closeness",
+    label: "Closeness Centrality",
+    calculate: async () => await calculateClosenessCentrality()
+  },
+  eigenvector: {
+    id: "eigenvector",
+    label: "Eigenvector Centrality",
+    calculate: async () => await calculateEigenvectorCentrality()
+  },
   pagerank: {id: "pagerank", label: "PageRank", calculate: async () => await calculatePageRank()},
 };
 
@@ -108,7 +137,8 @@ const TOOLTIP_HIDE_NULL_VALUES = false;
 // Node count threshold beyond which labels and hover effects are disabled to keep the application responsive
 const MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT = 300;
 
-// If true, bubble groups avoid all non-bubble group members per default
+// If true, bubble groups avoid all non-bubble group members per default; overruled if network exceeds
+// MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT
 const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
 
 // Maximum capacity of selection memory
@@ -129,11 +159,23 @@ const EXCEL_NODE_HEADER = "Node filters";
 // Edge filter header
 const EXCEL_EDGE_HEADER = "Edge filters";
 
+// Set to true in case original g6.min.js is used and issue #7195 is NOT resolved (https://github.com/antvis/G6/issues/7195)
+const APPLY_BUBBLE_SET_HOTFIX = false;
+
+// Set to true to use current filter configuration for pushing property to query editor, e.g. if slider is inverted
+// false uses defaults (non-inverted) and min/max
+const QUERY_BTN_USE_CURRENT_FILTER = true;
+
+// Set to true to reset positions of selected elements when clicking the reset selection button in the top right selection frame
+const RESET_SELECTION_BUTTON_RESETS_POSITIONS = true;
+
 // The following constants define the columns in the Excel template for mapping node and edge properties
 // allowed types: "str", "num", "bool", "rgba", "oneOf:a|b|c"
 // @formatter:off
 const EXCEL_NODE_PROPERTIES = [
-  {column: "ID", type: "str", required: true},
+  {column: "ID", type: "str", required: true,
+    get: (n) => {return n.id}
+  },
   {column: "Label", type: "str", apply: (n, v) => {
     n.label = v;
     n.style.label = false;
@@ -143,32 +185,69 @@ const EXCEL_NODE_PROPERTIES = [
     n.style.labelBackground = DEFAULTS.NODE.BACKGROUND;
     n.style.labelBackgroundFill = DEFAULTS.NODE.BACKGROUND_COLOR;
     n.style.labelPlacement = DEFAULTS.NODE.PLACEMENT;
-  }},
-  {column: "Label Font Size", type: "num", apply: (n, v) => {n.style.labelFontSize = v; }},
+  },
+    get: (n) => {return n.label}
+  },
+  {column: "Description", type: "str",
+    apply: (n, v) => {n.description = v; },
+    get: (n) => {return n.description}
+  },
+  {column: "Shape", type: "oneOf:circle|diamond|hexagon|rect|triangle|star",
+    apply: (n, v) => {n.type = v; },
+    get: (n) => {return n.type}
+  },
+  {column: "Size", type: "num",
+    apply: (n, v) => {n.style.size = v; },
+    get: (n) => {return n.style.size}
+  },
+  {column: "Fill Color", type: "rgba",
+    apply: (n, v) => {n.style.fill = v; },
+    get: (n) => {return n.style.fill}
+  },
+  {column: "Border Size", type: "num",
+    apply: (n, v) => {n.style.lineWidth = v; },
+    get: (n) => {return n.style.lineWidth}
+  },
+  {column: "Border Color", type: "rgba",
+    apply: (n, v) => {n.style.stroke = v; },
+    get: (n) => {return n.style.stroke}
+  },
+  {column: "Label Font Size", type: "num",
+    apply: (n, v) => {n.style.labelFontSize = v; },
+    get: (n) => {return n.style.labelFontSize}
+  },
   {
     column: "Label Placement",
     type: "oneOf:left|right|top|bottom|left-top|left-bottom|right-top|right-bottom|top-left|top-right|bottom-left|"
       + "bottom-right|center",
-    apply: (n, v) => {n.style.labelPlacement = v; }
+    apply: (n, v) => {n.style.labelPlacement = v; },
+    get: (n) => {return n.style.labelPlacement}
   },
-  {column: "Label Color", type: "rgba", apply: (n, v) => {n.style.labelFill = v; }},
-  {column: "Label Background Color", type: "rgba", apply: (n, v) => {
-    n.style.labelBackground = true;
-    n.style.labelBackgroundFill = v;
-  }},
-  {column: "Description", type: "str", apply: (n, v) => {n.description = v; }},
-  {column: "Shape", type: "oneOf:circle|diamond|hexagon|rect|triangle|star", apply: (n, v) => {n.type = v; }},
-  {column: "Size", type: "num", apply: (n, v) => {n.style.size = v; }},
-  {column: "Fill Color", type: "rgba", apply: (n, v) => {n.style.fill = v; }},
-  {column: "Border Color", type: "rgba", apply: (n, v) => {n.style.stroke = v; }},
-  {column: "Border Size", type: "num", apply: (n, v) => {n.style.lineWidth = v; }},
-  {column: "X Coordinate", type: "num", apply: (n, v) => {n.style.x = v; }},
-  {column: "Y Coordinate", type: "num", apply: (n, v) => {n.style.y = v; }},
+  {column: "Label Color", type: "rgba",
+    apply: (n, v) => {n.style.labelFill = v; },
+    get: (n) => {return n.style.labelFill}
+  },
+  {column: "Label Background Color", type: "rgba",
+    apply: (n, v) => {n.style.labelBackground = true; n.style.labelBackgroundFill = v;},
+    get: (n) => {return n.style.labelBackgroundFill}
+  },
+  {column: "X Coordinate", type: "num",
+    apply: (n, v) => {n.style.x = v; },
+    get: (n) => {return n.style.x}
+  },
+  {column: "Y Coordinate", type: "num",
+    apply: (n, v) => {n.style.y = v; },
+    get: (n) => {return n.style.y}
+  },
 ];
 
 const EXCEL_EDGE_PROPERTIES = [
-  {column: "Source ID", type: "str", required: true},
-  {column: "Target ID", type: "str", required: true},
+  {column: "Source ID", type: "str", required: true,
+    get: (e) => {return e.source}
+  },
+  {column: "Target ID", type: "str", required: true,
+    get: (e) => {return e.target}
+  },
   {column: "Label", type: "str", apply: (e, v) => {
     e.label = v;
     e.style.label = false;
@@ -179,36 +258,89 @@ const EXCEL_EDGE_PROPERTIES = [
     e.style.labelAutoRotate = DEFAULTS.EDGE.LABEL.AUTO_ROTATE;
     e.style.labelBackground = DEFAULTS.EDGE.LABEL.BACKGROUND;
     e.style.labelBackgroundFill = DEFAULTS.EDGE.LABEL.BACKGROUND_COLOR;
-  }},
-  {column: "Label Font Size", type: "num", apply: (e, v) => {e.style.labelFontSize = v; }},
-  {column: "Label Placement", type: "oneOf:start|center|end", apply: (e, v) => {e.style.labelPlacement = v; }},
-  {column: "Label Color", type: "rgba", apply: (e, v) => {e.style.labelFill = v; }},
-  {column: "Label Background Color", type: "rgba", apply: (e, v) => {
-    e.style.labelBackground = true;
-    e.style.labelBackgroundFill = v;
-  }},
-  {column: "Label Offset X", type: "num", apply: (e, v) => {e.style.labelOffsetX = v; }},
-  {column: "Label Offset Y", type: "num", apply: (e, v) => {e.style.labelOffsetY = v; }},
-  {column: "Label Auto Rotate", type: "bool", apply: (e, v) => {e.style.labelAutoRotate = v; }},
-  {column: "Color", type: "rgba", apply: (e, v) => {e.style.stroke = v; }},
-  {column: "Line Width", type: "num", apply: (e, v) => {e.style.lineWidth = v; }},
-  {column: "Line Dash", type: "num", apply: (e, v) => {e.style.lineDash = v; }},
-  {column: "Type", type: "oneOf:line|cubic|quadratic|polyline", apply: (e, v) => {e.type = v; }},
-  {column: "Start Arrow", type: "bool", apply: (e, v) => {e.startArrow = v; }},
-  {column: "Start Arrow Size", type: "num", apply: (e, v) => {e.startArrowSize = v; }},
+  },
+    get: (e) => {return e.label}
+  },
+  {column: "Description", type: "str",
+    apply: (e, v) => {e.description = v; },
+    get: (e) => {return e.description}
+  },
+  {column: "Type", type: "oneOf:line|cubic|quadratic|polyline",
+    apply: (e, v) => {e.type = v; },
+    get: (e) => {return e.type}
+  },
+  {column: "Line Width", type: "num",
+    apply: (e, v) => {e.style.lineWidth = v; },
+    get: (e) => {return e.style.lineWidth}
+  },
+  {column: "Line Dash", type: "num",
+    apply: (e, v) => {e.style.lineDash = v; },
+    get: (e) => {return e.style.lineDash}
+  },
+  {column: "Color", type: "rgba",
+    apply: (e, v) => {e.style.stroke = v; },
+    get: (e) => {return e.style.stroke}
+  },
+  {column: "Label Font Size", type: "num",
+    apply: (e, v) => {e.style.labelFontSize = v; },
+    get: (e) => {return e.style.labelFontSize}
+  },
+  {column: "Label Placement", type: "oneOf:start|center|end",
+    apply: (e, v) => {e.style.labelPlacement = v; },
+    get: (e) => {return e.style.labelPlacement}
+  },
+  {column: "Label Auto Rotate", type: "bool",
+    apply: (e, v) => {e.style.labelAutoRotate = v; },
+    get: (e) => {return e.style.labelAutoRotate}
+  },
+  {column: "Label Offset X", type: "num",
+    apply: (e, v) => {e.style.labelOffsetX = v; },
+    get: (e) => {return e.style.labelOffsetX}
+  },
+  {column: "Label Offset Y", type: "num",
+    apply: (e, v) => {e.style.labelOffsetY = v; },
+    get: (e) => {return e.style.labelOffsetY}
+  },
+  {column: "Label Color", type: "rgba",
+    apply: (e, v) => {e.style.labelFill = v; },
+    get: (e) => {return e.style.labelFill}
+  },
+  {column: "Label Background Color", type: "rgba",
+    apply: (e, v) => {e.style.labelBackground = true;e.style.labelBackgroundFill = v;},
+    get: (e) => {return e.style.labelBackgroundFill}
+  },
+  {column: "Start Arrow", type: "bool",
+    apply: (e, v) => {e.startArrow = v; },
+    get: (e) => {return e.startArrow}
+  },
+  {column: "Start Arrow Size", type: "num",
+    apply: (e, v) => {e.startArrowSize = v; },
+    get: (e) => {return e.startArrowSize}
+  },
   {column: "Start Arrow Type", type: "oneOf:triangle|circle|diamond|vee|rect|triangleRect|simple",
-    apply: (e, v) => {e.startArrowType = v; }
+    apply: (e, v) => {e.startArrowType = v; },
+    get: (e) => {return e.startArrowType}
   },
-  {column: "End Arrow", type: "bool", apply: (e, v) => {e.endArrow = v; }},
-  {column: "End Arrow Size", type: "num", apply: (e, v) => {e.endArrowSize = v; }},
+  {column: "End Arrow", type: "bool",
+    apply: (e, v) => {e.endArrow = v; },
+    get: (e) => {return e.endArrow}
+  },
+  {column: "End Arrow Size", type: "num",
+    apply: (e, v) => {e.endArrowSize = v; },
+    get: (e) => {return e.endArrowSize}
+  },
   {column: "End Arrow Type", type: "oneOf:triangle|circle|diamond|vee|rect|triangleRect|simple",
-    apply: (e, v) => { e.endArrowType = v; }
+    apply: (e, v) => { e.endArrowType = v; },
+    get: (e) => {return e.endArrowType}
   },
-  {column: "Halo Color", type: "rgba", apply: (e, v) => {
-    e.style.halo = true;
-    e.style.haloStroke = v;
-  }},
-  {column: "Halo Width", type: "num", apply: (e, v) => {e.style.haloLineWidth = v; }},
+  {column: "Halo Color", type: "rgba",
+    apply: (e, v) => {e.style.halo = true; e.style.haloStroke = v;},
+    get: (e) => {return e.style.haloStroke}
+  },
+  {column: "Halo Width", type: "num",
+    apply: (e, v) => {e.style.haloLineWidth = v; },
+    get: (e) => {return e.style.haloLineWidth}
+  },
 ];
 // @formatter:on
 
@@ -252,13 +384,62 @@ const DEFAULTS = {
     "grid": {sortBy: "id", nodeSize: 32},
     "mds": {nodeSize: 32, linkDistance: 100},
   },
-  BUBBLE_SET_STYLE: {
-    "groupOne": {fill: '#403C53', fillOpacity: 0.25, stroke: '#C33D35', strokeOpacity: 1, virtualEdges: true,},
-    "groupTwo": {fill: '#c33d35', fillOpacity: 0.25, stroke: '#403c53', strokeOpacity: 1, virtualEdges: true,},
-    "groupThree": {fill: '#EFB0AA', fillOpacity: 0.4, stroke: '#8CA6D9', strokeOpacity: 1, virtualEdges: true,},
-    "groupFour": {fill: '#8CA6D9', fillOpacity: 0.4, stroke: '#EFB0AA', strokeOpacity: 1, virtualEdges: true,},
+  CUSTOM_LAYOUT_NAME: "custom",
+  BUBBLE_GROUP_STYLE: {
+    "groupOne": {
+      fill: '#403C53',
+      fillOpacity: 0.25,
+      stroke: '#C33D35',
+      strokeOpacity: 1,
+      virtualEdges: true,
+      labelFill: '#fff',
+      labelPadding: 2,
+      labelBackgroundFill: '#403C53',
+      labelBackgroundRadius: 5,
+      label: true,
+      labelText: 'group one'
+    },
+    "groupTwo": {
+      fill: '#c33d35',
+      fillOpacity: 0.25,
+      stroke: '#403c53',
+      strokeOpacity: 1,
+      virtualEdges: true,
+      labelFill: '#fff',
+      labelPadding: 2,
+      labelBackgroundFill: '#c33d35',
+      labelBackgroundRadius: 5,
+      label: true,
+      labelText: 'group two'
+    },
+    "groupThree": {
+      fill: '#EFB0AA',
+      fillOpacity: 0.4,
+      stroke: '#8CA6D9',
+      strokeOpacity: 1,
+      virtualEdges: true,
+      labelFill: '#fff',
+      labelPadding: 2,
+      labelBackgroundFill: '#EFB0AA',
+      labelBackgroundRadius: 5,
+      label: true,
+      labelText: 'group three'
+    },
+    "groupFour": {
+      fill: '#8CA6D9',
+      fillOpacity: 0.4,
+      stroke: '#EFB0AA',
+      strokeOpacity: 1,
+      virtualEdges: true,
+      labelFill: '#fff',
+      labelPadding: 2,
+      labelBackgroundFill: '#8CA6D9',
+      labelBackgroundRadius: 5,
+      label: true,
+      labelText: 'group four'
+    },
   },
-  BUBBLE_SET_QUADRANT_POSITIONS: {
+  BUBBLE_GROUP_QUADRANT_POSITIONS: {
     groupOne: "top-left", groupTwo: "top-right", groupThree: "bottom-left", groupFour: "bottom-right"
   },
   STYLES: {
@@ -321,11 +502,14 @@ const DEFAULTS = {
     },
     DRAG_CANVAS: {
       type: 'drag-canvas',
-      key: 'drag-canvas'
+      key: 'drag-canvas',
+      animation: false,
     },
     ZOOM_CANVAS: {
       type: 'zoom-canvas',
-      key: 'zoom-canvas'
+      key: 'zoom-canvas',
+      animation: false,
+
     },
     HOVER_ACTIVATE: {
       type: 'hover-activate',
@@ -339,32 +523,648 @@ const DEFAULTS = {
     LASSO_SELECT: {
       type: "lasso-select",
       key: "lasso-select",
-      trigger: "drag",
+      trigger: ["drag"],
       style: {
         fill: '#C33D35',
         fillOpacity: 0.3,
         stroke: '#C33D35'
+      },
+      enable: (event) => {
+        debug("LASSO CANVAS CLICK");
+
+        if (!APPLY_BUBBLE_SET_HOTFIX) return true;
+
+        const selected = graph.getNodeData().filter(n => n.states?.includes("selected"));
+
+        // the code below triggers a loading event instead of freezing the UI, but prevents the bubble-deselection ..
+        // const selected = graph.getNodeData().filter(n => n.states?.includes("selected"));
+        // if (selected.length > 0) {
+        //   showLoading("Rendering", "Deselecting after lasso selection event");
+        // }
+
+        // TODO: this does not allow for consecutive lasso-selections without deselection
+        if (selected.length !== 0) {
+          debug("PREVENTING LASSO DESELECT EVENT BY REMOVING CANVAS CLICK EVENT");
+          const eventHandler = graph.getEvents()["canvas:click"];
+          graph.off("canvas:click");
+          setTimeout(() => {
+            debug("RESTORING CANVAS CLICK EVENT");
+            graph.on("canvas:click", eventHandler);
+          }, 1000);
+
+          return false;
+        }
+        return true;
       }
     },
     CLICK_SELECT: {
       type: "click-select",
       key: "click-select",
       multiple: true,
-      trigger: ["shift"]
+      trigger: ["shift"],
+      // skip event.targetType === "canvas" since de-selection on large graphs is extremely slow
+      // enable: (event) => {
+      //   debug(`CLICK SELECT | ${event.targetType}`);
+      //   const selected = graph.getNodeData().filter(n => n.states?.includes("selected"));
+      //   debug(`Selected: ${selected.length}`);
+      //   if (selected.length === 1) {
+      //     // TODO: check if target node is currectly selected; if yes -> return false (de-select event)
+      //     const selNodeXMax = selected[0].style.x + selected[0].style.size;
+      //     const selNodeXMin = selected[0].style.x - selected[0].style.size;
+      //     const selNodeYMax = selected[0].style.y + selected[0].style.size;
+      //     const selNodeYMin = selected[0].style.y - selected[0].style.size;
+      //
+      //     // 1 node selected; cursor is on top of it; means this would be a de-select event leaving no remaining selected nodes
+      //     if (event.canvas.x <= selNodeXMax
+      //       && event.canvas.x >= selNodeXMin
+      //       && event.canvas.y <= selNodeYMax
+      //       && event.canvas.y >= selNodeYMin) {
+      //       debug("PREVENTING DE-SELECTION");
+      //       return false;
+      //     }
+      //   }
+      //   return event.targetType === "node" || event.targetType === "edge"
+      // },
     },
   },
 };
 
-const STATES = {
+const EVENT_LOCKS = {
   BEFORE_DRAW_RUNNING: false,
+  AFTER_DRAW_RUNNING: false,
   DRAG_END_RUNNING: false,
-  AFTER_DRAW_RUNNNING: false,
   BEFORE_RENDER_RUNNING: false,
   AFTER_RENDER_RUNNING: false,
+  BEFORE_LAYOUT_RUNNING: false,
+  AFTER_LAYOUT_RUNNING: false,
   ONCE_AFTER_RENDER_RUNNING: false,
-  INITIAL_RENDER_DONE: false
+  ONCE_AFTER_RENDER_COMPLETED: false,
+  IS_DESELECTING: false,
+  BUBBLE_GROUP_REDRAW_RUNNING: false,
+  TRIGGER_SET_LAYOUT_ONCE: false,
+  HOTKEY_EVENTS_REGISTERED: false,
+  GLOBAL_EVENTS_REGISTERED: false,
+
 }
 
+const INSTANCES = {
+  BUBBLE_GROUPS: {}
+}
+
+const INVISIBLE_DUMMY_NODE = {
+  id: "INVISIBLEDUMMYNODEWITHIMPOSSIBLEID",
+  style: {
+    visibility: "hidden"
+  }
+}
+
+const INVISIBLE_CHAR = "\u200B";
+
+class ExcelTemplate {
+  constructor(compressedData) {
+    this.compressed = compressedData;
+  }
+
+  createWorkbook(ExcelJS) {
+    const workbook = new ExcelJS.Workbook();
+
+    Object.entries(this.compressed.s).forEach(([sheetName, sheet]) => {
+      const worksheet = workbook.addWorksheet(sheetName);
+
+      // Restore data from sparse format
+      sheet.d.forEach(([rowIndex, colIndex, value]) => {
+        const cell = worksheet.getCell(rowIndex + 1, colIndex + 1);
+        cell.value = value;
+      });
+
+      // Apply styles using global style map
+      if (sheet.st) {
+        Object.entries(sheet.st).forEach(([ref, styleId]) => {
+          const cell = worksheet.getCell(ref);
+          const style = this.compressed.st[styleId];
+
+          if (style.f) {
+            cell.font = {
+              bold: style.f.b,
+              italic: style.f.i,
+              underline: style.f.u,
+              strike: style.f.s,
+              size: style.f.sz || 11,
+              name: style.f.n || 'Calibri',
+              color: style.f.c && { argb: 'FF' + style.f.c }
+            };
+          }
+
+          if (style.fill) {
+            cell.fill = {
+              type: 'pattern',
+              pattern: style.fill.p || 'solid',
+              fgColor: style.fill.fg && { argb: 'FF' + style.fill.fg },
+              bgColor: style.fill.bg && { argb: 'FF' + style.fill.bg }
+            };
+          }
+
+          if (style.b) {
+            const border = {};
+            const sides = ['top', 'bottom', 'left', 'right'];
+            const keys = ['t', 'b', 'l', 'r'];
+            keys.forEach((key, idx) => {
+              if (style.b[key]) {
+                border[sides[idx]] = {
+                  style: style.b[key][0],
+                  color: { argb: 'FF' + style.b[key][1] }
+                };
+              }
+            });
+            cell.border = border;
+          }
+
+          if (style.a) {
+            cell.alignment = {
+              horizontal: style.a.h,
+              vertical: style.a.v,
+              wrapText: style.a.w
+            };
+          }
+
+          if (style.nf) {
+            cell.numFmt = style.nf;
+          }
+        });
+      }
+    });
+
+    return workbook;
+  }
+}
+
+class ColorScalePicker {
+  constructor() {
+    this.defaultColors = {
+      min: '#403C53',
+      zero: '#FFFFFF',
+      max: '#C33D35'
+    };
+    this.handles = [];
+    this.element = null;
+    this.resolvePromise = null;
+    this.minValue = 0;
+    this.maxValue = 0;
+    this.categories = [];
+    this.defaultColorForMissing = '#CCCCCC';
+    this.elementType = "nodes";
+    this.dom = {};
+  }
+
+  createDom() {
+    const overlay = document.createElement('div');
+    overlay.className = 'picker-overlay';
+    this.dom.overlay = overlay;
+
+    const content = document.createElement('div');
+    content.className = 'picker-content';
+    this.dom.content = content;
+
+    const dropdown = document.createElement('select');
+    dropdown.className = 'picker-dropdown';
+    this.dom.dropdown = dropdown;
+
+    const gradient = document.createElement('div');
+    gradient.className = 'picker-gradient disabled';
+    this.dom.gradient = gradient;
+
+    const handleContainer = document.createElement('div');
+    handleContainer.className = 'picker-handle-container';
+    this.dom.handleContainer = handleContainer;
+
+    const controls = document.createElement('div');
+    controls.className = 'picker-controls disabled';
+    this.dom.controls = controls;
+
+    const addButton = document.createElement('button');
+    addButton.className = 'picker-button plus-minus';
+    addButton.textContent = '+';
+    addButton.onclick = () => this.addHandle();
+    this.dom.addButton = addButton;
+
+    const removeButton = document.createElement('button');
+    removeButton.className = 'picker-button plus-minus';
+    removeButton.textContent = '-';
+    removeButton.onclick = () => this.removeHandle();
+    this.dom.removeButton = removeButton;
+
+    const categoryContainer = document.createElement('div');
+    categoryContainer.className = 'picker-category-container';
+    categoryContainer.style.display = 'none';
+    this.dom.categoryContainer = categoryContainer;
+
+    controls.append(addButton, removeButton);
+    const buttons = document.createElement('div');
+    buttons.className = 'picker-button-container';
+    this.dom.buttons = buttons;
+
+    const cancelButton = document.createElement('button');
+    cancelButton.className = 'picker-button secondary';
+    cancelButton.textContent = 'Cancel';
+    cancelButton.onclick = () => this.cancel();
+    this.dom.cancelButton = cancelButton;
+
+    const defaultColorContainer = document.createElement('div');
+    defaultColorContainer.className = 'picker-default-color-container disabled';
+    this.dom.defaultColorContainer = defaultColorContainer;
+
+    const label = document.createElement('span');
+    label.textContent = 'Default color:';
+    label.title = 'Default color for elements with missing values';
+    this.dom.label = label;
+
+    const defaultColorEl = document.createElement('input');
+    defaultColorEl.type = 'color';
+    defaultColorEl.className = 'picker-default-color';
+    defaultColorEl.value = this.defaultColorForMissing;
+    defaultColorEl.addEventListener('input', (e) => {
+      this.defaultColorForMissing = e.target.value;
+    });
+    this.dom.defaultColorEl = defaultColorEl;
+
+    defaultColorContainer.append(label, defaultColorEl);
+
+    const applyButton = document.createElement('button');
+    applyButton.className = 'picker-button primary disabled';
+    applyButton.textContent = 'Apply';
+    applyButton.onclick = () => this.apply();
+    this.dom.applyButton = applyButton;
+
+    buttons.append(cancelButton, defaultColorContainer, applyButton);
+    content.append(dropdown, gradient, handleContainer, controls, categoryContainer, buttons);
+    overlay.appendChild(content);
+
+    this.element = overlay;
+    return overlay;
+  }
+
+  async pickColors(elementType = 'nodes') {
+    this.elementType = elementType;
+    return new Promise(resolve => {
+      this.resolvePromise = resolve;
+      document.body.appendChild(this.createDom());
+      this.initializeFilters();
+      this.setupHandleDragging();
+    });
+  }
+
+  initializeFilters() {
+    const dropdown = this.element.querySelector('.picker-dropdown');
+    const filters = new Map(data.layouts[data.selectedLayout].filters);
+    const available = new Set();
+
+    const selectedElements = this.elementType === 'nodes' ? cache.selectedNodes : cache.selectedEdges;
+
+    selectedElements.forEach(elementId => {
+      const element = this.elementType === 'nodes'
+        ? cache.nodeRef.get(elementId)
+        : cache.edgeRef.get(elementId);
+
+      element?.features.forEach(f => {
+        if (filters.has(f)) available.add(f);
+      });
+    });
+
+    dropdown.innerHTML = '<option value="">Select property</option>';
+    Array.from(available).sort().forEach(prop => {
+      const opt = document.createElement('option');
+      opt.value = prop;
+      opt.textContent = prop;
+      dropdown.appendChild(opt);
+    });
+
+    dropdown.onchange = () => this.selectProperty(dropdown.value, filters.get(dropdown.value));
+  }
+
+  selectProperty(property, filterObj) {
+    if (!property) return;
+
+    const selectedElements = this.elementType === 'nodes' ? cache.selectedNodes : cache.selectedEdges;
+    const elementRef = this.elementType === 'nodes' ? cache.nodeRef : cache.edgeRef;
+
+    const elementsWithProperty = Array.from(selectedElements)
+      .filter(id => {
+        const element = elementRef.get(id);
+        return element?.featureValues.has(property);
+      });
+
+    const totalElements = selectedElements.length;
+    const elementsWithPropertyCount = elementsWithProperty.length;
+
+    const existingCounter = this.element.querySelector('.picker-property-counter');
+    if (existingCounter) {
+      existingCounter.remove();
+    }
+
+    const counterEl = document.createElement('div');
+    counterEl.className = 'picker-property-counter';
+    this.element.querySelector('.picker-content').insertBefore(
+      counterEl,
+      this.element.querySelector('.picker-gradient')
+    );
+
+    const elementTypeLabel = this.elementType === 'nodes' ? 'Nodes' : 'Edges';
+    counterEl.textContent = `Affected ${elementTypeLabel}: ${elementsWithPropertyCount} / ${totalElements}`;
+
+    if (this.dom.defaultColorContainer) {
+      if (elementsWithPropertyCount === totalElements) {
+        this.dom.defaultColorContainer.classList.add('disabled');
+      } else {
+        this.dom.defaultColorContainer.classList.remove('disabled');
+      }
+    }
+
+    for (const elem of [this.dom.applyButton, this.dom.controls, this.dom.gradient]) {
+      elem.classList.remove("disabled");
+    }
+
+    if (filterObj.isCategory) {
+      this.categories = ([...filterObj.categories] || [])
+        .map(name => ({name, color: this.generateRandomColor()}));
+      this.renderCategories();
+    } else {
+      this.initializeGradient(property);
+    }
+  }
+
+  renderCategories() {
+    const gradient = this.element.querySelector('.picker-gradient');
+    const handleContainer = this.element.querySelector('.picker-handle-container');
+    const controls = this.element.querySelector('.picker-controls');
+    const categoryContainer = this.element.querySelector('.picker-category-container');
+
+    gradient.style.display = 'none';
+    handleContainer.style.display = 'none';
+    controls.style.display = 'none';
+    categoryContainer.innerHTML = '';
+    categoryContainer.style.display = 'block';
+
+    this.categories.forEach(cat => {
+      const row = document.createElement('div');
+      row.className = 'picker-category-row';
+
+      const label = document.createElement('span');
+      label.textContent = cat.name;
+
+      const colorInput = document.createElement('input');
+      colorInput.type = 'color';
+      colorInput.value = cat.color;
+      colorInput.oninput = e => {
+        cat.color = e.target.value;
+      };
+
+      row.append(label, colorInput);
+      categoryContainer.appendChild(row);
+    });
+  }
+
+  generateRandomColor() {
+    return `#${Math.floor(Math.random() * 0xFFFFFF).toString(16).padStart(6, '0')}`;
+  }
+
+  initializeGradient(property) {
+    const selectedElements = this.elementType === 'nodes' ? cache.selectedNodes : cache.selectedEdges;
+    const elementRef = this.elementType === 'nodes' ? cache.nodeRef : cache.edgeRef;
+
+    const values = Array.from(selectedElements)
+      .map(id => elementRef.get(id)?.featureValues.get(property))
+      .filter(v => v !== undefined);
+
+    this.minValue = Math.min(...values);
+    this.maxValue = Math.max(...values);
+
+    this.handles = [
+      {pos: 0, color: this.defaultColors.min, value: this.minValue, fixed: true},
+      {pos: 50, color: this.defaultColors.zero, value: (this.maxValue + this.minValue) / 2, fixed: false},
+      {pos: 100, color: this.defaultColors.max, value: this.maxValue, fixed: true}
+    ];
+
+    this.element.querySelector('.picker-gradient').style.display = 'block';
+    this.element.querySelector('.picker-handle-container').style.display = 'block';
+    this.element.querySelector('.picker-controls').style.display = 'flex';
+    this.element.querySelector('.picker-category-container').style.display = 'none';
+
+    this.renderHandles();
+    this.updateGradient();
+  }
+
+  setupHandleDragging() {
+    const container = this.element.querySelector('.picker-handle-container');
+
+    container.addEventListener('mousedown', e => {
+      const handleEl = e.target.closest('.picker-handle');
+      if (!handleEl) return;
+
+      const idx = parseInt(handleEl.dataset.index, 10);
+      const handleObj = this.handles[idx];
+      if (handleObj.fixed) return;
+
+      const onMove = moveEvent => {
+        const rect = container.getBoundingClientRect();
+        let pos = ((moveEvent.clientX - rect.left) / rect.width) * 100;
+        pos = Math.max(0, Math.min(100, pos));
+        this.updateHandlePosition(handleObj, pos);
+      };
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', () => {
+        document.removeEventListener('mousemove', onMove);
+      }, {once: true});
+    });
+  }
+
+  updateHandlePosition(handle, newPos) {
+    handle.pos = newPos;
+    handle.value = this.minValue + (newPos / 100) * (this.maxValue - this.minValue);
+
+    this.handles.sort((a, b) => a.pos - b.pos);
+
+    this.renderHandles();
+    this.updateGradient();
+  }
+
+  renderHandles() {
+    const container = this.element.querySelector('.picker-handle-container');
+    container.innerHTML = '';
+
+    this.handles.forEach((handle, i) => {
+      const element = document.createElement('div');
+      element.className = 'picker-handle';
+      element.style.left = `${handle.pos}%`;
+      element.style.backgroundColor = handle.color;
+      element.dataset.index = i;
+      element.dataset.fixed = handle.fixed;
+      element.style.zIndex = handle.fixed ? 1 : 2;
+
+      const value = document.createElement('div');
+      value.className = 'picker-handle-value';
+      value.textContent = handle.value.toFixed(2);
+
+      const colorPicker = document.createElement('input');
+      colorPicker.type = 'color';
+      colorPicker.value = handle.color;
+      colorPicker.className = 'picker-handle-color';
+      colorPicker.style.opacity = '0';
+      colorPicker.style.position = 'absolute';
+      colorPicker.style.width = '100%';
+      colorPicker.style.height = '100%';
+      colorPicker.style.cursor = 'pointer';
+
+      colorPicker.addEventListener('input', (e) => {
+        handle.color = e.target.value;
+        element.style.backgroundColor = e.target.value;
+        this.updateGradient();
+      });
+
+      if (!handle.fixed) {
+        element.style.cursor = 'move';
+      }
+
+      element.appendChild(value);
+      element.appendChild(colorPicker);
+      container.appendChild(element);
+    });
+  }
+
+  updateGradient() {
+    const gradient = this.element.querySelector('.picker-gradient');
+    const stops = [...this.handles]
+      .sort((a, b) => a.pos - b.pos)
+      .map(h => `${h.color} ${h.pos}%`)
+      .join(', ');
+    gradient.style.background = `linear-gradient(to right, ${stops})`;
+  }
+
+
+  addHandle() {
+    if (this.handles.length >= 10) return;
+
+    const newColor = this.generateRandomColor();
+
+    // Find two adjacent handles with the largest gap
+    const sortedHandles = [...this.handles].sort((a, b) => a.pos - b.pos);
+    let maxGap = 0;
+    let insertIndex = 1;
+
+    for (let i = 0; i < sortedHandles.length - 1; i++) {
+      const gap = sortedHandles[i + 1].pos - sortedHandles[i].pos;
+      if (gap > maxGap) {
+        maxGap = gap;
+        insertIndex = i + 1;
+      }
+    }
+
+    // Insert new handle at the midpoint of the largest gap
+    const pos = (sortedHandles[insertIndex - 1].pos + sortedHandles[insertIndex].pos) / 2;
+    const value = this.minValue + (pos / 100) * (this.maxValue - this.minValue);
+
+    this.handles.push({pos, color: newColor, value, fixed: false});
+    this.handles.sort((a, b) => a.pos - b.pos);
+
+    this.renderHandles();
+    this.updateGradient();
+  }
+
+  removeHandle() {
+    if (this.handles.length <= 3) return;
+    this.handles.splice(Math.floor(this.handles.length / 2), 1);
+    this.renderHandles();
+    this.updateGradient();
+  }
+
+  apply() {
+    const dropdown = this.element.querySelector('.picker-dropdown');
+    const colorMap = new Map();
+
+    const selectedElements = this.elementType === 'nodes' ? cache.selectedNodes : cache.selectedEdges;
+    const elementRef = this.elementType === 'nodes' ? cache.nodeRef : cache.edgeRef;
+
+    const filterObj = data.layouts[data.selectedLayout].filters.get(dropdown.value);
+    const isCategory = filterObj?.isCategory;
+
+    if (isCategory) {
+      const categoryColorMap = new Map(
+        this.categories.map(cat => [cat.name, cat.color])
+      );
+
+      Array.from(selectedElements).forEach(elementId => {
+        const element = elementRef.get(elementId);
+        const valueSet = element?.featureValues.get(dropdown.value);
+        const value = valueSet instanceof Set ? Array.from(valueSet)[0] : valueSet;
+
+        if (value !== undefined && categoryColorMap.has(value)) {
+          colorMap.set(elementId, categoryColorMap.get(value));
+        } else {
+          colorMap.set(elementId, this.defaultColorForMissing);
+        }
+      });
+    } else {
+      Array.from(selectedElements).forEach(elementId => {
+        const element = elementRef.get(elementId);
+        const value = element?.featureValues.get(dropdown.value);
+
+        if (value !== undefined) {
+          const normalizedValue = ((value - this.minValue) / (this.maxValue - this.minValue)) * 100;
+          const color = this.getColorForValue(normalizedValue);
+          colorMap.set(elementId, color);
+        } else {
+          colorMap.set(elementId, this.defaultColorForMissing);
+        }
+      });
+    }
+
+    this.resolvePromise(colorMap);
+    this.close();
+  }
+
+  cancel() {
+    this.resolvePromise(null);
+    this.close();
+  }
+
+  getColorForValue(normalizedValue) {
+    const sortedHandles = [...this.handles].sort((a, b) => a.pos - b.pos);
+    let lower = sortedHandles[0];
+    let upper = sortedHandles[sortedHandles.length - 1];
+
+    for (let i = 0; i < sortedHandles.length - 1; i++) {
+      if (sortedHandles[i].pos <= normalizedValue && sortedHandles[i + 1].pos >= normalizedValue) {
+        lower = sortedHandles[i];
+        upper = sortedHandles[i + 1];
+        break;
+      }
+    }
+
+    const t = (normalizedValue - lower.pos) / (upper.pos - lower.pos);
+    return this.interpolateColor(lower.color, upper.color, t);
+  }
+
+  interpolateColor(color1, color2, t) {
+    const r1 = parseInt(color1.slice(1, 3), 16);
+    const g1 = parseInt(color1.slice(3, 5), 16);
+    const b1 = parseInt(color1.slice(5, 7), 16);
+
+    const r2 = parseInt(color2.slice(1, 3), 16);
+    const g2 = parseInt(color2.slice(3, 5), 16);
+    const b2 = parseInt(color2.slice(5, 7), 16);
+
+    const r = Math.round(r1 + (r2 - r1) * t);
+    const g = Math.round(g1 + (g2 - g1) * t);
+    const b = Math.round(b1 + (b2 - b1) * t);
+
+    return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
+  }
+
+  close() {
+    this.element?.remove();
+    this.element = null;
+  }
+}
 
 class NetworkMetrics {
   constructor() {
@@ -407,6 +1207,8 @@ class NetworkMetrics {
   }
 
   async updateUI() {
+    if (!cache.visibleElementsChanged) return;
+
     const metricName = this.m[this.selected].label;
     await showLoading("Calculating", `Network Metric: ${metricName}`);
     await new Promise(resolve => requestAnimationFrame(resolve));
@@ -915,7 +1717,7 @@ async function calculateEigenvectorCentrality() {
   }
 
   // Power iteration method
-  let eigenVector = Array(n).fill(1/n);
+  let eigenVector = Array(n).fill(1 / n);
   let prevEigenVector;
   const maxIterations = 100;
   const tolerance = 1e-6;
@@ -1040,13 +1842,13 @@ async function calculatePageRank() {
     } else {
       // For isolated nodes, distribute probability evenly
       for (let j = 0; j < n; j++) {
-        matrix[j][i] = 1/n;
+        matrix[j][i] = 1 / n;
       }
     }
   }
 
   const d = 0.85;
-  let scores = Array(n).fill(1/n);
+  let scores = Array(n).fill(1 / n);
   let prevScores;
   const maxIter = 100;
   const tolerance = 1e-6;
@@ -1054,7 +1856,7 @@ async function calculatePageRank() {
   // Power iteration method remains the same
   for (let iter = 0; iter < maxIter; iter++) {
     prevScores = [...scores];
-    scores = Array(n).fill((1-d)/n);
+    scores = Array(n).fill((1 - d) / n);
 
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n; j++) {
@@ -1311,6 +2113,21 @@ class QueryAST {
   }
 }
 
+function resetEventLocks() {
+  EVENT_LOCKS.BEFORE_DRAW_RUNNING = false;
+  EVENT_LOCKS.AFTER_DRAW_RUNNING = false;
+  EVENT_LOCKS.DRAG_END_RUNNING = false;
+  EVENT_LOCKS.BEFORE_RENDER_RUNNING = false;
+  EVENT_LOCKS.AFTER_RENDER_RUNNING = false;
+  EVENT_LOCKS.BEFORE_LAYOUT_RUNNING = false;
+  EVENT_LOCKS.AFTER_LAYOUT_RUNNING = false;
+  EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING = false;
+  EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED = false;
+  EVENT_LOCKS.IS_DESELECTING = false;
+  EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING = false;
+  EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = false;
+}
+
 function isString(value) {
   return typeof value === 'string' || value instanceof String;
 }
@@ -1344,17 +2161,23 @@ function isHexColor(value) {
   return hexRegex.test(value.trim());
 }
 
-function createDefaultLayout(key) {
+function createDefaultLayout(key, overridePositionsFromExcel=false) {
   const defLayout = {
     internals: DEFAULTS.LAYOUT_INTERNALS[key] || null,
     positions: new Map(),
     filters: structuredClone(data.filterDefaults),
     isCustom: false,
-    query: undefined
+    query: undefined,
   };
 
-  for (const [nodeID, positions] of cache.nodePositionsFromExcelImport) {
-    defLayout.positions.set(nodeID, {x: positions.x, y: positions.y});
+  if (overridePositionsFromExcel) {
+    // applies given coordinates from Excel template; remaining positions will be force layouted
+    for (const [nodeID, positions] of cache.nodePositionsFromExcelImport) {
+      defLayout.positions.set(nodeID, {style: {x: positions.x, y: positions.y}});
+    }
+    defLayout.type = DEFAULTS.LAYOUT;
+    defLayout.internals = DEFAULTS.LAYOUT_INTERNALS[DEFAULTS.LAYOUT];
+    defLayout.isCustom = true;
   }
 
   for (let group of traverseBubbleSets()) {
@@ -1383,9 +2206,7 @@ function parseLayouts(jsonLayouts) {
     parsedLayouts[key] = {
       internals: layout.internals || null,
       positions: new Map(Object.entries(layout.positions || {})),
-      filters: new Map(Object.entries(layout.filters || {}).map(([key, value]) => [key, {
-        ...value, ...parseGroups(value),
-      },])),
+      filters: parseFiltersAsMap(layout.filters),
       isCustom: layout.isCustom || false,
       query: layout["query"] || undefined
     };
@@ -1395,6 +2216,15 @@ function parseLayouts(jsonLayouts) {
     }
   });
   return parsedLayouts;
+}
+
+function parseFiltersAsMap(filtersObj) {
+  if (filtersObj instanceof Map) {
+    return structuredClone(filtersObj);
+  }
+
+  return new Map(Object.entries(filtersObj || {})
+    .map(([key, value]) => [key, {...value, ...parseGroups(value)}]));
 }
 
 function getReadableForegroundColor(hex) {
@@ -1426,20 +2256,20 @@ function getTargetEdges(propID) {
   );
 }
 
+async function getSelectedNodes() {
+  return await graph.getNodeData().filter(n => n.states?.includes("selected"));
+}
+
 async function layoutSelectedNodes(action) {
   if (cache.selectedNodes.length === 0) return;
-
-  async function getSelectedNodes() {
-    return await graph.getNodeData().filter((node) => cache.selectedNodes.includes(node.id));
-  }
 
   async function groupOrSpreadSelectedNodes(scale) {
     for (const node of await getSelectedNodes()) {
       const oldX = node.style.x;
       const oldY = node.style.y;
 
-      node.style.x = avgX + (oldX - avgX) * scale;
-      node.style.y = avgY + (oldY - avgY) * scale;
+      node.style.x = origAvgX + (oldX - origAvgX) * scale;
+      node.style.y = origAvgY + (oldY - origAvgY) * scale;
     }
   }
 
@@ -1450,8 +2280,8 @@ async function layoutSelectedNodes(action) {
     let i = 0;
     for (const node of await getSelectedNodes()) {
       const angle = i * angleStep;
-      node.style.x = avgX + radius * Math.cos(angle);
-      node.style.y = avgY + radius * Math.sin(angle);
+      node.style.x = origAvgX + radius * Math.cos(angle);
+      node.style.y = origAvgY + radius * Math.sin(angle);
       i++;
     }
   }
@@ -1472,7 +2302,7 @@ async function layoutSelectedNodes(action) {
     // -----------------------------
     // Larger initial placement range
     // -----------------------------
-    const nodes = getSelectedNodes();
+    const nodes = await getSelectedNodes();
     for (const node of nodes) {
       node.style.x = Math.random() * 1000 - 500;  // Range: [-500, 500]
       node.style.y = Math.random() * 1000 - 500;  // Range: [-500, 500]
@@ -1567,42 +2397,94 @@ async function layoutSelectedNodes(action) {
       for (let col = 0; col < columns; col++) {
         if (idx >= count) break;
         const node = nodes[idx];
-        node.style.x = avgX - totalWidth / 2 + col * spacing;
-        node.style.y = avgY - totalHeight / 2 + row * spacing;
+        node.style.x = origAvgX - totalWidth / 2 + col * spacing;
+        node.style.y = origAvgY - totalHeight / 2 + row * spacing;
         idx++;
       }
     }
   }
 
   async function applyRandomLayout() {
-    for (const node of await getSelectedNodes()) {
-      node.style.x = minX + Math.random() * xDistance;
-      node.style.y = minY + Math.random() * yDistance;
+    const nodes = await getSelectedNodes();
+    if (nodes.length < 2) return;
+
+    // ALWAYS use the fixed original bounding‐box:
+    const centerX = origCenterX;
+    const centerY = origCenterY;
+    const width = origWidth;
+    const height = origHeight;
+
+    // If you really want rotation (see note below), be aware a rotated
+    // rectangle has a larger AABB—but we’re not recomputing the AABB,
+    // so the outer box stays fixed at origWidth × origHeight.
+    const angle = Math.random() * 2 * Math.PI;
+
+    // Pick two anchors to go to two opposite corners of the ROTATED rectangle
+    // (but the *axis‐aligned* bounding-box of that rotated rectangle is still
+    // held “virtually” at origWidth×origHeight; we do not “re‐read” min/max from it).
+    const [anchor1, anchor2] = getRandomElements(nodes, 2);
+
+    // Rotate those two anchors to the “corners” of a width×height box at random angle:
+    // corner1 ( +width/2, +height/2 ) after rotation; corner2 ( -width/2, -height/2 ).
+    anchor1.style.x = centerX + (width / 2) * Math.cos(angle) - (height / 2) * Math.sin(angle);
+    anchor1.style.y = centerY + (width / 2) * Math.sin(angle) + (height / 2) * Math.cos(angle);
+
+    anchor2.style.x = centerX - (width / 2) * Math.cos(angle) + (height / 2) * Math.sin(angle);
+    anchor2.style.y = centerY - (width / 2) * Math.sin(angle) - (height / 2) * Math.cos(angle);
+
+    // Now scatter the rest uniformly inside that same rotated box:
+    for (const node of nodes) {
+      if (node === anchor1 || node === anchor2) continue;
+
+      // pick a random (u,v) in [–0.5..+0.5] × [–0.5..+0.5]
+      const u = Math.random() - 0.5;
+      const v = Math.random() - 0.5;
+
+      // scale to [–width/2..+width/2], [–height/2..+height/2]
+      const dx = u * width;
+      const dy = v * height;
+
+      // rotate (dx,dy) around origin by “angle”
+      node.style.x = centerX + dx * Math.cos(angle) - dy * Math.sin(angle);
+      node.style.y = centerY + dx * Math.sin(angle) + dy * Math.cos(angle);
     }
   }
 
-  const selectedNodes = new Map(
-    [...data.layouts[data.selectedLayout].positions]
-      .filter(([key]) => cache.selectedNodes.includes(key))
-  );
-  const selectedNodesCoords = [...selectedNodes.values()];
-  const avgX = selectedNodesCoords.reduce((sum, pos) => sum + pos.x, 0) / selectedNodesCoords.length;
-  const avgY = selectedNodesCoords.reduce((sum, pos) => sum + pos.y, 0) / selectedNodesCoords.length;
-  const minX = Math.min(...selectedNodesCoords.map((pos) => pos.x));
-  const maxX = Math.max(...selectedNodesCoords.map((pos) => pos.x));
-  const minY = Math.min(...selectedNodesCoords.map((pos) => pos.y));
-  const maxY = Math.max(...selectedNodesCoords.map((pos) => pos.y));
-  const xDistance = maxX - minX;
-  const yDistance = maxY - minY;
+  function getRandomElements(array, n) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled.slice(0, n);
+  }
+
+  const sel = await getSelectedNodes();
+  if (sel.length == 0) return;
+
+  const coords = sel.map(n => ({x: n.style.x, y: n.style.y}));
+
+  const origAvgX = coords.reduce((sum, pos) => sum + pos.x, 0) / coords.length;
+  const origAvgY = coords.reduce((sum, pos) => sum + pos.y, 0) / coords.length;
+  const origMinX = Math.min(...coords.map((pos) => pos.x));
+  const origMaxX = Math.max(...coords.map((pos) => pos.x));
+  const origMinY = Math.min(...coords.map((pos) => pos.y));
+  const origMaxY = Math.max(...coords.map((pos) => pos.y));
+
+  const origCenterX = (origMinX + origMaxX) / 2;
+  const origCenterY = (origMinY + origMaxY) / 2;
+  const origWidth = origMaxX - origMinX;
+  const origHeight = origMaxY - origMinY;
+
 
   const eventLabels = {
-    "shrink": "Shrinking Selected Nodes in Layout",
-    "expand": "Expanding Selected Nodes in Layout",
-    "circle": "Applying Circular Layout to Selected Nodes",
-    "force": "Applying Force Layout to Selected Nodes",
-    "grid": "Applying Grid Layout to Selected Nodes",
-    "random": "Applying Random Layout to Selected Nodes",
-  }
+    "shrink": "Shrink selected nodes toward their center",
+    "expand": "Expand selected nodes outward from their center",
+    "circle": "Arrange selected nodes evenly in a circular layout",
+    "force": "Apply a force-directed layout to selected nodes",
+    "grid": "Align selected nodes in a uniform grid layout",
+    "random": "Distribute selected nodes randomly while preserving the original layout bounds"
+  };
 
   const layoutActions = {
     "shrink": () => groupOrSpreadSelectedNodes(0.5),
@@ -1615,7 +2497,34 @@ async function layoutSelectedNodes(action) {
 
   await layoutActions[action]();
   await persistNodePositions();
-  await handleStyleChangeLoadingEvent(action, eventLabels[action]);
+  await handleLayoutChangeLoadingEvent(action, eventLabels[action]);
+}
+
+async function getPositions() {
+  const posCopy = [];
+  for (const node of await graph.getNodeData()) {
+    posCopy.push({
+      id: node.id,
+      style: {
+        x: node.style.x,
+        y: node.style.y
+      }
+    });
+  }
+  return posCopy;
+}
+
+async function debugPositions() {
+  for (const node of await getPositions()) {
+    debug(`${node.id} | ${node.style.x} | ${node.style.y}`);
+  }
+}
+
+async function persistNodePositions() {
+  debug("PERSISTING NODE POSITIONS ..");
+  for (const node of await graph.getNodeData()) {
+    data.layouts[data.selectedLayout].positions.set(node.id, {style: {x: node.style.x, y: node.style.y}});
+  }
 }
 
 function createStyleDiv() {
@@ -1628,11 +2537,12 @@ function createStyleDiv() {
     return row;
   }
 
-  function appendVerticalRule(parent, label = undefined, tooltip = undefined, id=undefined) {
+  function appendVerticalRule(parent, label = undefined, tooltip = undefined, id = undefined, customCSSClass = undefined) {
     const verticalRule = document.createElement("div");
     verticalRule.className = "vr";
+    if (customCSSClass) verticalRule.classList.add(customCSSClass);
     parent.appendChild(verticalRule);
-    appendLabel(parent, label, tooltip, id);
+    appendLabel(parent, label, tooltip, id, customCSSClass);
   }
 
   function createLabel(labelText, tooltip = undefined) {
@@ -1647,27 +2557,33 @@ function createStyleDiv() {
     return null;
   }
 
-  function appendLabel(parent, labelText, tooltip = undefined, id=undefined) {
+  function appendLabel(parent, labelText, tooltip = undefined, id = undefined, customCSSClass = undefined) {
     const label = createLabel(labelText, tooltip);
     if (id) label.id = id;
+    if (customCSSClass) label.classList.add(customCSSClass);
     if (label) parent.appendChild(label);
   }
 
-  function createCard(label) {
+  function createCard(label, parent=undefined) {
     const card = document.createElement("div");
     card.classList.add("card-labeled");
     card.dataset.label = label;
     card.id = label;
-    root.appendChild(card);
+    if (parent) {
+      parent.appendChild(card);
+    } else {
+      root.appendChild(card);
+    }
     return card;
   }
 
-  function createSwitch(callback = undefined, inputId = undefined) {
+  function createSwitch(callback = undefined, inputId = undefined, enabledByDefault = false) {
     const label = document.createElement('label');
     label.className = 'switch';
 
     const input = document.createElement('input');
     input.type = 'checkbox';
+    input.checked = enabledByDefault;
 
     const span = document.createElement('span');
     span.className = 'slider round';
@@ -1682,94 +2598,116 @@ function createStyleDiv() {
     }
 
     label.append(input, span);
+
+    label.setChecked = (checked) => {
+      input.checked = checked;
+    };
+
+    label.toggle = () => {
+      input.checked = !input.checked;
+    };
+
+    label.isChecked = () => input.checked;
+
     return label;
   }
 
   async function handleStyleChangeEvent(property, value) {
+    const commands = [];
+
+    if (value === "set_continuous_color_scale") {
+      commands.push("set_continuous_color_scale");
+    }
+
+    if (property.startsWith("Bubble Set")) {
+      await updateBubbleSetStyle(property, value);
+      return;
+    }
+
     switch (property) {
       case "Node Size":
-        await updateNodes({style: {size: value}});
+        await updateNodes({style: {size: value}}, commands);
         break;
       case "Node Border Size":
-        await updateNodes({style: {lineWidth: value}});
+        await updateNodes({style: {lineWidth: value}}, commands);
         break;
       case "Node Label Font Size":
-        await updateNodes({style: {labelFontSize: value}});
+        await updateNodes({style: {labelFontSize: value}}, commands);
         break;
       case "Node Label Font Color":
-        await updateNodes({style: {labelFill: value}});
+        await updateNodes({style: {labelFill: value}}, commands);
         break;
       case "Node Label Background Color":
-        await updateNodes({style: {labelBackground: true, labelBackgroundFill: value}});
+        await updateNodes({style: {labelBackground: true, labelBackgroundFill: value}}, commands);
         break;
       case "Node Fill Color":
-        await updateNodes({style: {fill: value}});
+        await updateNodes({style: {fill: value}}, commands);
         break;
       case "Node Border Color":
-        await updateNodes({style: {stroke: value}});
+        await updateNodes({style: {stroke: value}}, commands);
         break;
       case "Node Label Color":
-        await updateNodes({style: {labelFill: value}});
+        await updateNodes({style: {labelFill: value}}, commands);
         break;
       case "Node Label Placement":
-        await updateNodes({style: {labelPlacement: value}});
+        await updateNodes({style: {labelPlacement: value}}, commands);
         break;
       case "Edge Color":
-        await updateEdges({style: {stroke: value}});
+        await updateEdges({style: {stroke: value}}, commands);
         break;
       case "Edge Width":
-        await updateEdges({style: {lineWidth: value}});
+        await updateEdges({style: {lineWidth: value}}, commands);
         break;
       case "Edge Dash":
-        await updateEdges({style: {lineDash: value}});
+        await updateEdges({style: {lineDash: value}}, commands);
         break;
       case "Edge Label Font Size":
-        await updateEdges({style: {labelFontSize: value}});
+        await updateEdges({style: {labelFontSize: value}}, commands);
         break;
       case "Edge Label Offset X":
-        await updateEdges({style: {labelOffsetX: value}});
+        await updateEdges({style: {labelOffsetX: value}}, commands);
         break;
       case "Edge Label Offset Y":
-        await updateEdges({style: {labelOffsetY: value}});
+        await updateEdges({style: {labelOffsetY: value}}, commands);
         break;
       case "Edge Label Placement":
-        await updateEdges({style: {labelPlacement: value}});
+        await updateEdges({style: {labelPlacement: value}}, commands);
         break;
       case "Edge Label Font Color":
-        await updateEdges({style: {labelFill: value}});
+        await updateEdges({style: {labelFill: value}}, commands);
         break;
       case "Edge Label Background Color":
-        await updateEdges({style: {labelBackground: true, labelBackgroundFill: value}});
+        await updateEdges({style: {labelBackground: true, labelBackgroundFill: value}}, commands);
         break;
       case "Edge Label Auto Rotate":
-        await updateEdges({style: {labelAutoRotate: value}});
+        await updateEdges({style: {labelAutoRotate: value}}, commands);
         break;
       case "Edge Start Arrow":
-        await updateEdges({style: {startArrow: value}});
+        await updateEdges({style: {startArrow: value}}, commands);
         break;
       case "Edge End Arrow":
-        await updateEdges({style: {endArrow: value}});
+        await updateEdges({style: {endArrow: value}}, commands);
         break;
       case "Edge Start Arrow Size":
-        await updateEdges({style: {startArrowSize: value}});
+        await updateEdges({style: {startArrowSize: value}}, commands);
         break;
       case "Edge End Arrow Size":
-        await updateEdges({style: {endArrowSize: value}});
+        await updateEdges({style: {endArrowSize: value}}, commands);
         break;
       case "Edge Start Arrow Type":
-        await updateEdges({style: {startArrowType: value}});
+        await updateEdges({style: {startArrowType: value}}, commands);
         break;
       case "Edge End Arrow Type":
-        await updateEdges({style: {endArrowType: value}});
+        await updateEdges({style: {endArrowType: value}}, commands);
         break;
       case "Edge Halo":
-        await updateEdges({style: {halo: value}});
+        await updateEdges({style: {halo: value}}, commands);
         break;
       case "Edge Halo Width":
-        await updateEdges({style: {haloLineWidth: value}});
+        await updateEdges({style: {haloLineWidth: value}}, commands);
         break;
       case "Edge Halo Color":
-        await updateEdges({style: {haloStroke: value}});
+        await updateEdges({style: {haloStroke: value}}, commands);
         break;
       default:
         break;
@@ -1878,9 +2816,10 @@ function createStyleDiv() {
     return colorPicker;
   }
 
-  function createColorControls(parent, property, defaultColor, colors) {
+  function createColorControls(parent, property, defaultColor, colors, continuousScaleBtn=true, customCSSClass=undefined) {
     const colorButtonDiv = document.createElement("div");
     colorButtonDiv.className = "style-color-button-container";
+    if (customCSSClass) colorButtonDiv.classList.add(customCSSClass);
 
     for (const [label, value] of Object.entries(colors)) {
       const colorButton = document.createElement("button");
@@ -1898,6 +2837,8 @@ function createStyleDiv() {
         colorInput.value = value;
         await handleStyleChangeEvent(property, value);
       };
+
+      if (customCSSClass) colorButton.classList.add(customCSSClass);
       colorButtonDiv.appendChild(colorButton);
     }
 
@@ -1918,7 +2859,7 @@ function createStyleDiv() {
     colorInput.type = "text";
     colorInput.value = defaultColor;
     colorInput.classList.add("style-input");
-    colorInput.title = `Set ${property} of the selected elements to a color of choice (RGBA hex color code).`;
+    colorInput.title = `Set ${property} of the selected elements to a color of choice (RGBA hex color code). Confirm with Enter`;
     colorInput.placeholder = `Enter Color`;
 
     colorInput.addEventListener("keypress", async function (event) {
@@ -1928,8 +2869,26 @@ function createStyleDiv() {
       }
     });
 
+    if (customCSSClass) {
+      colorPicker.classList.add(customCSSClass);
+      colorInput.classList.add(customCSSClass);
+    }
+
     parent.appendChild(colorPicker);
     parent.appendChild(colorInput);
+
+    if (continuousScaleBtn) {
+      const contScaleBtn = document.createElement("button");
+      contScaleBtn.className = "style-inner-button style-color-button style-color-gradient-button";
+      contScaleBtn.title = `Set ${property} of the selected elements to a continuous scale.`;
+      contScaleBtn.onclick = async () => {
+        colorInput.value = "";
+        await handleStyleChangeEvent(property, "set_continuous_color_scale");
+      };
+
+      if (customCSSClass) contScaleBtn.classList.add(customCSSClass)
+      parent.appendChild(contScaleBtn);
+    }
   }
 
   function createLabelControls(parent, property, isNode = null) {
@@ -1949,8 +2908,8 @@ function createStyleDiv() {
         labelInput.value = "";
         const sharedOverride = {
           style: {
-            label: false,
-            labelText: undefined
+            label: true,
+            labelText: INVISIBLE_CHAR
           }
         };
         isNode ? await updateNodes(sharedOverride) : await updateEdges(sharedOverride);
@@ -1976,7 +2935,7 @@ function createStyleDiv() {
     parent.appendChild(clearLabelButton);
   }
 
-  function createButton(label, tooltip, callback, id=undefined) {
+  function createButton(label, tooltip, callback, id = undefined) {
     const btn = document.createElement("button");
     btn.textContent = label;
     btn.title = tooltip;
@@ -2067,6 +3026,63 @@ function createStyleDiv() {
     });
   }
 
+  function createFocusCard() {
+    const focDiv = createCard("Focus Elements");
+    const row = createNewRow(focDiv);
+
+    appendLabel(row, "Node ID/Label", "Select the Node ID or Label to focus.", "nodeFocusLabel");
+    appendEditableDropdown(row, true);
+
+    appendVerticalRule(row);
+
+    appendLabel(row, "Edge ID/Label", "Select the Edge ID or Label to focus.", "edgeFocusLabel");
+    appendEditableDropdown(row, false);
+  }
+
+  function appendEditableDropdown(parent, isNode, widthInPx=220) {
+    const input = document.createElement('input');
+    const dataListID = `focusOptions${isNode ? 'Node' : 'Edge'}`;
+    input.setAttribute('list', dataListID);
+    input.placeholder = `Search ${isNode ? 'node' : 'edge'} ID or label...`;
+    input.classList.add('style-input');
+    input.style.width = `${widthInPx}px`;
+
+    const datalist = document.createElement('datalist');
+    datalist.id = dataListID;
+
+    const sourceMap = isNode
+      ? cache.nodeIDOrLabelToNodeIDs
+      : cache.edgeIDOrLabelToEdgeIDs;
+
+    for (const key of sourceMap.keys()) {
+      const option = document.createElement('option');
+      option.value = key;
+      datalist.appendChild(option);
+    }
+
+    const focusButton = document.createElement('button');
+    focusButton.textContent = 'Focus';
+    focusButton.classList.add('style-inner-button');
+    focusButton.onclick = async () => {
+      const selectedValue = input.value;
+      if (selectedValue) {
+        const ids = sourceMap.get(selectedValue);
+        if (ids) {
+          if (ids.size !== 1) {
+            warning(`Ambiguous selection: ${selectedValue} matches ${ids.size} ${isNode ? 'nodes' : 'edges'} (${Array.from(ids).join(',')}).`);
+          }
+          await focusElements(ids, isNode);
+        } else {
+          warning(`No ${isNode ? 'node' : 'edge'} found for: ${selectedValue}`);
+        }
+      }
+    };
+
+    parent.appendChild(input);
+    parent.appendChild(datalist);
+    parent.appendChild(focusButton);
+  }
+
   function createSelectCard() {
     const selDiv = createCard("Select Elements");
 
@@ -2101,7 +3117,7 @@ function createStyleDiv() {
     const topTwoNodeIDs = data?.nodes?.slice(0, 2).map(n => n.id).join(',') || 'Node1,Node2';
     const nodeIDsInput = createInput(204, topTwoNodeIDs, nodeIDsTT, undefined,
       async (val) => {
-        await addNodeOrEdgeIDsToSelection(val, true);
+        await addNodeOrEdgeIDsToSelectionWrapper(val, true);
       });
     nodeIDsInput.id = "selectByNodeIDsInput";
     rowTwo.appendChild(nodeIDsInput);
@@ -2121,7 +3137,7 @@ function createStyleDiv() {
     const includeNodesByIdBtn = createButton("Include", "Add the selected nodes to the selection", async () => {
       const elements = document.getElementById("selectByNodeIDsInput").value;
       if (elements) {
-        await addNodeOrEdgeIDsToSelection(elements, true);
+        await addNodeOrEdgeIDsToSelectionWrapper(elements, true);
       }
     }, "selectByNodeIDsButton");
     rowTwo.appendChild(includeNodesByIdBtn);
@@ -2131,7 +3147,7 @@ function createStyleDiv() {
     const topTwoEdgeIDs = data?.edges?.slice(0, 2).map(e => e.id).join(',') || 'Node1::Node2,Node1::Node3';
     const edgeIDsInput = createInput(204, topTwoEdgeIDs, edgeIDsTT, undefined,
       async (val) => {
-        await addNodeOrEdgeIDsToSelection(val, false);
+        await addNodeOrEdgeIDsToSelectionWrapper(val, false);
       });
     edgeIDsInput.id = "selectByEdgeIDsInput";
     rowTwo.appendChild(edgeIDsInput);
@@ -2151,10 +3167,83 @@ function createStyleDiv() {
     const includeEdgesByIdBtn = createButton("Include", "Add the selected nodes to the selection", async () => {
       const elements = document.getElementById("selectByEdgeIDsInput").value;
       if (elements) {
-        await addNodeOrEdgeIDsToSelection(elements, false);
+        await addNodeOrEdgeIDsToSelectionWrapper(elements, false);
       }
     }, "selectByEdgeIDsButton");
     rowTwo.appendChild(includeEdgesByIdBtn);
+
+    conditionallyCreateNodeOrEdgeSelectionRow(selDiv);
+  }
+
+  function conditionallyCreateNodeOrEdgeSelectionRow(selDiv) {
+    let row;
+    if (cache.nodeLabels.length > 0 || cache.edgeLabels.length > 0) {
+      row = createNewRow(selDiv);
+    }
+
+    if (cache.nodeLabels.length > 0) {
+      const nodeLabelsTT = "Enter comma-separated list of node labels to add/remove to/from selection\nConfirm with Enter";
+      appendLabel(row, "Node Label(s)", nodeLabelsTT);
+      const topTwoNodeLabels = cache.nodeLabels?.slice(0, 2).join(',') || 'Label1,Label2';
+      const nodeLabelsInput = createInput(200, topTwoNodeLabels, nodeLabelsTT, undefined,
+        async (val) => {
+          await addNodeOrEdgeLabelsToSelectionWrapper(val, true);
+        });
+      nodeLabelsInput.id = "selectByNodeLabelsInput";
+      row.appendChild(nodeLabelsInput);
+      const nodeLabelsInputSwitch = createSwitch(e => {
+        const btn = document.getElementById("selectByNodeLabelsButton");
+        if (e.target.checked) {
+          btn.textContent = "Exclude";
+          btn.classList.add("red");
+          btn.title = "Remove the selected nodes from the selection";
+        } else {
+          btn.textContent = "Include";
+          btn.classList.remove("red");
+          btn.title = "Add the selected nodes to the selection";
+        }
+      }, "selectByNodeLabelsSwitch");
+      row.appendChild(nodeLabelsInputSwitch);
+      const includeNodesByLabelBtn = createButton("Include", "Add the selected nodes to the selection", async () => {
+        const elements = document.getElementById("selectByNodeLabelsInput").value;
+        if (elements) {
+          await addNodeOrEdgeLabelsToSelectionWrapper(elements, true);
+        }
+      }, "selectByNodeLabelsButton");
+      row.appendChild(includeNodesByLabelBtn);
+    }
+
+    if (cache.edgeLabels.length > 0) {
+      const edgeLabelsTT = "Enter comma-separated list of edge Labels to add/remove to/from selection\nConfirm with Enter";
+      appendVerticalRule(row, "Edge Label(s)", edgeLabelsTT);
+      const topTwoEdgeLabels = cache.edgeLabels.slice(0, 2).join(',') || 'Label1,Label2';
+      const edgeLabelsInput = createInput(200, topTwoEdgeLabels, edgeLabelsTT, undefined,
+        async (val) => {
+          await addNodeOrEdgeLabelsToSelectionWrapper(val, false);
+        });
+      edgeLabelsInput.id = "selectByEdgeLabelsInput";
+      row.appendChild(edgeLabelsInput);
+      const edgeLabelsInputSwitch = createSwitch(e => {
+        const btn = document.getElementById("selectByEdgeLabelsButton");
+        if (e.target.checked) {
+          btn.textContent = "Exclude";
+          btn.classList.add("red");
+          btn.title = "Remove the selected edges from the selection";
+        } else {
+          btn.textContent = "Include";
+          btn.classList.remove("red");
+          btn.title = "Add the selected edges to the selection";
+        }
+      }, "selectByEdgeLabelsSwitch");
+      row.appendChild(edgeLabelsInputSwitch);
+      const includeEdgesByLabelBtn = createButton("Include", "Add the selected nodes to the selection", async () => {
+        const elements = document.getElementById("selectByEdgeLabelsInput").value;
+        if (elements) {
+          await addNodeOrEdgeLabelsToSelectionWrapper(elements, false);
+        }
+      }, "selectByEdgeLabelsButton");
+      row.appendChild(includeEdgesByLabelBtn);
+    }
   }
 
   function createArrangeNodesCard() {
@@ -2170,9 +3259,9 @@ function createStyleDiv() {
       () => layoutSelectedNodes("circle"));
     appendButton(rowOne, "Force", "Apply a force-directed layout to the selected nodes.",
       () => layoutSelectedNodes("force"));
-    appendButton(rowOne, "Grid", "Apply a grid layout to the selected nodes.",
+    appendButton(rowOne, "Grid", "Apply a uniform grid layout to the selected nodes.",
       () => layoutSelectedNodes("grid"));
-    appendButton(rowOne, "Random", "Apply a random layout to the selected nodes.",
+    appendButton(rowOne, "Random", "Apply a random layout to the selected nodes while preserving the original layout bonds.",
       () => layoutSelectedNodes("random"));
   }
 
@@ -2302,15 +3391,101 @@ function createStyleDiv() {
       {min: 1, max: 30, step: 1}, "Define the halo width for the selected edges.");
   }
 
+  function createBubbleSetConfigCard() {
+    const bubbleDiv = createCard("Bubble Set Configuration");
+    const optionalCSSClass = "bubbleSetOptionalLabelConfig";
+
+    let rowCount = 0;
+    for (const group of traverseBubbleSets()) {
+      rowCount++;
+
+      const card = createCard(`Bubble Set ${rowCount}`, bubbleDiv);
+      card.id = `bubbleSetStyleCard${group}`;
+
+      const rowOne = createNewRow(card);
+      appendLabel(rowOne, "Fill Color");
+      createColorControls(rowOne, `Bubble Set ${group} Fill Color`, data.bubbleSetStyle[group].fill, [], false);
+      appendVerticalRule(rowOne, "Fill Opacity");
+      createNumericalSlider(rowOne, `Bubble Set ${group} Fill Opacity`, data.bubbleSetStyle[group].fillOpacity,
+        {min: 0, max: 1, step: 0.01}, `Define the fill opacity of the bubble set ${group}.`);
+      appendVerticalRule(rowOne, "Stroke Color");
+      createColorControls(rowOne, `Bubble Set ${group} Stroke Color`, data.bubbleSetStyle[group].stroke, [], false);
+      appendVerticalRule(rowOne, "Stroke Opacity");
+      createNumericalSlider(rowOne, `Bubble Set ${group} Stroke Opacity`, data.bubbleSetStyle[group].strokeOpacity,
+        {min: 0, max: 1, step: 0.01}, `Define the stroke opacity of the bubble set ${group}.`);
+
+      const rowTwo = createNewRow(card);
+      appendLabel(rowTwo, "Label");
+      const enableTextSwitch = createSwitch(async () => {
+        await updateBubbleSetStyle(`Bubble Set ${group} Label`, enableTextSwitch.isChecked());
+      }, undefined, data.bubbleSetStyle[group].label);
+      rowTwo.appendChild(enableTextSwitch);
+      appendVerticalRule(rowTwo, "Label Text", undefined, undefined, optionalCSSClass);
+      const labelInput = createInput(120, `${group} label text`, `Enter the label text for the bubble set ${group}.`, data.bubbleSetStyle[group].labelText, async () => {
+        const val = labelInput.value.trim();
+        await updateBubbleSetStyle(`Bubble Set ${group} Label Text`, val);
+      });
+      labelInput.classList.add(optionalCSSClass);
+      rowTwo.appendChild(labelInput);
+      appendVerticalRule(rowTwo, "Label Background", undefined, undefined, optionalCSSClass);
+      const enableBackgroundSwitch = createSwitch(async () => {
+        await updateBubbleSetStyle(`Bubble Set ${group} Label Background`, enableBackgroundSwitch.isChecked());
+      }, undefined, data.bubbleSetStyle[group].labelBackground || true);
+      enableBackgroundSwitch.classList.add(optionalCSSClass);
+      rowTwo.appendChild(enableBackgroundSwitch);
+      appendVerticalRule(rowTwo, "Label Background Color", undefined, undefined, optionalCSSClass);
+      createColorControls(rowTwo, `Bubble Set ${group} Label Background Color`, data.bubbleSetStyle[group].labelBackgroundFill || data.bubbleSetStyle[group].fill, [], false, optionalCSSClass);
+    }
+  }
+
+  createFocusCard();
   createSelectCard();
   createArrangeNodesCard();
   createNodeConfigCard();
   createEdgeConfigCard();
+  createBubbleSetConfigCard();
 
   return root;
 }
 
+async function focusNodes(nodeIDs = undefined) {
+  if (!nodeIDs) {
+    nodeIDs = cache.selectedNodes;
+  }
+  await focusElements(nodeIDs);
+}
+
+async function focusEdges(edgeIDs = undefined) {
+  if (!edgeIDs) {
+    edgeIDs = cache.selectedEdges;
+  }
+  await focusElements(edgeIDs);
+}
+
+async function focusElements(elementIDs, isNode) {
+  const zoom = await graph.getZoom();
+  if (zoom < 2) {
+    await graph.zoomTo(2);
+  }
+  await graph.focusElement([...elementIDs]);
+
+  const targetMap = isNode ? cache.nodeRef : cache.edgeRef;
+  await selectElements(elementIDs, targetMap, "highlight");
+  setTimeout(async () => {
+    await selectElements([], targetMap, "highlight");
+  }, 2500);
+}
+
 async function updateEdges(overrides = {}, commands = []) {
+  let colorMap = null;
+  if (commands.includes("set_continuous_color_scale")) {
+    colorMap = await picker.pickColors("edges");
+    if (!colorMap) {
+      info("Aborted color picker");
+      return;
+    }
+  }
+
   for (const edgeID of cache.selectedEdges) {
     const edge = cache.edgeRef.get(edgeID);
 
@@ -2326,7 +3501,13 @@ async function updateEdges(overrides = {}, commands = []) {
     }
 
     // apply overrides
-    deepMerge(edge, overrides);
+    if (colorMap) {
+      const overridesCopy = structuredClone(overrides);
+      replaceColorScale(overrides, edgeID, colorMap);
+      deepMerge(edge, overridesCopy);
+    } else {
+      deepMerge(edge, overrides);
+    }
     cache.edgeRef.set(edgeID, edge);
   }
 
@@ -2357,14 +3538,81 @@ function isObject(obj) {
   return obj !== null && typeof obj === "object" && !Array.isArray(obj);
 }
 
-async function updateNodes(overrides = {}, commands = []) {
-  // for (const node of await graph.getNodeData()) {
-  //   if (!node.states?.includes("selected")) continue;
-  //   const nodeID = node.id;
+async function updateBubbleSetStyle(property, value) {
+  const remainder = property.split('Bubble Set ')[1];
+  const parts = remainder.split(' ');
+  const group = parts[0];
+  const propertyLabel = parts.slice(1).join(' ');
 
-  // TODO: bug
-  // 1. select a couple of nodes via network metrics
-  // 2. cache.selectedNodes does not hold all of them at the time updateNodes() is called, probably race condition
+  const bStyle = data.bubbleSetStyle[group];
+
+  switch (propertyLabel) {
+    case "Fill Color":
+      bStyle.fill = value;
+      bStyle.labelBackgroundFill = value;
+      break;
+    case "Fill Opacity":
+      bStyle.fillOpacity = value;
+      break;
+    case "Stroke Color":
+      bStyle.stroke = value;
+      break;
+    case "Stroke Opacity":
+      bStyle.strokeOpacity = value;
+      break;
+    case "Label":
+      bStyle.label = value;
+      break;
+    case "Label Text":
+      bStyle.labelText = value;
+      break;
+    case "Label Background Color":
+      bStyle.labelBackgroundFill = value;
+      break;
+    case "Label Background":
+        bStyle.labelBackground = value;
+        if (!value) {
+          bStyle.labelFill = "#000000";
+        } else {
+          bStyle.labelFill = "#FFFFFF";
+        }
+      break;
+    default:
+      break;
+  }
+  await INSTANCES.BUBBLE_GROUPS[group].update(bStyle);
+  await decideToRenderOrDraw(true);
+}
+
+function refreshBubbleStyleElements() {
+  for (const group of traverseBubbleSets()) {
+    const hasActiveMembers = cache.lastBubbleSetMembers.get(group).size > 0;
+    const labelConfigShouldBeEnabled = data.bubbleSetStyle[group].label;
+
+    // toggle entire cards based on bubble group members
+    const card = document.getElementById(`bubbleSetStyleCard${group}`);
+    hasActiveMembers ? card.classList.remove("disabled") : card.classList.add("disabled");
+
+    // toggle label-related properties
+    for (const elem of card.querySelectorAll(".bubbleSetOptionalLabelConfig")) {
+      labelConfigShouldBeEnabled ? elem.classList.remove("disabled") : elem.classList.add("disabled");
+    }
+
+    // override css properties to style round-button quadrants
+    const fillColor = data.bubbleSetStyle[group].fill || DEFAULTS.BUBBLE_GROUP_STYLE[group].fill;
+    document.documentElement.style.setProperty(`--${group}-color`, fillColor);
+  }
+}
+
+async function updateNodes(overrides = {}, commands = []) {
+  let colorMap = null;
+  if (commands.includes("set_continuous_color_scale")) {
+    colorMap = await picker.pickColors("nodes");
+    if (!colorMap) {
+      info("Aborted color picker");
+      return;
+    }
+  }
 
   for (const nodeID of cache.selectedNodes) {
     const node = cache.nodeRef.get(nodeID);
@@ -2395,49 +3643,75 @@ async function updateNodes(overrides = {}, commands = []) {
     }
 
     // apply overrides
-    deepMerge(node, overrides);
+    if (colorMap) {
+      const overridesCopy = structuredClone(overrides);
+      replaceColorScale(overridesCopy, nodeID, colorMap);
+      deepMerge(node, overridesCopy);
+    } else {
+      deepMerge(node, overrides);
+    }
     cache.nodeRef.set(nodeID, node);
   }
+
   await handleStyleChangeLoadingEvent("Style", `Updating Node Styles`);
 }
 
+function replaceColorScale(obj, elemID, colorMap) {
+  if (typeof obj !== 'object' || obj === null) {
+    return obj;
+  }
+
+  for (let key in obj) {
+    const value = obj[key];
+
+    if (value === "set_continuous_color_scale") {
+      obj[key] = colorMap.get(elemID);
+    } else if (typeof value === 'object') {
+      replaceColorScale(value, elemID, colorMap);
+    }
+  }
+
+  return obj;
+}
+
 function toggleStyleElementsThatRequireAtLeastOneSelectedNode(enable) {
-  toggleStyleElements([
-    "Node Configuration", "Expand Edges", "Reduce Edges", "Expand Neighbors", "Reduce Neighbors"
+  toggleDisabledElements([
+    "Node Configuration", "Expand Edges", "Reduce Edges", "Expand Neighbors", "Reduce Neighbors",
+    "deselectNodesBtn", "focusNodesBtn"
   ], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneSelectedEdge(enable) {
-  toggleStyleElements(["Edge Configuration"], enable);
+  toggleDisabledElements(["Edge Configuration", "deselectEdgesBtn", "focusEdgesBtn"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(enable) {
-  toggleStyleElements([], enable);
+  toggleDisabledElements(["resetSelectedElementsStyleBtn"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleNode(enable) {
-  toggleStyleElements(["selectByNodeIDsInput", "Node ID(s)", "selectByNodeIDsSwitch",
+  toggleDisabledElements(["selectByNodeIDsInput", "Node ID(s)", "selectByNodeIDsSwitch",
     "selectByNodeIDsSwitchLabel", "selectByNodeIDsButton"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleEdge(enable) {
-  toggleStyleElements(["selectByEdgeIDsInput", "Edge ID(s)", "selectByEdgeIDsSwitch",
+  toggleDisabledElements(["selectByEdgeIDsInput", "Edge ID(s)", "selectByEdgeIDsSwitch",
     "selectByEdgeIDsSwitchLabel", "selectByEdgeIDsButton"], enable);
 }
 
 function toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(enable) {
-  toggleStyleElements(["Select Elements"], enable);
+  toggleDisabledElements(["Select Elements"], enable);
 }
 
 function toggleStyleElementsThatRequireMoreThanOneSelectedNode(enable) {
-  toggleStyleElements(["Arrange Selection"], enable);
+  toggleDisabledElements(["Arrange Selection"], enable);
 }
 
-function toggleStyleElements(headingLabels, enable) {
+function toggleDisabledElements(headingLabels, enable) {
   for (let elemID of headingLabels) {
     const elem = document.getElementById(elemID);
     if (elem) {
-      enable ? elem.classList.remove("is-disabled") : elem.classList.add("is-disabled");
+      enable ? elem.classList.remove("disabled") : elem.classList.add("disabled");
     } else {
       debug("Element not found: " + elemID);
     }
@@ -2447,11 +3721,31 @@ function toggleStyleElements(headingLabels, enable) {
 async function updateSelectedState(elemData, enable) {
   await showLoading(enable ? "Selecting" : "Deselecting", `Modifying selection of ${elemData.length} elements`);
   await new Promise(resolve => requestAnimationFrame(resolve));
+
+  // faster routine than setting each individual setElementState
+  const updatedData = [];
   for (const item of elemData) {
-    await graph.setElementState(item.id, enable ? 'selected' : '');
+    const elem = graph.getElementData(item.id);
+    updateElementSelectedState(elem, enable);
+    updatedData.push(elem);
   }
+  await graph.updateData(updatedData);
+  await graph.render();
+
   await hideLoading();
   await new Promise(resolve => requestAnimationFrame(resolve));
+}
+
+function updateElementSelectedState(element, shouldSelect) {
+  if (!element.states) {
+    element.states = [];
+  }
+  if (shouldSelect && !element.states.includes("selected")) {
+    element.states.push("selected");
+  }
+  if (!shouldSelect && element.states.includes("selected")) {
+    element.states.splice(element.states.indexOf("selected"), 1);
+  }
 }
 
 async function toggleSelectionForAllNodes(enable) {
@@ -2465,26 +3759,18 @@ async function toggleSelectionForAllEdges(enable) {
 }
 
 async function syncSelectionCacheAndElementStates() {
-  const nodesToShow = [];
-  const nodesToHide = [];
-  const edgesToShow = [];
-  const edgesToHide = [];
-
   const snapshot = cache.selectionMemory[cache.selectedMemoryIndex];
 
   cache.selectedNodes = snapshot.nodes;
   cache.selectedEdges = snapshot.edges;
 
   for (const node of graph.getNodeData()) {
-    snapshot.nodes.includes(node.id) ? nodesToShow.push(node) : nodesToHide.push(node);
+    updateElementSelectedState(node, snapshot.nodes.includes(node.id));
   }
   for (const edge of graph.getEdgeData()) {
-    snapshot.edges.includes(edge.id) ? edgesToShow.push(edge) : edgesToHide.push(edge);
+    updateElementSelectedState(edge, snapshot.edges.includes(edge.id));
   }
-  await updateSelectedState(nodesToShow, true);
-  await updateSelectedState(nodesToHide, false);
-  await updateSelectedState(edgesToShow, true);
-  await updateSelectedState(edgesToHide, false);
+  await graph.render();
 }
 
 function undoSelection() {
@@ -2505,20 +3791,42 @@ function redoSelection() {
   }
 }
 
-async function addNodeOrEdgeIDsToSelection(elementIDs, isNode) {
+async function addNodeOrEdgeIDsToSelectionWrapper(elementIDs, isNode) {
   const shouldAdd = isNode
     ? !document.getElementById("selectByNodeIDsSwitch").checked
     : !document.getElementById("selectByEdgeIDsSwitch").checked;
+  const elementIDsAsArray = elementIDs ? elementIDs.split(",") : [];
+
+  await addNodeOrEdgeIDsToSelection(elementIDsAsArray, isNode, shouldAdd);
+}
+
+async function addNodeOrEdgeLabelsToSelectionWrapper(elementLabels, isNode) {
+  const elementLabelsAsArray = elementLabels ? elementLabels.split(",") : [];
+
+  const elementIDs = elementLabelsAsArray.flatMap(label => {
+    const set = isNode
+      ? cache.nodeLabelToNodeIDs.get(label)
+      : cache.edgeLabelToEdgeIDs.get(label);
+    return set ? Array.from(set) : [];
+  });
+
+  const shouldAdd = isNode
+    ? !document.getElementById("selectByNodeLabelsSwitch").checked
+    : !document.getElementById("selectByEdgeLabelsSwitch").checked;
+
+  await addNodeOrEdgeIDsToSelection(elementIDs, isNode, shouldAdd);
+}
+
+async function addNodeOrEdgeIDsToSelection(elementIDs, isNode, shouldAdd) {
 
   const elemDescription = isNode ? "Node" : "Edge";
-  const idArray = elementIDs ? elementIDs.split(",") : [];
 
   const visibleElements = isNode ? cache.nodeIDsToBeShown : cache.edgeIDsToBeShown;
   const existingElements = isNode ? cache.nodeRef.keys().toArray() : cache.edgeRef.keys().toArray();
   const selectedElements = isNode ? cache.selectedNodes : cache.selectedEdges;
   const ref = isNode ? cache.nodeRef : cache.edgeRef;
 
-  for (const elemID of idArray) {
+  for (const elemID of elementIDs) {
     if (!existingElements.includes(elemID)) {
       error(`${elemDescription} with ID: '${elemID}' does not exist!`);
       continue;
@@ -2644,7 +3952,7 @@ function decodePropHashId(propId) {
 function loadFile(event) {
   const file = event.target.files[0];
   if (!file) {
-    alert("No file selected.");
+    error("No file selected.");
     return Promise.resolve(null);
   }
 
@@ -2660,17 +3968,17 @@ function loadFile(event) {
       case 'ods':
         return file.arrayBuffer().then((buffer) => {
           return parseExcelToJson(buffer);
-        }).catch((error) => {
-          alert(`Error reading Excel file: ${error.message}`);
+        }).catch((errorMsg) => {
+          error(`Error reading Excel file: ${errorMsg}`);
           return null;
         });
 
 
       default:
-        alert(`Unsupported file type: ${fileType}`);
+        error(`Unsupported file type: ${fileType}`);
     }
-  } catch (error) {
-    alert(`Failed to load file: ${error.message}`);
+  } catch (errorMsg) {
+    error(`Failed to load file: ${errorMsg}`);
   }
 
   // Reset the file input for subsequent uploads
@@ -2684,18 +3992,18 @@ function parseJSON(file) {
       try {
         const jsonContent = JSON.parse(reader.result);
         if (!jsonContent.edges || !jsonContent.nodes) {
-          alert("File does not contain edges or nodes.");
+          error("File does not contain edges or nodes.");
           resolve(null);
         } else {
           resolve(jsonContent);
         }
-      } catch (error) {
-        alert(`Failed to parse file as JSON: ${error}`);
+      } catch (errorMsg) {
+        error(`Failed to parse file as JSON: ${errorMsg}`);
         resolve(null);
       }
     };
     reader.onerror = () => {
-      alert(`Failed to load file: ${reader.error}`);
+      error(`Failed to load file: ${reader.error}`);
       resolve(null);
     };
     reader.readAsText(file);
@@ -2709,12 +4017,13 @@ function parseJSON(file) {
  * @param {File} file - The Excel file to be parsed.
  * @returns {Object} - Parsed JSON structure compatible with the existing system.
  */
-function parseExcelToJson(file) {
-  const workbook = XLSX.read(file, {type: 'array'});
+async function parseExcelToJson(file) {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(file);
 
-  const nodesSheet = workbook.Sheets['nodes'];
-  const edgesSheet = workbook.Sheets['edges'];
-  const debugSheet = workbook.Sheets["debug"];
+  const nodesSheet = workbook.getWorksheet('nodes');
+  const edgesSheet = workbook.getWorksheet('edges');
+  const debugSheet = workbook.getWorksheet('debug');
 
   if (!nodesSheet || !edgesSheet) {
     error('The Excel file must contain a "nodes" and "edges" sheet.');
@@ -2740,29 +4049,117 @@ function parseExcelToJson(file) {
     }
   }
 
-  function removeEmptyColumns(sheetJson, sheetDescriptor) {
-    const allCols = Object.keys(sheetJson[0]).filter(c => !c.startsWith("__EMPTY"));
+  function sanitizeColumns(sheetJson, sheetDescriptor) {
+    if (!sheetJson || sheetJson.length === 0) return;
 
-    const emptyCols = allCols.filter(col =>
-      sheetJson.every(row => {
-        const v = row[col];
-        return v === null || v.toString().trim() === "";
-      })
-    );
+    const firstRow = sheetJson[0];
+    const columnMapping = {};
 
-    if (emptyCols.length) {
-      for (const col of emptyCols) {
-        warning(`Column "${col}" in "${sheetDescriptor}" sheet is empty and will be removed.`);
+    Object.keys(firstRow).forEach(originalKey => {
+      if (originalKey.startsWith('__EMPTY')) return;
+
+      if (originalKey.includes('(') || originalKey.includes(')')) {
+        columnMapping[originalKey] = originalKey.replace(/\(/g, '[').replace(/\)/g, ']');
       }
-    }
+    });
 
-    sheetJson.forEach(row =>
-      emptyCols.forEach(col => delete row[col])
-    );
+    sheetJson.forEach(row => {
+      Object.entries(columnMapping).forEach(([originalKey, sanitizedKey]) => {
+        if (row.hasOwnProperty(originalKey)) {
+          row[sanitizedKey] = row[originalKey];
+          delete row[originalKey];
+        }
+      });
+    });
+
+    Object.entries(columnMapping).forEach(([original, sanitized]) => {
+      warning(`Column "${original}" in "${sheetDescriptor}" sheet was renamed to "${sanitized}" for proper group parsing.`);
+    });
   }
 
-  const nodesData = XLSX.utils.sheet_to_json(nodesSheet, {defval: null});
-  const edgesData = XLSX.utils.sheet_to_json(edgesSheet, {defval: null});
+  function removeEmptyColumns(sheetJson, sheetDescriptor) {
+    const propertyDefs = sheetDescriptor === 'edges'
+      ? EXCEL_EDGE_PROPERTIES : EXCEL_NODE_PROPERTIES;
+    const requiredCols = propertyDefs.filter(prop => prop.required).map(prop => prop.column);
+    const optionalCols = propertyDefs.filter(prop => !prop.required).map(prop => prop.column);
+
+    const allCols = Object.keys(sheetJson[0]).filter(c => !c.startsWith("__EMPTY") && c !== "__rowNum__");
+
+    const isColumnEmpty = (col) => sheetJson.every(row => {
+      const v = row[col];
+      return v === null || v.toString().trim() === "";
+    });
+
+    const emptyRequiredColumns = allCols.filter(col =>
+      requiredCols.includes(col) && isColumnEmpty(col)
+    );
+
+    const emptyOptionalColumns = allCols.filter(col =>
+      optionalCols.includes(col) && isColumnEmpty(col)
+    );
+
+    const emptyUserColumns = allCols.filter(col =>
+      !requiredCols.includes(col) &&
+      !optionalCols.includes(col) &&
+      isColumnEmpty(col)
+    );
+
+
+    emptyRequiredColumns.forEach(col => {
+      error(`Required column "${col}" in "${sheetDescriptor}" sheet is empty.`);
+    });
+
+    emptyOptionalColumns.forEach(col => {
+      info(`Optional column "${col}" in "${sheetDescriptor}" sheet is empty.`);
+    });
+
+    emptyUserColumns.forEach(col => {
+      warning(`User defined column "${col}" in "${sheetDescriptor}" sheet is empty.`);
+    });
+
+    const allEmptyColumns = [...emptyRequiredColumns, ...emptyOptionalColumns, ...emptyUserColumns];
+    sheetJson.forEach(row => {
+      allEmptyColumns.forEach(col => delete row[col]);
+    });
+  }
+
+  function worksheetToJson(worksheet) {
+    if (!worksheet) return [];
+
+    const jsonData = [];
+    const headers = [];
+
+    const firstRow = worksheet.getRow(1);
+    firstRow.eachCell((cell, colNumber) => {
+      headers[colNumber] = cell.value;
+    });
+
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return;
+
+      const rowData = {__rowNum__: rowNumber - 2};
+
+      row.eachCell((cell, colNumber) => {
+        const header = headers[colNumber];
+        if (header) {
+          rowData[header] = cell.value;
+        }
+      });
+
+      const hasData = Object.values(rowData).some(val => val !== null && val !== undefined && val !== '');
+      if (hasData) {
+        jsonData.push(rowData);
+      }
+    });
+
+    return {"headers": headers, "jsonData": jsonData};
+  }
+
+  const nodesDataDict = worksheetToJson(nodesSheet);
+  const edgesDataDict = worksheetToJson(edgesSheet);
+
+  const nodesData = nodesDataDict.jsonData;
+  const edgesData = edgesDataDict.jsonData;
 
   if (nodesData.length === 0) {
     error('The "nodes" sheet is empty or invalid.');
@@ -2774,17 +4171,20 @@ function parseExcelToJson(file) {
     return;
   }
 
+  sanitizeColumns(nodesData, "nodes");
+  sanitizeColumns(edgesData, "edges");
+
   removeEmptyColumns(nodesData, "nodes");
   removeEmptyColumns(edgesData, "edges");
 
-  const firstNodeRowKeys = Object.keys(nodesData[0])
+  const firstNodeRowKeys = nodesDataDict.headers
     .map(k => k.toLowerCase().trim());
   const requiredNodeColumns = EXCEL_NODE_PROPERTIES
     .filter(node => node.required)
     .map(node => node.column.toLowerCase().trim());
   validateColumns(requiredNodeColumns, firstNodeRowKeys, 'nodes');
 
-  const firstEdgeRowKeys = Object.keys(edgesData[0])
+  const firstEdgeRowKeys = edgesDataDict.headers
     .map(k => k.toLowerCase().trim());
   const requiredEdgeColumns = EXCEL_EDGE_PROPERTIES
     .filter(edge => edge.required)
@@ -2792,12 +4192,13 @@ function parseExcelToJson(file) {
   validateColumns(requiredEdgeColumns, firstEdgeRowKeys, 'edges');
 
   const nonDataNodeColumns = new Set(EXCEL_NODE_PROPERTIES.map((p) => p.column.toLowerCase().trim()));
-  const nodeDataHeaders = Object.keys(nodesData[0])
-    .filter(k => !nonDataNodeColumns.has(k.toLowerCase().trim()) && !k.startsWith("__EMPTY"))
+  const nodeDataHeaders = nodesDataDict.headers
+    .filter(k => !nonDataNodeColumns.has(k.toLowerCase().trim()) && !k.startsWith("__EMPTY") && k !== "__rowNum__")
     .map((k) => decodeKey(k));
+
   const nonDataEdgeColumns = new Set(EXCEL_EDGE_PROPERTIES.map((p) => p.column.toLowerCase().trim()));
-  const edgeDataHeaders = Object.keys(edgesData[0])
-    .filter(k => !nonDataEdgeColumns.has(k.toLowerCase().trim()) && !k.startsWith("__EMPTY"))
+  const edgeDataHeaders = edgesDataDict.headers
+    .filter(k => !nonDataEdgeColumns.has(k.toLowerCase().trim()) && !k.startsWith("__EMPTY") && k !== "__rowNum__")
     .map((k) => decodeKey(k));
 
   function addNodeOrEdgeStyle(nodeOrEdge, row, propertyMap, descriptor) {
@@ -2852,10 +4253,24 @@ function parseExcelToJson(file) {
 
   function decodeKey(key) {
     let subGroup = EXCEL_UNCATEGORIZED_SUBHEADER;
-    if (key.indexOf("[") > -1 && key.indexOf("]") > -1) {
-      subGroup = key.substring(key.indexOf("[") + 1, key.indexOf("]")).trim();
+    let trimmedKey;
+
+    const matches = key.match(/\[.*?\]/g);
+    if (matches && matches.length >= 2) {
+      const lastBracketContent = matches[matches.length - 1];
+      subGroup = lastBracketContent.substring(1, lastBracketContent.length - 1).trim();
+
+      // For multiple brackets, preserve all except the last one in the key
+      const lastBracketIndex = key.lastIndexOf(matches[matches.length - 1]);
+      trimmedKey = key.substring(0, lastBracketIndex).trim();
+    } else if (matches && matches.length === 1) {
+      const bracketContent = matches[0];
+      subGroup = bracketContent.substring(1, bracketContent.length - 1).trim();
+      trimmedKey = key.substring(0, key.indexOf('[')).trim();
+    } else {
+      trimmedKey = key.trim();
     }
-    const trimmedKey = key.split("[")[0].trim();
+
     return {"subGroup": subGroup, "key": trimmedKey};
   }
 
@@ -2878,7 +4293,7 @@ function parseExcelToJson(file) {
     const reservedProperties = propertyMap.map(p => p.column.toLowerCase().trim());
 
     for (let key in row) {
-      if (reservedProperties.includes(key.toLowerCase())) continue;
+      if (key === "__rowNum__" || reservedProperties.includes(key.toLowerCase())) continue;
 
       const userData = validateUserData(row, key);
 
@@ -2966,7 +4381,7 @@ function parseExcelToJson(file) {
   }).filter(edge => edge !== null);
 
   if (debugSheet) {
-    const debugJson = XLSX.utils.sheet_to_json(debugSheet, {defval: null});
+    const debugJson = worksheetToJson(debugSheet);
 
     const header = Object.keys(debugJson[0]);
     const expectedHeader = ["Query", "Valid Node IDs", "Valid Edge IDs"];
@@ -2995,6 +4410,24 @@ function parseExcelToJson(file) {
   };
 }
 
+async function downloadExcelTemplate() {
+  const template = new ExcelTemplate(excelData);
+  const workbook = template.createWorkbook(ExcelJS);
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "GLL_template.xlsx";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(a.href);
+}
+
 async function createGraphInstance() {
   if (graph === null) {
 
@@ -3004,7 +4437,7 @@ async function createGraphInstance() {
       DEFAULTS.BEHAVIOURS.DRAG_ELEMENT
     ];
 
-    if (cache.showLabelsAndEnableHoverEffect) {
+    if (!PERFORMANCE_MODE) {
       behaviors.push(DEFAULTS.BEHAVIOURS.HOVER_ACTIVATE);
     }
 
@@ -3025,12 +4458,15 @@ async function createGraphInstance() {
         key: `bubbleSetPlugin-${group}`,
         type: "bubble-sets",
         members: [],
-        avoidMembers: [...cache.nodeRef.keys()],
-        ...DEFAULTS.BUBBLE_SET_STYLE[group],
+        avoidMembers: [INVISIBLE_DUMMY_NODE.id],
+        // avoidMembers: [...cache.nodeRef.keys()],
+        ...data.bubbleSetStyle[group],
         strokeOpacity: 0,  // hide bubble groups initially (1 node persists due to bug)
         fillOpacity: 0,
+        label: false,
       })),
     ];
+    // foo
 
     graph = new Graph({
       container: 'innerGraphContainer',
@@ -3062,100 +4498,168 @@ async function createGraphInstance() {
       plugins: plugins,
     });
 
-    graph.on(NodeEvent.DRAG_END, async (event) => {
-      if (STATES.DRAG_END_RUNNING) return;
+    graph.on("node:dragend", async () => {
+      /**
+       * Persist all positions on every drag event
+       */
+      if (EVENT_LOCKS.DRAG_END_RUNNING) return;
 
-      try {
-        STATES.DRAG_END_RUNNING = true;
-        await persistNodePositions();
-      } catch (errorMsg) {
-        error(`Error in NodeEvent.DRAG_END: ${errorMsg}`);;
-      } finally {
-        STATES.DRAG_END_RUNNING = false;
+      debug("DRAG END");
+      EVENT_LOCKS.DRAG_END_RUNNING = true;
+      await persistNodePositions();
+      EVENT_LOCKS.DRAG_END_RUNNING = false;
+    })
+
+    graph.on("beforelayout", async () => {
+      debug("BEFORE LAYOUT");
+    })
+
+    graph.on("afterlayout", async () => {
+      /**
+       * Applies persisted positions (excel data or after moving nodes) after layouting has finished
+       */
+      if (EVENT_LOCKS.AFTER_LAYOUT_RUNNING) return;
+
+      debug("AFTER LAYOUT");
+      EVENT_LOCKS.AFTER_LAYOUT_RUNNING = true;
+
+      if (data.layouts[data.selectedLayout].positions.size > 0) {
+        graph.updateNodeData(Array.from(data.layouts[data.selectedLayout].positions, ([id, pos]) => ({
+          id,
+          style: pos.style
+        })));
+        await graph.draw();
       }
+      EVENT_LOCKS.AFTER_LAYOUT_RUNNING = false;
+    })
+
+    graph.on("canvas:click", async (event) => {
+      debug("CANVAS CLICK");
     });
 
-    graph.on(GraphEvent.AFTER_DRAW, async () => {
-      if (STATES.AFTER_DRAW_RUNNNING) return;
+    // graph.off("canvas:click");
 
-      try {
-        STATES.AFTER_DRAW_RUNNNING = true;
-        await updateSelectedNodesAndEdges();
-      } catch (errorMsg) {
-        error(`Error in GraphEvent.AFTER_DRAW: ${errorMsg}`);
-      } finally {
-        await hideLoading();
-        await new Promise(resolve => requestAnimationFrame(resolve));
-        STATES.AFTER_DRAW_RUNNNING = false;
+    graph.on("node:click", async (event) => {
+      debug("NODE CLICK");
+    })
+
+    graph.on("edge:click", async (event) => {
+      debug("EDGE CLICK");
+    })
+
+    graph.on(GraphEvent.BEFORE_DRAW, async (event) => {
+      if (EVENT_LOCKS.BEFORE_DRAW_RUNNING) return;
+
+      EVENT_LOCKS.BEFORE_DRAW_RUNNING = true;
+      debug("BEFORE DRAW");
+      if (EVENT_LOCKS.IS_DESELECTING) {
+        debug("BEFORE DRAW DESELECTION EVENT");
+        EVENT_LOCKS.IS_DESELECTING = false;
       }
+      EVENT_LOCKS.BEFORE_DRAW_RUNNING = false;
     });
 
-    graph.on(GraphEvent.BEFORE_RENDER, async () => {
-      if (STATES.BEFORE_RENDER_RUNNING) return;
+    graph.on(GraphEvent.AFTER_DRAW, async (event) => {
+      if (EVENT_LOCKS.AFTER_DRAW_RUNNING) return;
 
-      try {
-        STATES.BEFORE_RENDER_RUNNING = true;
-        await showLoading("Rendering", "Rendering graph ..");
-        await new Promise(resolve => requestAnimationFrame(resolve));
-      } catch (errorMsg) {
-        error(`Error in GraphEvent.BEFORE_RENDER: ${errorMsg}`);
-      } finally {
-        STATES.BEFORE_RENDER_RUNNING = false;
-      }
+      EVENT_LOCKS.AFTER_DRAW_RUNNING = true;
+      debug("AFTER DRAW");
+      await updateSelectedNodesAndEdges();
+      await redrawBubbleSets();
+
+      EVENT_LOCKS.AFTER_DRAW_RUNNING = false;
+      await hideLoading();
     });
+
 
     graph.on(GraphEvent.AFTER_RENDER, async () => {
-      if (STATES.AFTER_RENDER_RUNNING) return;
-      if (!STATES.INITIAL_RENDER_DONE) return;
+      debug("AFTER RENDER");
 
-      try {
-        STATES.AFTER_RENDER_RUNNING = true;
-        const inSync = await nodePositionsAreInSyncWithPersistedPositions();
-        if (!inSync) {
-          await showLoading("Post-processing", "Syncing node positions and redrawing graph ..");
-          await new Promise(resolve => requestAnimationFrame(resolve));
-          await syncNodePositions();
-          STATES.AFTER_RENDER_RUNNING = false;
-          await graph.draw();
-        }
-      } catch (errorMsg) {
-        error(`Error in GraphEvent.AFTER_RENDER: ${errorMsg}`);
-      } finally {
+      if (EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED) {
+        if (EVENT_LOCKS.AFTER_RENDER_RUNNING) return;
+
+        EVENT_LOCKS.AFTER_RENDER_RUNNING = true;
+
+        await updateSelectedNodesAndEdges();
+        await redrawBubbleSets();
+
+        EVENT_LOCKS.AFTER_RENDER_RUNNING = false;
         await hideLoading();
-        await new Promise(resolve => requestAnimationFrame(resolve));
-        STATES.AFTER_RENDER_RUNNING = false;
+      } else {
+        await initialAfterRenderEvent();
       }
     });
 
-    // after initial rendering when loading a file; this is called prior to the regular after render event
-    graph.once(GraphEvent.AFTER_RENDER, async () => {
-      if (STATES.ONCE_AFTER_RENDER_RUNNING) return;
+    async function initialAfterRenderEvent() {
+      if (EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING) return;
 
       try {
-        await showLoading("Post-processing", "Persisting positions and saving filters to stash ..");
+        debug("ONCE AFTER RENDER");
+        await showLoading("Post-processing", "Post-processing ..");
         await new Promise(resolve => requestAnimationFrame(resolve));
-        STATES.ONCE_AFTER_RENDER_RUNNING = true;
-        await conditionallyPersistNodePositions();
-        await saveFiltersToStash(false);
+        EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING = true;
+
+        await showLoading("Post-processing", "Registering event listeners ..");
+        await new Promise(resolve => requestAnimationFrame(resolve));
         registerHotkeyEvents();
         registerGlobalEventListeners();
+        await registerPluginStates();
+
         // to initially fill caches related to the query/filters, preRenderEvent is called without rendering afterwards
+        await showLoading("Post-processing", "Pre-render event ..");
+        await new Promise(resolve => requestAnimationFrame(resolve));
         await preRenderEvent();
+
+        await showLoading("Post-processing", "Updating metrics UI ..");
+        await new Promise(resolve => requestAnimationFrame(resolve));
         await cache.metrics.updateUI();
-        STATES.INITIAL_RENDER_DONE = true;
+
+        await showLoading("Post-processing", "Finalizing rendering ..");
+        await new Promise(resolve => requestAnimationFrame(resolve));
+
+        if (EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE) {
+          // suppresses the info in case of loading from a json model
+          if (cache.nodePositionsFromExcelImport.size !== 0) {
+            info(`Created view "${DEFAULTS.CUSTOM_LAYOUT_NAME}". Applying ${DEFAULTS.LAYOUT} layout to nodes without coordinates ..`);
+          }
+          await graph.setLayout({type: DEFAULTS.LAYOUT, ...DEFAULTS.LAYOUT_INTERNALS[DEFAULTS.LAYOUT]});
+        }
+
+        EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED = true;
         await graph.render();
+
+        if (EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE) {
+          debug("Initially persisting custom layout ..");
+          await persistNodePositions();
+          EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = false;
+        }
+
+        await setInitialNodePositions();
       } catch (errorMsg) {
         error(`Error in GraphEvent.AFTER_RENDER: ${errorMsg}`);
+        error("Graph setup failed. Please check your input data.");
+        await hideLoading();
       } finally {
-        STATES.ONCE_AFTER_RENDER_RUNNING = false;
+        EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING = false;
       }
-    })
+    }
 
     let layout = data.layouts[data.selectedLayout];
     if (!layout.isCustom) {
       await graph.setLayout({type: data.selectedLayout, ...layout.internals});
     }
   }
+}
+
+async function nodePositionsAreInSync() {
+  for (const node of await graph.getNodeData()) {
+    const existing = data.layouts[data.selectedLayout].positions?.get(node.id);
+    if (!existing) continue;
+    if (node.style.x !== existing.style.x || node.style.y !== existing.style.y) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function arraysAreEqual(a, b) {
@@ -3214,11 +4718,8 @@ function updateEnabledStateUndoRedoSelectionButtons() {
   const canUndo = (selectedMemoryIndex > 0);
   const canRedo = (selectedMemoryIndex < selectionMemory.length - 1);
 
-  const undoButton = document.getElementById("undoSelectionBtn");
-  const redoButton = document.getElementById("redoSelectionButton");
-
-  canUndo ? undoButton.classList.remove("disabled") : undoButton.classList.add("disabled");
-  canRedo ? redoButton.classList.remove("disabled") : redoButton.classList.add("disabled");
+  toggleDisabledElements(["undoSelectionBtn"], canUndo);
+  toggleDisabledElements(["redoSelectionBtn"], canRedo);
 }
 
 async function updateSelectedNodesAndEdges() {
@@ -3240,7 +4741,11 @@ async function updateSelectedNodesAndEdges() {
   const atLeastOneNodeOrEdgeSelected = atLeastOneNodeSelected || atLeastOneEdgeSelected;
   const moreThanOneNodeSelected = selectedNodesCount > 1;
 
-  document.getElementById("selectedNodes").style.display = atLeastOneNodeSelected ? "block" : "none";
+  if (atLeastOneNodeOrEdgeSelected || cache.selectionMemory.length > 1) {
+    document.getElementById("selectedElementsContainer").classList.remove("hidden");
+  } else {
+    document.getElementById("selectedElementsContainer").classList.add("hidden");
+  }
 
   toggleStyleElementsThatRequireAtLeastOneSelectedNode(atLeastOneNodeSelected);
   toggleStyleElementsThatRequireAtLeastOneSelectedEdge(atLeastOneEdgeSelected);
@@ -3252,16 +4757,166 @@ async function updateSelectedNodesAndEdges() {
 }
 
 function toggleQueryEditor() {
-  const btn = document.getElementById("queryToggleBtn");
-  let shouldEnable = !btn.classList.contains("highlight");
+  const queryBtn = document.getElementById("queryToggleBtn");
+  const dataBtn = document.getElementById("dataToggleBtn");
+  const shouldEnable = !queryBtn.classList.contains("highlight");
 
+  if (shouldEnable) {
+    showEditor('query');
+    queryBtn.classList.add("highlight");
+    dataBtn.classList.remove("highlight");
+  } else {
+    hideBottomBar();
+    queryBtn.classList.remove("highlight");
+  }
+}
+
+async function toggleDataEditor() {
+  const queryBtn = document.getElementById("queryToggleBtn");
+  const dataBtn = document.getElementById("dataToggleBtn");
+  const shouldEnable = !dataBtn.classList.contains("highlight");
+
+  if (shouldEnable) {
+    await showLoading("Data Editor", "Loading Data Editor ..");
+    showEditor('data');
+    dataBtn.classList.add("highlight");
+    queryBtn.classList.remove("highlight");
+  } else {
+    await showLoading("Data Editor", "Closing Data Editor ..");
+    hideBottomBar();
+    dataBtn.classList.remove("highlight");
+  }
+
+  await hideLoading();
+}
+
+function showEditor(editorType) {
   const mainContent = document.getElementById("mainContent");
   const bottomBar = document.getElementById("bottomBar");
+  const queryEditor = document.getElementById("queryEditor");
+  const dataEditor = document.getElementById("dataEditor");
+  const queryButtons = document.querySelector(".query-buttons");
+  const dataButtons = document.querySelector(".data-buttons");
+  const queryHelpIconDiv = document.getElementById("queryHelpIconDiv");
+  const dataHelpIconDiv = document.getElementById("dataHelpIconDiv");
+  const queryToggleButtons = document.querySelectorAll('.add-to-query-button');
 
-  mainContent.style.height = shouldEnable ? "90%" : "100%";
-  bottomBar.style.height = shouldEnable ? "10%" : "0";
-  bottomBar.classList.toggle("active", shouldEnable);
-  btn.classList.toggle("highlight", shouldEnable);
+  mainContent.style.height = "80%";
+  bottomBar.style.height = "20%";
+  bottomBar.classList.add("active");
+
+  if (editorType === 'query') {
+    queryEditor.style.display = "block";
+    dataEditor.style.display = "none";
+    queryButtons.style.display = "flex";
+    dataButtons.style.display = "none";
+    queryHelpIconDiv.style.display = "block";
+    dataHelpIconDiv.style.display = "none";
+    queryToggleButtons.forEach(btn => btn.classList.add("show"));
+  } else if (editorType === 'data') {
+    queryEditor.style.display = "none";
+    dataEditor.style.display = "block";
+    queryButtons.style.display = "none";
+    dataButtons.style.display = "flex";
+    queryHelpIconDiv.style.display = "none";
+    dataHelpIconDiv.style.display = "block";
+    queryToggleButtons.forEach(btn => btn.classList.remove("show"));
+  }
+}
+
+function hideBottomBar() {
+  const mainContent = document.getElementById("mainContent");
+  const bottomBar = document.getElementById("bottomBar");
+  const queryToggleButtons = document.querySelectorAll('.add-to-query-button');
+
+  mainContent.style.height = "100%";
+  bottomBar.style.height = "0";
+  bottomBar.classList.remove("active");
+  queryToggleButtons.forEach(btn => btn.classList.remove("show"));
+}
+
+function makeBottomBarResizable() {
+  const bottomBar = document.getElementById('bottomBar');
+  const mainContent = document.getElementById('mainContent');
+  const resizeHandle = bottomBar.querySelector('.resize-handle');
+  let isResizing = false;
+  let startY = 0;
+  let startHeight = 0;
+  let shadowBar = null;
+
+  function createShadowBar() {
+    if (shadowBar) return shadowBar;
+
+    shadowBar = document.createElement('div');
+    shadowBar.classList.add("resize-shadow-bar");
+    document.body.appendChild(shadowBar);
+    return shadowBar;
+  }
+
+  resizeHandle.addEventListener('mousedown', (e) => {
+    if (!bottomBar.classList.contains('active')) return;
+
+    isResizing = true;
+    startY = e.clientY;
+    startHeight = parseInt(document.defaultView.getComputedStyle(bottomBar).height, 10);
+
+    createShadowBar();
+    shadowBar.style.display = 'block';
+    shadowBar.style.bottom = startHeight + 'px';
+    shadowBar.style.height = startHeight + 'px';
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    e.preventDefault();
+
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'ns-resize';
+  });
+
+  function handleMouseMove(e) {
+    if (!isResizing || !bottomBar.classList.contains('active')) return;
+
+    const dy = startY - e.clientY;
+    const newHeight = startHeight + dy;
+    const minHeight = 50;
+    const maxHeight = window.innerHeight * 0.5;
+    const clampedHeight = Math.min(Math.max(newHeight, minHeight), maxHeight);
+
+    shadowBar.style.bottom = '0px';
+    shadowBar.style.height = clampedHeight + 'px';
+  }
+
+  function handleMouseUp(e) {
+    if (!isResizing) return;
+
+    isResizing = false;
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+
+    const dy = startY - e.clientY;
+    const newHeight = startHeight + dy;
+    const minHeight = 50;
+    const maxHeight = window.innerHeight * 0.5;
+    const finalHeight = Math.min(Math.max(newHeight, minHeight), maxHeight);
+
+    if (finalHeight !== startHeight) {
+      const viewportHeight = window.innerHeight;
+      const newMainHeight = viewportHeight - finalHeight;
+
+      bottomBar.style.height = finalHeight + 'px';
+      mainContent.style.height = newMainHeight + 'px';
+    }
+
+    shadowBar.style.display = 'none';
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
+  }
+
+  window.addEventListener('beforeunload', () => {
+    if (shadowBar && shadowBar.parentNode) {
+      shadowBar.parentNode.removeChild(shadowBar);
+    }
+  });
 }
 
 async function toggleEditMode() {
@@ -3269,34 +4924,41 @@ async function toggleEditMode() {
   let editModeActive = editBtn.classList.contains("active");
   editModeActive ? editBtn.classList.remove("active") : editBtn.classList.add("active");
 
-  const nonEditBehaviors = [
+  handleEditModeUIChanges();
+}
+
+async function toggleLassoSelection() {
+  const lassoWrapper = document.getElementById("lassoWrapper");
+  let lassoIsActive = lassoWrapper.classList.contains("active");
+  lassoIsActive ? lassoWrapper.classList.remove("active") : lassoWrapper.classList.add("active");
+
+  const clickAndDragBehaviors = [
     DEFAULTS.BEHAVIOURS.DRAG_CANVAS,
     DEFAULTS.BEHAVIOURS.DRAG_ELEMENT
   ];
 
-  if (cache.showLabelsAndEnableHoverEffect) {
-    nonEditBehaviors.push(DEFAULTS.BEHAVIOURS.HOVER_ACTIVATE);
+  if (!PERFORMANCE_MODE) {
+    clickAndDragBehaviors.push(DEFAULTS.BEHAVIOURS.HOVER_ACTIVATE);
   }
 
-  const editBehaviors = [
+  const lassoBehaviors = [
     DEFAULTS.BEHAVIOURS.LASSO_SELECT,
-    DEFAULTS.BEHAVIOURS.CLICK_SELECT
   ];
 
-  // reduce behaviors to clean up existing edit/non-edit behaviors
+  if (!APPLY_BUBBLE_SET_HOTFIX || (APPLY_BUBBLE_SET_HOTFIX && !PERFORMANCE_MODE)) {
+    lassoBehaviors.push(DEFAULTS.BEHAVIOURS.CLICK_SELECT);
+  }
+
   let behaviors = await graph.getBehaviors()
     .filter(b => ![
-      ...nonEditBehaviors.map(b => b.type),
-      ...editBehaviors.map(b => b.type)
+      ...clickAndDragBehaviors.map(b => b.type),
+      ...lassoBehaviors.map(b => b.type)
     ].includes(b.type));
 
-  // re-add behaviors for current mode
-  await graph.setBehaviors([...behaviors, ...editModeActive ? nonEditBehaviors : editBehaviors]);
+  lassoIsActive ? info("Switched to click and drag mode") : info("Switched to lasso selection mode");
 
-  // control tooltip plugin
-  await graph.updatePlugin({key: 'tooltip', enable: editModeActive});
-
-  handleEditModeUIChanges();
+  await graph.setBehaviors([...behaviors, ...lassoIsActive ? clickAndDragBehaviors : lassoBehaviors]);
+  await graph.updatePlugin({key: 'tooltip', enable: lassoIsActive});
 }
 
 function handleEditModeUIChanges() {
@@ -3312,7 +4974,7 @@ function handleEditModeUIChanges() {
   container.style.paddingRight = editModeActive ? "6px" : "0";
 
   // handle all edit elements
-  const editElements = document.querySelectorAll('.show-on-edit');
+  const editElements = document.querySelectorAll('.show-on-edit, .show-on-edit-full-width');
   editElements.forEach(el => {
     editModeActive ? el.classList.add("show") : el.classList.remove("show");
     el.style.height = editModeActive ? `${el.scrollHeight}px` : "0";
@@ -3358,28 +5020,45 @@ function handleEditModeUIChanges() {
 }
 
 function* traverseBubbleSets() {
-  for (let group of Object.keys(DEFAULTS.BUBBLE_SET_STYLE)) {
+  for (let group of Object.keys(DEFAULTS.BUBBLE_GROUP_STYLE)) {
     yield group;
   }
 }
 
 async function updateBubbleSet(group, members) {
-  console.log(`Updating bubble set ${group} ..`);
-  const plugin = await graph.getPluginInstance("bubbleSetPlugin-" + group);
   let empty = !members || members.size === 0;
   const membersAsArray = [...members];
 
-  function getMembers() {
-    return AVOID_NON_BUBBLE_GROUP_MEMBERS ?
-      [...cache.nodeRef.keys()].filter(nodeID => !membersAsArray.includes(nodeID)) : [];
+  function getAvoidMembers() {
+    if (empty) return [];
+    if (APPLY_BUBBLE_SET_HOTFIX && PERFORMANCE_MODE) return [];
+    if (AVOID_NON_BUBBLE_GROUP_MEMBERS) return [];
+    return [...cache.nodeRef.keys()].filter(nodeID => !membersAsArray.includes(nodeID));
   }
 
-  await plugin.update({
+  const avoidMembers = getAvoidMembers();
+
+  if (arraysAreEqual(membersAsArray, [...INSTANCES.BUBBLE_GROUPS[group].members.keys()])) {
+    debug("BUBBLE GROUPS IN SYNC - SKIPPING UPDATE");
+    return;
+  }
+
+  await INSTANCES.BUBBLE_GROUPS[group].update({
     members: empty ? [] : membersAsArray,
-    avoidMembers: empty ? [] : getMembers(),
-    fillOpacity: empty ? 0 : DEFAULTS.BUBBLE_SET_STYLE[group].fillOpacity,
-    strokeOpacity: empty ? 0 : DEFAULTS.BUBBLE_SET_STYLE[group].strokeOpacity,
+    avoidMembers: avoidMembers,
+    fillOpacity: empty ? 0 : data.bubbleSetStyle[group].fillOpacity,
+    strokeOpacity: empty ? 0 : data.bubbleSetStyle[group].strokeOpacity,
+    label: empty ? false : data.bubbleSetStyle[group].label,
   });
+  await INSTANCES.BUBBLE_GROUPS[group].drawBubbleSets();
+}
+
+async function clearBubbleSetInstanceMembers() {
+  for (const group of traverseBubbleSets()) {
+    await INSTANCES.BUBBLE_GROUPS[group].update({
+      members: [],
+    });
+  }
 }
 
 function setsAreEqual(setA, setB) {
@@ -3388,19 +5067,6 @@ function setsAreEqual(setA, setB) {
     if (!setB.has(item)) return false;
   }
   return true;
-}
-
-function setsIntersect(activeSet, totalSet) {
-  if (!(totalSet instanceof Set)) {
-    return false;
-  }
-
-  for (let item of activeSet) {
-    if (totalSet.has(item)) {
-      return true;
-    }
-  }
-  return false;
 }
 
 function createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
@@ -3416,10 +5082,11 @@ function createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
   // Process nodes and exclude their unwanted properties
   const filteredNodes = data.nodes
     .map(node => {
-      const filteredNode = filterObject(node, ["D4Data", "features", "featureValues", "featureWithinThreshold"]);
+      const filteredNode = filterObject(node, [
+        "D4Data", "features", "featureValues", "featureWithinThreshold", "originalStyle"]);
 
       // load positions from the layouts position Map
-      const position = data.layouts[data.selectedLayout]?.positions.get(node.id);
+      const position = data.layouts[data.selectedLayout].positions.get(node.id);
 
       Object.assign(filteredNode, getNodeStyleOrDefaults(node));
 
@@ -3429,8 +5096,8 @@ function createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
       }
 
       if (resetToCachedPositions) {
-        filteredNode.style.x = cache.initialNodePositions.get(data.selectedLayout).get(node.id).x;
-        filteredNode.style.y = cache.initialNodePositions.get(data.selectedLayout).get(node.id).y;
+        const {style: {x, y}} = cache.initialNodePositions.get(data.selectedLayout).get(node.id);
+        Object.assign(filteredNode.style, {x, y});
       }
 
       return filteredNode;
@@ -3439,7 +5106,8 @@ function createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
   // Process edges if provided, and exclude unwanted properties
   const filteredEdges = data.edges
     .map(edge => {
-      const filteredEdge = filterObject(edge, ["D4Data", "features", "featureValues", "featureWithinThreshold"]);
+      const filteredEdge = filterObject(edge, [
+        "D4Data", "features", "featureValues", "featureWithinThreshold", "originalStyle"]);
 
       Object.assign(filteredEdge, getEdgeStyleOrDefaults(edge));
 
@@ -3447,8 +5115,32 @@ function createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
     });
 
   return {
-    nodes: filteredNodes, edges: filteredEdges, combos: data.combos || [],
+    nodes: [...filteredNodes, INVISIBLE_DUMMY_NODE], edges: filteredEdges, combos: data.combos || [],
   };
+}
+
+async function setInitialNodePositions(override = false) {
+  if (!cache.initialNodePositions.has(data.selectedLayout) || override) {
+    debug(`Setting initial node positions for layout "${data.selectedLayout}" ..`);
+    cache.initialNodePositions.set(data.selectedLayout, new Map());
+    for (const nodeID of cache.nodeRef.keys()) {
+      const pos = await graph.getElementPosition(nodeID);
+      cache.initialNodePositions.get(data.selectedLayout).set(nodeID, {style: {x: pos[0], y: pos[1]}});
+    }
+  }
+}
+
+async function restoreInitialNodePositions(selectedNodesOnly = false) {
+  for (const nodeID of cache.nodeRef.keys()) {
+    if (selectedNodesOnly && !cache.selectedNodes.includes(nodeID)) continue;
+
+    const currentPos = await graph.getElementPosition(nodeID);
+    const initialPos = cache.initialNodePositions.get(data.selectedLayout).get(nodeID);
+
+    if (currentPos[0] !== initialPos.style.x || currentPos[1] !== initialPos.style.y) {
+      await graph.translateElementTo(nodeID, [initialPos.style.x, initialPos.style.y]);
+    }
+  }
 }
 
 function decodeQueryAndBuildAST() {
@@ -3478,7 +5170,7 @@ async function preRenderEvent() {
         }
       });
     }
-    // else console.log(`Node ${node.id} did not fulfill filter!`);
+    // else debug(`Node ${node.id} did not fulfill filter!`);
   }
 
   for (const edge of cache.edgeRef.values()) {
@@ -3496,7 +5188,7 @@ async function preRenderEvent() {
         }
       });
     }
-    // else console.log(`Edge ${edge.id} did not fulfill filter!`);
+    // else debug(`Edge ${edge.id} did not fulfill filter!`);
   }
 
   const nodeIDsToBeHidden = [...cache.nodeRef.keys()].filter(nodeID => !cache.nodeIDsToBeShown.has(nodeID));
@@ -3519,17 +5211,25 @@ async function preRenderEvent() {
 }
 
 async function updateElementVisibility(idsToShow, idsToHide) {
-  const { nodes, edges } = await graph.getData();
-  const { visible, hidden } = [...nodes, ...edges].reduce((acc, item) => {
-      acc[item.style.visibility === "visible" ? 'visible' : 'hidden'].push(item.id);
-      return acc;
-  }, { visible: [], hidden: [] });
+  cache.visibleElementsChanged = false;
+  const {nodes, edges} = await graph.getData();
+  const {visible, hidden} = [...nodes, ...edges].reduce((acc, item) => {
+    acc[item.style.visibility === "visible" ? 'visible' : 'hidden'].push(item.id);
+    return acc;
+  }, {visible: [], hidden: []});
 
   const showElementsDiff = idsToShow.filter(id => hidden.includes(id));
   const hideElementsDiff = idsToHide.filter(id => visible.includes(id));
 
-  if (showElementsDiff.length > 0) await graph.showElement(showElementsDiff);
-  if (hideElementsDiff.length > 0) await graph.hideElement(hideElementsDiff);
+  if (showElementsDiff.length > 0) {
+    await graph.showElement(showElementsDiff);
+    cache.visibleElementsChanged = true;
+  }
+  if (hideElementsDiff.length > 0) {
+    await graph.hideElement(hideElementsDiff);
+    cache.visibleElementsChanged = true;
+  }
+
 }
 
 function performANDFilterLogic() {
@@ -3702,48 +5402,6 @@ async function updateBubbleSetIfChanged() {
   }
 }
 
-async function nodePositionsAreInSyncWithPersistedPositions() {
-  for (let node of await graph.getNodeData()) {
-    const persistedPosition = data.layouts[data.selectedLayout].positions.get(node.id);
-    if (node.style.x !== persistedPosition?.x || node.style.y !== persistedPosition?.y) {
-      return false;
-    }
-  }
-  return true;
-}
-
-async function conditionallyPersistNodePositions() {
-  let ld = data.layouts[data.selectedLayout];
-  if (!ld.isCustom && ld.positions.size === 0) {
-    console.log(`Initially persisting coordinates of default layout ${data.selectedLayout} ..`);
-    await persistNodePositions();
-  }
-
-  // cache is written on app start or layout change every time IF no data exists yet, no matter if it is a custom layout or not
-  if (!cache.initialNodePositions.has(data.selectedLayout)) {
-    cache.initialNodePositions.set(data.selectedLayout, new Map());
-    console.log(`Caching coordinates of layout ${data.selectedLayout} to be used by reset feature ..`);
-    await persistNodePositions(cache.initialNodePositions.get(data.selectedLayout));
-  }
-}
-
-async function persistNodePositions(targetMap = data.layouts[data.selectedLayout].positions) {
-  for (const node of await graph.getNodeData()) {
-    targetMap.set(node.id, {x: node.style.x, y: node.style.y});
-  }
-}
-
-async function syncNodePositions() {
-  const toUpdate = [];
-  for (let node of await graph.getNodeData()) {
-    const persistedPosition = data.layouts[data.selectedLayout].positions.get(node.id);
-    if (persistedPosition && (persistedPosition.x !== node.style.x || persistedPosition.y !== node.style.y)) {
-      toUpdate.push({id: node.id, style: {x: persistedPosition.x, y: persistedPosition.y}});
-    }
-  }
-  await graph.updateNodeData(toUpdate);
-}
-
 function isInteger(value) {
   return value % 1 === 0;
 }
@@ -3752,17 +5410,9 @@ function formatNumber(value, precision) {
   return isInteger(value) ? value : parseFloat(value).toFixed(precision);
 }
 
-function countLines(el) {
-  if (!el.firstChild) return 0;
-  const r     = document.createRange();
-  r.selectNodeContents(el);
-  const tops  = new Set(Array.from(r.getClientRects()).map(rc => Math.round(rc.top)));
-  return tops.size;
-}
-
 function getLineMetrics(el) {
   if (!el || !el.firstChild) {
-    return { lines: 0, lastLineWidth: 0 };
+    return {lines: 0, lastLineWidth: 0};
   }
 
   const range = document.createRange();
@@ -3783,7 +5433,7 @@ function getLineMetrics(el) {
 
   // Number of distinct "top" positions ⇒ line count.
   const lines = groups.size;
-  if (lines === 0) return { lines: 0, lastLineWidth: 0 };
+  if (lines === 0) return {lines: 0, lastLineWidth: 0};
 
   // Get rects belonging to the last (visually lowest) line.
   const lastTop = Math.max(...groups.keys());
@@ -3791,27 +5441,27 @@ function getLineMetrics(el) {
 
   // Combine segments to obtain total visual width of that line.
   // (If inline spans break the line into pieces, merge them.)
-  const left  = Math.min(...lastRects.map(r => r.left));
+  const left = Math.min(...lastRects.map(r => r.left));
   const right = Math.max(...lastRects.map(r => r.right));
   const lastLineWidth = Math.round(right - left);
 
-  return { lines, lastLineWidth };
+  return {lines, lastLineWidth};
 }
 
 
 function validateAlignment() {
   // read real widths of the two layers
-  const mText    = getLineMetrics(query.text);
+  const mText = getLineMetrics(query.text);
   const mOverlay = getLineMetrics(query.overlay);
 
-  const linesMatch     = mText.lines        === mOverlay.lines;
+  const linesMatch = mText.lines === mOverlay.lines;
   const lastWidthMatch = Math.abs(mText.lastLineWidth - mOverlay.lastLineWidth) <= 1;  // 1 pixel tolerance
 
   if (linesMatch && lastWidthMatch) {
     if (query.sizeChangeLocked) {
       // let flexbox resize again
-    query.text.style.removeProperty('width');
-    query.overlay.style.removeProperty('width');
+      query.text.style.removeProperty('width');
+      query.overlay.style.removeProperty('width');
       query.sizeChangeLocked = false;
       console.info("Alignment restored, width unlocked");
     }
@@ -3822,12 +5472,12 @@ function validateAlignment() {
 
   // freeze both layers at the last known good width
   if (!query.sizeChangeLocked && query.lastGoodWidth > 0) {
-      console.warn(
-    `Mismatch — lines: ${mText.lines}/${mOverlay.lines}, ` +
-    `last width: ${mText.lastLineWidth}/${mOverlay.lastLineWidth}. ` +
-    `Locking at ${query.lastGoodWidth}px`
-  );
-    query.text.style.width    = `${query.lastGoodWidth}px`;
+    console.warn(
+      `Mismatch — lines: ${mText.lines}/${mOverlay.lines}, ` +
+      `last width: ${mText.lastLineWidth}/${mOverlay.lastLineWidth}. ` +
+      `Locking at ${query.lastGoodWidth}px`
+    );
+    query.text.style.width = `${query.lastGoodWidth}px`;
     query.overlay.style.width = `${query.lastGoodWidth}px`;
     query.sizeChangeLocked = true;
   }
@@ -3850,6 +5500,7 @@ function buildUI() {
   buildDropdownOptions();
   buildMetricsUI();
   buildFilterUI();
+  alignUIWithJSConstants();
   showUI(true);
 
   query.lastGoodWidth = query.editorDiv.offsetWidth;
@@ -3892,8 +5543,9 @@ function buildFilterUI() {
       header.className = "m-0 white";
       headerDiv.appendChild(header);
 
-      headerDiv.appendChild(createSectionToggleButton(true, section));
       headerDiv.appendChild(createSectionToggleButton(false, section));
+      headerDiv.appendChild(createSectionResetButton(section));
+      headerDiv.appendChild(createSectionToggleButton(true, section));
 
       div.appendChild(headerDiv);
       div.appendChild(document.createElement("br"));
@@ -3909,8 +5561,9 @@ function buildFilterUI() {
       subHeader.className = "m-0 inline";
       subHeaderDiv.appendChild(subHeader);
 
-      subHeaderDiv.appendChild(createSectionToggleButton(true, section, subSection));
       subHeaderDiv.appendChild(createSectionToggleButton(false, section, subSection));
+      subHeaderDiv.appendChild(createSectionResetButton(section, subSection));
+      subHeaderDiv.appendChild(createSectionToggleButton(true, section, subSection));
 
       div.appendChild(subHeaderDiv);
 
@@ -3960,49 +5613,208 @@ function buildFilterUI() {
   updateQueryTextArea();
 }
 
+function alignUIWithJSConstants() {
+  document.getElementById("resetSelectedElementsStyleBtn").title = RESET_SELECTION_BUTTON_RESETS_POSITIONS
+  ? "Reset the visual appearance and positions of the selected elements to their defaults"
+  : "Reset the visual appearance of the selected elements to their defaults";
+}
+
 function buildMetricsUI() {
   const div = document.getElementById("metricsContainer");
   div.innerHTML = "";
   div.appendChild(cache.metrics.buildUI());
 }
 
-async function saveFiltersToStash(manualTriggered = false) {
-  data.stash = {
-    filters: structuredClone(data.layouts[data.selectedLayout].filters),
-    query: structuredClone(data.layouts[data.selectedLayout]["query"]),
-    triggered: manualTriggered
-  };
-  await showLoading("Saving filter", "Saving filter settings to stash");
-  await new Promise(resolve => requestAnimationFrame(resolve));
+async function saveStash() {
+  const select = document.getElementById("selectStash");
+  let stashName = await Popup.prompt("Enter Filter Profile Name: ");
+  if (!stashName) {
+    info("Creating filter profile canceled");
+    return;
+  }
+
+  let existing = Object.keys(data.stash);
+
+  if (existing.includes(stashName)) {
+    error(`Filter profile with name "${stashName}" already exists.`);
+    return;
+  }
+
+  await captureStashSnapshot(stashName);
+
+  refreshStashUI();
+  select.value = stashName;
+  info(`Created filter profile: ${stashName}`)
 }
 
-async function loadFiltersFromStash() {
-  data.layouts[data.selectedLayout].filters = structuredClone(data.stash.filters);
-  data.layouts[data.selectedLayout]["query"] = structuredClone(data.stash["query"]);
+async function overwriteStash() {
+  const stashName = document.getElementById("selectStash").value;
+  if (stashName == null || stashName === "") return;
+
+  await captureStashSnapshot(stashName);
+  info(`Overwrote filter profile: ${stashName}`);
+}
+
+async function captureStashSnapshot(stashName) {
+  data.stash[stashName] = {
+    query: structuredClone(query.text.textContent),
+    groupedProps: {},
+    filters: structuredClone(data.layouts[data.selectedLayout].filters),
+    bubbleSets: {},
+    selectedNodes: [...cache.selectedNodes],
+    selectedEdges: [...cache.selectedEdges],
+  }
+
+  for (const group of traverseBubbleSets()) {
+    data.stash[stashName].bubbleSets[group] = [...INSTANCES.BUBBLE_GROUPS[group].members.keys()];
+    data.stash[stashName].groupedProps[group] = new Set([...data.layouts[data.selectedLayout][`${group}Props`]]);
+  }
+
+  await captureStashViewport(stashName);
+}
+
+async function captureStashViewport(stashName) {
+  const currentZoom = await graph.getZoom();
+
+  await graph.zoomTo(1, false);
+
+  const position = await graph.getPosition();
+
+  data.stash[stashName].zoom = currentZoom;
+  data.stash[stashName].position = position;
+
+  await graph.zoomTo(currentZoom, false);
+
+  debug(`Captured viewport for filter profile: ${stashName} | zoom: ${currentZoom} | position: ${position}`);
+}
+
+async function restoreStashViewport() {
+  const selected = document.getElementById("selectStash").value;
+  if (selected === null || selected === "") return;
+
+  const {zoom, position} = data.stash[selected];
+
+  await graph.zoomTo(1, false);
+  await graph.translateTo(position, false);
+  await graph.zoomTo(zoom, false);
+
+  debug(`Viewport restored. Zoom: ${zoom}, Position: ${position}`);
+}
+
+async function loadStash() {
+  const selected = document.getElementById("selectStash").value;
+
+  const query = data.stash[selected]["query"];
+  const groupedProps = data.stash[selected].groupedProps;
+
+  data.layouts[data.selectedLayout]["query"] = query;
+  data.layouts[data.selectedLayout].filters = parseFiltersAsMap(data.stash[selected].filters);
+  for (const group of traverseBubbleSets()) {
+    data.layouts[data.selectedLayout][`${group}Props`] = new Set([...groupedProps[group]]);
+    cache.lastBubbleSetMembers.set(group, new Set(data.stash[selected].bubbleSets[group]));
+  }
+
   buildFilterUI();
-  await handleFilterEvent("Restoring filter", "Restoring filter settings from stash");
+
+  await showLoading("Loading filter profile", `Applying profile ${selected} ..`);
+  await clearBubbleSetInstanceMembers();
+  await decideToRenderOrDraw(true);
+  await restoreStashViewport();
+  await selectNodes(data.stash[selected].selectedNodes);
+  await selectEdges(data.stash[selected].selectedEdges);
+
+  info(`Applied filter profile: ${selected}`);
+}
+
+async function removeStash() {
+  const select = document.getElementById("selectStash");
+  const val = select.value;
+  const confirmed = await Popup.confirm(`Are you sure you want to delete the profile "${select.value}"?`);
+
+  if (confirmed) {
+    delete data.stash[val];
+    select.value = '';
+    refreshStashUI();
+    info(`Removed filter profile: ${val}`);
+  }
+}
+
+function refreshStashUI() {
+  const select = document.getElementById("selectStash");
+  const remove = document.getElementById("removeStash");
+  const apply = document.getElementById("applyStash");
+  const overwrite = document.getElementById("overwriteStash");
+  const currentlySelected = select.value;
+
+  select.innerHTML = '';
+
+  for (const elem of [select, remove, apply, overwrite]) {
+    if (Object.keys(data.stash).length > 0) {
+      elem.classList.remove("disabled");
+    } else {
+      elem.classList.add("disabled");
+    }
+  }
+
+  for (const key of Object.keys(data.stash)) {
+    const option = document.createElement("option");
+    option.value = key;
+    option.textContent = key;
+    select.appendChild(option);
+  }
+
+  if (currentlySelected) {
+    select.value = currentlySelected;
+  } else if (Object.keys(data.stash).length > 0) {
+    select.value = Object.keys(data.stash)[0];
+  }
 }
 
 function manageDynamicWidgets() {
   let isCustomLayout = data.layouts[data.selectedLayout].isCustom;
   let removeLayoutBtnCls = document.getElementById("removeSelectedLayoutButton").classList;
-  let resetLayoutBtnCls = document.getElementById("resetLayoutButton").classList;
 
   isCustomLayout ? removeLayoutBtnCls.remove("disabled") : removeLayoutBtnCls.add("disabled");
-  isCustomLayout ? resetLayoutBtnCls.add("disabled") : resetLayoutBtnCls.remove("disabled");
 }
 
 function createSectionToggleButton(enable, section, subSection = null) {
   const btn = document.createElement("button");
   btn.className = "small-btn toggle-section-btn ml-1";
   if (subSection) btn.classList.add("extra-small");
-  if (enable) btn.classList.add("ml-2");
   btn.textContent = enable ? "✔" : "✗";
-  btn.title = `${enable ? 'Enable' : 'Disable'} all filters for the ${subSection 
-    ? 'group: ' + "\n * " + subSection 
-    : 'section: ' + "\n * " + section}`;
+  btn.title = `${enable ? 'Enable' : 'Disable'} all filters for the ${subSection
+    ? 'group: ' + "\n └─ " + section + "\n        └─ " + subSection
+    : 'section: ' + "\n └─ " + section}`;
   btn.onclick = async () => {
     subSection ? await toggleSubSection(enable, section, subSection) : await toggleSection(enable, section);
+  };
+  return btn;
+}
+
+function formatPropsAsTree(propID = undefined, section = undefined, subSection = undefined, prop = undefined) {
+  if (propID) {
+    const decoded = decodePropHashId(propID);
+    section = decoded[0];
+    subSection = decoded[1];
+    prop = decoded[2];
+  }
+
+  let retStr = `\n └─ ${section}`;
+  if (subSection) retStr += `\n        └─ ${subSection}`;
+  if (prop) retStr += `\n                └─ ${prop}`;
+  return retStr;
+}
+
+function createSectionResetButton(section, subSection = undefined) {
+  const btn = document.createElement("button");
+  btn.className = "small-btn toggle-section-btn ml-1";
+  if (subSection) btn.classList.add("extra-small");
+  btn.textContent = "⟳";
+  btn.title = `Reset all filters for the ${subSection
+    ? 'group to their default values: ' + "\n └─ " + section + "\n        └─ " + subSection
+    : 'section to their default values: ' + "\n └─ " + section}`;
+  btn.onclick = async () => {
+    await resetFilters(section, subSection);
   };
   return btn;
 }
@@ -4018,7 +5830,7 @@ async function toggleSubSection(enable, section, subSection) {
 }
 
 function getCheckboxTT(enable, propID) {
-  return `Click to ${enable ? 'hide' : 'show'} elements with the property:\n * ${propID}`;
+  return `Click to ${enable ? 'hide' : 'show'} elements with the property:${formatPropsAsTree(propID)}`;
 }
 
 function toggleCheckboxesForSetOfPropIDs(enable, propIDPrefixToSearchFor) {
@@ -4036,47 +5848,118 @@ function toggleCheckboxesForSetOfPropIDs(enable, propIDPrefixToSearchFor) {
   }
 }
 
-function createCheckbox(propID, prop) {
-  const wrapper = document.createElement('label');
-  wrapper.className = 'checkboxWrapper';
-  wrapper.id = `filter-${propID}-checkbox-wrapper`;
-
-  const input = document.createElement('input');
-  input.id = `filter-${propID}-checkbox`;
-  input.type = 'checkbox';
-  input.checked = data.layouts[data.selectedLayout].filters.get(propID).active;
-  input.style.display = 'none';
-
-  const customCheckbox = document.createElement('span');
-  customCheckbox.id = `filter-${propID}-checkbox-inner`;
-  customCheckbox.className = "checkbox checkbox-green";
-
-  const updateCheckbox = () => {
-    customCheckbox.textContent = input.checked ? '✔' : '';
-    wrapper.title = getCheckboxTT(input.checked, propID);
+function createQueryButton(propID, prop) {
+  const btn = document.createElement("button");
+  btn.className = "showOnQuery tiny-btn";
+  btn.textContent = "Q";
+  btn.title = `Query for nodes with the property:\n * ${propID}`;
+  btn.onclick = async () => {
+    console.log("foo");
   };
-  updateCheckbox();
+  return btn;
+}
 
-  input.addEventListener('change', updateCheckbox);
+function createCheckboxContainer(propID) {
+    const container = document.createElement('div');
+    container.className = 'checkboxContainer';
+    container.id = `filter-${propID}-container`;
+    return container;
+}
 
-  const displayField = document.createElement('span');
-  displayField.className = 'checkboxLabel';
-  displayField.textContent = prop;
+function createCheckboxInput(propID, initialState) {
+    const input = document.createElement('input');
+    input.id = `filter-${propID}-checkbox`;
+    input.type = 'checkbox';
+    input.checked = initialState;
+    input.style.display = 'none';
+    return input;
+}
 
-  wrapper.append(input, customCheckbox, displayField);
+function createCustomCheckbox(propID) {
+    const customCheckbox = document.createElement('span');
+    customCheckbox.id = `filter-${propID}-checkbox-inner`;
+    customCheckbox.className = "checkbox checkbox-green";
+    return customCheckbox;
+}
 
-  wrapper.addEventListener('change', async (ev) => {
-    // const slider = document.getElementById(`filter-${propID}-slider`);
-    // slider && input.checked ? slider.classList.remove("is-disabled") : slider && slider.classList.add("is-disabled");
-    data.layouts[data.selectedLayout].filters.get(propID).active = input.checked;
-    input.checked ? cache.activeProps.add(propID) : cache.activeProps.delete(propID);
-    let status = input.checked ? "Showing" : "Hiding";
-    await handleFilterEvent(`${status} Elements`, `Nodes and related edges for ${propID}`);
+function createAddToQueryButton(propID) {
+  const actionButton = document.createElement('button');
+  actionButton.className = 'add-to-query-button';
+  actionButton.textContent = '📝';
+  actionButton.title = `Add ${propID} to the query`;
+
+  actionButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const slider = cache.propIDToInvertibleRangeSliders.get(propID);
+    const dropdown = cache.propIDToDropdownChecklists.get(propID);
+
+    let queryFragment;
+    if (slider) {
+      if (QUERY_BTN_USE_CURRENT_FILTER) {
+        queryFragment = slider.isInverted
+          ? `${propID} LOWER THAN ${slider.currentMax} OR GREATER THAN ${slider.currentMin}`
+          : `${propID} BETWEEN ${slider.currentMin} AND ${slider.currentMax}`;
+      } else {
+        queryFragment = `(${propID} BETWEEN ${slider.sliderMin} AND ${slider.sliderMax}`;
+      }
+    } else if (dropdown) {
+      if (QUERY_BTN_USE_CURRENT_FILTER) {
+        queryFragment = `${propID} IN [${[...dropdown.selectedCategories].join(",")}]`
+      } else {
+        queryFragment = `${propID} IN [${[...dropdown.categories].join(",")}]`
+      }
+    }
+
+    if (data.layouts[data.selectedLayout]["query"] === undefined) {
+      handleQueryValidationEvent();
+    }
+
+    if (!query.text.textContent.trim()) {
+      data.layouts[data.selectedLayout]["query"] = `(${queryFragment})`;
+    } else {
+      data.layouts[data.selectedLayout]["query"] += ` OR (${queryFragment})`;
+    }
+    updateQueryTextArea();
   });
 
-  input.checked ? cache.activeProps.add(propID) : cache.activeProps.delete(propID);
+  return actionButton;
+}
 
-  return wrapper;
+
+function createCheckbox(propID, prop) {
+    const container = createCheckboxContainer(propID);
+    const wrapper = document.createElement('label');
+    wrapper.className = 'checkboxWrapper';
+    wrapper.id = `filter-${propID}-checkbox-wrapper`;
+
+    const input = createCheckboxInput(propID, data.layouts[data.selectedLayout].filters.get(propID).active);
+    const customCheckbox = createCustomCheckbox(propID);
+    const actionButton = createAddToQueryButton(propID);
+    const displayField = document.createElement("span");
+    displayField.className = 'checkboxLabel';
+    displayField.textContent = prop;
+
+    const updateCheckbox = () => {
+        customCheckbox.textContent = input.checked ? '✔' : '';
+        wrapper.title = getCheckboxTT(input.checked, propID);
+    };
+    updateCheckbox();
+
+    input.addEventListener('change', updateCheckbox);
+    wrapper.addEventListener('change', async () => {
+        data.layouts[data.selectedLayout].filters.get(propID).active = input.checked;
+        input.checked ? cache.activeProps.add(propID) : cache.activeProps.delete(propID);
+        let status = input.checked ? "Showing" : "Hiding";
+        await handleFilterEvent(`${status} Elements`, `Nodes and related edges for ${propID}`);
+    });
+
+    wrapper.append(input, customCheckbox);
+    container.append(wrapper, actionButton, displayField);
+
+    input.checked ? cache.activeProps.add(propID) : cache.activeProps.delete(propID);
+
+    return container;
 }
 
 function uncheckAllCheckboxes() {
@@ -4208,7 +6091,7 @@ class DropdownChecklist {
     this.anchor.textContent = `${this.selectedCategories.size}/${this.categories.size} selected`;
     await handleFilterEvent(ev.target.checked ? "Showing" : "Hiding" + " Elements",
       `Nodes and related edges for ${this.propID} ${ev.target.value}`, this.propID);
-    // console.log(`${this.propID} ${ev.target.value} ${ev.target.checked}`);
+    // debug(`${this.propID} ${ev.target.value} ${ev.target.checked}`);
   }
 
   appendListeners() {
@@ -4280,10 +6163,12 @@ class DropdownChecklist {
     this.anchor.textContent = `${this.selectedCategories.size}/${this.categories.size} selected`;
   }
 
-  async selectAllCategories() {
+  async selectAllCategories(skipFilterEvent = false) {
     this.categories.forEach(category => this.selectedCategories.add(category)); // Add all categories
     this.updateCheckboxStates(true);
-    await handleFilterEvent("Showing Elements", `Nodes and related edges for ${this.propID}`, this.propID);
+    if (!skipFilterEvent) {
+      await handleFilterEvent("Showing Elements", `Nodes and related edges for ${this.propID}`, this.propID);
+    }
   }
 
   async deselectAllCategories(skipFilterEvent = false) {
@@ -4401,6 +6286,16 @@ class InvertibleRangeSlider {
     return input;
   }
 
+  reset() {
+    // Reset to min/max values in non-inverted state
+    this.setTo(this.sliderMin, this.sliderMax, false);
+
+    this.isInverted = false;
+    this.currentMin = this.sliderMin;
+    this.currentMax = this.sliderMax;
+    this.writeCurrentFilterSettings();
+  }
+
   appendTo(parent) {
     if (HIDE_SLIDERS_WITH_SAME_MIN_MAX_VALUES && this.sliderMin === this.sliderMax) {
       parent.appendChild(document.createElement("span"));
@@ -4424,7 +6319,7 @@ class InvertibleRangeSlider {
     div.innerHTML = this.createDivInnerHTML();
     const slider = div.firstElementChild;
     slider.style.width = '100%';
-    slider.title = `Thresholds for ${this.propID}.\n  - Move handles to set min/max (≥ min ∧ ≤ max).\n  - Swap handles to invert (≤ min ∨ ≥ max).\n  - Double-click to reset.`;
+    slider.title = `Set the thresholds for the numeric property: ${formatPropsAsTree(this.propID)}\n---\n  - Move handles to set min/max (≥ min ∧ ≤ max).\n  - Swap handles to invert (≤ min ∨ ≥ max).\n  - Double-click to reset.`;
 
     parent.appendChild(div);
     parent.appendChild(colLeft);
@@ -4462,11 +6357,7 @@ class InvertibleRangeSlider {
     this.getDOMReferences();
 
     this.slider.addEventListener('dblclick', () => {
-      this.sliderStart.value = this.sliderMin;
-      this.sliderStart.dispatchEvent(new Event('input'));
-      data.layouts[data.selectedLayout].filters.get(this.propID).lowerThreshold = this.sliderMin;
-      this.sliderEnd.value = this.sliderMax;
-      this.sliderEnd.dispatchEvent(new Event('input'));
+      this.reset();
       this.sliderEnd.dispatchEvent(new Event('change'));
     });
 
@@ -4587,7 +6478,7 @@ function createCircleGroupButtonWithQuadrants(propID) {
   const circleButton = document.createElement('div');
   circleButton.className = `circle-button`;
 
-  for (let [group, quadrantPosition] of Object.entries(DEFAULTS.BUBBLE_SET_QUADRANT_POSITIONS)) {
+  for (let [group, quadrantPosition] of Object.entries(DEFAULTS.BUBBLE_GROUP_QUADRANT_POSITIONS)) {
     const quadrant = document.createElement('button');
     quadrant.classList.add("quadrant");
     quadrant.classList.add(quadrantPosition);
@@ -4602,13 +6493,13 @@ function createCircleGroupButtonWithQuadrants(propID) {
         quadrant.title = `Remove ${propID} from ${group}.`;
         members.delete(propID);
         quadrant.classList.remove("active");
-        await handleFilterEvent(`Reduce Group`, `Removing ${propID} from ${group}`, propID);
+        await decideToRenderOrDraw();
       } else {
         data.layouts[data.selectedLayout][`${group}Props`].add(propID);
         quadrant.title = `Highlight ${propID} and add to bubble-group (${group})`;
         members.add(propID);
         quadrant.classList.add("active");
-        await handleFilterEvent(`Add to Group`, `Adding ${propID} to ${group}`, propID);
+        await decideToRenderOrDraw();
       }
     });
 
@@ -4628,7 +6519,7 @@ class Popup {
    * const popup2 = new Popup(`
    *     <h2>Welcome!</h2>
    *     <p>This is a popup with <strong>HTML</strong> content.</p>
-   *     <button onclick="alert('Button clicked!')">Click me</button>
+   *     <button onclick="error('Button clicked!')">Click me</button>
    * `);
    *
    * // Popup with custom options
@@ -4636,166 +6527,915 @@ class Popup {
    *     width: '400px',
    *     position: { x: 100, y: 100 },
    *     closeOnClickOutside: false,
-   *     onClose: () => console.log('Popup closed!')
+   *     onClose: () => debug('Popup closed!')
    * });
    */
-    constructor(content, options = {}) {
-        this.options = {
-            width: '300px',
-            height: 'auto',
-            position: 'center',
-            lineHeight: 'normal',
-            closeOnClickOutside: true,
-            onClose: null,
-            showFullscreenButton: true,
-            ...options
-        };
+  constructor(content, options = {}) {
+    this.options = {
+      width: '300px',
+      height: 'auto',
+      position: 'center',
+      lineHeight: 'normal',
+      closeOnClickOutside: true,
+      onClose: null,
+      showFullscreenButton: true,
+      ...options
+    };
 
-        this.popup = null;
-        this.overlay = null;
-        this.closeBtn = null;
-        this.fullscreenBtn = null;
-        this.isFullscreen = false;
-        this.originalStyles = null;
+    this.popup = null;
+    this.overlay = null;
+    this.closeBtn = null;
+    this.fullscreenBtn = null;
+    this.isFullscreen = false;
+    this.originalStyles = null;
 
-        this.init(content);
-    }
+    this.init(content);
+  }
 
-    init(content) {
-        this.createPopup(content);
-        this.setupCloseHandlers();
-        if (this.options.showFullscreenButton) {
-            this.setupFullscreenButton();
-        }
-        this.show();
-    }
+static async prompt(message) {
+    return new Promise((resolve) => {
+      const inputField = document.createElement('input');
+      inputField.type = 'text';
+      inputField.className = "p-prompt";
 
-    createPopup(content) {
-        this.popup = document.createElement('div');
-        this.popup.className = 'p-custom';
+      const content = document.createElement('div');
+      content.innerHTML = `<div>${message}</div>`;
+      content.appendChild(inputField);
 
-        const headerDiv = document.createElement('div');
-        headerDiv.className = 'p-header';
+      const confirmBtn = document.createElement('button');
+      confirmBtn.textContent = 'OK';
+      confirmBtn.className = "p-button";
+      content.appendChild(confirmBtn);
 
-        if (this.options.showFullscreenButton) {
-            this.fullscreenBtn = document.createElement('button');
-            this.fullscreenBtn.className = 'p-btn';
-            this.fullscreenBtn.innerHTML = '⛶';
-            this.fullscreenBtn.title = 'Toggle fullscreen';
-            headerDiv.appendChild(this.fullscreenBtn);
-        }
+      let isConfirmed = false;
 
-        this.closeBtn = document.createElement('button');
-        this.closeBtn.className = 'p-btn';
-        this.closeBtn.innerHTML = '×';
-        this.closeBtn.title = 'Close popup';
-        headerDiv.appendChild(this.closeBtn);
-
-        const popupContent = document.createElement('div');
-        popupContent.className = 'popup-content';
-        popupContent.style.marginTop = '20px';
-
-        if (typeof content === 'string') {
-            popupContent.innerHTML = content;
-        } else {
-            popupContent.appendChild(content);
-        }
-
-        this.popup.appendChild(headerDiv);
-        this.popup.appendChild(popupContent);
-
-        this.overlay = document.createElement('div');
-        this.overlay.className = 'p-overlay';
-
-        document.body.appendChild(this.overlay);
-        document.body.appendChild(this.popup);
-
-        this.popup.style.width = this.options.width;
-        if (this.options.height !== 'auto') {
-            this.popup.style.height = this.options.height;
-        }
-
-        if (this.options.lineHeight !== 'normal') {
-          this.popup.style.lineHeight = this.options.lineHeight;
-        }
-
-        this.setPosition();
-        this.storeOriginalStyles();
-    }
-
-    storeOriginalStyles() {
-      this.originalStyles = {
-        width: this.popup.style.width,
-        height: this.popup.style.height,
-        top: this.popup.style.top,
-        left: this.popup.style.left,
-        transform: this.popup.style.transform,
-        borderRadius: this.popup.style.borderRadius,
-        margin: this.popup.style.margin,
-        position: this.popup.style.position
+      const handleConfirm = () => {
+        isConfirmed = true;
+        const value = inputField.value.trim();
+        popup.close();
+        resolve(value);
       };
+
+      const popup = new Popup(content, {
+        width: '300px',
+        showFullscreenButton: false,
+        closeOnClickOutside: false,
+        onClose: () => {
+          if (!isConfirmed) {
+            resolve(null);
+          }
+        }
+      });
+
+      confirmBtn.addEventListener('click', handleConfirm);
+      inputField.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          handleConfirm();
+        }
+      });
+
+      setTimeout(() => inputField.focus(), 0);
+    });
+  }
+
+
+  static async confirm(message) {
+    return new Promise((resolve) => {
+      const content = document.createElement('div');
+      content.innerHTML = `<div>${message}</div>`;
+
+      const confirmBtn = document.createElement('button');
+      confirmBtn.textContent = 'OK';
+      confirmBtn.className="p-button ml-1";
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.className="p-button";
+
+      content.appendChild(confirmBtn);
+      content.appendChild(cancelBtn);
+
+      let isResolved = false;
+
+      const popup = new Popup(content, {
+        width: '300px',
+        showFullscreenButton: false,
+        closeOnClickOutside: false,
+        onClose: () => {
+          if (!isResolved) {
+            resolve(null);
+          }
+        }
+      });
+
+      confirmBtn.addEventListener('click', () => {
+        isResolved = true;
+        popup.close();
+        resolve(true);
+      });
+
+      cancelBtn.addEventListener('click', () => {
+        isResolved = true;
+        popup.close();
+        resolve(false);
+      });
+
+      setTimeout(() => confirmBtn.focus(), 0);
+    });
+  }
+
+  init(content) {
+    this.createPopup(content);
+    this.setupCloseHandlers();
+    if (this.options.showFullscreenButton) {
+      this.setupFullscreenButton();
+    }
+    this.show();
+  }
+
+  createPopup(content) {
+    this.popup = document.createElement('div');
+    this.popup.className = 'p-custom';
+
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'p-header';
+
+    if (this.options.showFullscreenButton) {
+      this.fullscreenBtn = document.createElement('button');
+      this.fullscreenBtn.className = 'p-icon';
+      this.fullscreenBtn.innerHTML = '⛶';
+      this.fullscreenBtn.title = 'Toggle fullscreen';
+      headerDiv.appendChild(this.fullscreenBtn);
     }
 
-    setupFullscreenButton() {
-        this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+    this.closeBtn = document.createElement('button');
+    this.closeBtn.className = 'p-icon';
+    this.closeBtn.innerHTML = '×';
+    this.closeBtn.title = 'Close popup';
+    headerDiv.appendChild(this.closeBtn);
+
+    const popupContent = document.createElement('div');
+    popupContent.className = 'popup-content';
+    popupContent.style.marginTop = '20px';
+
+    if (typeof content === 'string') {
+      popupContent.innerHTML = content;
+    } else {
+      popupContent.appendChild(content);
     }
 
-    toggleFullscreen() {
-        this.isFullscreen = !this.isFullscreen;
+    this.popup.appendChild(headerDiv);
+    this.popup.appendChild(popupContent);
 
-        if (this.isFullscreen) {
-            this.popup.style.width = '100%';
-            this.popup.style.height = '100%';
-            this.popup.style.top = '0';
-            this.popup.style.left = '0';
-            this.popup.style.transform = 'none';
-            this.popup.style.position = 'fixed';
+    this.overlay = document.createElement('div');
+    this.overlay.className = 'p-overlay';
 
-            this.fullscreenBtn.innerHTML = '⧉';
-            this.fullscreenBtn.title = 'Exit fullscreen';
+    document.body.appendChild(this.overlay);
+    document.body.appendChild(this.popup);
+
+    this.popup.style.width = this.options.width;
+    if (this.options.height !== 'auto') {
+      this.popup.style.height = this.options.height;
+    }
+
+    if (this.options.lineHeight !== 'normal') {
+      this.popup.style.lineHeight = this.options.lineHeight;
+    }
+
+    this.setPosition();
+    this.storeOriginalStyles();
+  }
+
+  storeOriginalStyles() {
+    this.originalStyles = {
+      width: this.popup.style.width,
+      height: this.popup.style.height,
+      top: this.popup.style.top,
+      left: this.popup.style.left,
+      transform: this.popup.style.transform,
+      borderRadius: this.popup.style.borderRadius,
+      margin: this.popup.style.margin,
+      position: this.popup.style.position
+    };
+  }
+
+  setupFullscreenButton() {
+    this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+  }
+
+  toggleFullscreen() {
+    this.isFullscreen = !this.isFullscreen;
+
+    if (this.isFullscreen) {
+      this.popup.style.width = '100%';
+      this.popup.style.height = '100%';
+      this.popup.style.top = '0';
+      this.popup.style.left = '0';
+      this.popup.style.transform = 'none';
+      this.popup.style.position = 'fixed';
+
+      this.fullscreenBtn.innerHTML = '⧉';
+      this.fullscreenBtn.title = 'Exit fullscreen';
+    } else {
+      Object.assign(this.popup.style, this.originalStyles);
+
+      this.fullscreenBtn.innerHTML = '⛶';
+      this.fullscreenBtn.title = 'Fullscreen';
+    }
+  }
+
+  setPosition() {
+    if (!this.isFullscreen) {
+      if (this.options.position === 'center') {
+        this.popup.style.top = '50%';
+        this.popup.style.left = '50%';
+        this.popup.style.transform = 'translate(-50%, -50%)';
+      } else {
+        this.popup.style.top = `${this.options.position.y}px`;
+        this.popup.style.left = `${this.options.position.x}px`;
+        this.popup.style.transform = 'none';
+      }
+    }
+  }
+
+  setupCloseHandlers() {
+    this.closeBtn.addEventListener('click', () => this.close());
+
+    if (this.options.closeOnClickOutside) {
+      this.overlay.addEventListener('click', () => this.close());
+    }
+  }
+
+  show() {
+    this.popup.style.display = 'block';
+    this.overlay.style.display = 'block';
+  }
+
+  close() {
+    if (this.options.onClose) {
+      this.options.onClose();
+    }
+    this.popup.remove();
+    this.overlay.remove();
+    cache.popup = null;
+  }
+}
+
+function buildDataTable(fileData) {
+  dataTable = new DataTable();
+  dataTable.populateFromFileData(fileData);
+
+  // dataTable.onChange((rowIndex, colIndex, newValue) => {
+  //   console.log(`Data changed at row ${rowIndex}, column ${colIndex}:`, newValue);
+  //   // add logic, trigger graph refresh, ..
+  // });
+}
+
+class DataTable {
+  constructor(containerId = 'dataTableContainer') {
+    this.containerId = containerId;
+    this.tableData = [];
+    this.headers = [];
+    this.currentEditingCell = null;
+    this.onChangeCallback = null;
+    this.sortState = {};
+    this.originalOrder = []; // For fast unsort
+    this.headerIndexMap = new Map(); // Cache for header lookups
+
+    this.init();
+  }
+
+  init() {
+    const container = document.getElementById(this.containerId);
+    if (!container) {
+      console.error(`Container with ID '${this.containerId}' not found`);
+      return;
+    }
+
+    container.innerHTML = `
+      <table id="dataTable" class="data-table">
+        <thead id="dataTableHead"></thead>
+        <tbody id="dataTableBody"></tbody>
+      </table>
+    `;
+
+    this.table = container.querySelector('#dataTable');
+    this.tableHead = container.querySelector('#dataTableHead');
+    this.tableBody = container.querySelector('#dataTableBody');
+
+    this.tableBody.addEventListener('click', this.handleTableClick.bind(this));
+    this.tableBody.addEventListener('focus', this.handleTableFocus.bind(this), true);
+    this.tableBody.addEventListener('blur', this.handleTableBlur.bind(this), true);
+    this.tableBody.addEventListener('keydown', this.handleTableKeydown.bind(this));
+    this.tableBody.addEventListener('input', this.handleTableInput.bind(this));
+
+    this.tableHead.addEventListener('click', this.handleHeaderTableClick.bind(this));
+  }
+
+  handleTableClick(event) {
+    if (event.target.classList.contains('data-table-delete-row-btn')) {
+      const rowIndex = parseInt(event.target.closest('td').dataset.row);
+      this.handleDeleteRow(rowIndex);
+    }
+  }
+
+  async handleHeaderTableClick(event) {
+    await showLoading("Data Editor", "Sorting ..");
+    const headerDiv = event.target.closest('.data-table-sortable-header');
+    if (headerDiv) {
+      const columnIndex = parseInt(headerDiv.dataset.column);
+      this.handleHeaderClick(columnIndex);
+    }
+    await hideLoading();
+  }
+
+  handleTableFocus(event) {
+    if (event.target.contentEditable === 'true') {
+      const rowIndex = parseInt(event.target.dataset.row);
+      const colIndex = parseInt(event.target.dataset.col);
+      this.handleCellFocus(event, rowIndex, colIndex);
+    }
+  }
+
+  handleTableBlur(event) {
+    if (event.target.contentEditable === 'true') {
+      const rowIndex = parseInt(event.target.dataset.row);
+      const colIndex = parseInt(event.target.dataset.col);
+      this.handleCellBlur(event, rowIndex, colIndex);
+    }
+  }
+
+  handleTableKeydown(event) {
+    if (event.target.contentEditable === 'true') {
+      const rowIndex = parseInt(event.target.dataset.row);
+      const colIndex = parseInt(event.target.dataset.col);
+      this.handleCellKeydown(event, rowIndex, colIndex);
+    }
+  }
+
+  handleTableInput(event) {
+    if (event.target.contentEditable === 'true') {
+      const rowIndex = parseInt(event.target.dataset.row);
+      const colIndex = parseInt(event.target.dataset.col);
+      this.handleCellInput(event, rowIndex, colIndex);
+    }
+  }
+
+  populateFromFileData(fileData) {
+    if (!fileData) {
+      console.error('No fileData provided');
+      return;
+    }
+
+    this.fileData = structuredClone(fileData);
+
+    this.headers = ["Del", "Row #", "Type", "ID", "Label", "Description"];
+    this.headers.push(...fileData.nodeDataHeaders.map(o => `${EXCEL_NODE_HEADER}::${o.subGroup}::${o.key}`));
+    this.headers.push(...fileData.edgeDataHeaders.map(o => `${EXCEL_EDGE_HEADER}::${o.subGroup}::${o.key}`));
+
+    this.headerIndexMap.clear();
+    this.headers.forEach((header, index) => {
+      this.headerIndexMap.set(header, index);
+    });
+
+    this.tableData = [];
+
+    if (fileData.nodes) {
+      fileData.nodes.forEach(node => {
+        const row = new Array(this.headers.length).fill('');
+        row[0] = '';
+        row[1] = this.tableData.length + 1;
+        row[2] = 'Node';
+        row[3] = node.id;
+        row[4] = node.label || '';
+        row[5] = node.description || '';
+
+        for (let [section, subSection, prop, data] of traverseD4Data(node)) {
+          const headerKey = `${section}::${subSection}::${prop}`;
+          const headerIdx = this.headerIndexMap.get(headerKey);
+          if (headerIdx !== undefined) {
+            row[headerIdx] = data;
+          }
+        }
+
+        this.tableData.push(row);
+      });
+    }
+
+    if (fileData.edges) {
+      fileData.edges.forEach(edge => {
+        const row = new Array(this.headers.length).fill('');
+        row[0] = '';
+        row[1] = this.tableData.length + 1;
+        row[2] = 'Edge';
+        row[3] = edge.id;
+        row[4] = edge.label || '';
+        row[5] = edge.description || '';
+
+        for (let [section, subSection, prop, data] of traverseD4Data(edge)) {
+          const headerKey = `${section}::${subSection}::${prop}`;
+          const headerIdx = this.headerIndexMap.get(headerKey);
+          if (headerIdx !== undefined) {
+            row[headerIdx] = data;
+          }
+        }
+
+        this.tableData.push(row);
+      });
+    }
+
+    this.tableDataBackup = this.tableData.map(row => [...row]);
+    this.originalOrder = this.tableData.map((_, index) => index);
+    this.render();
+  }
+
+  reset() {
+    this.tableData = this.tableDataBackup.map(row => [...row]);
+    this.sortState = {};
+    this.originalOrder = this.tableData.map((_, index) => index);
+    this.render();
+  }
+
+  render() {
+    if (!this.tableHead || !this.tableBody) {
+      console.error('Table elements not found');
+      return;
+    }
+
+    const headerFragment = document.createDocumentFragment();
+    const bodyFragment = document.createDocumentFragment();
+
+    if (this.tableData.length === 0) {
+      this.tableHead.innerHTML = '';
+      this.tableBody.innerHTML = '<tr><td colspan="100%">No data available</td></tr>';
+      return;
+    }
+
+    const headerRow = document.createElement('tr');
+    this.headers.forEach((header, index) => {
+      const th = document.createElement('th');
+
+      if (index === 0) {
+        th.classList.add("data-table-delete-row-column");
+      } else {
+        th.innerHTML = `
+        <div class="data-table-sortable-header" data-column="${index}">
+          <span class="data-table-header-text">${header}</span>
+          <span class="data-table-sort-indicator">${this.getSortIndicator(index)}</span>
+        </div>
+      `;
+      }
+
+      headerRow.appendChild(th);
+    });
+    headerFragment.appendChild(headerRow);
+
+    // Create body rows
+    this.tableData.forEach((rowData, rowIndex) => {
+      const tr = document.createElement('tr');
+      const isNodeRow = rowData[2] === 'Node';
+
+      rowData.forEach((cellData, colIndex) => {
+        const td = document.createElement('td');
+        td.dataset.row = rowIndex;
+        td.dataset.col = colIndex;
+
+        if (colIndex === 0) {
+          td.innerHTML = `<button class="data-table-delete-row-btn" title="Delete row ${rowIndex + 1} (${rowData[2]} ${rowData[3]})">×</button>`;
+          td.classList.add('data-table-delete-row-column');
         } else {
-            Object.assign(this.popup.style, this.originalStyles);
+          td.textContent = cellData || '';
 
-            this.fullscreenBtn.innerHTML = '⛶';
-            this.fullscreenBtn.title = 'Fullscreen';
+          const isBasicColumn = colIndex <= 3;
+          const isReservedColumn = colIndex === 4 || colIndex === 5;
+          const isMismatchedColumn = (isNodeRow && this.headers[colIndex].startsWith(EXCEL_EDGE_HEADER)) ||
+            (!isNodeRow && this.headers[colIndex].startsWith(EXCEL_NODE_HEADER));
+          const shouldBeEditable = (!isBasicColumn || isReservedColumn) && !isMismatchedColumn;
+
+          if (shouldBeEditable) {
+            td.contentEditable = true;
+          } else {
+            td.classList.add('readonly');
+          }
         }
+
+        tr.appendChild(td);
+      });
+
+      bodyFragment.appendChild(tr);
+    });
+
+    this.tableHead.innerHTML = '';
+    this.tableBody.innerHTML = '';
+    this.tableHead.appendChild(headerFragment);
+    this.tableBody.appendChild(bodyFragment);
+  }
+
+  handleDeleteRow(rowIndex) {
+    if (rowIndex >= 0 && rowIndex < this.tableData.length) {
+      this.tableData.splice(rowIndex, 1);
+      this.originalOrder.splice(rowIndex, 1);
+      this.originalOrder = this.originalOrder.map(idx => idx > rowIndex ? idx - 1 : idx);
+
+      this.render();
+
+      if (this.onChangeCallback) {
+        this.onChangeCallback(-1, -1, 'row_deleted');
+      }
+    }
+  }
+
+  handleHeaderClick(columnIndex) {
+    const currentSort = this.sortState[columnIndex];
+    this.sortState = {};
+
+    if (!currentSort) {
+      this.sortState[columnIndex] = 'asc';
+    } else if (currentSort === 'asc') {
+      this.sortState[columnIndex] = 'desc';
+    } else {
+      this.sortState[columnIndex] = null;
     }
 
-    setPosition() {
-        if (!this.isFullscreen) {
-            if (this.options.position === 'center') {
-                this.popup.style.top = '50%';
-                this.popup.style.left = '50%';
-                this.popup.style.transform = 'translate(-50%, -50%)';
-            } else {
-                this.popup.style.top = `${this.options.position.y}px`;
-                this.popup.style.left = `${this.options.position.x}px`;
-                this.popup.style.transform = 'none';
-            }
+    this.sortColumn(columnIndex, this.sortState[columnIndex]);
+  }
+
+  sortColumn(columnIndex, direction) {
+    if (!direction) {
+      const originalData = this.originalOrder.map(idx => this.tableDataBackup[idx]);
+      this.tableData = originalData.map(row => [...row]);
+      this.render();
+      return;
+    }
+
+    const sortIndices = this.tableData.map((_, index) => index);
+
+    sortIndices.sort((aIdx, bIdx) => {
+      let aVal = this.tableData[aIdx][columnIndex] || '';
+      let bVal = this.tableData[bIdx][columnIndex] || '';
+
+      const aNum = parseFloat(aVal);
+      const bNum = parseFloat(bVal);
+
+      if (!isNaN(aNum) && !isNaN(bNum)) {
+        return direction === 'asc' ? aNum - bNum : bNum - aNum;
+      } else {
+        aVal = String(aVal).toLowerCase();
+        bVal = String(bVal).toLowerCase();
+        return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      }
+    });
+
+    this.tableData = sortIndices.map(idx => this.tableData[idx]);
+    this.render();
+  }
+
+  getSortIndicator(columnIndex) {
+    const sortState = this.sortState[columnIndex];
+    if (sortState === 'asc') return '▲';
+    if (sortState === 'desc') return '▼';
+    return '⇅';
+  }
+
+  handleCellFocus(event, rowIndex, colIndex) {
+    const cell = event.target;
+    this.currentEditingCell = {cell, rowIndex, colIndex};
+    cell.classList.add('editing');
+
+    const range = document.createRange();
+    range.selectNodeContents(cell);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  handleCellBlur(event, rowIndex, colIndex) {
+    const cell = event.target;
+    cell.classList.remove('editing');
+    this.tableData[rowIndex][colIndex] = cell.textContent;
+
+    if (this.onChangeCallback) {
+      this.onChangeCallback(rowIndex, colIndex, cell.textContent);
+    }
+
+    this.currentEditingCell = null;
+  }
+
+  handleCellKeydown(event, rowIndex, colIndex) {
+    switch (event.key) {
+      case 'Enter':
+        event.preventDefault();
+        this.moveToCell(rowIndex + 1, colIndex);
+        break;
+      case 'Tab':
+        event.preventDefault();
+        if (event.shiftKey) {
+          this.moveToCell(rowIndex, colIndex - 1);
+        } else {
+          this.moveToCell(rowIndex, colIndex + 1);
         }
+        break;
+      case 'Escape':
+        event.target.blur();
+        break;
+    }
+  }
+
+  handleCellInput(event, rowIndex, colIndex) {
+    this.tableData[rowIndex][colIndex] = event.target.textContent;
+  }
+
+  moveToCell(rowIndex, colIndex) {
+    if (colIndex >= this.headers.length) {
+      colIndex = 2;
+      rowIndex++;
+    } else if (colIndex < 2) {
+      colIndex = this.headers.length - 1;
+      rowIndex--;
     }
 
-    setupCloseHandlers() {
-        this.closeBtn.addEventListener('click', () => this.close());
+    if (rowIndex < 0 || rowIndex >= this.tableData.length) {
+      return;
+    }
 
-        if (this.options.closeOnClickOutside) {
-            this.overlay.addEventListener('click', () => this.close());
+    const targetCell = this.tableBody.querySelector(`td[data-row="${rowIndex}"][data-col="${colIndex}"]`);
+    if (targetCell && targetCell.contentEditable === 'true') {
+      targetCell.focus();
+    }
+  }
+
+  onChange(callback) {
+    this.onChangeCallback = callback;
+  }
+
+  getData() {
+    return {
+      headers: [...this.headers],
+      data: this.tableData.map(row => [...row])
+    };
+  }
+
+  async addNode() {
+    if (typeof dataTable === "undefined") return;
+
+    let nodeID = await Popup.prompt("Enter Node ID: ");
+    if (!nodeID) {
+      info("Adding node canceled");
+      return;
+    }
+
+    if (cache.nodeRef.has(nodeID) || this.tableData.some(row => row[2] === "Node" && row[3] === nodeID)) {
+      error(`Node "${nodeID}" already exists`);
+      return;
+    }
+
+    this.addRow("Node", nodeID);
+  }
+
+  async addEdge() {
+    if (typeof dataTable === "undefined") return;
+
+    let edgeID = await Popup.prompt("Enter Edge ID: ");
+    if (!edgeID) {
+      info("Adding edge canceled");
+      return;
+    }
+
+    if (cache.edgeRef.has(edgeID) || this.tableData.some(row => row[2] === "Edge" && row[3] === edgeID)) {
+      error(`Edge "${edgeID}" already exists`);
+      return;
+    }
+
+    if (!edgeID.includes("::")) {
+      error(`Edge ID must contain a double colon (::) to indicate the source and target nodes`);
+      return;
+    }
+
+    const [source, target] = edgeID.split("::");
+
+    if (!cache.nodeRef.has(source)) {
+      error(`Source node "${source}" does not exist`);
+      return;
+    }
+
+    if (!cache.nodeRef.has(target)) {
+      error(`Target node "${target}" does not exist`);
+      return;
+    }
+
+    this.addRow("Edge", edgeID);
+  }
+
+  addRow(type = 'Node', id = '') {
+    const newRow = new Array(this.headers.length).fill('');
+    newRow[0] = '';
+    newRow[1] = this.tableData.length > 0 ? Math.max(...this.tableData.map(row => row[1])) + 1 : 1;
+    newRow[2] = type;
+    newRow[3] = id;
+    newRow[4] = '';
+    newRow[5] = '';
+    this.tableData.push(newRow);
+    this.originalOrder.push(this.originalOrder.length);
+    this.render();
+  }
+
+  removeRow(index) {
+    if (index >= 0 && index < this.tableData.length) {
+      this.tableData.splice(index, 1);
+      this.originalOrder.splice(index, 1);
+      this.originalOrder = this.originalOrder.map(idx => idx > index ? idx - 1 : idx);
+      this.render();
+    }
+  }
+
+  clear() {
+    this.tableData = [];
+    this.headers = [];
+    this.sortState = {};
+    this.originalOrder = [];
+    this.headerIndexMap.clear();
+    this.render();
+  }
+
+  async update() {
+    await showLoading("Updating Data", "Updating Data from Data Table ..");
+    try {
+      const updatedFileData = this.getUpdatedFileData();
+
+      if (!updatedFileData || (!updatedFileData.nodes && !updatedFileData.edges)) {
+        error("No data to update with.");
+        return;
+      }
+
+      await destroyGraphAndRollBackUI();
+      resetEventLocks();
+      preProcessData(updatedFileData);
+      initCache();
+      buildUI();
+
+      await createGraphInstance();
+      await graph.render();
+    } catch (err) {
+      error("Error updating graph:", err);
+    } finally {
+      await hideLoading();
+    }
+  }
+
+  getUpdatedFileData() {
+    const result = {
+      nodes: [],
+      edges: [],
+      nodeDataHeaders: [...this.fileData.nodeDataHeaders],
+      edgeDataHeaders: [...this.fileData.edgeDataHeaders]
+    };
+
+    const allowedKeys = new Set(["D4Data", "id", "label", "source", "style", "target", "description", "type"]);
+    this.tableData.forEach(row => {
+      const isNode = row[2] === "Node";
+      const id = row[3];
+      const label = row[4] || undefined;
+      const description = row[5] || undefined;
+      const elem = isNode ? cache.nodeRef.get(id) || this.createNode(id) : cache.edgeRef.get(id) || this.createEdge(id);
+
+      const cleanElem = {};
+      for (const key of allowedKeys) {
+        if (elem.hasOwnProperty(key)) {
+          cleanElem[key] = elem[key];
         }
-    }
+      }
 
-    show() {
-        this.popup.style.display = 'block';
-        this.overlay.style.display = 'block';
-    }
+      if (label) cleanElem.label = label;
+      if (description) cleanElem.description = description;
 
-    close() {
-        if (this.options.onClose) {
-            this.options.onClose();
+      if (isNode && label) {
+        cleanElem.style.label = true;
+        cleanElem.style.labelText = label;
+      }
+
+      cleanElem.D4Data = {};
+
+      // Start from index 6 (skip Delete, Row#, Type, ID, Label, Description columns)
+      for (let i = 6; i < row.length; i++) {
+        const value = row[i];
+        if (value !== null && value !== undefined && String(value).trim() !== '') {
+          const headerName = this.headers[i];
+          const [group, subGroup, prop] = decodePropHashId(headerName);
+
+          if (!cleanElem.D4Data[group]) {
+            cleanElem.D4Data[group] = {};
+          }
+
+          if (!cleanElem.D4Data[group][subGroup]) {
+            cleanElem.D4Data[group][subGroup] = {};
+          }
+          cleanElem.D4Data[group][subGroup][prop] = isNaN(value) ? value : Number(value);
+
         }
-        this.popup.remove();
-        this.overlay.remove();
-        cache.popup = null;
+      }
+
+      isNode ? result.nodes.push(cleanElem) : result.edges.push(cleanElem);
+    });
+
+    return result;
+  }
+
+  createNode(id) {
+    return {
+      id: id,
+      ...getNodeStyleOrDefaults(id)
     }
+  }
+
+  createEdge(id) {
+    const [source, target] = id.split("::");
+    return {
+      id: id,
+      source: source,
+      target: target,
+      ...getEdgeStyleOrDefaults(id)
+    }
+  }
+
+  async exportToExcel() {
+    await showLoading("Data Editor", "Exporting Table to Excel ..");
+
+    try {
+      const workbook = new ExcelJS.Workbook();
+
+      const nodesSheet = workbook.addWorksheet('nodes');
+      const edgesSheet = workbook.addWorksheet('edges');
+
+      const nodesHeader = [...EXCEL_NODE_PROPERTIES.map(p => p.column), ...cache.nodeExclusiveProps];
+      nodesSheet.addRow(nodesHeader);
+
+      const edgesHeader = [...EXCEL_EDGE_PROPERTIES.map(p => p.column), ...cache.edgeExclusiveProps];
+      edgesSheet.addRow(edgesHeader);
+
+      for (const node of cache.nodeRef.values()) {
+        const row = [];
+
+        for (const prop of EXCEL_NODE_PROPERTIES) {
+          const value = prop.get ? prop.get(node) : '';
+          row.push(value);
+        }
+
+        for (const customProp of cache.nodeExclusiveProps) {
+          const [group, subGroup, prop] = decodePropHashId(customProp);
+
+          const value = node.D4Data && node.D4Data[group] && node.D4Data[group][subGroup]
+            ? node.D4Data[group][subGroup][prop]
+            : '';
+          row.push(value);
+        }
+
+        nodesSheet.addRow(row);
+      }
+
+      for (const edge of cache.edgeRef.values()) {
+        const row = [];
+
+        for (const prop of EXCEL_EDGE_PROPERTIES) {
+          const value = prop.get ? prop.get(edge) : '';
+          row.push(value);
+        }
+
+        for (const customProp of cache.edgeExclusiveProps) {
+          const [group, subGroup, prop] = decodePropHashId(customProp);
+
+          const value = edge.D4Data && edge.D4Data[group] && edge.D4Data[group][subGroup]
+            ? edge.D4Data[group][subGroup][prop]
+            : '';
+          row.push(value);
+        }
+
+        edgesSheet.addRow(row);
+      }
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `graph_data_export_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.xlsx`;
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      info('Excel file exported successfully!');
+
+    } catch (error) {
+      error('Failed to export Excel file: ' + error.message);
+    } finally {
+      await hideLoading();
+    }
+  }
+
 }
 
 function createAddOrRemoveToSelectionButton(propID, shouldAdd) {
@@ -4826,7 +7466,7 @@ async function decideToRenderOrDraw(forceRender = false) {
   await cache.metrics.updateUI();
 
   try {
-    if (cache.bubbleSetChanged || cache.styleChanged || forceRender) {
+    if (cache.bubbleSetChanged || cache.styleChanged || cache.layoutChanged || forceRender) {
       if (cache.styleChanged) {
         await showLoading("Loading", "Updating graph data ..");
         await new Promise(resolve => requestAnimationFrame(resolve));
@@ -4871,13 +7511,26 @@ async function handleStyleChangeLoadingEvent(header, text) {
   await new Promise(resolve => requestAnimationFrame(resolve));
   cache.styleChanged = true;
   await decideToRenderOrDraw();
-  console.log(`Graph updated after style event with message ${header} ${text}`);
+  debug(`Graph updated after style event with message ${header} ${text}`);
+}
+
+async function handleLayoutChangeLoadingEvent(header, text) {
+  await showLoading(header, text);
+  cache.layoutChanged = true;
+  await decideToRenderOrDraw();
+  debug(`Graph updated after layout event with message ${header} ${text}`);
 }
 
 function showUI(show) {
   document.querySelectorAll('.showOnLoad').forEach((element) => {
     element.style.opacity = show ? "1" : "0";
     element.style.pointerEvents = show ? "auto" : "none";
+  });
+
+  document.querySelectorAll('.hideOnLoad').forEach((element) => {
+    element.style.opacity = show ? "0" : "1";
+    element.style.pointerEvents = show ? "none" : "auto";
+    element.style.height = show ? "0" : "auto";
   });
 }
 
@@ -4887,37 +7540,35 @@ async function changeLayout() {
   await new Promise(resolve => requestAnimationFrame(resolve));
   let layout = data.layouts[data.selectedLayout];
 
-  let skipConsecutiveRender = false;
   if (!layout.isCustom) {
     await graph.setLayout({type: data.selectedLayout, ...layout.internals});
-    await graph.render();
-    skipConsecutiveRender = true;
+    await graph.layout();
   }
 
   buildFilterUI();
   clearActivePropsCacheOnLayoutChange();
 
-  await conditionallyPersistNodePositions();
   await cache.metrics.updateUI();
 
-  if (!skipConsecutiveRender) {
-    await decideToRenderOrDraw(true);
-  }
+  EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED = false;
 
-  await graph.fitView();
+  await decideToRenderOrDraw(true);
+
   info(`Switched to view: ${data.selectedLayout}`);
 }
 
 async function addLayout() {
-  let layoutName = prompt("Enter View Name: ");
+  let layoutName = await Popup.prompt("Enter View Name: ");
+  if (!layoutName) {
+    info("Creating view canceled");
+    return;
+  }
+
   let existing = Object.keys(data.layouts);
 
-  if (layoutName == null || layoutName === "") {
-    info("Creating layout canceled");
-    return false;
-  } else if (existing.includes(layoutName)) {
-    error(`Layout with name "${layoutName}" already exists.`);
-    return false;
+  if (existing.includes(layoutName)) {
+    error(`View with name "${layoutName}" already exists.`);
+    return;
   }
 
   const currentLayout = data.layouts[data.selectedLayout];
@@ -4941,11 +7592,12 @@ async function addLayout() {
 
 async function removeSelectedLayout() {
   if (!data.layouts[data.selectedLayout].isCustom) {
-    alert("Cannot delete default layout.");
-    return false;
+    error("Cannot delete default layout.");
+    return;
   }
 
-  if (!confirm(`Are you sure you want to delete the following layout? ${data.selectedLayout}`)) return false;
+  const confirmed = await Popup.confirm(`Are you sure you want to delete view "${data.selectedLayout}"?`);
+  if (!confirmed) return false;
 
   delete data.layouts[data.selectedLayout];
   buildDropdownOptions();
@@ -4976,7 +7628,7 @@ function getNodeStyleOrDefaults(node) {
   };
 
   // ----- label style ------------------------------------------------------
-  if (cache.showLabelsAndEnableHoverEffect || src.label) {
+  if (!PERFORMANCE_MODE || src.label) {
     const l = DEFAULTS.NODE.LABEL;
 
     Object.assign(defaultNode.style, {
@@ -5032,7 +7684,7 @@ function getEdgeStyleOrDefaults(edge) {
   };
 
   // ---- label style ------------------------------------------------------
-  if (cache.showLabelsAndEnableHoverEffect || src.label) {
+  if (!PERFORMANCE_MODE || src.label) {
     const l = DEFAULTS.EDGE.LABEL;
 
     Object.assign(defaultEdge.style, {
@@ -5071,7 +7723,7 @@ function getEdgeStyleOrDefaults(edge) {
 
 async function exportGraphAsJSON() {
   if (data === null) {
-    alert("No graph data to save.");
+    error("No graph data to save.");
     return false;
   }
 
@@ -5144,11 +7796,18 @@ function preProcessData(fileData) {
     data.filterDefaults.get(propHash).upperThreshold = Math.max(nodeOrEdgeValue, data.filterDefaults.get(propHash).upperThreshold);
   }
 
-  cache.showLabelsAndEnableHoverEffect = fileData.nodes.length <= MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT;
+  PERFORMANCE_MODE = fileData.nodes.length > MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT;
   cache.nodePositionsFromExcelImport = new Map();
 
-  if (!cache.showLabelsAndEnableHoverEffect) {
-    warning(`Large graph with more than ${MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT} nodes (${fileData.nodes.length}) detected. Labels and hover effects are disabled to improve performance.`);
+  if (PERFORMANCE_MODE) {
+    let msg = `Large graph detected (${fileData.nodes.length}/${MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT} nodes) - Performance mode enabled: disabled labels, hover effects, group collision checks`;
+    if (APPLY_BUBBLE_SET_HOTFIX) {
+      msg += " and click select.";
+    } else {
+      msg = msg.replace(", group", " and group");
+      msg += "."
+    }
+    warning(msg);
   }
 
   // takes excel header and pre-populates data.filterDefaults to maintain order
@@ -5193,6 +7852,7 @@ function preProcessData(fileData) {
     return {
       ...node,
       ...getNodeStyleOrDefaults(node),
+      originalStyle: structuredClone(getNodeStyleOrDefaults(node).style),
       features: nodeFeatures,
       featureValues: nodeFeatureValues,
       featureIsWithinThreshold: nodeFeatureWithinThreshold,
@@ -5222,35 +7882,44 @@ function preProcessData(fileData) {
     return {
       ...edge,
       ...getEdgeStyleOrDefaults(edge),
+      originalStyle: structuredClone(getEdgeStyleOrDefaults(edge).style),
       features: edgeFeatures,
       featureValues: edgeFeatureValues,
       featureIsWithinThreshold: edgeFeatureWithinThreshold,
     }
   });
 
-  // option to re-configure bubble set styles per model if wanted
-  data.bubbleSetStyle = fileData.bubbleSetStyle || DEFAULTS.BUBBLE_SET_STYLE;
+  data.bubbleSetStyle = fileData.bubbleSetStyle || DEFAULTS.BUBBLE_GROUP_STYLE;
 
-  // currently selected layout
-  data.selectedLayout = fileData.selectedLayout || DEFAULTS.LAYOUT;
+  const excelHasCoordinates = cache.nodePositionsFromExcelImport.size > 0;
+  data.selectedLayout = fileData.selectedLayout || (
+    excelHasCoordinates ? DEFAULTS.CUSTOM_LAYOUT_NAME : DEFAULTS.LAYOUT);
 
   // create individual map for each layout, no matter if default or manual, with positions, current filters, ..
   if (fileData.layouts) {
     data.layouts = parseLayouts(fileData.layouts);
+    if (fileData.selectedLayout === DEFAULTS.CUSTOM_LAYOUT_NAME) {
+      EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = true;
+    }
   } else {
     data.layouts = Object.keys(DEFAULTS.LAYOUT_INTERNALS).reduce((acc, key) => {
       if (data?.layouts?.[key]) {
         warning("Layout with key '" + key + "' already exists.");
         return acc;
       } else {
-        acc[key] = createDefaultLayout(key);
+        acc[key] = createDefaultLayout(key, false);
         return acc;
       }
     }, {});
+
+    if (excelHasCoordinates) {
+      data.layouts[DEFAULTS.CUSTOM_LAYOUT_NAME] = createDefaultLayout(DEFAULTS.CUSTOM_LAYOUT_NAME, true);
+      EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = true;
+    }
   }
 
   if (fileData.stash) {
-    data.stash = new Map(
+    data.stash = Object.fromEntries(
       Object.entries(fileData.stash || {}).map(([key, value]) => [
         key,
         {
@@ -5259,10 +7928,11 @@ function preProcessData(fileData) {
         },
       ])
     );
-    data.stash.triggered = true;
+  } else {
+    data.stash = {};
   }
 
-  console.log("Done pre-processing data");
+  debug("Done pre-processing data");
 }
 
 function initCache() {
@@ -5312,9 +7982,21 @@ function initCache() {
 
   cache.styleChanged = false;
   cache.labelStyleChanged = false;
+  cache.visibleElementsChanged = false;
+  cache.layoutChanged = false;
 
   cache.metrics = new NetworkMetrics();
   cache.popup = null;
+
+  cache.nodeLabels = [];
+  cache.edgeLabels = [];
+  cache.nodeLabelToNodeIDs = new Map();
+  cache.edgeLabelToEdgeIDs = new Map();
+
+  cache.nodeIDOrLabelToNodeIDs = new Map();
+  cache.edgeIDOrLabelToEdgeIDs = new Map();
+
+  picker = new ColorScalePicker();
 
   function populateUniquePropGroups(propHash) {
     const [mainGroup, subGroup, prop] = decodePropHashId(propHash);
@@ -5337,6 +8019,25 @@ function initCache() {
     cache.nodeRef.set(node.id, node);
     cache.toolTips.set(node.id, buildToolTipText(node.id, false));
     cache.nodeIDToPropIDs.set(node.id, new Set());
+    if (node.label) {
+      cache.nodeLabels.push(node.label);
+
+      if (!cache.nodeLabelToNodeIDs.has(node.label)) {
+        cache.nodeLabelToNodeIDs.set(node.label, new Set());
+      }
+      cache.nodeLabelToNodeIDs.get(node.label).add(node.id);
+
+      if (!cache.nodeIDOrLabelToNodeIDs.has(node.label)) {
+        cache.nodeIDOrLabelToNodeIDs.set(node.label, new Set());
+      }
+      cache.nodeIDOrLabelToNodeIDs.get(node.label).add(node.id);
+    }
+
+    if (!cache.nodeIDOrLabelToNodeIDs.has(node.id)) {
+      cache.nodeIDOrLabelToNodeIDs.set(node.id, new Set());
+    }
+    cache.nodeIDOrLabelToNodeIDs.get(node.id).add(node.id);
+
     for (let prop of node.features) {
       populateUniquePropGroups(prop);
       if (!cache.propToNodes.has(prop)) cache.propToNodes.set(prop, new Set());
@@ -5353,6 +8054,25 @@ function initCache() {
     cache.edgeRef.set(edge.id, edge);
     cache.toolTips.set(edge.id, buildToolTipText(edge.id, true));
     cache.edgeIDToPropIDs.set(edge.id, new Set());
+    if (edge.label) {
+      cache.edgeLabels.push(edge.label);
+
+      if (!cache.edgeLabelToEdgeIDs.has(edge.label)) {
+        cache.edgeLabelToEdgeIDs.set(edge.label, new Set());
+      }
+      cache.edgeLabelToEdgeIDs.get(edge.label).add(edge.id);
+
+      if (!cache.edgeIDOrLabelToEdgeIDs.has(edge.label)) {
+        cache.edgeIDOrLabelToEdgeIDs.set(edge.label, new Set());
+      }
+      cache.edgeIDOrLabelToEdgeIDs.get(edge.label).add(edge.id);
+    }
+
+    if (!cache.edgeIDOrLabelToEdgeIDs.has(edge.id)) {
+      cache.edgeIDOrLabelToEdgeIDs.set(edge.id, new Set());
+    }
+    cache.edgeIDOrLabelToEdgeIDs.get(edge.id).add(edge.id);
+
     for (let prop of edge.features) {
       populateUniquePropGroups(prop);
       if (!cache.propToEdges.has(prop)) cache.propToEdges.set(prop, new Set());
@@ -5717,6 +8437,7 @@ function encodeQuery(asciiStr) {
 
   /* ------------------------------------------------------------------ */
   /* 7. Brackets with depth tracking                                    */
+
   /* ------------------------------------------------------------------ */
   function findUnmatchedBracketIndices(str) {
     const stack = [];
@@ -5825,10 +8546,13 @@ function encodeQuery(asciiStr) {
     .join('');
 
   const updateQueryBtn = document.getElementById("queryUpdateBtn");
+  const selectQueryBtn = document.getElementById("querySelectBtn");
   if (query.valid) {
     updateQueryBtn.classList.remove("disabled");
+    selectQueryBtn.classList.remove("disabled");
   } else {
     updateQueryBtn.classList.add("disabled");
+    selectQueryBtn.classList.add("disabled");
   }
 
   return asciiStr;
@@ -5858,6 +8582,12 @@ function updateQueryTextArea() {
 
   query.text.textContent = queryStr;
   query.overlay.innerHTML = encodeQuery(queryStr);
+}
+
+function clearQuery() {
+  query.text.textContent = "";
+  handleQueryValidationEvent();
+  query.caret.style.display = "none";
 }
 
 function getCursorPosition() {
@@ -5959,6 +8689,57 @@ async function handleQueryUpdateEvent() {
   updateUIFromQueryInstructions();
   await handleFilterEvent("Updating Graph from Query", query.text.textContent, null, false);
 }
+
+async function handleQuerySelectEvent() {
+  await showLoading("Updating Selection", `Modifying selection from query`);
+  await new Promise(resolve => requestAnimationFrame(resolve));
+
+  decodeQueryAndBuildAST();
+
+  const nodeIDsToSelect = cache.nodeRef.values()
+    .filter(node => query.ast.testNode(node) && cache.nodeIDsToBeShown.has(node.id))
+    .map(node => node.id);
+
+  const edgeIDsToSelect = cache.edgeRef.values()
+    .filter(edge => query.ast.testEdge(edge) && cache.edgeIDsToBeShown.has(edge.id))
+    .map(edge => edge.id);
+
+  await selectNodes(nodeIDsToSelect);
+  await selectEdges(edgeIDsToSelect);
+  await hideLoading();
+  await new Promise(resolve => requestAnimationFrame(resolve));
+}
+
+async function selectNodes(nodeIDs) {
+  await selectElements(nodeIDs, cache.nodeRef);
+}
+
+async function selectEdges(edgeIDs) {
+  await selectElements(edgeIDs, cache.edgeRef);
+}
+
+/**
+ * Selects given element IDs while deselecting all others
+ */
+async function selectElements(elementIDs, refMap, stateOverride = "selected") {
+  const visibility = {};
+  const elementIDsAsSet = new Set(elementIDs);
+
+  for (const elem of refMap.values()) {
+    const nodeOrEdgeID = elem.id;
+    const state = await graph.getElementState(nodeOrEdgeID);
+    const shouldSelect = elementIDsAsSet.has(nodeOrEdgeID);
+
+    if (shouldSelect && !state.includes(stateOverride)) state.push(stateOverride);
+    if (!shouldSelect && state.includes(stateOverride)) state.splice(state.indexOf(stateOverride), 1);
+
+    visibility[nodeOrEdgeID] = state;
+  }
+
+  await graph.setElementState(visibility);
+}
+
+
 
 /**
  * Turn the HTML produced by `encodeQuery()` back into a nested data
@@ -6163,13 +8944,17 @@ function resetQuery() {
 function showQueryHelp() {
   cache.popup = new Popup(`
 <h3>Query Editor</h3>
-The query editor allows filtering of the graph using nested AND, OR and NOT expressions.
+The query editor allows complex filtering using nested AND, OR and NOT expressions.
 
 <ul>
-  <li>The query is validated during typing</li>
-  <li>Valid queries are stored per view and exported to a model.json upon export</li>
-  <li>Changes in the UI updates the query and resets custom AND/NOT logics and nested brackets</li>
+  <li>Queries are saved for each view and included when saving the model</li>
+  <li>UI changes will update the query and clear existing non-UI logic (AND/NOT, nested brackets)</li>
   <li>Invalid syntax is <span class="q-error-unrecognized">highlighted</span></li>
+  <li><span class="tooltip-dummy-buttons">Update</span> filters the graph</li>
+  <li><span class="tooltip-dummy-buttons red">Select</span> selects matching elements</li>
+  <li><span class="tooltip-dummy-buttons blue">Reset</span> resets and syncs the query with the filtering UI</li>
+  <li><span class="query-clear-button tt">×</span> (top right corner) clears query</li>
+  <li><span class="add-to-query-button show tt">📝</span> (filtering panel) Adds an parameter to the query</li>
 </ul>
 <hr>
 <h3>Query Structure Explained</h3>
@@ -6224,6 +9009,12 @@ The query editor allows filtering of the graph using nested AND, OR and NOT expr
 `, {width: '66vw', height: '50vh', lineHeight: '1.5em'});
 }
 
+function showDataHelp() {
+  cache.popup = new Popup(`<h3>Data Editor</h3>
+Foo bar
+`, {width: '66vw', height: '50vh', lineHeight: '1.5em'});
+}
+
 function humanFileSize(size) {
   let i = size === 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
   return +((size / Math.pow(1024, i)).toFixed(2)) + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
@@ -6231,6 +9022,8 @@ function humanFileSize(size) {
 
 async function loadFileWrapper(event) {
   let file = event.target.files[0];
+  if (!file) return;
+
   await showLoading("Loading", `Loading ${file.name} (${file.type} with ${humanFileSize(file.size)})`);
   await new Promise(resolve => requestAnimationFrame(resolve));
 
@@ -6241,29 +9034,30 @@ async function loadFileWrapper(event) {
   loadFile(event)
     .then(async (fileData) => {
       if (!fileData) {
-        alert("File data is empty.");
+        error("File data is empty.");
         await hideLoading();
         await new Promise(resolve => requestAnimationFrame(resolve));
         return;
       }
 
       preProcessData(fileData);
+      buildDataTable(fileData);
       initCache();
       buildUI();
       await createGraphInstance();
 
       if (!graph) {
-        alert("Graph not initialized, aborting.");
+        error("Graph not initialized, aborting.");
         await hideLoading();
         await new Promise(resolve => requestAnimationFrame(resolve));
         return;
       }
       await graph.render();
       await graph.fitView();
-      console.log("Initial graph rendered.");
+      debug("Initial graph rendered.");
     })
-    .catch(async (error) => {
-      alert(`Error loading graph: ${error}`);
+    .catch(async (errorMsg) => {
+      error(`Error loading graph: ${errorMsg}`);
       await hideLoading();
       await new Promise(resolve => requestAnimationFrame(resolve));
     })
@@ -6273,9 +9067,24 @@ async function loadFileWrapper(event) {
     });
 }
 
+const debounce = (func, wait) => {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
+
 async function destroyGraphAndRollBackUI() {
   await graph.destroy();
   graph = null;
+
+  // isPositionsDirty = false;
+  // syncPositionsDebounced.cancel?.();
 
   const status = document.getElementById("sidebarStatusContainer");
   status.innerHTML = "";
@@ -6283,6 +9092,8 @@ async function destroyGraphAndRollBackUI() {
 }
 
 function registerHotkeyEvents() {
+  if (EVENT_LOCKS.HOTKEY_EVENTS_REGISTERED) return;
+
   document.addEventListener('keydown', async (event) => {
     const activeElement = document.activeElement;
 
@@ -6312,6 +9123,9 @@ function registerHotkeyEvents() {
       case "e":
         await toggleEditMode();
         break;
+      case "d":
+        await toggleDataEditor();
+        break;
       case "q":
         toggleQueryEditor();
         break;
@@ -6322,31 +9136,30 @@ function registerHotkeyEvents() {
         break;
     }
   });
+
+  EVENT_LOCKS.HOTKEY_EVENTS_REGISTERED = true;
 }
 
 function registerGlobalEventListeners() {
+  if (EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED) return;
+
   ['input', 'keydown', 'keyup', 'mousedown', 'mouseup', 'focus', 'blur', 'scroll', 'selectionchange'].forEach(evt =>
     query.text.addEventListener(evt, moveCaret)
   );
+
+  makeBottomBarResizable();
+  EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED = true;
+}
+
+async function registerPluginStates() {
+  debug("Registering bubble set plugin instances ..");
+  for (const group of traverseBubbleSets()) {
+    INSTANCES.BUBBLE_GROUPS[group] = await graph.getPluginInstance(`bubbleSetPlugin-${group}`);
+  }
 }
 
 async function resetLayout() {
-  if (data.layouts[data.selectedLayout].isCustom) {
-    alert("Cannot reset custom layout.");
-    return false;
-  }
-
-  await showLoading("Resetting", "Resetting layout to default ..");
-  await new Promise(resolve => requestAnimationFrame(resolve));
-  data.layouts[data.selectedLayout]?.positions?.clear();
-
-  await graph.updateData(createSimplifiedDataForGraphObject(true));
-  let layout = data.layouts[data.selectedLayout];
-  if (!layout.isCustom) {
-    await graph.setLayout({type: data.selectedLayout, ...layout.internals});
-  }
-
-  await decideToRenderOrDraw(true).then(r => console.log(`Reset layout ${data.selectedLayout}`));
+  await restoreInitialNodePositions();
 }
 
 async function exportPNG() {
@@ -6385,7 +9198,7 @@ async function showLoading(header, text = "") {
 
   let logInfo = header;
   if (text) logInfo += `: ${text}`;
-  console.log(logInfo);
+  debug(logInfo);
 
   // Force reflow
   overlay.getBoundingClientRect();
@@ -6414,8 +9227,8 @@ async function hideLoading() {
 function refreshUI() {
   if (!cache.initialized) return;
 
-  const loadFromStashBtn = document.getElementById("loadFromStashBtn");
-  data.stash?.triggered ? loadFromStashBtn.classList.remove("disabled") : loadFromStashBtn.classList.add("disabled");
+  // const loadFromStashBtn = document.getElementById("loadFromStashBtn");
+  // data.stash ? loadFromStashBtn.classList.remove("disabled") : loadFromStashBtn.classList.add("disabled");
 
   toggleStyleElementsThatRequireAtLeastOneVisibleNode(cache.nodeIDsToBeShown.size > 0);
   toggleStyleElementsThatRequireAtLeastOneVisibleEdge(cache.edgeIDsToBeShown.size > 0);
@@ -6425,6 +9238,9 @@ function refreshUI() {
   document.getElementById("totalNodes").innerHTML = `${data.nodes.length}`;
   document.getElementById("visibleEdges").innerHTML = `${cache.edgeIDsToBeShown.size - cache.hiddenDanglingEdgeIDs.size}`;
   document.getElementById("totalEdges").innerHTML = `${data.edges.length}`;
+
+  refreshStashUI();
+  refreshBubbleStyleElements();
 }
 
 window.addEventListener('resize', () => {
@@ -6437,12 +9253,20 @@ window.addEventListener('resize', () => {
   }
 })
 
-function logMessage(text, colorClass, bold = false, iconPrefix = "") {
+function getTimestamp(includeMilliseconds = false) {
   const now = new Date();
   const hh = String(now.getHours()).padStart(2, '0');
   const mm = String(now.getMinutes()).padStart(2, '0');
   const ss = String(now.getSeconds()).padStart(2, '0');
-  const timestamp = `${hh}:${mm}:${ss}`;
+  if (includeMilliseconds) {
+    const ms = String(now.getMilliseconds()).padStart(3, '0');
+    return `${hh}:${mm}:${ss}.${ms}`;
+  }
+  return `${hh}:${mm}:${ss}`;
+}
+
+function logMessage(text, colorClass, bold = false, iconPrefix = "") {
+  const timestamp = getTimestamp();
 
   const container = document.getElementById('sidebarStatusContainer');
   container.style.height = "8%";
@@ -6477,7 +9301,7 @@ function info(message) {
 }
 
 function warning(message) {
-  logMessage(message, "orange", false, "⚠️");
+  logMessage(message, "dark-orange", false, "⚠️");
 }
 
 function error(message) {
@@ -6489,11 +9313,76 @@ function success(message) {
 }
 
 function debug(message) {
-  logMessage(message, "grey", false);
+  console.log(`${getTimestamp(true)} | ${message}`);
+  if (debugEnabled) {
+    logMessage(message, "grey", false);
+  }
 }
 
 async function debugQuery(query) {
   query.text.textContent = query;
   handleQueryValidationEvent();
   await handleQueryUpdateEvent();
+}
+
+const redrawBubbleSets = debounce(async () => {
+  if (!EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED) return;
+  if (EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING) return;
+
+  EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING = true;
+  try {
+    for (const group of traverseBubbleSets()) {
+      const cachedMembers = cache.lastBubbleSetMembers.get(group);
+      if (cachedMembers?.size > 0) {
+        debug(`Redrawing bubble set ${group} with ${cachedMembers.size} members ..`);
+        await updateBubbleSet(group, []);
+        await updateBubbleSet(group, Array.from(cachedMembers));
+      }
+    }
+  } finally {
+    EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING = false;
+  }
+}, 50);
+
+async function getPos() {
+  const zoom = await graph.getZoom();
+  const pos = await graph.getPosition();
+  console.log(`Zoom: ${zoom}`);
+  console.log(`Position: ${pos}`);
+}
+
+async function resetFilters(section, subSection=undefined) {
+  const idPrefix = section + (subSection ? `::${subSection}` : "");
+  const affectedPropIDs = Array.from(cache.propIDs).filter(id => id.startsWith(idPrefix));
+
+  for (const propID of affectedPropIDs) {
+    checkCheckbox(propID, true);
+    const slider = cache.propIDToInvertibleRangeSliders.get(propID);
+    const dropdown = cache.propIDToDropdownChecklists.get(propID);
+
+    if (slider) await slider.reset();
+    if (dropdown) await dropdown.selectAllCategories(true);
+  }
+
+  await handleFilterEvent("Filtering", `Resetting filters for ${idPrefix} ..`);
+}
+
+async function resetStyleForSelectedElements() {
+  for (const node of cache.nodeRef.values()) {
+    if (cache.selectedNodes.includes(node.id)) {
+      if (RESET_SELECTION_BUTTON_RESETS_POSITIONS) {
+        console.log("bar");
+      }
+      node.style = structuredClone(node.originalStyle);
+    }
+  }
+
+  for (const edge of cache.edgeRef.values()) {
+    if (cache.selectedEdges.includes(edge.id)) {
+      edge.style = structuredClone(edge.originalStyle);
+    }
+  }
+
+  await handleStyleChangeLoadingEvent("Style", `Resetting Styles`);
+  await restoreInitialNodePositions(true);
 }

@@ -36,3 +36,9 @@ npm run dist
 ## Update electron dependencies
 npm install --save-dev electron@latest electron-builder@latest
 ```
+
+---
+
+## Known issues
+
+1. Deselection by clicking on empty spaces in the canvas take a long time on large graphs (see [GitHub issue](https://github.com/antvis/G6/issues/7195))

@@ -1,7 +1,7 @@
 {
   "name": "graph-lens-lite",
-  "version": "1.0.1",
-  "main": "src/electron_app.js",
+  "version": "1.4.0",
+  "main": "src/package/electron_app.js",
   "description": "Visualise and explore property graphs in a lightweight desktop app.",
   "homepage": "https://github.com/Delta4AI/GraphLensLite",
   "author": {
@@ -11,8 +11,11 @@
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "create-gll-zip": "zip -j dist/GLL_v${npm_package_version}.zip src/g6.min.js src/gll.js src/graph_lens_lite.html src/xlsx.full.min.js templates/GLL_template.xlsx",
-    "dist": "create-gll-zip && electron-builder --linux --win"
+    "clean": "rimraf dist && mkdir -p dist",
+    "create-inline-html": "node src/package/inline_html.js src/graph_lens_lite.html dist/graph-lens-lite_${npm_package_version}.html",
+    "create-gll-zip": "cd src && zip -r ../dist/GLL-source-bundle_${npm_package_version}.zip lib/g6.min.js gll.js graph_lens_lite.html lib/xlsx.full.min.js ../templates/GLL_template.xlsx",
+    "inject-excel-template": "node src/package/inject_excel_template.js",
+    "dist": "npm run clean && npm run inject-excel-template && npm run create-gll-zip && npm run create-inline-html && electron-builder --linux --win"
   },
   "build": {
     "appId": "com.delta4ai.graphlenslite",
@@ -41,6 +44,10 @@
   },
   "devDependencies": {
     "electron": "^36.3.1",
-    "electron-builder": "^26.0.12"
+    "electron-builder": "^26.0.12",
+    "exceljs": "^4.4.0",
+    "inline-source": "^8.0.3",
+    "inline-source-cli": "^2.0.0",
+    "rimraf": "^6.0.1"
   }
 }
