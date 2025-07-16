@@ -9011,9 +9011,20 @@ The query editor allows complex filtering using nested AND, OR and NOT expressio
 
 function showDataHelp() {
   cache.popup = new Popup(`<h3>Data Editor</h3>
-Foo bar
-`, {width: '66vw', height: '50vh', lineHeight: '1.5em'});
+<p>Allows exploration and direct modification of the graph data</p>
+<hr>
+<ul>
+  <li><strong>Sort columns:</strong> Click column headers to sort ascending/descending or restore original order</li>
+  <li><strong>Edit cells:</strong> Click on editable cells to modify values (navigate with Tab/Enter/Escape)</li>
+  <li><strong>Delete rows:</strong> Click the <span class="data-table-delete-row-btn tt">×</span> button to remove nodes or edges</li>
+  <li><span class="tooltip-dummy-buttons">Apply</span> Apply the changes to the graph</li>
+  <li><span class="tooltip-dummy-buttons red">Reset</span> Restore data to its original state</li>
+  <li><span class="tooltip-dummy-buttons blue">Export</span> Save your modifications as an Excel file</li>
+  <li><span class="tooltip-dummy-buttons pink">Add Node</span> and <span class="tooltip-dummy-buttons pink">Add Edge</span> Create new graph elements</li></li>
+</ul>
+`, {width: '66vw', height: '33vh', lineHeight: '1.5em'});
 }
+
 
 function humanFileSize(size) {
   let i = size === 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
