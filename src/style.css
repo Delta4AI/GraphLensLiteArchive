@@ -2535,6 +2535,10 @@ input:checked + .slider:before {
     background-color: #ff0000;
 }
 
+.data-table-delete-row-btn.tt {
+    display: inline-flex;
+}
+
  .data-table-apply-button {
 
  }
