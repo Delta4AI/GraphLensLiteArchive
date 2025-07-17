@@ -739,7 +739,26 @@ _getEdgeColor(score, minScore, maxScore) {
       'WikiPathways': {source: 'WikiPathways', subcategory: 'WikiPathways'}
     };
 
-    return mapping[category] || {source: category, subcategory: category};
+    return mapping[category] || {source: this._sanitizeForAST(category), subcategory: this._sanitizeForAST(category)};
+  }
+
+  _sanitizeForAST(str) {
+    if (typeof str !== 'string') return str;
+
+    return str
+      .replace(/\(/g, '{')
+      .replace(/\)/g, '}')
+      .replace(/\[/g, '{')
+      .replace(/]/g, '}')
+      .replace(/:/g, '-')
+      .replace(/,/g, ' ')
+      .replace(/&/g, 'and')
+      .replace(/</g, 'less')
+      .replace(/>/g, 'greater')
+      .replace(/"/g, '')
+      .replace(/'/g, '')
+      .replace(/\\/g, '')
+      .replace(/\//g, ' or ');
   }
 
   _convertToAppFormat(stringData, annotationData) {
@@ -752,7 +771,7 @@ _getEdgeColor(score, minScore, maxScore) {
 
     annotationData.forEach(ann => {
       const category = ann.category;
-      const description = ann.description;
+      const description = this._sanitizeForAST(ann.description);
       const proteins = ann.preferredNames || [];
 
       const { source, subcategory } = this._getSourceAndSubcategory(category);
