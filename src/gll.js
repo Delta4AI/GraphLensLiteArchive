@@ -9328,9 +9328,9 @@ The query editor allows complex filtering using nested AND, OR and NOT expressio
   <li>UI changes will update the query and clear existing non-UI logic (AND/NOT, nested brackets)</li>
   <li>Invalid syntax is <span class="q-error-unrecognized">highlighted</span></li>
   <li><span class="tooltip-dummy-buttons">Update</span> filters the graph</li>
-  <li><span class="tooltip-dummy-buttons red">Select</span> selects matching elements</li>
-  <li><span class="tooltip-dummy-buttons blue">Reset</span> resets and syncs the query with the filtering UI</li>
-  <li><span class="query-clear-button tt">×</span> (top right corner) clears query</li>
+  <li><span class="tooltip-dummy-buttons blue">Select</span> selects matching elements</li>
+  <li><span class="tooltip-dummy-buttons red">Reset</span> resets and syncs the query with the filtering UI panel</li>
+  <li><span class="tooltip-dummy-buttons red">Clear</span> clears the query</li>
   <li><span class="add-to-query-button show tt">📝</span> (filtering panel) Adds an parameter to the query</li>
 </ul>
 <hr>
