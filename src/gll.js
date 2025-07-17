@@ -81,8 +81,6 @@ let picker;
 
 let debugEnabled = false;
 
-let PERFORMANCE_MODE = false;
-
 let dataTable;
 
 // Stores available network metrics and their calculation function references
@@ -134,12 +132,17 @@ const TOOLTIP_MAX_COLUMNS = 1;
 // If true, properties with null (empty) values are not displayed in tooltips
 const TOOLTIP_HIDE_NULL_VALUES = false;
 
-// Node count threshold beyond which labels and hover effects are disabled to keep the application responsive
-const MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT = 300;
+// if network is greater than defined threshold, no labels are shown until explicity set via UI
+const MAX_NODES_BEFORE_HIDING_LABELS = 1000;
+let HIDE_LABELS = false;
 
-// If true, bubble groups avoid all non-bubble group members per default; overruled if network exceeds
-// MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT
-const AVOID_NON_BUBBLE_GROUP_MEMBERS = false;
+// if network is greater than defined threshold, hover effects are disabled
+const MAX_NODES_BEFORE_DISABLING_HOVER_EFFECT = 300;
+let DISABLE_HOVER_EFFECT = false;
+
+// if network is greater than defined threshold, bubble groups may span across non-bubble group members
+const MAX_NODES_BEFORE_DISABLING_AVOID_MEMBERS_IN_BUBBLE_GROUPS = 300;
+let AVOID_MEMBERS_IN_BUBBLE_GROUPS = false;
 
 // Maximum capacity of selection memory
 const MAX_SELECTION_MEMORY = 10;
@@ -4821,7 +4824,7 @@ async function createGraphInstance() {
       DEFAULTS.BEHAVIOURS.DRAG_ELEMENT
     ];
 
-    if (!PERFORMANCE_MODE) {
+    if (!DISABLE_HOVER_EFFECT) {
       behaviors.push(DEFAULTS.BEHAVIOURS.HOVER_ACTIVATE);
     }
 
@@ -5321,7 +5324,7 @@ async function toggleLassoSelection() {
     DEFAULTS.BEHAVIOURS.DRAG_ELEMENT
   ];
 
-  if (!PERFORMANCE_MODE) {
+  if (!DISABLE_HOVER_EFFECT) {
     clickAndDragBehaviors.push(DEFAULTS.BEHAVIOURS.HOVER_ACTIVATE);
   }
 
@@ -5329,7 +5332,7 @@ async function toggleLassoSelection() {
     DEFAULTS.BEHAVIOURS.LASSO_SELECT,
   ];
 
-  if (!APPLY_BUBBLE_SET_HOTFIX || (APPLY_BUBBLE_SET_HOTFIX && !PERFORMANCE_MODE)) {
+  if (!APPLY_BUBBLE_SET_HOTFIX || (APPLY_BUBBLE_SET_HOTFIX && !DISABLE_HOVER_EFFECT)) {
     lassoBehaviors.push(DEFAULTS.BEHAVIOURS.CLICK_SELECT);
   }
 
@@ -5415,8 +5418,7 @@ async function updateBubbleSet(group, members) {
 
   function getAvoidMembers() {
     if (empty) return [];
-    if (APPLY_BUBBLE_SET_HOTFIX && PERFORMANCE_MODE) return [];
-    if (AVOID_NON_BUBBLE_GROUP_MEMBERS) return [];
+    if (APPLY_BUBBLE_SET_HOTFIX && AVOID_MEMBERS_IN_BUBBLE_GROUPS) return [];
     return [...cache.nodeRef.keys()].filter(nodeID => !membersAsArray.includes(nodeID));
   }
 
@@ -5742,7 +5744,6 @@ function getPropertiesNotWithinThresholds(nodeID = null, edgeID = null) {
   const element = isNode ? cache.nodeRef.get(nodeID) : cache.edgeRef.get(edgeID);
 
   // we only check properties that belong to this element type (specific props for nodes and edges)
-  // const availableProps = isNode ? cache.nodeExclusiveProps : cache.edgeExclusiveProps;
   const availableProps = new Set([
     ...(isNode ? cache.nodeExclusiveProps : cache.edgeExclusiveProps),
     ...cache.mixedProps,
@@ -8012,7 +8013,7 @@ function getNodeStyleOrDefaults(node) {
   };
 
   // ----- label style ------------------------------------------------------
-  if (!PERFORMANCE_MODE || src.label) {
+  if (!HIDE_LABELS || src.label) {
     const l = DEFAULTS.NODE.LABEL;
 
     Object.assign(defaultNode.style, {
@@ -8068,7 +8069,7 @@ function getEdgeStyleOrDefaults(edge) {
   };
 
   // ---- label style ------------------------------------------------------
-  if (!PERFORMANCE_MODE || src.label) {
+  if (!HIDE_LABELS || src.label) {
     const l = DEFAULTS.EDGE.LABEL;
 
     Object.assign(defaultEdge.style, {
@@ -8180,19 +8181,11 @@ function preProcessData(fileData) {
     data.filterDefaults.get(propHash).upperThreshold = Math.max(nodeOrEdgeValue, data.filterDefaults.get(propHash).upperThreshold);
   }
 
-  PERFORMANCE_MODE = fileData.nodes.length > MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT;
-  cache.nodePositionsFromExcelImport = new Map();
+  HIDE_LABELS = fileData.nodes.length > MAX_NODES_BEFORE_HIDING_LABELS;
+  DISABLE_HOVER_EFFECT = fileData.nodes.length > MAX_NODES_BEFORE_DISABLING_HOVER_EFFECT;
+  AVOID_MEMBERS_IN_BUBBLE_GROUPS = fileData.nodes.length >  MAX_NODES_BEFORE_DISABLING_AVOID_MEMBERS_IN_BUBBLE_GROUPS;
 
-  if (PERFORMANCE_MODE) {
-    let msg = `Large graph detected (${fileData.nodes.length}/${MAX_NODES_BEFORE_HIDING_LABELS_AND_HOVER_EFFECT} nodes) - Performance mode enabled: disabled labels, hover effects, group collision checks`;
-    if (APPLY_BUBBLE_SET_HOTFIX) {
-      msg += " and click select.";
-    } else {
-      msg = msg.replace(", group", " and group");
-      msg += "."
-    }
-    warning(msg);
-  }
+  cache.nodePositionsFromExcelImport = new Map();
 
   // takes excel header and pre-populates data.filterDefaults to maintain order
   if (fileData.nodeDataHeaders) {
@@ -9621,9 +9614,6 @@ async function hideLoading() {
 
 function refreshUI() {
   if (!cache.initialized) return;
-
-  // const loadFromStashBtn = document.getElementById("loadFromStashBtn");
-  // data.stash ? loadFromStashBtn.classList.remove("disabled") : loadFromStashBtn.classList.add("disabled");
 
   toggleStyleElementsThatRequireAtLeastOneVisibleNode(cache.nodeIDsToBeShown.size > 0);
   toggleStyleElementsThatRequireAtLeastOneVisibleEdge(cache.edgeIDsToBeShown.size > 0);
