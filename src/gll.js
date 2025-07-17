@@ -620,6 +620,391 @@ const INVISIBLE_DUMMY_NODE = {
 
 const INVISIBLE_CHAR = "\u200B";
 
+
+class StringDemoDataLoader {
+  constructor(genes, species = 9606, amountOfNodes = 50, requiredScore = 400) {
+    this.baseUrl = 'https://string-db.org/api/json';
+    this.genes = genes;
+    this.species = species;
+    this.amountOfNodes = amountOfNodes;
+    this.requiredScore = requiredScore;
+  }
+
+  async loadNetwork() {
+    const params = new URLSearchParams({
+      identifiers: this.genes.join('%0d'),
+      species: this.species,
+      add_nodes: this.amountOfNodes,
+      required_score: this.requiredScore
+    });
+
+    const url = `${this.baseUrl}/network?${params}`;
+
+    await showLoading("Demo Data", `Loading STRING network with ${this.genes.length} genes: ${this.genes.join(',')}, ${this.amountOfNodes} additional nodes, species ${this.species}, minimum confidence: ${this.requiredScore}. URL: ${url}`);
+    try {
+      const stringData = await this._fetchFromString(url);
+
+      if (!stringData || stringData.length === 0) {
+        warning('No interaction data returned from STRING');
+        return null;
+      }
+
+      const allProteins = new Set();
+      stringData.forEach(interaction => {
+        allProteins.add(interaction.preferredName_A);
+        allProteins.add(interaction.preferredName_B);
+      });
+
+      const annotations = await this._fetchFunctionalAnnotations(Array.from(allProteins));
+      return this._convertToAppFormat(stringData, annotations);
+    } catch (error) {
+      error('Failed to load STRING network:', error);
+      return null;
+    }
+  }
+
+_getEdgeColor(score, minScore, maxScore) {
+  const normalizedScore = maxScore === minScore ? 0 : (score - minScore) / (maxScore - minScore);
+
+  const greyColor = {r: 135, g: 137, b: 150};    // Low confidence - neutral
+  const blueColor = {r: 140, g: 166, b: 217};    // Medium confidence - cool
+  const purpleColor = {r: 153, g: 170, b: 187};  // Medium confidence - transitional
+  const pinkColor = {r: 239, g: 176, b: 170};    // High confidence - warm
+
+  let r, g, b;
+
+  if (normalizedScore <= 0.33) {
+    // Grey to Blue (0-33%)
+    const t = normalizedScore / 0.33;
+    r = Math.round(greyColor.r + (blueColor.r - greyColor.r) * t);
+    g = Math.round(greyColor.g + (blueColor.g - greyColor.g) * t);
+    b = Math.round(greyColor.b + (blueColor.b - greyColor.b) * t);
+  } else if (normalizedScore <= 0.66) {
+    // Blue to Purple (33-66%)
+    const t = (normalizedScore - 0.33) / 0.33;
+    r = Math.round(blueColor.r + (purpleColor.r - blueColor.r) * t);
+    g = Math.round(blueColor.g + (purpleColor.g - blueColor.g) * t);
+    b = Math.round(blueColor.b + (purpleColor.b - blueColor.b) * t);
+  } else {
+    // Purple to Pink (66-100%)
+    const t = (normalizedScore - 0.66) / 0.34;
+    r = Math.round(purpleColor.r + (pinkColor.r - purpleColor.r) * t);
+    g = Math.round(purpleColor.g + (pinkColor.g - purpleColor.g) * t);
+    b = Math.round(purpleColor.b + (pinkColor.b - purpleColor.b) * t);
+  }
+
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+  async _fetchFromString(url) {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`STRING API request failed: ${response.status}`);
+    }
+    return await response.json();
+  }
+
+  async _fetchFunctionalAnnotations(proteins) {
+    const url = `${this.baseUrl}/functional_annotation?identifiers=${proteins.join('%0d')}&species=${this.species}`;
+    const response = await fetch(url);
+    if (!response.ok) return [];
+    return await response.json();
+  }
+
+  _getSourceAndSubcategory(category) {
+    const mapping = {
+      'Process': {source: 'Gene Ontology', subcategory: 'Biological Process'},
+      'Function': {source: 'Gene Ontology', subcategory: 'Molecular Function'},
+      'Component': {source: 'Gene Ontology', subcategory: 'Cellular Component'},
+      'Keyword': {source: 'UniProt', subcategory: 'Annotated Keywords'},
+      'KEGG': {source: 'KEGG', subcategory: 'Pathways'},
+      'RCTM': {source: 'Reactome', subcategory: 'Pathways'},
+      'HPO': {source: 'Monarch', subcategory: 'Human Phenotype'},
+      'MPO': {source: 'Monarch', subcategory: 'Mammalian Phenotype'},
+      'DPO': {source: 'Monarch', subcategory: 'Drosophila Phenotype'},
+      'WPO': {source: 'Monarch', subcategory: 'C. elegans Phenotype'},
+      'ZPO': {source: 'Monarch', subcategory: 'Zebrafish Phenotype'},
+      'FYPO': {source: 'Monarch', subcategory: 'Fission Yeast Phenotype'},
+      'Pfam': {source: 'Pfam', subcategory: 'Protein Domains'},
+      'SMART': {source: 'SMART', subcategory: 'Protein Domains'},
+      'InterPro': {source: 'InterPro', subcategory: 'Protein Domains and Features'},
+      'PMID': {source: 'PubMed', subcategory: 'Reference Publications'},
+      'NetworkNeighborAL': {source: 'STRING', subcategory: 'Local Network Cluster'},
+      'COMPARTMENTS': {source: 'Compartments', subcategory: 'Subcellular Localization'},
+      'TISSUES': {source: 'Tissues', subcategory: 'Tissue Expression'},
+      'DISEASES': {source: 'Diseases', subcategory: 'Disease-gene Associations'},
+      'WikiPathways': {source: 'WikiPathways', subcategory: 'WikiPathways'}
+    };
+
+    return mapping[category] || {source: category, subcategory: category};
+  }
+
+  _convertToAppFormat(stringData, annotationData) {
+    const nodeMap = new Map();
+    const edges = [];
+
+    // Group annotations by source and subcategory
+    const annotationsBySourceAndSubcategory = new Map();
+    const proteinToAnnotations = new Map();
+
+    annotationData.forEach(ann => {
+      const category = ann.category;
+      const description = ann.description;
+      const proteins = ann.preferredNames || [];
+
+      const { source, subcategory } = this._getSourceAndSubcategory(category);
+
+      // Track all annotations per source/subcategory
+      if (!annotationsBySourceAndSubcategory.has(source)) {
+        annotationsBySourceAndSubcategory.set(source, new Map());
+      }
+      if (!annotationsBySourceAndSubcategory.get(source).has(subcategory)) {
+        annotationsBySourceAndSubcategory.get(source).set(subcategory, new Set());
+      }
+      annotationsBySourceAndSubcategory.get(source).get(subcategory).add(description);
+
+      // Map proteins to their annotations per source/subcategory
+      proteins.forEach(protein => {
+        if (!proteinToAnnotations.has(protein)) {
+          proteinToAnnotations.set(protein, new Map());
+        }
+        if (!proteinToAnnotations.get(protein).has(source)) {
+          proteinToAnnotations.get(protein).set(source, new Map());
+        }
+        if (!proteinToAnnotations.get(protein).get(source).has(subcategory)) {
+          proteinToAnnotations.get(protein).get(source).set(subcategory, []);
+        }
+        proteinToAnnotations.get(protein).get(source).get(subcategory).push(description);
+      });
+    });
+
+    // Filter out categories with only 1 unique value
+    const filteredAnnotations = new Map();
+    annotationsBySourceAndSubcategory.forEach((subcategories, source) => {
+      const filteredSubcategories = new Map();
+      subcategories.forEach((annotations, subcategory) => {
+        if (annotations.size > 1) {
+          filteredSubcategories.set(subcategory, annotations);
+        }
+      });
+      if (filteredSubcategories.size > 0) {
+        filteredAnnotations.set(source, filteredSubcategories);
+      }
+    });
+
+    // Build headers for filtered categories
+    const nodeDataHeaders = [];
+
+    // Add header for each source/subcategory combination
+    filteredAnnotations.forEach((subcategories, source) => {
+      subcategories.forEach((annotations, subcategory) => {
+        nodeDataHeaders.push({subGroup: source, key: subcategory});
+      });
+    });
+
+    const edgeDataHeaders = [
+      {subGroup: 'Scores', key: 'Combined Score'},
+      {subGroup: 'Evidence Scores', key: 'Neighborhood Score'},
+      {subGroup: 'Evidence Scores', key: 'Fusion Score'},
+      {subGroup: 'Evidence Scores', key: 'Cooccurrence Score'},
+      {subGroup: 'Evidence Scores', key: 'Coexpression Score'},
+      {subGroup: 'Evidence Scores', key: 'Experimental Score'},
+      {subGroup: 'Evidence Scores', key: 'Database Score'},
+      {subGroup: 'Evidence Scores', key: 'Textmining Score'}
+    ];
+
+    stringData.forEach((interaction, index) => {
+      const {
+        stringId_A, stringId_B, preferredName_A, preferredName_B,
+        score, nscore, fscore, pscore, ascore, escore, dscore, tscore
+      } = interaction;
+
+      const createNode = (stringId, preferredName) => {
+        const proteinAnnotations = proteinToAnnotations.get(preferredName) || new Map();
+
+        const nodeFilters = {};
+
+        // Add filter for each source/subcategory combination
+        filteredAnnotations.forEach((subcategories, source) => {
+          if (!nodeFilters[source]) {
+            nodeFilters[source] = {};
+          }
+
+          subcategories.forEach((annotations, subcategory) => {
+            const proteinSourceAnnotations = proteinAnnotations.get(source) || new Map();
+            const proteinSubcategoryAnnotations = proteinSourceAnnotations.get(subcategory) || [];
+            nodeFilters[source][subcategory] = proteinSubcategoryAnnotations.length > 0 ?
+              proteinSubcategoryAnnotations[0] : `No ${subcategory}`;
+          });
+        });
+
+        return {
+          id: stringId,
+          label: preferredName,
+          style: {
+            labelText: preferredName,
+          },
+          D4Data: {
+            'Node filters': nodeFilters
+          }
+        };
+      };
+
+      if (!nodeMap.has(preferredName_A)) {
+        nodeMap.set(preferredName_A, createNode(stringId_A, preferredName_A));
+      }
+
+      if (!nodeMap.has(preferredName_B)) {
+        nodeMap.set(preferredName_B, createNode(stringId_B, preferredName_B));
+      }
+
+      const scores = stringData.map(interaction => interaction.score);
+      const minScore = Math.min(...scores);
+      const maxScore = Math.max(...scores);
+
+      edges.push({
+        id: `${stringId_A}::${stringId_B}`,
+        source: stringId_A,
+        target: stringId_B,
+        style: {
+          stroke: this._getEdgeColor(score, minScore, maxScore),
+          lineWidth: Math.max(0.1, score * 3),
+        },
+        D4Data: {
+          'Edge filters': {
+            'Scores': {
+              'Combined Score': score
+            },
+            'Evidence Scores': {
+              'Neighborhood Score': nscore,
+              'Fusion Score': fscore,
+              'Cooccurrence Score': pscore,
+              'Coexpression Score': ascore,
+              'Experimental Score': escore,
+              'Database Score': dscore,
+              'Textmining Score': tscore
+            }
+          }
+        }
+      });
+    });
+
+    return {
+      nodes: Array.from(nodeMap.values()),
+      edges,
+      nodeDataHeaders,
+      edgeDataHeaders
+    };
+  }
+}
+
+async function loadDemoData() {
+  const formContent = document.createElement('div');
+  formContent.innerHTML = `
+    <h3>Load STRING Demo Data</h3>
+    <div style="margin-bottom: 10px;">
+      <label for="genes-input" style="display: block; margin-bottom: 5px;">Genes (comma-separated):</label>
+      <input type="text" id="genes-input" value="TP53" style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+    </div>
+    <div style="margin-bottom: 10px;">
+      <label for="species-input" style="display: block; margin-bottom: 5px;">Species (NCBI Taxonomy ID):</label>
+      <input type="number" id="species-input" value="9606" style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+    </div>
+    <div style="margin-bottom: 10px;">
+      <label for="nodes-input" style="display: block; margin-bottom: 5px;">Additional Nodes:</label>
+      <input type="number" id="nodes-input" value="50" style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+    </div>
+    <div style="margin-bottom: 20px;">
+      <label for="score-input" style="display: block; margin-bottom: 5px;">Required Score (0-1000):</label>
+      <input type="number" id="score-input" value="400" min="0" max="1000" style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+    </div>
+    <div style="background-color: #f5f5f5; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 12px; color: #666;">
+      <strong>Data Source:</strong> STRING Database API<br>
+      <a href="https://string-db.org/" target="_blank" style="color: #0066cc;">🔗 Visit STRING Database</a> | 
+      <a href="https://doi.org/10.1093/nar/gkac1000" target="_blank" style="color: #0066cc;">📄 Citation</a><br>
+      <em>Szklarczyk D, Gable AL, Nastou KC, et al. The STRING database in 2023: protein-protein association networks and functional enrichment analyses for any sequenced genome of interest. Nucleic Acids Res. 2023.</em>
+    </div>
+    <div style="text-align: right;">
+      <button id="load-btn" class="p-button ml-1">Load</button>
+      <button id="cancel-btn" class="p-button">Cancel</button>
+    </div>
+  `;
+
+  return new Promise((resolve) => {
+    const popup = new Popup(formContent, {
+      width: '450px',
+      showFullscreenButton: false,
+      closeOnClickOutside: false,
+      onClose: () => resolve(false)
+    });
+
+    const genesInput = formContent.querySelector('#genes-input');
+    const speciesInput = formContent.querySelector('#species-input');
+    const nodesInput = formContent.querySelector('#nodes-input');
+    const scoreInput = formContent.querySelector('#score-input');
+    const loadBtn = formContent.querySelector('#load-btn');
+    const cancelBtn = formContent.querySelector('#cancel-btn');
+
+    const handleLoad = async () => {
+      const genesText = genesInput.value.trim();
+      if (!genesText) {
+        error('Please enter at least one gene');
+        return;
+      }
+
+      const genes = genesText.split(',').map(g => g.trim()).filter(g => g);
+      const species = parseInt(speciesInput.value) || 9606;
+      const amountOfNodes = parseInt(nodesInput.value) || 50;
+      const requiredScore = parseInt(scoreInput.value) || 400;
+
+      if (genes.length === 0) {
+        error('Please enter at least one valid gene');
+        return;
+      }
+
+      popup.close();
+
+      const stringDemoDataLoader = new StringDemoDataLoader(genes, species, amountOfNodes, requiredScore);
+      const data = await stringDemoDataLoader.loadNetwork();
+
+      if (data) {
+        await destroyGraphAndRollBackUI();
+        resetEventLocks();
+        preProcessData(data);
+        buildDataTable(data);
+        initCache();
+        buildUI();
+        await createGraphInstance();
+        await graph.render();
+        resolve(true);
+      } else {
+        error("Failed to load STRING network");
+        resolve(false);
+      }
+
+      await hideLoading();
+    };
+
+    const handleCancel = () => {
+      popup.close();
+      resolve(false);
+    };
+
+    loadBtn.addEventListener('click', handleLoad);
+    cancelBtn.addEventListener('click', handleCancel);
+
+    [genesInput, speciesInput, nodesInput, scoreInput].forEach(input => {
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          handleLoad();
+        }
+      });
+    });
+
+    setTimeout(() => genesInput.focus(), 100);
+  });
+}
+
 class ExcelTemplate {
   constructor(compressedData) {
     this.compressed = compressedData;
@@ -1039,7 +1424,6 @@ class ColorScalePicker {
       .join(', ');
     gradient.style.background = `linear-gradient(to right, ${stops})`;
   }
-
 
   addHandle() {
     if (this.handles.length >= 10) return;
@@ -9091,7 +9475,7 @@ const debounce = (func, wait) => {
 };
 
 async function destroyGraphAndRollBackUI() {
-  await graph.destroy();
+  await graph?.destroy();
   graph = null;
 
   // isPositionsDirty = false;
