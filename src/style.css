@@ -2216,65 +2216,10 @@ input:checked + .slider:before {
     }
 }
 
-.query-buttons {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 80px;
-    margin-left: 10px;
-    margin-right: 4px;
-}
-
 .editor-help-icon {
     display: flex;
     flex-direction: column;
     flex: 0 0 2%;
-}
-
-.query-buttons button {
-    height: 30%;
-    max-height: 30px;
-    cursor: pointer;
-    border-radius: 5px;
-    color: #fff;
-    border: 1px solid black;
-    text-overflow: ellipsis;
-    font-size: 1.5vh;
-}
-
-.query-clear-button {
-    position: absolute;
-    top: 1px;
-    right: 1px;
-    width: 16px;
-    height: 16px;
-    font-size: 14px;
-    line-height: 14px;
-    border: 1px solid #C33D35;
-    border-radius: 4px;
-    background: transparent;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s ease-in-out;
-    opacity: 0.7;
-    z-index: 999;
-    color: #C33D35;
-}
-
-.query-clear-button.tt {
-    position: unset;
-    display: inline-flex;
-    /*padding-left: 4px;*/
-    /*padding-right: 4px;*/
-    width: 18px;
-    height: 18px;
-}
-
-.query-clear-button:hover {
-    background: rgba(0, 0, 0, 0.1);
-    opacity: 1;
 }
 
 #queryUpdateBtn {
@@ -2307,6 +2252,16 @@ input:checked + .slider:before {
     border-width: 2px;
 }
 
+#queryClearBtn {
+    background-color: #C33D35;
+    margin-top: 0.2em;
+}
+
+#queryClearBtn:hover {
+    border-color: black;
+    border-width: 2px;
+}
+
 .editor-panel {
     position: relative;
     flex: 1 1 0;
@@ -2332,7 +2287,8 @@ input:checked + .slider:before {
     box-sizing: border-box;
 }
 
-.data-buttons {
+.data-buttons,
+.query-buttons {
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -2341,7 +2297,8 @@ input:checked + .slider:before {
     margin-right: 4px;
 }
 
-.data-buttons button {
+.data-buttons button,
+.query-buttons button {
     height: 50%;
     max-height: 30px;
     cursor: pointer;
@@ -2357,16 +2314,19 @@ input:checked + .slider:before {
     padding: 2px 4px;
 }
 
-.data-buttons button.red {
+.data-buttons button.red,
+.query-buttons button.red {
     background-color: #C33D35;
 }
 
-.data-buttons button.pink {
+.data-buttons button.pink,
+.query-buttons button.pink {
     background-color: #EFB0AA;
     color: black;
 }
 
-.data-buttons button.blue {
+.data-buttons button.blue,
+.query-buttons button.blue {
     background-color: #8CA6D9;
     color: black;
 }
@@ -2533,6 +2493,10 @@ input:checked + .slider:before {
 
 .data-table-delete-row-btn:hover {
     background-color: #ff0000;
+}
+
+.data-table-delete-row-btn.tt {
+    display: inline-flex;
 }
 
  .data-table-apply-button {
