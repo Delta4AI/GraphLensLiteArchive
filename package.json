@@ -13,7 +13,7 @@
     "pack": "electron-builder --dir",
     "clean": "rimraf dist && mkdir -p dist",
     "create-inline-html": "node src/package/inline_html.js src/graph_lens_lite.html dist/graph-lens-lite_${npm_package_version}.html",
-    "create-gll-zip": "cd src && zip -r ../dist/GLL-source-bundle_${npm_package_version}.zip lib/g6.min.js gll.js graph_lens_lite.html lib/xlsx.full.min.js ../templates/GLL_template.xlsx",
+    "create-gll-zip": "cd src && zip -r ../dist/GLL-source-bundle_${npm_package_version}.zip gll.js graph_lens_lite.html style.css lib/g6.min.js lib/xlsx.full.min.js lib/exceljs.min.js ../templates/GLL_template.xlsx",
     "inject-excel-template": "node src/package/inject_excel_template.js",
     "dist": "npm run clean && npm run inject-excel-template && npm run create-gll-zip && npm run create-inline-html && electron-builder --linux --win"
   },

@@ -40,6 +40,7 @@
              accept=".json, .xls, .xlsx, .csv, .tab"/>
       <div class="hideOnLoad">
         <button onclick="downloadExcelTemplate()" class="mt-2">Download Template</button>
+        <button onclick="loadDemoData()" class="mt-2">Load Demo Data</button>
       </div>
       <div class="showOnLoad">
         <hr>
@@ -120,7 +121,6 @@
     <div id="queryOverlay" aria-hidden="true"></div>
     <div id="queryTextArea" contenteditable="true" spellcheck="false" oninput="handleQueryValidationEvent();"></div>
     <div id="queryCaret" class="custom-caret"></div>
-    <button class="query-clear-button" title="Clear query" onclick="clearQuery();">×</button>
   </div>
   <div id="dataEditor" class="editor-panel" style="display: none;">
     <div id="dataTableContainer">
@@ -130,12 +130,13 @@
       </table>
     </div>
   </div>
-  <div class="query-buttons">
+  <div class=query-buttons>
     <button id="queryUpdateBtn" class="disabled" onclick="handleQueryUpdateEvent()"
             title="Apply the query to filter the graph">Update</button>
     <button id="querySelectBtn" class="disabled" onclick="handleQuerySelectEvent()"
             title="Apply the query to select nodes in the graph without filtering">Select</button>
     <button id="queryResetBtn" class="red" onclick="resetQuery();" title="Reset query to match UI filters">Reset</button>
+    <button id="queryClearBtn" class="red" onclick="clearQuery();" title="Clear query">Clear</button>
   </div>
 
   <div class="data-buttons" style="display: none;">
