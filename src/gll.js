@@ -8158,6 +8158,20 @@ async function exportGraphAsJSON() {
 
   await showLoading("Exporting graph ..");
   await new Promise(resolve => requestAnimationFrame(resolve));
+  if (!data.nodeDataHeaders) {
+    data.nodeDataHeaders = [];
+  }
+  if (!data.edgeDataHeaders) {
+    data.edgeDataHeaders = [];
+  }
+  for (const filterDefaultKey of data.filterDefaults.keys()) {
+    const [nodeOrEdge, subGroup, key] = decodePropHashId(filterDefaultKey);
+    const targetList = nodeOrEdge === EXCEL_NODE_HEADER ? data.nodeDataHeaders : data.edgeDataHeaders;
+    const elem = {subGroup: subGroup, key: key};
+    if (!targetList.includes(elem)) {
+      targetList.push(elem);
+    }
+  }
   const blob = new Blob([JSON.stringify(data, replacer)], {type: "application/json"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
