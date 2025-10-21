@@ -660,8 +660,8 @@ class StringDemoDataLoader {
 
       const annotations = await this._fetchFunctionalAnnotations(Array.from(allProteins));
       return this._convertToAppFormat(stringData, annotations);
-    } catch (error) {
-      error('Failed to load STRING network:', error);
+    } catch (err) {
+      error(`Failed to load STRING network. Make sure gene symbols and species ID exist. ${url}`);
       return null;
     }
   }
@@ -1000,7 +1000,6 @@ async function loadDemoData() {
         await graph.render();
         resolve(true);
       } else {
-        error("Failed to load STRING network");
         resolve(false);
       }
 
