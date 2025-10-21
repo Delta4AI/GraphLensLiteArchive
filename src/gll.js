@@ -4019,6 +4019,14 @@ async function updateNodes(overrides = {}, commands = []) {
     }
   }
 
+  const badgesToAdd = overrides.style?.badges;
+  const badgePaletteToAdd = overrides.style?.badgePalette;
+
+  if (commands.includes("badge_add")) {
+    delete overrides.style?.badges;
+    delete overrides.style?.badgePalette;
+  }
+
   for (const nodeID of cache.selectedNodes) {
     const node = cache.nodeRef.get(nodeID);
 
@@ -4032,11 +4040,22 @@ async function updateNodes(overrides = {}, commands = []) {
         node.style.badge = true;
         node.style.badges = node.style.badges || [];
         node.style.badgePalette = node.style.badgePalette || [];
-        node.style.badges = [...node.style.badges, ...overrides.style.badges];
-        node.style.badgePalette = [...node.style.badgePalette, ...overrides.style.badgePalette];
-        delete overrides.style?.badges;
-        delete overrides.style?.badgePalette;
+
+        if (badgesToAdd) {
+          node.style.badges = [
+            ...node.style.badges, 
+            ...(Array.isArray(badgesToAdd) ? badgesToAdd : [badgesToAdd])
+          ];
+        }
+
+        if (badgePaletteToAdd) {
+          node.style.badgePalette = [
+            ...node.style.badgePalette, 
+            ...(Array.isArray(badgePaletteToAdd) ? badgePaletteToAdd : [badgePaletteToAdd])
+          ];
+        }
       }
+      
       if (command === "label_set_to_id") {
         node.style.label = true;
         node.style.labelText = node.id;
