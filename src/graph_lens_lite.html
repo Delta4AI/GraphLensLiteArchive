@@ -131,6 +131,9 @@
     </div>
   </div>
   <div class=query-buttons>
+    <div class="editor-help-icon" id="queryHelpIconDiv">
+      <button class="info-btn editor-help-btn" title="Display query editor help" onclick="showQueryHelp();">🛈</button>
+    </div>
     <button id="queryUpdateBtn" class="disabled" onclick="handleQueryUpdateEvent()"
             title="Apply the query to filter the graph">Update</button>
     <button id="querySelectBtn" class="disabled" onclick="handleQuerySelectEvent()"
@@ -140,19 +143,18 @@
   </div>
 
   <div class="data-buttons" style="display: none;">
-    <button onclick="dataTable.update()" title="Update the graph after modifying the data table">Apply</button>
-    <button onclick="dataTable.reset()" class="red" title="Reset the data table">Reset</button>
-    <button onclick="dataTable.exportToExcel()" class="blue" title="Export the data table and styling properties as Excel">Export</button>
+    <div class="editor-help-icon" style="display: none;" id="dataHelpIconDiv">
+      <button class="info-btn editor-help-btn" title="Display data editor help" onclick="showDataHelp();">🛈</button>
+    </div>
+    <button id="updateDataTableBtn" onclick="dataTable.update()"
+            title="Update the graph after modifying the data table">Apply
+    </button>
+    <button id="resetDataTableBtn" onclick="dataTable.reset()" class="red" title="Reset the data table">Reset</button>
+    <button id="exportDataTableBtn" onclick="dataTable.exportToExcel()" class="blue"
+            title="Export the data table and styling properties as Excel">Export
+    </button>
     <button onclick="dataTable.addNode()" class="pink" title="Add a node">Add Node</button>
     <button onclick="dataTable.addEdge()" class="pink" title="Add an edge">Add Edge</button>
-  </div>
-
-  <div class="editor-help-icon" id="queryHelpIconDiv">
-    <button class="info-btn" title="Display query editor help" onclick="showQueryHelp();">🛈</button>
-  </div>
-
-  <div class="editor-help-icon" style="display: none;" id="dataHelpIconDiv">
-    <button class="info-btn" title="Display data editor help" onclick="showDataHelp();">🛈</button>
   </div>
 
 </div>

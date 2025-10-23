@@ -2220,6 +2220,7 @@ input:checked + .slider:before {
     display: flex;
     flex-direction: column;
     flex: 0 0 2%;
+    align-items: center;
 }
 
 #queryUpdateBtn {
@@ -2312,6 +2313,38 @@ input:checked + .slider:before {
     overflow: hidden;
     text-overflow: ellipsis;
     padding: 2px 4px;
+}
+
+.data-buttons button:disabled,
+.query-buttons button:disabled {
+    background-color: #2a2733;
+    cursor: pointer;
+    opacity: 0.5;
+    color: #888;
+}
+
+.data-buttons .editor-help-btn,
+.query-buttons .editor-help-btn {
+    height: 20px;
+    max-height: 20px;
+    width: 20px;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    padding: 0;
+    line-height: 20px;
+    font-size: 18px;
+    color: #588ae5;
+    transition: color 0.2s ease-in-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0.4em;
+}
+
+.data-buttons .editor-help-btn:hover,
+.query-buttons .editor-help-btn:hover {
+    color: #7aa3f7;
 }
 
 .data-buttons button.red,
@@ -2499,6 +2532,35 @@ input:checked + .slider:before {
     display: inline-flex;
 }
 
- .data-table-apply-button {
+.data-table-apply-button {
 
- }
+}
+
+.data-table-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+  border-bottom: 2px solid #ddd;
+}
+
+.data-table-tab {
+  padding: 8px 16px;
+  background: #f5f5f5;
+  border: none;
+  border-top: 2px solid transparent;
+  border-left: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.data-table-tab:hover {
+  background: #e8e8e8;
+}
+
+.data-table-tab.active {
+  background: white;
+  border-top-color: #4CAF50;
+  font-weight: bold;
+}
