@@ -687,6 +687,16 @@ h5 {
     color: black;
 }
 
+.tooltip-dummy-buttons.pink {
+    background-color: #EFB0AA;
+    color: black;
+}
+
+.tooltip-dummy-buttons.green {
+    background-color: #015C0C;
+    color: white;
+}
+
 .black {
     color: #000000;
 }
@@ -2239,7 +2249,6 @@ input:checked + .slider:before {
 }
 
 #queryUpdateBtn {
-    background-color: #403C53;
 }
 
 #queryUpdateBtn:hover {
@@ -2249,7 +2258,6 @@ input:checked + .slider:before {
 
 #querySelectBtn {
     margin-top: 0.2em;
-    background-color: #8CA6D9;
     color: black;
 }
 
@@ -2259,7 +2267,6 @@ input:checked + .slider:before {
 }
 
 #queryResetBtn {
-    background-color: #C33D35;
     margin-top: 0.2em;
 }
 
@@ -2269,7 +2276,6 @@ input:checked + .slider:before {
 }
 
 #queryClearBtn {
-    background-color: #C33D35;
     margin-top: 0.2em;
 }
 
@@ -2327,7 +2333,11 @@ input:checked + .slider:before {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 2px 4px;
+    /*padding: 2px 4px;*/
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
 }
 
 .data-buttons button:disabled,
@@ -2377,6 +2387,18 @@ input:checked + .slider:before {
 .query-buttons button.blue {
     background-color: #8CA6D9;
     color: black;
+}
+
+.data-buttons button.grey,
+.query-buttons button.grey {
+    background-color: #9998AF;
+    color: black;
+}
+
+.data-buttons button.green,
+.query-buttons button.green {
+    background-color: #015C0C;
+    color: white;
 }
 
 #dataTableContainer {

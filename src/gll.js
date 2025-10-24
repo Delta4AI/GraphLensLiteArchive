@@ -9834,10 +9834,10 @@ function showQueryHelp() {
 
 <h3>Available Actions</h3>
 <ul>
-  <li><span class="tooltip-dummy-buttons">Update</span> — Apply the query to filter the graph</li>
-  <li><span class="tooltip-dummy-buttons blue">Select</span> — Select all matching elements (without filtering)</li>
-  <li><span class="tooltip-dummy-buttons red">Reset</span> — Sync query with current UI panel settings</li>
-  <li><span class="tooltip-dummy-buttons red">Clear</span> — Remove all query conditions</li>
+  <li><span class="tooltip-dummy-buttons">🔍 Filter</span> — Apply the query to filter the graph</li>
+  <li><span class="tooltip-dummy-buttons blue">🎯 Select</span> — Select all matching elements (without filtering)</li>
+  <li><span class="tooltip-dummy-buttons pink">⟳ Sync</span> — Sync query with current UI panel settings</li>
+  <li><span class="tooltip-dummy-buttons red">✗ Clear</span> — Remove all query conditions</li>
   <li><span class="add-to-query-button show tt">📝</span> (filtering panel) — Add a single parameter to the query</li>
 </ul>
 
@@ -9908,26 +9908,37 @@ function showQueryHelp() {
 }
 
 function showDataHelp() {
-  cache.popup = new Popup(`<h3>Data Editor</h3>
-<p>Allows exploration and direct modification of the graph data</p>
-<hr>
+  cache.popup = new Popup(`<h2>Data Editor</h2>
+<p>Explore and directly modify graph data through an interactive spreadsheet interface.</p>
+
+<div class="alert-info">
+  <strong>💡 Tip:</strong> All changes are staged until you click <span class="tooltip-dummy-buttons">✔ Apply</span>
+</div>
+
+<h3>Available Actions</h3>
+<ul>
+  <li><span class="tooltip-dummy-buttons">✔ Apply</span> — Apply the changes to the graph</li>
+  <li><span class="tooltip-dummy-buttons pink">⟳ Reset</span> — Discard all changes and restore original data</li>
+  <li><span class="tooltip-dummy-buttons blue"><strong>+</strong>&nbsp;Node</span> — Create a new node in the graph</li>
+  <li><span class="tooltip-dummy-buttons blue"><strong>+</strong>&nbsp;Edge</span> — Create a new edge between existing nodes</li>
+  <li><span class="tooltip-dummy-buttons green">⤓ Export</span> — Save current view as an Excel file (disabled when no data is shown)</li>
+</ul>
+
+<h3>Working with the Editor</h3>
 <ul>
   <li><strong>Sort columns:</strong> Click column headers to sort ascending/descending or restore original order</li>
-  <li><strong>Edit cells:</strong> Click on editable cells to modify values (navigate with Tab/Enter/Escape)</li>
+  <li><strong>Edit cells:</strong> Click on editable cells to modify values (navigate with Tab/Shift+Tab/Enter/Escape)</li>
   <li><strong>Delete rows:</strong> Click the <span class="data-table-delete-row-btn tt">×</span> button to remove nodes or edges</li>
-  <li><strong>Add elements:</strong> Use <span class="tooltip-dummy-buttons pink">Add Node</span> and <span class="tooltip-dummy-buttons pink">Add Edge</span> to create new graph elements
+  <li><strong>Add elements:</strong>
     <ul>
       <li>New nodes/edges must have at least one property value before applying</li>
       <li>Edge IDs must use the format: <code>sourceNode::targetNode</code></li>
       <li>Both source and target nodes must exist before creating an edge</li>
     </ul>
   </li>
-  <li><strong>Tabs:</strong> Switch between different views (selected/all nodes/edges, entire graph)</li>
-  <li><span class="tooltip-dummy-buttons">Apply</span> Apply the changes to the graph</li>
-  <li><span class="tooltip-dummy-buttons red">Reset</span> Discard all changes and restore original data</li>
-  <li><span class="tooltip-dummy-buttons blue">Export</span> Save current view as an Excel file (disabled when no data is shown)</li>
+  <li><strong>Tabs:</strong> Switch between different views (selected elements vs. all existing data)</li>
 </ul>
-`, {width: '66vw', height: '42vh', lineHeight: '1.5em'});
+`, {width: '50vw', height: '60vh', lineHeight: '1.5em'});
 }
 
 
