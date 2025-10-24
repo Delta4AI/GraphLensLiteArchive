@@ -453,6 +453,20 @@ h5 {
     margin-top: 4px;
 }
 
+.alert-warning {
+    background-color: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 10px;
+    margin: 10px 0;
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    border-left: 4px solid #8ca6d9;
+    padding: 10px;
+    margin: 10px 0;
+}
+
 .vr {
     width: 1px;
     background-color: #C33D35;
@@ -949,6 +963,7 @@ h5 {
     display: inline-flex;
     width: 18px;
     height: 18px;
+    pointer-events: none;
 }
 
 .add-to-query-button:hover {

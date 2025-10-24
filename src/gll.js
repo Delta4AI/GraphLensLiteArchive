@@ -69,7 +69,8 @@ let query = {
   editorDiv: null,
   lastGoodWidth: 0,
   sizeObserver: null,
-  sizeChangeLocked: false
+  sizeChangeLocked: false,
+  textCache: null,
 };
 
 // Stores references to map IDs to node/edge objects that cannot (or are not necessary to) serialized to a json file
@@ -607,7 +608,8 @@ const EVENT_LOCKS = {
   TRIGGER_SET_LAYOUT_ONCE: false,
   HOTKEY_EVENTS_REGISTERED: false,
   GLOBAL_EVENTS_REGISTERED: false,
-
+  SKIP_QUERY_VALIDATION: false,
+  QUERY_SELECTION_EVENT: false,
 }
 
 const INSTANCES = {
@@ -5580,12 +5582,17 @@ function decodeQueryAndBuildAST() {
 }
 
 async function preRenderEvent() {
+  if (cache.styleChanged) return;
+
+  resetQuery();
+
   cache.nodeIDsToBeShown = new Set();
   cache.propIDsToNodeIDsToBeShown = new Map();  // this is used by the bubble-grouping functionality after rendering
   cache.edgeIDsToBeShown = new Set();
   cache.propIDsToEdgeIDsToBeShown = new Map();
   cache.remainingEdgeRelatedNodes = new Set();
   resetFeatureIsWithinThresholdMaps();
+
   cache.bubbleSetChanged = false;
   decodeQueryAndBuildAST();
 
@@ -5640,6 +5647,7 @@ async function preRenderEvent() {
   await updateElementVisibility(idsToShow, idsToHide);
   await updateBubbleSetIfChanged();
 }
+
 
 async function updateElementVisibility(idsToShow, idsToHide) {
   cache.visibleElementsChanged = false;
@@ -8299,6 +8307,11 @@ function createAddOrRemoveToSelectionButton(propID, shouldAdd) {
 async function decideToRenderOrDraw(forceRender = false) {
   await showLoading("Loading", "Deciding to render or draw ..");
   await new Promise(resolve => requestAnimationFrame(resolve));
+
+  if (EVENT_LOCKS.QUERY_SELECTION_EVENT) {
+    storeQuery();
+  }
+
   await preRenderEvent();
   await cache.metrics.updateUI();
 
@@ -8318,6 +8331,11 @@ async function decideToRenderOrDraw(forceRender = false) {
       await showLoading("Loading", "Redrawing graph ..");
       await new Promise(resolve => requestAnimationFrame(resolve));
       return await graph.draw();
+    }
+
+    if (EVENT_LOCKS.QUERY_SELECTION_EVENT) {
+      restoreQuery();
+      EVENT_LOCKS.QUERY_SELECTION_EVENT = false;
     }
   } catch (errorMsg) {
     error(errorMsg);
@@ -9537,6 +9555,8 @@ async function handleQuerySelectEvent() {
   await showLoading("Updating Selection", `Modifying selection from query`);
   await new Promise(resolve => requestAnimationFrame(resolve));
 
+  EVENT_LOCKS.QUERY_SELECTION_EVENT = true;
+
   decodeQueryAndBuildAST();
 
   const nodeIDsToSelect = cache.nodeRef.values()
@@ -9784,23 +9804,48 @@ function resetQuery() {
   moveCaretToEnd();
 }
 
+function storeQuery() {
+  query.textCache = query.text.textContent;
+}
+
+function restoreQuery() {
+  if (query.textCache === undefined || query.textCache === null || query.textCache === "") {
+    return;
+  }
+  query.text.textContent = query.textCache;
+  query.overlay.innerHTML = encodeQuery(query.textCache);
+  moveCaretToEnd();
+  query.textCache = null;
+}
+
 function showQueryHelp() {
   cache.popup = new Popup(`
-<h3>Query Editor</h3>
-The query editor allows complex filtering using nested AND, OR and NOT expressions.
+<h2>Query Editor</h2>
+<p>Build complex filters using nested AND, OR and NOT expressions.</p>
 
+<div class="alert-warning">
+  <strong>⚠️ Important:</strong> Using the filtering UI panel or adding/modifying bubble groups will automatically 
+  overwrite the query. Any custom logic (AND/NOT operators, nested brackets) will be cleared and replaced 
+  with the UI-generated query.
+</div>
+<div class="alert-info">
+  <strong>💡 Tip:</strong> Queries are saved for each view and included when exporting the model 💾
+</div>
+
+<h3>Available Actions</h3>
 <ul>
-  <li>Queries are saved for each view and included when saving the model</li>
-  <li>UI changes will update the query and clear existing non-UI logic (AND/NOT, nested brackets)</li>
-  <li>Invalid syntax is <span class="q-error-unrecognized">highlighted</span></li>
-  <li><span class="tooltip-dummy-buttons">Update</span> filters the graph</li>
-  <li><span class="tooltip-dummy-buttons blue">Select</span> selects matching elements</li>
-  <li><span class="tooltip-dummy-buttons red">Reset</span> resets and syncs the query with the filtering UI panel</li>
-  <li><span class="tooltip-dummy-buttons red">Clear</span> clears the query</li>
-  <li><span class="add-to-query-button show tt">📝</span> (filtering panel) Adds an parameter to the query</li>
+  <li><span class="tooltip-dummy-buttons">Update</span> — Apply the query to filter the graph</li>
+  <li><span class="tooltip-dummy-buttons blue">Select</span> — Select all matching elements (without filtering)</li>
+  <li><span class="tooltip-dummy-buttons red">Reset</span> — Sync query with current UI panel settings</li>
+  <li><span class="tooltip-dummy-buttons red">Clear</span> — Remove all query conditions</li>
+  <li><span class="add-to-query-button show tt">📝</span> (filtering panel) — Add a single parameter to the query</li>
 </ul>
+
 <hr>
-<h3>Query Structure Explained</h3>
+<h2>Query Syntax Guide</h2>
+
+<h3>Example Query</h3>
+
 <div class="popupQueryContainer">
   <span class="q-bracket-open-lvl-1">(</span>
   <span class="q-property-wrapper"><span class="q-maingroup">${EXCEL_NODE_HEADER}</span><span class="q-prop-group-separator">::</span><span class="q-subgroup">group A</span><span class="q-prop-group-separator">::</span><span class="q-property">prop X</span></span>
@@ -9819,37 +9864,47 @@ The query editor allows complex filtering using nested AND, OR and NOT expressio
   <span class="q-cat-bracket-close">]</span>
   <span class="q-connector-closing"><span class="q-bracket-close-lvl-1">)</span></span>
 </div>
-<ul>
-<li><span class="q-bracket-open-lvl-1">(</span>&nbsp;<span class="q-bracket-close-lvl-1">)</span>: Parentheses collect several conditions into one logical unit 
-  <ul>
-    <li>Groups can be nested to any depth</li>
-    <li>Up to five levels of nested brackets are colour-coded: <span class="q-bracket-open-lvl-1">(</span><span class="q-bracket-open-lvl-2">(</span><span class="q-bracket-open-lvl-3">(</span><span class="q-bracket-open-lvl-4">(</span><span class="q-bracket-open-lvl-5">(</span><span class="q-bracket-close-lvl-5">)</span><span class="q-bracket-close-lvl-4">)</span><span class="q-bracket-close-lvl-3">)</span><span class="q-bracket-close-lvl-2">)</span><span class="q-bracket-close-lvl-1">)</span></li>
-    <li>Unmatched brackets are highlighted: <span class="q-bracket-close-lvl-0 q-error-unmatched-closing-bracket">)</span></li>
-  </ul>
-</li>
-<li><span class="q-property-wrapper"><span class="q-maingroup">${EXCEL_NODE_HEADER}</span><span class="q-prop-group-separator">::</span><span class="q-subgroup">group A</span><span class="q-prop-group-separator">::</span><span class="q-property">prop X</span></span>: selects property <strong>prop X [group A]</strong> from the <strong>node</strong> sheet 
-  <ul>
-    <li>Properties always have <strong>3 levels</strong>, separated by <span class="q-property-wrapper"><span class="q-prop-group-separator">::</span></span></li>
-    <li>Node properties start with <span class="q-property-wrapper"><span class="q-maingroup">${EXCEL_NODE_HEADER}</span><span class="q-prop-group-separator">::</span></span> while edge properties start with <span class="q-property-wrapper"><span class="q-maingroup">${EXCEL_EDGE_HEADER}</span><span class="q-prop-group-separator">::</span></span></li>
-    <li>If no groups are defined in a column of the input file, the default group <span class="q-property-wrapper"><span class="q-subgroup">${EXCEL_UNCATEGORIZED_SUBHEADER}</span></span> is used</li>
-  </ul> 
-</li>
-<li>Properties must be followed by a <strong>filter instruction</strong>. Three different instructions exist: </strong>
-  <ul>
-    <li><span class="q-kw-between">BETWEEN</span>&nbsp;<span class="q-number">0</span>&nbsp;<span class="q-kw-between-and">AND</span>&nbsp;<span class="q-number">1.3</span>: keeps numerical values from 0 to 1.3 (inclusive)</li>
-    <li><span class="q-lower-than">LOWER THAN</span>&nbsp;<span class="q-number">0.2</span>&nbsp;<span class="q-or-greater-than">OR GREATER THAN</span>&nbsp;<span class="q-number">0.8</span>: keeps numerical values ≤ 0.2 or ≥ 0.8</li>
-    <li><span class="q-in-cat-bracket-open">IN<span class="q-space">&nbsp;</span>[</span>&nbsp;<span class="q-string">foo</span><span class="q-comma">,</span> <span class="q-string">bar</span>&nbsp;<span class="q-cat-bracket-close">]</span>: keeps categorical values 'foo' or 'bar'</li>  
-  </ul>
-</li>
-<li><span class="q-connector-or">&nbsp;OR&nbsp;</span>: one of three logical operators that links two conditions or groups. Left prevails over right, otherwise all three operators are treated equally.
-  <ul>
-    <li><span class="q-connector-or">&nbsp;OR&nbsp;</span> results in true if at least one of the linked parts is true</li>
-    <li><span class="q-connector-and">&nbsp;AND&nbsp;</span> results in true if both linked parts are true</li>
-    <li><span class="q-connector-not">&nbsp;NOT&nbsp;</span> results in true part A is true while part B is not</li>
-  </ul>
-</li>
+
+<h3>Syntax Elements</h3>
+
+<p><strong>1. Properties</strong></p>
+<p style="margin-left: 20px; margin-top: -8px;">
+  <span class="q-property-wrapper"><span class="q-maingroup">${EXCEL_NODE_HEADER}</span><span class="q-prop-group-separator">::</span><span class="q-subgroup">group A</span><span class="q-prop-group-separator">::</span><span class="q-property">prop X</span></span>
+</p>
+<ul style="margin-top: -8px;">
+  <li>Format: <code>node-or-edge::group::property</code> (<strong>3 levels</strong> separated by <strong>::</strong>)</li>
+  <li>Nodes start with <span class="q-property-wrapper"><span class="q-maingroup">${EXCEL_NODE_HEADER}</span><span class="q-prop-group-separator">::</span></span> , edges with <span class="q-property-wrapper"><span class="q-maingroup">${EXCEL_EDGE_HEADER}</span><span class="q-prop-group-separator">::</span></span></li>
+  <li>Default group is <span class="q-property-wrapper"><span class="q-subgroup">${EXCEL_UNCATEGORIZED_SUBHEADER}</span></span> if none is defined in the input data</li>
 </ul>
-`, {width: '66vw', height: '50vh', lineHeight: '1.5em'});
+
+<p><strong>2. Filter Instructions</strong></p>
+<ul style="margin-top: -8px;">
+  <li><span class="q-kw-between">BETWEEN</span>&nbsp;<span class="q-number">0</span>&nbsp;<span class="q-kw-between-and">AND</span>&nbsp;<span class="q-number">1.3</span> — Keep numerical values in range (inclusive)</li>
+  <li><span class="q-lower-than">LOWER THAN</span>&nbsp;<span class="q-number">0.2</span>&nbsp;<span class="q-or-greater-than">OR GREATER THAN</span>&nbsp;<span class="q-number">0.8</span> — Keep numerical values ≤ 0.2 or ≥ 0.8</li>
+  <li><span class="q-in-cat-bracket-open">IN&nbsp;[</span><span class="q-string">foo</span><span class="q-comma">,</span>&nbsp;<span class="q-string">bar</span><span class="q-cat-bracket-close">]</span> — Keep specific categorical values</li>
+</ul>
+
+<p><strong>3. Logical Operators</strong></p>
+<ul style="margin-top: -8px;">
+  <li><span class="q-connector-or">&nbsp;OR&nbsp;</span> — True if at least one condition is true</li>
+  <li><span class="q-connector-and">&nbsp;AND&nbsp;</span> — True if both conditions are true</li>
+  <li><span class="q-connector-not">&nbsp;NOT&nbsp;</span> — True if first condition is true and second is false</li>
+  <li>⚡ Left-to-right precedence; use parentheses for complex logic</li>
+</ul>
+
+<p><strong>4. Grouping with Parentheses</strong></p>
+<ul style="margin-top: -8px;">
+  <li><span class="q-bracket-open-lvl-1">(</span> <span class="q-bracket-close-lvl-1">)</span> — Group multiple conditions into one logical unit</li>
+  <li>Nest to any depth with color coding: <span class="q-bracket-open-lvl-1">(</span><span class="q-bracket-open-lvl-2">(</span><span class="q-bracket-open-lvl-3">(</span><span class="q-bracket-open-lvl-4">(</span><span class="q-bracket-open-lvl-5">(</span><span class="q-bracket-close-lvl-5">)</span><span class="q-bracket-close-lvl-4">)</span><span class="q-bracket-close-lvl-3">)</span><span class="q-bracket-close-lvl-2">)</span><span class="q-bracket-close-lvl-1">)</span></li>
+  <li>Unmatched brackets are highlighted: <span class="q-bracket-close-lvl-0 q-error-unmatched-closing-bracket">)</span></li>
+</ul>
+
+<p><strong>5. Query Validation</strong></p>
+<ul style="margin-top: -8px">
+  <li>Invalid syntax is <span class="q-error-unrecognized">highlighted like this</span></li>
+</ul>
+
+`, {width: '80vw', height: '75vh', lineHeight: '1.5em'});
 }
 
 function showDataHelp() {
