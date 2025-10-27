@@ -19,7 +19,13 @@ TBD
 ---
 
 ## Development
-Run electron app
+### Watch for changes & rebundle automatically
+```bash
+cd /path/to/graph_lens_lite
+npm run bundle:watch
+```
+
+### Run electron app
 ```bash
 # Install prerequisites (fedora)
 sudo dnf install libxcrypt-compat wine
