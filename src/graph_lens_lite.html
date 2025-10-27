@@ -11,7 +11,7 @@
   <script inline src="lib/g6.min.js"></script>
   <script inline src="lib/exceljs.min.js"></script>
   <script inline src="gll.js"></script>
-  <link inline rel="stylesheet" href="style.css" />
+  <link inline rel="stylesheet" href="style.css?v=1" />
 </head>
 <body>
 <div id="loadingOverlay" class="container">
@@ -37,10 +37,12 @@
         </div>
       </div>
       <input type="file" id="fileInput" name="fileInput" onchange="loadFileWrapper(event);"
-             accept=".json, .xls, .xlsx, .csv, .tab"/>
+             title="Load graph data from Excel (.xlsx, .xls) or Graph Lens Lite exports (.json)"
+             accept=".json, .xls, .xlsx"/>
       <div class="hideOnLoad">
-        <button onclick="downloadExcelTemplate()" class="mt-2">Download Template</button>
-        <button onclick="loadDemoData()" class="mt-2">Load Demo Data</button>
+        <button onclick="downloadExcelTemplate()" class="mt-2">📥 Download Excel Template</button>
+        <br>
+        <button onclick="loadDemoData()" class="mt-2">🔍 Load from STRING Database</button>
       </div>
       <div class="showOnLoad">
         <hr>
@@ -131,28 +133,31 @@
     </div>
   </div>
   <div class=query-buttons>
-    <button id="queryUpdateBtn" class="disabled" onclick="handleQueryUpdateEvent()"
-            title="Apply the query to filter the graph">Update</button>
-    <button id="querySelectBtn" class="disabled" onclick="handleQuerySelectEvent()"
-            title="Apply the query to select nodes in the graph without filtering">Select</button>
-    <button id="queryResetBtn" class="red" onclick="resetQuery();" title="Reset query to match UI filters">Reset</button>
-    <button id="queryClearBtn" class="red" onclick="clearQuery();" title="Clear query">Clear</button>
+    <div class="editor-help-icon" id="queryHelpIconDiv">
+      <button class="info-btn editor-help-btn" title="Display query editor help" onclick="showQueryHelp();">🛈</button>
+    </div>
+    <button id="queryUpdateBtn" class="purple disabled" onclick="handleQueryUpdateEvent()"
+            title="Apply the query to filter the graph">🔍 Filter</button>
+    <button id="querySelectBtn" class="blue disabled" onclick="handleQuerySelectEvent()"
+            title="Apply the query to select nodes in the graph without filtering">🎯 Select</button>
+    <button id="queryResetBtn" class="pink" onclick="resetQuery();" title="Reset query to match UI filters">⟳ Sync</button>
+    <button id="queryClearBtn" class="red" onclick="clearQuery();" title="Clear query">✗ Clear</button>
   </div>
 
   <div class="data-buttons" style="display: none;">
-    <button onclick="dataTable.update()" title="Update the graph after modifying the data table">Apply</button>
-    <button onclick="dataTable.reset()" class="red" title="Reset the data table">Reset</button>
-    <button onclick="dataTable.exportToExcel()" class="blue" title="Export the data table and styling properties as Excel">Export</button>
-    <button onclick="dataTable.addNode()" class="pink" title="Add a node">Add Node</button>
-    <button onclick="dataTable.addEdge()" class="pink" title="Add an edge">Add Edge</button>
-  </div>
-
-  <div class="editor-help-icon" id="queryHelpIconDiv">
-    <button class="info-btn" title="Display query editor help" onclick="showQueryHelp();">🛈</button>
-  </div>
-
-  <div class="editor-help-icon" style="display: none;" id="dataHelpIconDiv">
-    <button class="info-btn" title="Display data editor help" onclick="showDataHelp();">🛈</button>
+    <div class="editor-help-icon" style="display: none;" id="dataHelpIconDiv">
+      <button class="info-btn editor-help-btn" title="Display data editor help" onclick="showDataHelp();">🛈</button>
+    </div>
+    <button id="updateDataTableBtn" onclick="dataTable.update()"
+            title="Update the graph after modifying the data table">✔ Apply
+    </button>
+    <button id="resetDataTableBtn" onclick="dataTable.reset()" class="pink"
+            title="Reset the data table to current graph state">⟳ Reset</button>
+    <button onclick="dataTable.addNode()" class="blue" title="Add a node"><strong>+</strong>&nbsp;Node</button>
+    <button onclick="dataTable.addEdge()" class="blue" title="Add an edge"><strong>+</strong>&nbsp;Edge</button>
+    <button id="exportDataTableBtn" onclick="dataTable.exportToExcel()" class="green"
+            title="Export the data table and styling properties as Excel">⤓ Export
+    </button>
   </div>
 
 </div>
