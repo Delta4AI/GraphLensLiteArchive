@@ -10,7 +10,7 @@
 <!-- @antv/g6 version 5.0.46, modified according to https://github.com/antvis/G6/issues/7195 -->
   <script inline src="lib/g6.min.js"></script>
   <script inline src="lib/exceljs.min.js"></script>
-  <script inline src="gll.js"></script>
+  <script src="gll.bundle.js"></script>
   <link inline rel="stylesheet" href="style.css?v=1" />
 </head>
 <body>
@@ -27,33 +27,33 @@
       <div class="header-row">
         <h3>Graph Lens Lite</h3>
         <div class="showOnLoad button-group">
-          <button id="exportModel" class="showOnLoad medium-btn" onclick="exportGraphAsJSON()" title="Save Model (S)">💾</button>
-          <button id="exportImage" class="showOnLoad medium-btn" onclick="exportPNG()" title="Save Image (P)">📷️</button>
+          <button id="exportModel" class="showOnLoad medium-btn" onclick="cache.io.exportGraphAsJSON()" title="Save Model (S)">💾</button>
+          <button id="exportImage" class="showOnLoad medium-btn" onclick="cache.io.exportPNG()" title="Save Image (P)">📷️</button>
           <button id="metricsToggleBtn" class="showOnLoad medium-btn" title="Toggle network metrics panel (M)" onclick="cache.metrics.toggleUI()">📊</button>
-          <button id="dataToggleBtn" class="showOnLoad medium-btn" title="Toggle data editor (D)" onclick="toggleDataEditor()">🔢</button>
-          <button id="queryToggleBtn" class="showOnLoad medium-btn" title="Toggle query editor (Q)" onclick="toggleQueryEditor()">📝</button>
-          <div id="lassoWrapper" class="showOnLoad medium-btn"><button id="lassoToggleBtn" class="lasso-icon" title="Toggle lasso selection (L)" onclick="toggleLassoSelection()"></button></div>
-          <button id="editBtn" class="showOnLoad medium-btn" title="Toggle Edit mode (E)" onclick="toggleEditMode()">⚙️</button>
+          <button id="dataToggleBtn" class="showOnLoad medium-btn" title="Toggle data editor (D)" onclick="cache.ui.toggleDataEditor()">🔢</button>
+          <button id="queryToggleBtn" class="showOnLoad medium-btn" title="Toggle query editor (Q)" onclick="cache.ui.toggleQueryEditor()">📝</button>
+          <div id="lassoWrapper" class="showOnLoad medium-btn"><button id="lassoToggleBtn" class="lasso-icon" title="Toggle lasso selection (L)" onclick="cache.ui.toggleLassoSelection()"></button></div>
+          <button id="editBtn" class="showOnLoad medium-btn" title="Toggle Edit mode (E)" onclick="cache.ui.toggleEditMode()">⚙️</button>
         </div>
       </div>
-      <input type="file" id="fileInput" name="fileInput" onchange="loadFileWrapper(event);"
+      <input type="file" id="fileInput" name="fileInput" onchange="cache.io.loadFileWrapper(event);"
              title="Load graph data from Excel (.xlsx, .xls) or Graph Lens Lite exports (.json)"
              accept=".json, .xls, .xlsx"/>
       <div class="hideOnLoad">
-        <button onclick="downloadExcelTemplate()" class="mt-2">📥 Download Excel Template</button>
+        <button onclick="cache.io.downloadExcelTemplate()" class="mt-2">📥 Download Excel Template</button>
         <br>
         <button onclick="loadDemoData()" class="mt-2">🔍 Load from STRING Database</button>
       </div>
       <div class="showOnLoad">
         <hr>
         <label for="selectView">View Preset:</label>
-        <select name="selectView" id="selectView" onchange="changeLayout()"></select>
-        <button class="small-btn red disabled" id="removeSelectedLayoutButton" title="Delete current view preset" onclick="removeSelectedLayout()">&nbsp;✗&nbsp;</button>
-        <button class="small-btn green" title="Create new view preset" onclick="addLayout()" >&nbsp;✚&nbsp;</button>
+        <select name="selectView" id="selectView" onchange="cache.lm.changeLayout()"></select>
+        <button class="small-btn red disabled" id="removeSelectedLayoutButton" title="Delete current view preset" onclick="cache.lm.removeSelectedLayout()">&nbsp;✗&nbsp;</button>
+        <button class="small-btn green" title="Create new view preset" onclick="cache.lm.addLayout()" >&nbsp;✚&nbsp;</button>
         <div class="button-separator"></div>
-        <button class="small-btn" id="resetLayoutButton" title="Reset layout to default (R)" onclick="resetLayout()">⭯</button>
-        <button class="small-btn" title="Fit graph to screen (F)" onclick="graph.fitView()">⛶</button>
-        <button class="small-btn red" title="Hide all nodes and edges that are not connected to any other node or edge" onclick="toggleCleanUpDanglingElements(this)">🚫</button>
+        <button class="small-btn" id="resetLayoutButton" title="Reset layout to default (R)" onclick="cache.lm.resetLayout()">⭯</button>
+        <button class="small-btn" title="Fit graph to screen (F)" onclick="cache.graph.fitView()">⛶</button>
+        <button class="small-btn red" title="Hide all nodes and edges that are not connected to any other node or edge" onclick="cache.gcm.toggleCleanUpDanglingElements(this)">🚫</button>
         <div id="debugDiv" class="inline"></div>
         <br>
         <h5 class="purple">Shown:
@@ -65,20 +65,20 @@
           <label for="selectStash">Filter Profiles:</label>
           <button class="small-btn" id="addStash"
                   title="Save current filter settings and bubble groups as a new profile (can be reapplied in different view)"
-                  onclick="saveStash()">📥
+                  onclick="cache.stash.saveStash()">📥
           </button>
           <select class="disabled" name="selectStash" id="selectStash"></select>
           <button class="small-btn red disabled" id="removeStash"
                   title="Delete selected profile"
-                  onclick="removeStash()">✗
+                  onclick="cache.stash.removeStash()">✗
           </button>
           <button class="small-btn orange disabled" id="overwriteStash"
                   title="Overwrite selected profile with current settings"
-                  onclick="overwriteStash()">⟳
+                  onclick="cache.stash.overwriteStash()">⟳
           </button>
           <button class="small-btn green disabled" id="applyStash"
                   title="Apply selected profile to current view"
-                  onclick="loadStash()">✔
+                  onclick="cache.stash.loadStash()">✔
           </button>
           <hr>
         </div>
@@ -96,23 +96,23 @@
     <div id="selectedElementsContainer" class="hidden">
       Selected nodes: <span id="selectedNodes" class="red"></span>
       <button id="focusNodesBtn" class="tiny-btn disabled ml-1" title="Center and zoom the viewport to show all selected nodes"
-              onclick="focusNodes()">🔍</button>
+              onclick="cache.gcm.focusNodes()">🔍</button>
       <button id="deselectNodesBtn" class="tiny-btn red disabled" title="Clear node selection"
-              onclick="toggleSelectionForAllNodes(false)">×</button>
+              onclick="cache.sm.toggleSelectionForAllNodes(false)">×</button>
       <br>
       Selected edges: <span id="selectedEdges" class="red"></span>
       <button id="focusEdgesBtn" class="tiny-btn disabled ml-1" title="Center and zoom the viewport to show all selected edges"
-              onclick="focusEdges()">🔍</button>
+              onclick="cache.gcm.focusEdges()">🔍</button>
       <button id="deselectEdgesBtn" class="tiny-btn red disabled" title="Clear edge selection"
-              onclick="toggleSelectionForAllEdges(false)">×</button>
+              onclick="cache.sm.toggleSelectionForAllEdges(false)">×</button>
       <hr>
       <button class="small-btn disabled" title="changed from alignUIWIthJSConstants()" id="resetSelectedElementsStyleBtn"
-              onclick="resetStyleForSelectedElements()">⟳</button>
+              onclick="cache.style.resetStyleForSelectedElements()">⟳</button>
       <div class="button-separator"></div>
       <button class="small-btn disabled" title="Undo Selection" id="undoSelectionBtn"
-              onclick="undoSelection()">↩</button>
+              onclick="cache.sm.undoSelection()">↩</button>
       <button class="small-btn disabled" title="Redo Selection" id="redoSelectionBtn"
-              onclick="redoSelection()">↪</button>
+              onclick="cache.sm.redoSelection()">↪</button>
     </div>
     <div id="innerGraphContainer"></div>
   </div>
@@ -121,7 +121,7 @@
   <div class="resize-handle"></div>
   <div id="queryEditor" class="editor-panel">
     <div id="queryOverlay" aria-hidden="true"></div>
-    <div id="queryTextArea" contenteditable="true" spellcheck="false" oninput="handleQueryValidationEvent();"></div>
+    <div id="queryTextArea" contenteditable="true" spellcheck="false" oninput="cache.qm.handleQueryValidationEvent();"></div>
     <div id="queryCaret" class="custom-caret"></div>
   </div>
   <div id="dataEditor" class="editor-panel" style="display: none;">
@@ -134,28 +134,28 @@
   </div>
   <div class=query-buttons>
     <div class="editor-help-icon" id="queryHelpIconDiv">
-      <button class="info-btn editor-help-btn" title="Display query editor help" onclick="showQueryHelp();">🛈</button>
+      <button class="info-btn editor-help-btn" title="Display query editor help" onclick="cache.qm.showQueryHelp();">🛈</button>
     </div>
-    <button id="queryUpdateBtn" class="purple disabled" onclick="handleQueryUpdateEvent()"
+    <button id="queryUpdateBtn" class="purple disabled" onclick="cache.qm.handleQueryUpdateEvent()"
             title="Apply the query to filter the graph">🔍 Filter</button>
-    <button id="querySelectBtn" class="blue disabled" onclick="handleQuerySelectEvent()"
+    <button id="querySelectBtn" class="blue disabled" onclick="cache.qm.handleQuerySelectEvent()"
             title="Apply the query to select nodes in the graph without filtering">🎯 Select</button>
-    <button id="queryResetBtn" class="pink" onclick="resetQuery();" title="Reset query to match UI filters">⟳ Sync</button>
-    <button id="queryClearBtn" class="red" onclick="clearQuery();" title="Clear query">✗ Clear</button>
+    <button id="queryResetBtn" class="pink" onclick="cache.qm.resetQuery();" title="Reset query to match UI filters">⟳ Sync</button>
+    <button id="queryClearBtn" class="red" onclick="cache.qm.clearQuery();" title="Clear query">✗ Clear</button>
   </div>
 
   <div class="data-buttons" style="display: none;">
     <div class="editor-help-icon" style="display: none;" id="dataHelpIconDiv">
-      <button class="info-btn editor-help-btn" title="Display data editor help" onclick="showDataHelp();">🛈</button>
+      <button class="info-btn editor-help-btn" title="Display data editor help" onclick="cache.dataTable.help();">🛈</button>
     </div>
-    <button id="updateDataTableBtn" onclick="dataTable.update()"
+    <button id="updateDataTableBtn" onclick="cache.dataTable.update()"
             title="Update the graph after modifying the data table">✔ Apply
     </button>
-    <button id="resetDataTableBtn" onclick="dataTable.reset()" class="pink"
+    <button id="resetDataTableBtn" onclick="cache.dataTable.reset()" class="pink"
             title="Reset the data table to current graph state">⟳ Reset</button>
-    <button onclick="dataTable.addNode()" class="blue" title="Add a node"><strong>+</strong>&nbsp;Node</button>
-    <button onclick="dataTable.addEdge()" class="blue" title="Add an edge"><strong>+</strong>&nbsp;Edge</button>
-    <button id="exportDataTableBtn" onclick="dataTable.exportToExcel()" class="green"
+    <button onclick="cache.dataTable.addNode()" class="blue" title="Add a node"><strong>+</strong>&nbsp;Node</button>
+    <button onclick="cache.dataTable.addEdge()" class="blue" title="Add an edge"><strong>+</strong>&nbsp;Edge</button>
+    <button id="exportDataTableBtn" onclick="cache.dataTable.exportToExcel()" class="green"
             title="Export the data table and styling properties as Excel">⤓ Export
     </button>
   </div>

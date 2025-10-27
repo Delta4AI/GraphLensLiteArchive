@@ -1,0 +1,1114 @@
+import {Popup} from "./popup.js";
+import {StaticUtilities} from "./static";
+import {EXCEL_NODE_PROPERTIES, EXCEL_EDGE_PROPERTIES} from "../managers/io.js";
+
+let dataTable;
+
+class DataTable {
+  constructor(cache, containerId = 'dataTableContainer') {
+    this.containerId = containerId;
+    this.tableData = [];
+    this.headers = [];
+    this.currentEditingCell = null;
+    this.onChangeCallback = null;
+    this.sortState = {};
+    this.originalOrder = [];
+    this.headerIndexMap = new Map();
+    this.currentTab = 'selectedNodes';
+    this.fileData = null;
+    this.tableDataBackup = [];
+    this.pendingChanges = new Map();
+    this.onPendingChangesCallback = null;
+    
+    this.cache = cache;
+
+    // this.init();
+  }
+
+  init() {
+    const container = document.getElementById(this.containerId);
+    if (!container) {
+      this.cache.ui.error(`Container with ID '${this.containerId}' not found`);
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="data-table-tabs">
+        <button class="data-table-tab active" data-tab="selectedNodes">Selected Nodes</button>
+        <button class="data-table-tab" data-tab="selectedEdges">Selected Edges</button>
+        <button class="data-table-tab" data-tab="selectedElements">Selected Elements</button>
+        <button class="data-table-tab" data-tab="allNodes">All Nodes</button>
+        <button class="data-table-tab" data-tab="allEdges">All Edges</button>
+        <button class="data-table-tab" data-tab="entireGraph">Entire Graph</button>
+      </div>
+      <table id="dataTable" class="data-table">
+        <thead id="dataTableHead"></thead>
+        <tbody id="dataTableBody"></tbody>
+      </table>
+    `;
+
+    this.tabsContainer = container.querySelector('.data-table-tabs');
+    this.table = container.querySelector('#dataTable');
+    this.tableHead = container.querySelector('#dataTableHead');
+    this.tableBody = container.querySelector('#dataTableBody');
+
+    this.tabsContainer.addEventListener('click', this.handleTabClick.bind(this));
+    this.tableBody.addEventListener('click', this.handleTableClick.bind(this));
+    this.tableBody.addEventListener('focus', this.handleTableFocus.bind(this), true);
+    this.tableBody.addEventListener('blur', this.handleTableBlur.bind(this), true);
+    this.tableBody.addEventListener('keydown', this.handleTableKeydown.bind(this));
+    this.tableBody.addEventListener('input', this.handleTableInput.bind(this));
+    this.tableHead.addEventListener('click', this.handleHeaderTableClick.bind(this));
+  }
+
+  async handleTabClick(event) {
+    if (event.target.classList.contains('data-table-tab')) {
+      const tab = event.target.dataset.tab;
+      await this.switchTab(tab);
+    }
+  }
+
+  async switchTab(tab) {
+    await this.cache.ui.showLoading("Data Editor", `Loading ${tab} this.cache.data...`);
+
+    this.currentTab = tab;
+
+    this.tabsContainer.querySelectorAll('.data-table-tab').forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.dataset.tab === tab) {
+        btn.classList.add('active');
+      }
+    });
+
+    this.sortState = {};
+    this.loadTabData();
+
+    await this.cache.ui.hideLoading();
+  }
+
+  loadTabData() {
+    if (!this.fileData) {
+      this.cache.ui.error('No fileData available');
+      return;
+    }
+
+    this.headers = ["Del", "Row #", "Type", "ID", "Label", "Description"];
+    this.headers.push(...this.fileData.nodeDataHeaders.map(o => `${this.cache.CFG.EXCEL_NODE_HEADER}::${o.subGroup}::${o.key}`));
+    this.headers.push(...this.fileData.edgeDataHeaders.map(o => `${this.cache.CFG.EXCEL_EDGE_HEADER}::${o.subGroup}::${o.key}`));
+
+    this.headerIndexMap.clear();
+    this.headers.forEach((header, index) => {
+      this.headerIndexMap.set(header, index);
+    });
+
+    const pendingRowIds = new Set();
+    this.pendingChanges.forEach((change, id) => {
+      pendingRowIds.add(id);
+    });
+
+    const preservedRows = this.tableData.filter(row => pendingRowIds.has(row[3]));
+
+    this.tableData = [];
+
+    switch (this.currentTab) {
+      case 'selectedNodes':
+        this.loadSelectedNodes();
+        break;
+      case 'selectedEdges':
+        this.loadSelectedEdges();
+        break;
+      case 'selectedElements':
+        this.loadSelectedElements();
+        break;
+      case 'allNodes':
+        this.loadAllNodes();
+        break;
+      case 'allEdges':
+        this.loadAllEdges();
+        break;
+      case 'entireGraph':
+        this.loadEntireGraph();
+        break;
+    }
+
+    this.tableData.push(...preservedRows);
+
+    this.tableData.forEach((row, index) => {
+      row[1] = index + 1;
+    });
+
+    this.tableDataBackup = this.tableData.map(row => [...row]);
+    this.originalOrder = this.tableData.map((_, index) => index);
+    this.render();
+  }
+
+  loadSelectedNodes() {
+    if (!this.fileData.nodes || !this.cache.selectedNodes) return;
+
+    const selectedNodeSet = new Set(this.cache.selectedNodes);
+    const selectedNodes = this.fileData.nodes.filter(node => selectedNodeSet.has(node.id));
+    this.addNodesToTable(selectedNodes);
+  }
+
+  loadSelectedEdges() {
+    if (!this.fileData.edges || !this.cache.selectedEdges) return;
+
+    const selectedEdgeSet = new Set(this.cache.selectedEdges);
+    const selectedEdges = this.fileData.edges.filter(edge => selectedEdgeSet.has(edge.id));
+    this.addEdgesToTable(selectedEdges);
+  }
+
+  loadSelectedElements() {
+    if (!this.cache.selectedNodes && !this.cache.selectedEdges) return;
+
+    if (this.fileData.nodes && this.cache.selectedNodes) {
+      const selectedNodeSet = new Set(this.cache.selectedNodes);
+      const selectedNodes = this.fileData.nodes.filter(node => selectedNodeSet.has(node.id));
+      this.addNodesToTable(selectedNodes);
+    }
+
+    if (this.fileData.edges && this.cache.selectedEdges) {
+      const selectedEdgeSet = new Set(this.cache.selectedEdges);
+      const selectedEdges = this.fileData.edges.filter(edge => selectedEdgeSet.has(edge.id));
+      this.addEdgesToTable(selectedEdges);
+    }
+  }
+
+  loadAllNodes() {
+    if (!this.fileData.nodes) return;
+    this.addNodesToTable(this.fileData.nodes);
+  }
+
+  loadAllEdges() {
+    if (!this.fileData.edges) return;
+    this.addEdgesToTable(this.fileData.edges);
+  }
+
+  loadEntireGraph() {
+    if (this.fileData.nodes) {
+      this.addNodesToTable(this.fileData.nodes);
+    }
+    if (this.fileData.edges) {
+      this.addEdgesToTable(this.fileData.edges);
+    }
+  }
+
+  addNodesToTable(nodes) {
+    nodes.forEach(node => {
+      const row = new Array(this.headers.length).fill('');
+      row[0] = '';
+      row[1] = this.tableData.length + 1;
+      row[2] = 'Node';
+      row[3] = node.id;
+      row[4] = node.label || '';
+      row[5] = node.description || '';
+
+      for (let [section, subSection, prop, data] of traverseD4Data(node)) {
+        const headerKey = `${section}::${subSection}::${prop}`;
+        const headerIdx = this.headerIndexMap.get(headerKey);
+        if (headerIdx !== undefined) {
+          row[headerIdx] = data;
+        }
+      }
+
+      this.tableData.push(row);
+    });
+  }
+
+  addEdgesToTable(edges) {
+    edges.forEach(edge => {
+      const row = new Array(this.headers.length).fill('');
+      row[0] = '';
+      row[1] = this.tableData.length + 1;
+      row[2] = 'Edge';
+      row[3] = edge.id;
+      row[4] = edge.label || '';
+      row[5] = edge.description || '';
+
+      for (let [section, subSection, prop, data] of this.cache.gcm.traverseD4Data(edge)) {
+        const headerKey = `${section}::${subSection}::${prop}`;
+        const headerIdx = this.headerIndexMap.get(headerKey);
+        if (headerIdx !== undefined) {
+          row[headerIdx] = data;
+        }
+      }
+
+      this.tableData.push(row);
+    });
+  }
+
+  handleTableClick(event) {
+    if (event.target.classList.contains('data-table-delete-row-btn')) {
+      const rowIndex = parseInt(event.target.closest('td').dataset.row);
+      this.handleDeleteRow(rowIndex);
+    }
+  }
+
+  async handleHeaderTableClick(event) {
+    await this.cache.ui.showLoading("Data Editor", "Sorting ..");
+    const headerDiv = event.target.closest('.data-table-sortable-header');
+    if (headerDiv) {
+      const columnIndex = parseInt(headerDiv.dataset.column);
+      this.handleHeaderClick(columnIndex);
+    }
+    await this.cache.ui.hideLoading();
+  }
+
+  handleTableFocus(event) {
+    if (event.target.contentEditable === 'true') {
+      const rowIndex = parseInt(event.target.dataset.row);
+      const colIndex = parseInt(event.target.dataset.col);
+      this.handleCellFocus(event, rowIndex, colIndex);
+    }
+  }
+
+  handleTableBlur(event) {
+    if (event.target.contentEditable === 'true') {
+      const rowIndex = parseInt(event.target.dataset.row);
+      const colIndex = parseInt(event.target.dataset.col);
+      this.handleCellBlur(event, rowIndex, colIndex);
+    }
+  }
+
+  handleTableKeydown(event) {
+    if (event.target.contentEditable === 'true') {
+      const rowIndex = parseInt(event.target.dataset.row);
+      const colIndex = parseInt(event.target.dataset.col);
+      this.handleCellKeydown(event, rowIndex, colIndex);
+    }
+  }
+
+  handleTableInput(event) {
+    if (event.target.contentEditable === 'true') {
+      const rowIndex = parseInt(event.target.dataset.row);
+      const colIndex = parseInt(event.target.dataset.col);
+      this.handleCellInput(event, rowIndex, colIndex);
+    }
+  }
+
+  populateFromFileData(fileData) {
+    if (!fileData) {
+      this.cache.ui.error('No fileData provided');
+      return;
+    }
+
+    this.fileData = structuredClone(fileData);
+    this.loadTabData();
+  }
+
+  async refreshCurrentTab() {
+    this.loadTabData();
+  }
+
+  reset() {
+    this.tableData = this.tableDataBackup.map(row => [...row]);
+    this.sortState = {};
+    this.originalOrder = this.tableData.map((_, index) => index);
+    this.render();
+  }
+
+  render() {
+    if (!this.tableHead || !this.tableBody) {
+      this.cache.ui.error('Table elements not found');
+      return;
+    }
+
+    const headerFragment = document.createDocumentFragment();
+    const bodyFragment = document.createDocumentFragment();
+
+    if (this.tableData.length === 0) {
+      this.tableHead.innerHTML = '';
+      this.tableBody.innerHTML = '<tr><td colspan="100%">No data available</td></tr>';
+      this.updateExportButtonState();
+      return;
+    }
+
+    const headerRow = document.createElement('tr');
+    this.headers.forEach((header, index) => {
+      const th = document.createElement('th');
+
+      if (index === 0) {
+        th.classList.add("data-table-delete-row-column");
+      } else {
+        th.innerHTML = `
+        <div class="data-table-sortable-header" data-column="${index}">
+          <span class="data-table-header-text">${header}</span>
+          <span class="data-table-sort-indicator">${this.getSortIndicator(index)}</span>
+        </div>
+      `;
+      }
+
+      headerRow.appendChild(th);
+    });
+    headerFragment.appendChild(headerRow);
+
+    this.tableData.forEach((rowData, rowIndex) => {
+      const tr = document.createElement('tr');
+      const isNodeRow = rowData[2] === 'Node';
+
+      rowData.forEach((cellData, colIndex) => {
+        const td = document.createElement('td');
+        td.dataset.row = rowIndex;
+        td.dataset.col = colIndex;
+
+        if (colIndex === 0) {
+          td.innerHTML = `<button class="data-table-delete-row-btn" title="Delete row ${rowIndex + 1} (${rowData[2]} ${rowData[3]})">×</button>`;
+          td.classList.add('data-table-delete-row-column');
+        } else {
+          td.textContent = cellData || '';
+
+          const isBasicColumn = colIndex <= 3;
+          const isReservedColumn = colIndex === 4 || colIndex === 5;
+          const isMismatchedColumn = (isNodeRow && this.headers[colIndex].startsWith(this.cache.CFG.EXCEL_EDGE_HEADER)) ||
+            (!isNodeRow && this.headers[colIndex].startsWith(this.cache.CFG.EXCEL_NODE_HEADER));
+          const shouldBeEditable = (!isBasicColumn || isReservedColumn) && !isMismatchedColumn;
+
+          if (shouldBeEditable) {
+            td.contentEditable = true;
+          } else {
+            td.classList.add('readonly');
+          }
+        }
+
+        tr.appendChild(td);
+      });
+
+      bodyFragment.appendChild(tr);
+    });
+
+    this.tableHead.innerHTML = '';
+    this.tableBody.innerHTML = '';
+    this.tableHead.appendChild(headerFragment);
+    this.tableBody.appendChild(bodyFragment);
+
+    this.updateExportButtonState();
+  }
+
+  updateExportButtonState() {
+    const exportBtn = document.getElementById('exportDataTableBtn');
+    if (exportBtn) {
+      if (this.tableData.length === 0) {
+        exportBtn.classList.add('disabled');
+        exportBtn.disabled = true;
+      } else {
+        exportBtn.classList.remove('disabled');
+        exportBtn.disabled = false;
+      }
+    }
+  }
+
+  handleDeleteRow(rowIndex) {
+    if (rowIndex >= 0 && rowIndex < this.tableData.length) {
+      const id = this.tableData[rowIndex][3];
+      const type = this.tableData[rowIndex][2];
+
+      this.pendingChanges.set(id, { type, action: 'delete' });
+
+      this.tableData.splice(rowIndex, 1);
+      this.originalOrder.splice(rowIndex, 1);
+      this.originalOrder = this.originalOrder.map(idx => idx > rowIndex ? idx - 1 : idx);
+
+      this.render();
+
+      if (this.onChangeCallback) {
+        this.onChangeCallback(-1, -1, 'row_deleted');
+      }
+    }
+  }
+
+  handleHeaderClick(columnIndex) {
+    const currentSort = this.sortState[columnIndex];
+    this.sortState = {};
+
+    if (!currentSort) {
+      this.sortState[columnIndex] = 'asc';
+    } else if (currentSort === 'asc') {
+      this.sortState[columnIndex] = 'desc';
+    } else {
+      this.sortState[columnIndex] = null;
+    }
+
+    this.sortColumn(columnIndex, this.sortState[columnIndex]);
+  }
+
+  sortColumn(columnIndex, direction) {
+    if (!direction) {
+      const originalData = this.originalOrder.map(idx => this.tableDataBackup[idx]);
+      this.tableData = originalData.map(row => [...row]);
+      this.render();
+      return;
+    }
+
+    const sortIndices = this.tableData.map((_, index) => index);
+
+    sortIndices.sort((aIdx, bIdx) => {
+      let aVal = this.tableData[aIdx][columnIndex] || '';
+      let bVal = this.tableData[bIdx][columnIndex] || '';
+
+      const aNum = parseFloat(aVal);
+      const bNum = parseFloat(bVal);
+
+      if (!isNaN(aNum) && !isNaN(bNum)) {
+        return direction === 'asc' ? aNum - bNum : bNum - aNum;
+      } else {
+        aVal = String(aVal).toLowerCase();
+        bVal = String(bVal).toLowerCase();
+        return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      }
+    });
+
+    this.tableData = sortIndices.map(idx => this.tableData[idx]);
+    this.render();
+  }
+
+  getSortIndicator(columnIndex) {
+    const sortState = this.sortState[columnIndex];
+    if (sortState === 'asc') return '▲';
+    if (sortState === 'desc') return '▼';
+    return '⇅';
+  }
+
+  handleCellFocus(event, rowIndex, colIndex) {
+    const cell = event.target;
+    this.currentEditingCell = {cell, rowIndex, colIndex};
+    cell.classList.add('editing');
+
+    const range = document.createRange();
+    range.selectNodeContents(cell);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+
+  handleCellBlur(event, rowIndex, colIndex) {
+    const cell = event.target;
+    cell.classList.remove('editing');
+    this.tableData[rowIndex][colIndex] = cell.textContent;
+
+    const id = this.tableData[rowIndex][3];
+    const type = this.tableData[rowIndex][2];
+    this.trackChange(id, type);
+
+    if (this.onChangeCallback) {
+      this.onChangeCallback(rowIndex, colIndex, cell.textContent);
+    }
+
+    this.notifyPendingChanges();
+    this.currentEditingCell = null;
+  }
+
+  notifyPendingChanges() {
+    if (this.onPendingChangesCallback) {
+      const hasPendingChanges = this.pendingChanges.size > 0;
+      const hasChangesFromOriginal = this.hasChangesFromOriginal();
+      this.onPendingChangesCallback({
+        hasPendingChanges,
+        hasChangesFromOriginal
+      });
+    }
+  }
+
+  hasChangesFromOriginal() {
+    if (this.tableData.length !== this.tableDataBackup.length) {
+      return true;
+    }
+
+    for (let i = 0; i < this.tableData.length; i++) {
+      const currentRow = this.tableData[i];
+      const originalRow = this.tableDataBackup[i];
+
+      if (!currentRow || !originalRow) {
+        return true;
+      }
+
+      for (let j = 0; j < currentRow.length; j++) {
+        if (currentRow[j] !== originalRow[j]) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  onPendingChangesUpdated(callback) {
+    this.onPendingChangesCallback = callback;
+  }
+
+  handleCellKeydown(event, rowIndex, colIndex) {
+    switch (event.key) {
+      case 'Enter':
+        event.preventDefault();
+        this.moveToCell(rowIndex + 1, colIndex);
+        break;
+      case 'Tab':
+        event.preventDefault();
+        if (event.shiftKey) {
+          this.moveToCell(rowIndex, colIndex - 1);
+        } else {
+          this.moveToCell(rowIndex, colIndex + 1);
+        }
+        break;
+      case 'Escape':
+        event.target.blur();
+        break;
+    }
+  }
+
+  handleCellInput(event, rowIndex, colIndex) {
+    this.tableData[rowIndex][colIndex] = event.target.textContent;
+  }
+
+  moveToCell(rowIndex, colIndex) {
+    if (colIndex >= this.headers.length) {
+      colIndex = 2;
+      rowIndex++;
+    } else if (colIndex < 2) {
+      colIndex = this.headers.length - 1;
+      rowIndex--;
+    }
+
+    if (rowIndex < 0 || rowIndex >= this.tableData.length) {
+      return;
+    }
+
+    const targetCell = this.tableBody.querySelector(`td[data-row="${rowIndex}"][data-col="${colIndex}"]`);
+    if (targetCell && targetCell.contentEditable === 'true') {
+      targetCell.focus();
+    }
+  }
+
+  onChange(callback) {
+    this.onChangeCallback = callback;
+  }
+
+  getData() {
+    return {
+      headers: [...this.headers],
+      data: this.tableData.map(row => [...row])
+    };
+  }
+
+  async addNode() {
+    if (typeof dataTable === "undefined") return;
+
+    // if (this.currentTab !== 'entireGraph') {
+    //   this.cache.ui.error('Adding nodes is only allowed in the "Entire Graph" tab');
+    //   return;
+    // }
+
+    let nodeID = await Popup.prompt("Enter Node ID: ");
+    if (!nodeID) {
+      this.cache.ui.info("Adding node canceled");
+      return;
+    }
+
+    if (this.cache.nodeRef.has(nodeID) || this.tableData.some(row => row[2] === "Node" && row[3] === nodeID)) {
+      this.cache.ui.error(`Node "${nodeID}" already exists`);
+      return;
+    }
+
+    this.addRow("Node", nodeID);
+  }
+
+  async addEdge() {
+    if (typeof dataTable === "undefined") return;
+
+    let edgeID = await Popup.prompt("Enter Edge ID: ");
+    if (!edgeID) {
+      this.cache.ui.info("Adding edge canceled");
+      return;
+    }
+
+    if (this.cache.edgeRef.has(edgeID) || this.tableData.some(row => row[2] === "Edge" && row[3] === edgeID)) {
+      this.cache.ui.error(`Edge "${edgeID}" already exists`);
+      return;
+    }
+
+    if (!edgeID.includes("::")) {
+      this.cache.ui.error(`Edge ID must contain a double colon (::) to indicate the source and target nodes`);
+      return;
+    }
+
+    const [source, target] = edgeID.split("::");
+
+    const sourceExists = this.cache.nodeRef.has(source) ||
+      this.tableData.some(row => row[2] === "Node" && row[3] === source);
+    const targetExists = this.cache.nodeRef.has(target) ||
+      this.tableData.some(row => row[2] === "Node" && row[3] === target);
+
+    if (!sourceExists) {
+      this.cache.ui.error(`Source node "${source}" does not exist. Please create the node first.`);
+      return;
+    }
+
+    if (!targetExists) {
+      this.cache.ui.error(`Target node "${target}" does not exist. Please create the node first.`);
+      return;
+    }
+
+    this.addRow("Edge", edgeID);
+  }
+
+  addRow(type = 'Node', id = '') {
+    const newRow = new Array(this.headers.length).fill('');
+    newRow[0] = '';
+    newRow[1] = this.tableData.length > 0 ? Math.max(...this.tableData.map(row => row[1])) + 1 : 1;
+    newRow[2] = type;
+    newRow[3] = id;
+    newRow[4] = '';
+    newRow[5] = '';
+    this.tableData.push(newRow);
+    this.originalOrder.push(this.originalOrder.length);
+
+    this.trackChange(id, type);
+    this.notifyPendingChanges();
+
+    this.render();
+  }
+
+  trackChange(id, type) {
+    const rowData = this.tableData.find(row => row[3] === id && row[2] === type);
+    if (rowData) {
+      this.pendingChanges.set(id, { type, rowData: [...rowData] });
+    }
+  }
+
+  removeRow(index) {
+    if (index >= 0 && index < this.tableData.length) {
+      this.tableData.splice(index, 1);
+      this.originalOrder.splice(index, 1);
+      this.originalOrder = this.originalOrder.map(idx => idx > index ? idx - 1 : idx);
+      this.render();
+    }
+  }
+
+  clear() {
+    this.tableData = [];
+    this.headers = [];
+    this.sortState = {};
+    this.originalOrder = [];
+    this.headerIndexMap.clear();
+    this.render();
+  }
+
+  async update() {
+    await this.cache.ui.showLoading("Updating Data", "Updating Data from Data Table ..");
+    try {
+      const updatedFileData = this.getUpdatedFileData();
+
+      if (!updatedFileData || (!updatedFileData.nodes && !updatedFileData.edges)) {
+        this.cache.ui.error("No data to update with.");
+        return;
+      }
+
+      const validationErrors = this.validateNewElements();
+      if (validationErrors.length > 0) {
+        await this.cache.ui.hideLoading();
+        this.cache.ui.error("Cannot apply changes:\n" +
+          validationErrors.join("\n") +
+          "\nPlease add at least one property to each new element.");
+        return;
+      }
+
+      this.pendingChanges.clear();
+
+      await this.cache.graph?.destroy();
+      this.cache.graph = null;
+
+      const status = document.getElementById("sidebarStatusContainer");
+      status.innerHTML = "";
+      status.style.height = "0";
+
+      await this.cache.gcm.destroyGraphAndRollBackUI();
+      this.cache.gcm.resetEventLocks();
+      this.cache.io.preProcessData(updatedFileData);
+      this.cache.initialize(updatedFileData);
+      this.cache.ui.buildUI();
+
+      await this.cache.gcm.createGraphInstance();
+      await this.cache.graph.render();
+
+      this.fileData = structuredClone(updatedFileData);
+      this.loadTabData();
+
+    } catch (err) {
+      this.cache.ui.error(`Error updating graph: ${err}`);
+    } finally {
+      await this.cache.ui.hideLoading();
+    }
+  }
+
+  validateNewElements() {
+    const errors = [];
+
+    this.pendingChanges.forEach((change, id) => {
+      if (change.action === 'delete') return;
+
+      const row = change.rowData;
+      if (!row) return;
+
+      const type = row[2]; // 'Node' or 'Edge'
+      const elementId = row[3];
+
+      // Check if this is a newly added element (not in original fileData)
+      const isNew = type === 'Node'
+        ? !this.fileData.nodes?.some(n => n.id === elementId)
+        : !this.fileData.edges?.some(e => e.id === elementId);
+
+      if (!isNew) return;
+
+      let hasProperty = false;
+
+      // Start from column 6 (after Del, Row #, Type, ID, Label, Description)
+      for (let i = 6; i < row.length; i++) {
+        const value = row[i];
+        if (value !== null && value !== undefined && String(value).trim() !== '') {
+          hasProperty = true;
+          break;
+        }
+      }
+
+      if (!hasProperty) {
+        errors.push(`• ${type} "${elementId}" requires at least one property value`);
+      }
+    });
+
+    return errors;
+  }
+
+  getUpdatedFileData() {
+    const result = {
+      nodes: [],
+      edges: [],
+      nodeDataHeaders: [...this.fileData.nodeDataHeaders],
+      edgeDataHeaders: [...this.fileData.edgeDataHeaders]
+    };
+
+    const allowedKeys = new Set(["D4Data", "id", "label", "source", "style", "target", "description", "type"]);
+
+    const processedIds = new Set();
+    const deletedIds = new Set();
+
+    this.pendingChanges.forEach((change, id) => {
+      if (change.action === 'delete') {
+        deletedIds.add(id);
+        processedIds.add(id);
+      }
+    });
+
+    const processRow = (row) => {
+      const isNode = row[2] === "Node";
+      const id = row[3];
+
+      if (processedIds.has(id)) return;
+      processedIds.add(id);
+
+      const label = row[4] || undefined;
+      const description = row[5] || undefined;
+      const elem = isNode ? this.cache.nodeRef.get(id) || this.createNode(id) : this.cache.edgeRef.get(id) || this.createEdge(id);
+
+      const cleanElem = {};
+      for (const key of allowedKeys) {
+        if (elem.hasOwnProperty(key)) {
+          cleanElem[key] = elem[key];
+        }
+      }
+
+      if (label) cleanElem.label = label;
+      if (description) cleanElem.description = description;
+
+      if (isNode && label) {
+        cleanElem.style.label = true;
+        cleanElem.style.labelText = label;
+      }
+
+      cleanElem.D4Data = {};
+
+      for (let i = 6; i < row.length; i++) {
+        const value = row[i];
+        if (value !== null && value !== undefined && String(value).trim() !== '') {
+          const headerName = this.headers[i];
+          const [group, subGroup, prop] = StaticUtilities.decodePropHashId(headerName);
+
+          if (!cleanElem.D4Data[group]) {
+            cleanElem.D4Data[group] = {};
+          }
+
+          if (!cleanElem.D4Data[group][subGroup]) {
+            cleanElem.D4Data[group][subGroup] = {};
+          }
+          cleanElem.D4Data[group][subGroup][prop] = isNaN(value) ? value : Number(value);
+        }
+      }
+
+      isNode ? result.nodes.push(cleanElem) : result.edges.push(cleanElem);
+    };
+
+    const pendingNodes = [];
+    const pendingEdges = [];
+
+    this.pendingChanges.forEach((change, id) => {
+      if (change.action !== 'delete' && change.rowData) {
+        if (change.type === 'Node') {
+          pendingNodes.push(change.rowData);
+        } else if (change.type === 'Edge') {
+          pendingEdges.push(change.rowData);
+        }
+      }
+    });
+
+    pendingNodes.forEach(rowData => processRow(rowData));
+    pendingEdges.forEach(rowData => processRow(rowData));
+
+    if (this.fileData.nodes) {
+      this.fileData.nodes.forEach(node => {
+        if (!processedIds.has(node.id) && !deletedIds.has(node.id)) {
+          result.nodes.push(structuredClone(node));
+          processedIds.add(node.id);
+        }
+      });
+    }
+
+    if (this.fileData.edges) {
+      this.fileData.edges.forEach(edge => {
+        if (!processedIds.has(edge.id) && !deletedIds.has(edge.id)) {
+          result.edges.push(structuredClone(edge));
+          processedIds.add(edge.id);
+        }
+      });
+    }
+
+    const nodeIds = new Set(result.nodes.map(n => n.id));
+    result.edges = result.edges.filter(edge => {
+      if (!nodeIds.has(edge.source)) {
+        console.warn(`Edge ${edge.id} references non-existent source node: ${edge.source}`);
+        return false;
+      }
+      if (!nodeIds.has(edge.target)) {
+        console.warn(`Edge ${edge.id} references non-existent target node: ${edge.target}`);
+        return false;
+      }
+      return true;
+    });
+
+    return result;
+  }
+
+  createNode(id) {
+    return {
+      id: id,
+      ...this.cache.style.getNodeStyleOrDefaults(id)
+    }
+  }
+
+  createEdge(id) {
+    const [source, target] = id.split("::");
+    return {
+      id: id,
+      source: source,
+      target: target,
+      ...this.cache.style.getEdgeStyleOrDefaults(id)
+    }
+  }
+
+  async exportToExcel() {
+    await this.cache.ui.showLoading("Data Editor", "Exporting Table to Excel ..");
+
+    try {
+      const workbook = new ExcelJS.Workbook();
+
+      let nodesToExport = [];
+      let edgesToExport = [];
+
+      switch (this.currentTab) {
+        case 'selectedNodes':
+          nodesToExport = this.getNodesFromTableData();
+          break;
+        case 'selectedEdges':
+          edgesToExport = this.getEdgesFromTableData();
+          break;
+        case 'selectedElements':
+          nodesToExport = this.getNodesFromTableData();
+          edgesToExport = this.getEdgesFromTableData();
+          break;
+        case 'allNodes':
+          nodesToExport = this.getNodesFromTableData();
+          break;
+        case 'allEdges':
+          edgesToExport = this.getEdgesFromTableData();
+          break;
+        case 'entireGraph':
+          nodesToExport = this.getNodesFromTableData();
+          edgesToExport = this.getEdgesFromTableData();
+          break;
+      }
+
+      if (nodesToExport.length > 0) {
+        const nodesSheet = workbook.addWorksheet('nodes');
+        const nodesHeader = [...EXCEL_NODE_PROPERTIES.map(p => p.column), ...this.cache.nodeExclusiveProps];
+        nodesSheet.addRow(nodesHeader);
+
+        for (const node of nodesToExport) {
+          const row = [];
+
+          for (const prop of EXCEL_NODE_PROPERTIES) {
+            const value = prop.get ? prop.get(node) : '';
+            row.push(value);
+          }
+
+          for (const customProp of this.cache.nodeExclusiveProps) {
+            const [group, subGroup, prop] = StaticUtilities.decodePropHashId(customProp);
+
+            const value = node.D4Data && node.D4Data[group] && node.D4Data[group][subGroup]
+              ? node.D4Data[group][subGroup][prop]
+              : '';
+            row.push(value);
+          }
+
+          nodesSheet.addRow(row);
+        }
+      }
+
+      if (edgesToExport.length > 0) {
+        const edgesSheet = workbook.addWorksheet('edges');
+        const edgesHeader = [...EXCEL_EDGE_PROPERTIES.map(p => p.column), ...this.cache.edgeExclusiveProps];
+        edgesSheet.addRow(edgesHeader);
+
+        for (const edge of edgesToExport) {
+          const row = [];
+
+          for (const prop of EXCEL_EDGE_PROPERTIES) {
+            const value = prop.get ? prop.get(edge) : '';
+            row.push(value);
+          }
+
+          for (const customProp of this.cache.edgeExclusiveProps) {
+            const [group, subGroup, prop] = StaticUtilities.decodePropHashId(customProp);
+
+            const value = edge.D4Data && edge.D4Data[group] && edge.D4Data[group][subGroup]
+              ? edge.D4Data[group][subGroup][prop]
+              : '';
+            row.push(value);
+          }
+
+          edgesSheet.addRow(row);
+        }
+      }
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `graph_data_export_${this.currentTab}_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.xlsx`;
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      this.cache.ui.info('Excel file exported successfully!');
+
+    } catch (error) {
+      this.cache.ui.error('Failed to export Excel file: ' + error.message);
+    } finally {
+      await this.cache.ui.hideLoading();
+    }
+  }
+
+  getNodesFromTableData() {
+    const nodes = [];
+    for (const row of this.tableData) {
+      if (row[2] === 'Node') {
+        const nodeId = row[3];
+        const node = this.cache.nodeRef.get(nodeId);
+        if (node) {
+          nodes.push(node);
+        }
+      }
+    }
+    return nodes;
+  }
+
+  getEdgesFromTableData() {
+    const edges = [];
+    for (const row of this.tableData) {
+      if (row[2] === 'Edge') {
+        const edgeId = row[3];
+        const edge = this.cache.edgeRef.get(edgeId);
+        if (edge) {
+          edges.push(edge);
+        }
+      }
+    }
+    return edges;
+  }
+
+  help() {
+    this.cache.popup = new Popup(`<h2>Data Editor</h2>
+<p>Explore and directly modify graph data through an interactive spreadsheet interface.</p>
+
+<div class="alert-info">
+  <strong>💡 Tip:</strong> All changes are staged until you click <span class="tooltip-dummy-buttons">✔ Apply</span>
+</div>
+
+<h3>Available Actions</h3>
+<ul>
+  <li><span class="tooltip-dummy-buttons">✔ Apply</span> — Apply the changes to the graph</li>
+  <li><span class="tooltip-dummy-buttons pink">⟳ Reset</span> — Discard all changes and restore original data</li>
+  <li><span class="tooltip-dummy-buttons blue"><strong>+</strong>&nbsp;Node</span> — Create a new node in the graph</li>
+  <li><span class="tooltip-dummy-buttons blue"><strong>+</strong>&nbsp;Edge</span> — Create a new edge between existing nodes</li>
+  <li><span class="tooltip-dummy-buttons green">⤓ Export</span> — Save current view as an Excel file (disabled when no data is shown)</li>
+</ul>
+
+<h3>Working with the Editor</h3>
+<ul>
+  <li><strong>Sort columns:</strong> Click column headers to sort ascending/descending or restore original order</li>
+  <li><strong>Edit cells:</strong> Click on editable cells to modify values (navigate with Tab/Shift+Tab/Enter/Escape)</li>
+  <li><strong>Delete rows:</strong> Click the <span class="data-table-delete-row-btn tt">×</span> button to remove nodes or edges</li>
+  <li><strong>Add elements:</strong>
+    <ul>
+      <li>New nodes/edges must have at least one property value before applying</li>
+      <li>Edge IDs must use the format: <code>sourceNode::targetNode</code></li>
+      <li>Both source and target nodes must exist before creating an edge</li>
+    </ul>
+  </li>
+  <li><strong>Tabs:</strong> Switch between different views (selected elements vs. all existing data)</li>
+</ul>
+`, {width: '50vw', height: '60vh', lineHeight: '1.5em'});
+  }
+
+}
+
+function buildDataTable(fileData) {
+  this.cache.dataTable.onPendingChangesUpdated(({hasPendingChanges, hasChangesFromOriginal}) => {
+    const applyBtn = document.getElementById('updateDataTableBtn');
+    const resetBtn = document.getElementById('resetDataTableBtn');
+
+    if (applyBtn) {
+      applyBtn.disabled = !hasPendingChanges;
+    }
+
+    if (resetBtn) {
+      resetBtn.disabled = !hasChangesFromOriginal;
+    }
+  });
+  this.cache.dataTable.populateFromFileData(fileData);
+
+  const applyBtn = document.getElementById('updateDataTableBtn');
+  const resetBtn = document.getElementById('resetDataTableBtn');
+  if (applyBtn) applyBtn.disabled = true;
+  if (resetBtn) resetBtn.disabled = true;
+
+  // this.cache.dataTable.onChange((rowIndex, colIndex, newValue) => {
+  //   console.log(`Data changed at row ${rowIndex}, column ${colIndex}:`, newValue);
+  //   // add logic, trigger graph refresh, ..
+  // });
+
+}
+export { DataTable, buildDataTable };

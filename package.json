@@ -12,10 +12,12 @@
     "start": "electron .",
     "pack": "electron-builder --dir",
     "clean": "rimraf dist && mkdir -p dist",
+    "bundle": "esbuild src/gll.js --bundle --outfile=src/gll.bundle.js",
+    "bundle:watch": "esbuild src/gll.js --bundle --outfile=src/gll.bundle.js --watch",
     "create-inline-html": "node src/package/inline_html.js src/graph_lens_lite.html dist/graph-lens-lite_${npm_package_version}.html",
-    "create-gll-zip": "cd src && zip -r ../dist/GLL-source-bundle_${npm_package_version}.zip gll.js graph_lens_lite.html style.css lib/g6.min.js lib/xlsx.full.min.js lib/exceljs.min.js ../templates/GLL_template.xlsx",
+    "create-gll-zip": "cd src && zip -r ../dist/GLL-source-bundle_${npm_package_version}.zip gll.bundle.js graph_lens_lite.html style.css lib/g6.min.js lib/xlsx.full.min.js lib/exceljs.min.js ../templates/GLL_template.xlsx",
     "inject-excel-template": "node src/package/inject_excel_template.js",
-    "dist": "npm run clean && npm run inject-excel-template && npm run create-gll-zip && npm run create-inline-html && electron-builder --linux --win"
+    "dist": "npm run clean && npm run bundle && npm run inject-excel-template && npm run create-gll-zip && npm run create-inline-html && electron-builder --linux --win"
   },
   "build": {
     "appId": "com.delta4ai.graphlenslite",
@@ -45,9 +47,10 @@
   "devDependencies": {
     "electron": "^36.3.1",
     "electron-builder": "^26.0.12",
+    "esbuild": "^0.25.11",
     "exceljs": "^4.4.0",
     "inline-source": "^8.0.3",
-    "inline-source-cli": "^2.0.0",
+    "inline-source-cli": "^1.2.0",
     "rimraf": "^6.0.1"
   }
 }
