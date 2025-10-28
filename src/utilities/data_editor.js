@@ -1,5 +1,5 @@
 import {Popup} from "./popup.js";
-import {StaticUtilities} from "./static";
+import {StaticUtilities} from "./static.js";
 import {EXCEL_NODE_PROPERTIES, EXCEL_EDGE_PROPERTIES} from "../managers/io.js";
 
 let dataTable;

@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const SOURCE_EXCEL_FILE = path.join(__dirname, "..", "..", "templates", "GLL_template.xlsx");
-const TARGET_JS_FILE = path.join(__dirname, "..", "..", "src", "gll_excel_data.js");
+const TARGET_JS_FILE = path.join(__dirname, "..", "..", "src", "managers", "io.js");
 
 function compressExcelData(rawData) {
   const compressed = {

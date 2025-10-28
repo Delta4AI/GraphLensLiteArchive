@@ -1,4 +1,4 @@
-import {StaticUtilities} from "../utilities/static";
+import {StaticUtilities} from "../utilities/static.js";
 
 class GraphBubbleSetManager {
   constructor(cache) {
