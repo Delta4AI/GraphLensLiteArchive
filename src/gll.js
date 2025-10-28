@@ -109,182 +109,180 @@ class Cache {
   }
 
   initialize(data = undefined) {
-    {
-      this.initialized = true;
+    this.initialized = true;
 
-      if (data) {
-        if (data.nodes && data.nodes.length > 0) {
-          this.data.nodes = data.nodes;
-        }
-        if (data.edges && data.edges.length > 0) {
-          this.data.edges = data.edges;
-        }
-        if (data.nodeDataHeaders && data.nodeDataHeaders.length > 0) {
-          this.data.nodeDataHeaders = data.nodeDataHeaders;
-        }
-        if (data.edgeDataHeaders && data.edgeDataHeaders.length > 0) {
-          this.data.edgeDataHeaders = data.edgeDataHeaders;
-        }
+    if (data) {
+      if (data.nodes && data.nodes.length > 0) {
+        this.data.nodes = data.nodes;
       }
-
-      this.nodeRef = new Map();
-      this.edgeRef = new Map();
-      this.toolTips = new Map();
-
-      this.propIDs = new Set();
-      this.activeProps = new Set();
-      this.nodeExclusiveProps = new Set();
-      this.edgeExclusiveProps = new Set();
-      this.mixedProps = new Set();
-
-      this.propToNodes = new Map();
-      this.propToNodeIDs = new Map();
-      this.propToEdges = new Map();
-      this.propToEdgeIDs = new Map();
-      this.nodeIDToEdgeIDs = new Map();
-      this.edgeIDToNodeIDs = new Map();
-      this.nodeIDToPropIDs = new Map();
-      this.edgeIDToPropIDs = new Map();
-
-      this.propIDToDropdownChecklists = new Map();
-      this.propIDToInvertibleRangeSliders = new Map();
-
-      this.initialNodePositions = new Map();
-      this.lastBubbleSetMembers = new Map();
-      this.bubbleSetChanged = false;
-
-      this.nodeIDsToBeShown = new Set();
-      this.propIDsToNodeIDsToBeShown = new Map();
-      this.edgeIDsToBeShown = new Set();
-      this.propIDsToEdgeIDsToBeShown = new Map();
-
-      this.selectedNodes = new Set();
-      this.selectedEdges = new Set();
-
-      this.selectionMemory = [{nodes: [], edges: []}];
-      this.selectedMemoryIndex = 0;
-
-      this.hiddenDanglingNodeIDs = new Set();
-      this.hiddenDanglingEdgeIDs = new Set();
-
-      this.uniquePropHierarchy = {};
-
-      this.styleChanged = false;
-      this.labelStyleChanged = false;
-      this.visibleElementsChanged = false;
-      this.layoutChanged = false;
-
-      // this.metrics = new NetworkMetrics(this);
-      this.popup = null;
-
-      this.nodeLabels = [];
-      this.edgeLabels = [];
-      this.nodeLabelToNodeIDs = new Map();
-      this.edgeLabelToEdgeIDs = new Map();
-
-      this.nodeIDOrLabelToNodeIDs = new Map();
-      this.edgeIDOrLabelToEdgeIDs = new Map();
-
-      function populateUniquePropGroups(propHash) {
-        const [mainGroup, subGroup, prop] = StaticUtilities.decodePropHashId(propHash);
-        if (!this.uniquePropHierarchy[mainGroup]) {
-          this.uniquePropHierarchy[mainGroup] = {};
-        }
-
-        if (!this.uniquePropHierarchy[mainGroup][subGroup]) {
-          this.uniquePropHierarchy[mainGroup][subGroup] = new Set();
-        }
-
-        this.uniquePropHierarchy[mainGroup][subGroup].add(prop);
+      if (data.edges && data.edges.length > 0) {
+        this.data.edges = data.edges;
       }
-
-      for (let group of this.bs.traverseBubbleSets()) {
-        this.lastBubbleSetMembers.set(group, new Set());
+      if (data.nodeDataHeaders && data.nodeDataHeaders.length > 0) {
+        this.data.nodeDataHeaders = data.nodeDataHeaders;
       }
-
-      this.data.nodes.forEach((node) => {
-        this.nodeRef.set(node.id, node);
-        this.toolTips.set(node.id, this.uiComponents.buildToolTipText(node.id, false));
-        this.nodeIDToPropIDs.set(node.id, new Set());
-        if (node.label) {
-          this.nodeLabels.push(node.label);
-
-          if (!this.nodeLabelToNodeIDs.has(node.label)) {
-            this.nodeLabelToNodeIDs.set(node.label, new Set());
-          }
-          this.nodeLabelToNodeIDs.get(node.label).add(node.id);
-
-          if (!this.nodeIDOrLabelToNodeIDs.has(node.label)) {
-            this.nodeIDOrLabelToNodeIDs.set(node.label, new Set());
-          }
-          this.nodeIDOrLabelToNodeIDs.get(node.label).add(node.id);
-        }
-
-        if (!this.nodeIDOrLabelToNodeIDs.has(node.id)) {
-          this.nodeIDOrLabelToNodeIDs.set(node.id, new Set());
-        }
-        this.nodeIDOrLabelToNodeIDs.get(node.id).add(node.id);
-
-        for (let prop of node.features) {
-          populateUniquePropGroups(prop);
-          if (!this.propToNodes.has(prop)) this.propToNodes.set(prop, new Set());
-          if (!this.propToNodeIDs.has(prop)) this.propToNodeIDs.set(prop, new Set());
-          this.propToNodes.get(prop).add(node);
-          this.propToNodeIDs.get(prop).add(node.id);
-          this.nodeExclusiveProps.add(prop);
-          this.propIDs.add(prop);
-          this.nodeIDToPropIDs.get(node.id).add(prop);
-        }
-      });
-
-      this.data.edges.forEach((edge) => {
-        this.edgeRef.set(edge.id, edge);
-        this.toolTips.set(edge.id, this.uiComponents.buildToolTipText(edge.id, true));
-        this.edgeIDToPropIDs.set(edge.id, new Set());
-        if (edge.label) {
-          this.edgeLabels.push(edge.label);
-
-          if (!this.edgeLabelToEdgeIDs.has(edge.label)) {
-            this.edgeLabelToEdgeIDs.set(edge.label, new Set());
-          }
-          this.edgeLabelToEdgeIDs.get(edge.label).add(edge.id);
-
-          if (!this.edgeIDOrLabelToEdgeIDs.has(edge.label)) {
-            this.edgeIDOrLabelToEdgeIDs.set(edge.label, new Set());
-          }
-          this.edgeIDOrLabelToEdgeIDs.get(edge.label).add(edge.id);
-        }
-
-        if (!this.edgeIDOrLabelToEdgeIDs.has(edge.id)) {
-          this.edgeIDOrLabelToEdgeIDs.set(edge.id, new Set());
-        }
-        this.edgeIDOrLabelToEdgeIDs.get(edge.id).add(edge.id);
-
-        for (let prop of edge.features) {
-          populateUniquePropGroups(prop);
-          if (!this.propToEdges.has(prop)) this.propToEdges.set(prop, new Set());
-          if (!this.propToEdgeIDs.has(prop)) this.propToEdgeIDs.set(prop, new Set());
-          this.propToEdges.get(prop).add(edge);
-          this.propToEdgeIDs.get(prop).add(edge.id);
-          if (this.nodeExclusiveProps.has(prop)) {
-            this.nodeExclusiveProps.delete(prop);
-            this.mixedProps.add(prop);
-          } else {
-            this.edgeExclusiveProps.add(prop);
-          }
-          this.propIDs.add(prop);
-          this.edgeIDToPropIDs.get(edge.id).add(prop);
-        }
-
-        if (!this.nodeIDToEdgeIDs.has(edge.source)) this.nodeIDToEdgeIDs.set(edge.source, new Set());
-        if (!this.nodeIDToEdgeIDs.has(edge.target)) this.nodeIDToEdgeIDs.set(edge.target, new Set());
-        if (!this.edgeIDToNodeIDs.has(edge.id)) this.edgeIDToNodeIDs.set(edge.id, new Set());
-        this.nodeIDToEdgeIDs.get(edge.source).add(edge.id);
-        this.nodeIDToEdgeIDs.get(edge.target).add(edge.id);
-        this.edgeIDToNodeIDs.get(edge.id).add(edge.source);
-        this.edgeIDToNodeIDs.get(edge.id).add(edge.target);
-      });
+      if (data.edgeDataHeaders && data.edgeDataHeaders.length > 0) {
+        this.data.edgeDataHeaders = data.edgeDataHeaders;
+      }
     }
+
+    this.nodeRef = new Map();
+    this.edgeRef = new Map();
+    this.toolTips = new Map();
+
+    this.propIDs = new Set();
+    this.activeProps = new Set();
+    this.nodeExclusiveProps = new Set();
+    this.edgeExclusiveProps = new Set();
+    this.mixedProps = new Set();
+
+    this.propToNodes = new Map();
+    this.propToNodeIDs = new Map();
+    this.propToEdges = new Map();
+    this.propToEdgeIDs = new Map();
+    this.nodeIDToEdgeIDs = new Map();
+    this.edgeIDToNodeIDs = new Map();
+    this.nodeIDToPropIDs = new Map();
+    this.edgeIDToPropIDs = new Map();
+
+    this.propIDToDropdownChecklists = new Map();
+    this.propIDToInvertibleRangeSliders = new Map();
+
+    this.initialNodePositions = new Map();
+    this.lastBubbleSetMembers = new Map();
+    this.bubbleSetChanged = false;
+
+    this.nodeIDsToBeShown = new Set();
+    this.propIDsToNodeIDsToBeShown = new Map();
+    this.edgeIDsToBeShown = new Set();
+    this.propIDsToEdgeIDsToBeShown = new Map();
+
+    this.selectedNodes = new Set();
+    this.selectedEdges = new Set();
+
+    this.selectionMemory = [{nodes: [], edges: []}];
+    this.selectedMemoryIndex = 0;
+
+    this.hiddenDanglingNodeIDs = new Set();
+    this.hiddenDanglingEdgeIDs = new Set();
+
+    this.uniquePropHierarchy = {};
+
+    this.styleChanged = false;
+    this.labelStyleChanged = false;
+    this.visibleElementsChanged = false;
+    this.layoutChanged = false;
+
+    // this.metrics = new NetworkMetrics(this);
+    this.popup = null;
+
+    this.nodeLabels = [];
+    this.edgeLabels = [];
+    this.nodeLabelToNodeIDs = new Map();
+    this.edgeLabelToEdgeIDs = new Map();
+
+    this.nodeIDOrLabelToNodeIDs = new Map();
+    this.edgeIDOrLabelToEdgeIDs = new Map();
+
+    function populateUniquePropGroups(propHash) {
+      const [mainGroup, subGroup, prop] = StaticUtilities.decodePropHashId(propHash);
+      if (!this.uniquePropHierarchy[mainGroup]) {
+        this.uniquePropHierarchy[mainGroup] = {};
+      }
+
+      if (!this.uniquePropHierarchy[mainGroup][subGroup]) {
+        this.uniquePropHierarchy[mainGroup][subGroup] = new Set();
+      }
+
+      this.uniquePropHierarchy[mainGroup][subGroup].add(prop);
+    }
+
+    for (let group of this.bs.traverseBubbleSets()) {
+      this.lastBubbleSetMembers.set(group, new Set());
+    }
+
+    this.data.nodes.forEach((node) => {
+      this.nodeRef.set(node.id, node);
+      this.toolTips.set(node.id, this.uiComponents.buildToolTipText(node.id, false));
+      this.nodeIDToPropIDs.set(node.id, new Set());
+      if (node.label) {
+        this.nodeLabels.push(node.label);
+
+        if (!this.nodeLabelToNodeIDs.has(node.label)) {
+          this.nodeLabelToNodeIDs.set(node.label, new Set());
+        }
+        this.nodeLabelToNodeIDs.get(node.label).add(node.id);
+
+        if (!this.nodeIDOrLabelToNodeIDs.has(node.label)) {
+          this.nodeIDOrLabelToNodeIDs.set(node.label, new Set());
+        }
+        this.nodeIDOrLabelToNodeIDs.get(node.label).add(node.id);
+      }
+
+      if (!this.nodeIDOrLabelToNodeIDs.has(node.id)) {
+        this.nodeIDOrLabelToNodeIDs.set(node.id, new Set());
+      }
+      this.nodeIDOrLabelToNodeIDs.get(node.id).add(node.id);
+
+      for (let prop of node.features) {
+        populateUniquePropGroups(prop);
+        if (!this.propToNodes.has(prop)) this.propToNodes.set(prop, new Set());
+        if (!this.propToNodeIDs.has(prop)) this.propToNodeIDs.set(prop, new Set());
+        this.propToNodes.get(prop).add(node);
+        this.propToNodeIDs.get(prop).add(node.id);
+        this.nodeExclusiveProps.add(prop);
+        this.propIDs.add(prop);
+        this.nodeIDToPropIDs.get(node.id).add(prop);
+      }
+    });
+
+    this.data.edges.forEach((edge) => {
+      this.edgeRef.set(edge.id, edge);
+      this.toolTips.set(edge.id, this.uiComponents.buildToolTipText(edge.id, true));
+      this.edgeIDToPropIDs.set(edge.id, new Set());
+      if (edge.label) {
+        this.edgeLabels.push(edge.label);
+
+        if (!this.edgeLabelToEdgeIDs.has(edge.label)) {
+          this.edgeLabelToEdgeIDs.set(edge.label, new Set());
+        }
+        this.edgeLabelToEdgeIDs.get(edge.label).add(edge.id);
+
+        if (!this.edgeIDOrLabelToEdgeIDs.has(edge.label)) {
+          this.edgeIDOrLabelToEdgeIDs.set(edge.label, new Set());
+        }
+        this.edgeIDOrLabelToEdgeIDs.get(edge.label).add(edge.id);
+      }
+
+      if (!this.edgeIDOrLabelToEdgeIDs.has(edge.id)) {
+        this.edgeIDOrLabelToEdgeIDs.set(edge.id, new Set());
+      }
+      this.edgeIDOrLabelToEdgeIDs.get(edge.id).add(edge.id);
+
+      for (let prop of edge.features) {
+        populateUniquePropGroups(prop);
+        if (!this.propToEdges.has(prop)) this.propToEdges.set(prop, new Set());
+        if (!this.propToEdgeIDs.has(prop)) this.propToEdgeIDs.set(prop, new Set());
+        this.propToEdges.get(prop).add(edge);
+        this.propToEdgeIDs.get(prop).add(edge.id);
+        if (this.nodeExclusiveProps.has(prop)) {
+          this.nodeExclusiveProps.delete(prop);
+          this.mixedProps.add(prop);
+        } else {
+          this.edgeExclusiveProps.add(prop);
+        }
+        this.propIDs.add(prop);
+        this.edgeIDToPropIDs.get(edge.id).add(prop);
+      }
+
+      if (!this.nodeIDToEdgeIDs.has(edge.source)) this.nodeIDToEdgeIDs.set(edge.source, new Set());
+      if (!this.nodeIDToEdgeIDs.has(edge.target)) this.nodeIDToEdgeIDs.set(edge.target, new Set());
+      if (!this.edgeIDToNodeIDs.has(edge.id)) this.edgeIDToNodeIDs.set(edge.id, new Set());
+      this.nodeIDToEdgeIDs.get(edge.source).add(edge.id);
+      this.nodeIDToEdgeIDs.get(edge.target).add(edge.id);
+      this.edgeIDToNodeIDs.get(edge.id).add(edge.source);
+      this.edgeIDToNodeIDs.get(edge.id).add(edge.target);
+    });
 
     this.dataTable.init();
   }

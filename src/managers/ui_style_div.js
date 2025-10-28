@@ -1,4 +1,4 @@
-import {StaticUtilities} from "../utilities/static";
+import {StaticUtilities} from "../utilities/static.js";
 
 function createStyleDiv(cache) {
   const root = document.createElement("div");

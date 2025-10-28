@@ -19,11 +19,22 @@ TBD
 ---
 
 ## Development
-### Watch for changes & rebundle automatically
-```bash
-cd /path/to/graph_lens_lite
-npm run bundle:watch
-```
+### Debug JavaScript
+1. Run http server
+    ```bash
+    cd /path/to/graph_lens_lite
+    npm run serve
+    ```
+2. Open browser, go to [http://localhost:8080/graph_lens_lite.html](http://localhost:8080/graph_lens_lite.html)
+3. Run WebStorm JavaScript debugger
+    - URL: `http://localhost:8000/graph_lens_lite.html`
+    - Browser: Chromium
+4. Set Breakpoints and debug
+5. **Alternatively**, create compound run configuration in WebStorm:
+   1. Add `npm run serve` npm configuration
+   2. Add `JavaScript Debug` (with URL and Browser from step 3)
+   3. Add `Compound` configuratoin, add `npm run serve` and `JavaScript Debug` as children
+   4. Debug the compound configuration to start everything at once#
 
 ### Run electron app
 ```bash
