@@ -686,51 +686,7 @@ class IOManager {
   }
 
   preProcessData(fileData) {
-    this.cache.construct();
-
-    const getDefaultFilterObject = () => {
-      let obj = {
-        active: true,
-        lowerThreshold: Infinity,
-        upperThreshold: -Infinity,
-        isInverted: false,
-        isCategory: false,
-        categories: new Set(),
-      };
-      for (let group of this.cache.bs.traverseBubbleSets()) {
-        obj[`${group}Members`] = new Set();
-        obj[`${group}MembersHidden`] = new Set();
-        obj[`${group}IDs`] = new Set();
-        obj[`${group}IDsHidden`] = new Set();
-      }
-      return obj
-    };
-
-    const populateFilterPropsLowsAndHighs = (propHash, nodeOrEdgeValue) => {
-      if (!this.cache.data.filterDefaults.get(propHash)) {
-        this.cache.data.filterDefaults.set(propHash, getDefaultFilterObject());
-      }
-
-      if (nodeOrEdgeValue === "") {
-        return
-      }
-
-      if (isNaN(nodeOrEdgeValue)) {
-        if (this.cache.data.filterDefaults.get(propHash).lowerThreshold !== Infinity) {
-          let [section, subSection, prop] = StaticUtilities.decodePropHashId(propHash);
-          this.cache.ui.warning(`Property ${prop} (section ${section} sub-section ${subSection} contains both numeric and 
-        categorical values. To proceed, please use a single data type. Property has been excluded.`);
-          this.cache.data.filterDefaults.delete(propHash);
-          return
-        }
-        this.cache.data.filterDefaults.get(propHash).isCategory = true;
-        this.cache.data.filterDefaults.get(propHash).categories.add(nodeOrEdgeValue);
-        return
-      }
-
-      this.cache.data.filterDefaults.get(propHash).lowerThreshold = Math.min(nodeOrEdgeValue, this.cache.data.filterDefaults.get(propHash).lowerThreshold);
-      this.cache.data.filterDefaults.get(propHash).upperThreshold = Math.max(nodeOrEdgeValue, this.cache.data.filterDefaults.get(propHash).upperThreshold);
-    };
+    this.cache.reset();
 
     this.cache.CFG.HIDE_LABELS = fileData.nodes.length > this.cache.CFG.MAX_NODES_BEFORE_HIDING_LABELS;
     this.cache.CFG.DISABLE_HOVER_EFFECT = fileData.nodes.length > this.cache.CFG.MAX_NODES_BEFORE_DISABLING_HOVER_EFFECT;
@@ -738,19 +694,7 @@ class IOManager {
 
     this.cache.nodePositionsFromExcelImport = new Map();
 
-    // takes excel header and pre-populates this.cache.data.filterDefaults to maintain order
-    if (fileData.nodeDataHeaders) {
-      for (const nodeHeader of fileData.nodeDataHeaders) {
-        const nodePropHash = StaticUtilities.generatePropHashId(this.cache.CFG.EXCEL_NODE_HEADER, nodeHeader.subGroup, nodeHeader.key);
-        this.cache.data.filterDefaults.set(nodePropHash, getDefaultFilterObject());
-      }
-    }
-    if (fileData.edgeDataHeaders) {
-      for (const edgeHeader of fileData.edgeDataHeaders) {
-        const edgePropHash = StaticUtilities.generatePropHashId(this.cache.CFG.EXCEL_EDGE_HEADER, edgeHeader.subGroup, edgeHeader.key);
-        this.cache.data.filterDefaults.set(edgePropHash, getDefaultFilterObject());
-      }
-    }
+    this.populateCacheHeaders(fileData);
 
     this.cache.data.nodes = fileData.nodes.map((node) => {
       const nodeFeatures = new Set();
@@ -770,7 +714,7 @@ class IOManager {
           nodeFeatureValues.set(propId, data);
         }
         nodeFeatureWithinThreshold.set(propId, null);
-        populateFilterPropsLowsAndHighs(propId, data);
+        this.populateFilterPropsLowsAndHighs(propId, data);
       }
 
       if (node.style?.x && node.style?.y) {
@@ -804,7 +748,7 @@ class IOManager {
           edgeFeatureValues.set(propId, data);
         }
         edgeFeatureWithinThreshold.set(propId, null);
-        populateFilterPropsLowsAndHighs(propId, data);
+        this.populateFilterPropsLowsAndHighs(propId, data);
       }
 
       return {
@@ -825,7 +769,7 @@ class IOManager {
 
     // create individual map for each layout, no matter if default or manual, with positions, current filters, ..
     if (fileData.layouts) {
-      this.cache.data.layouts = this.cache.lm.parseLayouts(fileData.layouts);
+      this.cache.data.layouts = this.cache.io.parseLayouts(fileData.layouts);
       if (fileData.selectedLayout === this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME) {
         this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = true;
       }
@@ -863,6 +807,66 @@ class IOManager {
     this.cache.initialize();
     this.cache.ui.debug("Done pre-processing data");
   }
+
+  getDefaultFilterObject() {
+    let obj = {
+      active: true,
+      lowerThreshold: Infinity,
+      upperThreshold: -Infinity,
+      isInverted: false,
+      isCategory: false,
+      categories: new Set(),
+    };
+    for (let group of this.cache.bs.traverseBubbleSets()) {
+      obj[`${group}Members`] = new Set();
+      obj[`${group}MembersHidden`] = new Set();
+      obj[`${group}IDs`] = new Set();
+      obj[`${group}IDsHidden`] = new Set();
+    }
+    return obj;
+  }
+
+  populateFilterPropsLowsAndHighs(propHash, nodeOrEdgeValue) {
+    if (!this.cache.data.filterDefaults.get(propHash)) {
+      this.cache.data.filterDefaults.set(propHash, this.getDefaultFilterObject());
+    }
+
+    if (nodeOrEdgeValue === "") {
+      return
+    }
+
+    if (isNaN(nodeOrEdgeValue)) {
+      if (this.cache.data.filterDefaults.get(propHash).lowerThreshold !== Infinity) {
+        let [section, subSection, prop] = StaticUtilities.decodePropHashId(propHash);
+        this.cache.ui.warning(`Property ${prop} (section ${section} sub-section ${subSection} contains both numeric and 
+        categorical values. To proceed, please use a single data type. Property has been excluded.`);
+        this.cache.data.filterDefaults.delete(propHash);
+        return
+      }
+      this.cache.data.filterDefaults.get(propHash).isCategory = true;
+      this.cache.data.filterDefaults.get(propHash).categories.add(nodeOrEdgeValue);
+      return
+    }
+
+    this.cache.data.filterDefaults.get(propHash).lowerThreshold = Math.min(nodeOrEdgeValue, this.cache.data.filterDefaults.get(propHash).lowerThreshold);
+    this.cache.data.filterDefaults.get(propHash).upperThreshold = Math.max(nodeOrEdgeValue, this.cache.data.filterDefaults.get(propHash).upperThreshold);
+  };
+
+  populateCacheHeaders(fileData) {
+    if (fileData.nodeDataHeaders) {
+      for (const nodeHeader of fileData.nodeDataHeaders) {
+        const nodePropHash = StaticUtilities.generatePropHashId(this.cache.CFG.EXCEL_NODE_HEADER, nodeHeader.subGroup, nodeHeader.key);
+        this.cache.data.filterDefaults.set(nodePropHash, getDefaultFilterObject());
+      }
+    }
+    if (fileData.edgeDataHeaders) {
+      for (const edgeHeader of fileData.edgeDataHeaders) {
+        const edgePropHash = StaticUtilities.generatePropHashId(this.cache.CFG.EXCEL_EDGE_HEADER, edgeHeader.subGroup, edgeHeader.key);
+        this.cache.data.filterDefaults.set(edgePropHash, getDefaultFilterObject());
+      }
+    }
+  }
+
 
   async exportGraphAsJSON() {
     if (this.cache.data === null) {
@@ -987,8 +991,9 @@ class IOManager {
     await this.cache.ui.showLoading("Loading", `Loading ${file.name} (${file.type} with ${StaticUtilities.humanFileSize(file.size)})`);
     await new Promise(resolve => requestAnimationFrame(resolve));
 
-    if (graph) {
+    if (this.cache.graph) {
       await this.cache.gcm.destroyGraphAndRollBackUI();
+      await this.cache.gcm.resetEventLocks();
     }
 
     this.cache.io.loadFile(event)
@@ -1001,12 +1006,12 @@ class IOManager {
         }
 
         this.cache.io.preProcessData(fileData);
-        buildDataTable(fileData);
-        this.cache.initialize();
+        this.cache.buildDataTable(fileData);
+        this.cache.initialize(fileData);
         this.cache.ui.buildUI();
         await this.cache.gcm.createGraphInstance();
 
-        if (!graph) {
+        if (!this.cache.graph) {
           this.cache.ui.error("Graph not initialized, aborting.");
           await this.cache.ui.hideLoading();
           await new Promise(resolve => requestAnimationFrame(resolve));
