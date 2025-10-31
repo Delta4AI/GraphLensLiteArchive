@@ -40,7 +40,7 @@ class Cache {
   constructor() {
   }
 
-  construct() {
+  reset() {
     this.initialized = false;
     this.graph = null;  // The G6 graph object
 
@@ -106,6 +106,7 @@ class Cache {
     this.dataTable = new DataTable(this);
     this.metrics = new NetworkMetrics(this);
     this.stash = new StashManager(this);
+    this.buildDataTable = buildDataTable;
   }
 
   initialize(data = undefined) {
@@ -184,23 +185,17 @@ class Cache {
     this.nodeIDOrLabelToNodeIDs = new Map();
     this.edgeIDOrLabelToEdgeIDs = new Map();
 
-    function populateUniquePropGroups(propHash) {
-      const [mainGroup, subGroup, prop] = StaticUtilities.decodePropHashId(propHash);
-      if (!this.uniquePropHierarchy[mainGroup]) {
-        this.uniquePropHierarchy[mainGroup] = {};
-      }
-
-      if (!this.uniquePropHierarchy[mainGroup][subGroup]) {
-        this.uniquePropHierarchy[mainGroup][subGroup] = new Set();
-      }
-
-      this.uniquePropHierarchy[mainGroup][subGroup].add(prop);
-    }
-
     for (let group of this.bs.traverseBubbleSets()) {
       this.lastBubbleSetMembers.set(group, new Set());
     }
 
+    this.iterNodes();
+    this.iterEdges();
+
+    this.dataTable.init();
+  }
+
+  iterNodes() {
     this.data.nodes.forEach((node) => {
       this.nodeRef.set(node.id, node);
       this.toolTips.set(node.id, this.uiComponents.buildToolTipText(node.id, false));
@@ -225,7 +220,7 @@ class Cache {
       this.nodeIDOrLabelToNodeIDs.get(node.id).add(node.id);
 
       for (let prop of node.features) {
-        populateUniquePropGroups(prop);
+        this.populateUniquePropGroups(prop);
         if (!this.propToNodes.has(prop)) this.propToNodes.set(prop, new Set());
         if (!this.propToNodeIDs.has(prop)) this.propToNodeIDs.set(prop, new Set());
         this.propToNodes.get(prop).add(node);
@@ -235,7 +230,9 @@ class Cache {
         this.nodeIDToPropIDs.get(node.id).add(prop);
       }
     });
+  }
 
+  iterEdges() {
     this.data.edges.forEach((edge) => {
       this.edgeRef.set(edge.id, edge);
       this.toolTips.set(edge.id, this.uiComponents.buildToolTipText(edge.id, true));
@@ -260,7 +257,7 @@ class Cache {
       this.edgeIDOrLabelToEdgeIDs.get(edge.id).add(edge.id);
 
       for (let prop of edge.features) {
-        populateUniquePropGroups(prop);
+        this.populateUniquePropGroups(prop);
         if (!this.propToEdges.has(prop)) this.propToEdges.set(prop, new Set());
         if (!this.propToEdgeIDs.has(prop)) this.propToEdgeIDs.set(prop, new Set());
         this.propToEdges.get(prop).add(edge);
@@ -282,10 +279,22 @@ class Cache {
       this.nodeIDToEdgeIDs.get(edge.target).add(edge.id);
       this.edgeIDToNodeIDs.get(edge.id).add(edge.source);
       this.edgeIDToNodeIDs.get(edge.id).add(edge.target);
-    });
-
-    this.dataTable.init();
+    })
   }
+
+  populateUniquePropGroups(propHash) {
+    const [mainGroup, subGroup, prop] = StaticUtilities.decodePropHashId(propHash);
+    if (!this.uniquePropHierarchy[mainGroup]) {
+      this.uniquePropHierarchy[mainGroup] = {};
+    }
+
+    if (!this.uniquePropHierarchy[mainGroup][subGroup]) {
+      this.uniquePropHierarchy[mainGroup][subGroup] = new Set();
+    }
+
+    this.uniquePropHierarchy[mainGroup][subGroup].add(prop);
+  }
+
 }
 
 let cache = new Cache();
@@ -360,12 +369,14 @@ async function loadDemoData() {
       const data = await stringDemoDataLoader.loadNetwork();
 
       if (data) {
+
         await cache.gcm.destroyGraphAndRollBackUI();
         cache.gcm.resetEventLocks();
         cache.io.preProcessData(data);
-        buildDataTable(data);
-        // cache.initialize(data);
+        cache.buildDataTable(data);
+        cache.initialize(data);
         cache.ui.buildUI();
+
         await cache.gcm.createGraphInstance();
         await cache.graph.render();
         resolve(true);
@@ -401,7 +412,7 @@ window.cache = cache;
 
 
 window.addEventListener('resize', () => {
-  if (graph !== null && window.cache.initialized) {
+  if (window.graph !== undefined && window.graph !== null && window.cache.initialized) {
     const editModeActive = document.getElementById("editBtn").classList.contains("active");
     const sidebarContentContainer = document.getElementById("sidebarContentContainer");
     const status = document.getElementById("sidebarStatusContainer");
@@ -411,6 +422,6 @@ window.addEventListener('resize', () => {
 })
 
 window.addEventListener("DOMContentLoaded", () => {
-  cache.construct();
+  cache.reset();
   // cache.initialize();
 })

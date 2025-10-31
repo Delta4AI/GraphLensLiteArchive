@@ -113,17 +113,17 @@ class GraphCoreManager {
     try {
       if (this.cache.bubbleSetChanged || this.cache.styleChanged || this.cache.layoutChanged || forceRender) {
         if (this.cache.styleChanged) {
-          await this.cache.ui.showLoading("Loading", "Updating this.cache.graph.data ..");
+          await this.cache.ui.showLoading("Loading", "Updating graph ..");
           await new Promise(resolve => requestAnimationFrame(resolve));
           await this.cache.graph.updateData(this.createSimplifiedDataForGraphObject());
           this.cache.styleChanged = false;
           this.cache.labelStyleChanged = false;
         }
-        await this.cache.ui.showLoading("Loading", "Rendering this.cache.graph...");
+        await this.cache.ui.showLoading("Loading", "Rendering graph ..");
         await new Promise(resolve => requestAnimationFrame(resolve));
         return await this.cache.graph.render();
       } else {
-        await this.cache.ui.showLoading("Loading", "Redrawing this.cache.graph...");
+        await this.cache.ui.showLoading("Loading", "Redrawing graph ..");
         await new Promise(resolve => requestAnimationFrame(resolve));
         return await this.cache.graph.draw();
       }
@@ -137,7 +137,7 @@ class GraphCoreManager {
       this.cache.ui.error(errorMsg);
       return false;
     } finally {
-      await hideLoading();
+      await this.cache.ui.hideLoading();
       await new Promise(resolve => requestAnimationFrame(resolve));
     }
   }
@@ -180,64 +180,19 @@ class GraphCoreManager {
           label: false,
         })),
       ];
-      // foo
 
       this.cache.graph = new Graph({
         container: 'innerGraphContainer',
-          autoFit
-      :
-        false,  // 'view'
-          animation
-      :
-        false,
-          autoResize
-      :
-        true,
-          padding
-      :
-        10,
-          data
-      :
-        createSimplifiedDataForGraphObject(),
-          node
-      :
-        {
-          state: {
-            highlight: {
-              fill: '#C33D35', halo
-            :
-              true, lineWidth
-            :
-              0,
-            }
-          ,
-            dim: {
-              fill: '#E4E3EA',
-            }
-          ,
-          }
-        ,
-        }
-      ,
-        edge: {
-          state: {
-            highlight: {
-              stroke: '#C33D35',
-            }
-          ,
-            selected: {
-              stroke: '#C33D35',
-            }
-          }
-        ,
-        }
-      ,
+        autoFit: false,  /* 'view' */
+        animation: false,
+        autoResize: true,
+        padding: 10,
+        data: this.createSimplifiedDataForGraphObject(),
+        node: {state: {highlight: {fill: '#C33D35', halo: true, lineWidth: 0,}, dim: {fill: '#E4E3EA',},},},
+        edge: {state: {highlight: {stroke: '#C33D35',}, selected: {stroke: '#C33D35',}},},
         behaviors: behaviors,
-          plugins
-      :
-        plugins,
-      }
-    )
+        plugins: plugins,
+      })
       ;
 
       this.cache.graph.on("node:dragend", async () => {
@@ -248,7 +203,7 @@ class GraphCoreManager {
 
         this.cache.ui.debug("DRAG END");
         this.cache.EVENT_LOCKS.DRAG_END_RUNNING = true;
-        await persistNodePositions();
+        await this.cache.lm.persistNodePositions();
         this.cache.EVENT_LOCKS.DRAG_END_RUNNING = false;
       })
 
@@ -328,68 +283,68 @@ class GraphCoreManager {
           this.cache.EVENT_LOCKS.AFTER_RENDER_RUNNING = false;
           await this.cache.ui.hideLoading();
         } else {
-          await initialAfterRenderEvent();
+          await this.initialAfterRenderEvent();
         }
       });
-
-      async function initialAfterRenderEvent() {
-        if (this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING) return;
-
-        try {
-          this.cache.ui.debug("ONCE AFTER RENDER");
-          await this.cache.ui.showLoading("Post-processing", "Post-processing ..");
-          await new Promise(resolve => requestAnimationFrame(resolve));
-          this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING = true;
-
-          await this.cache.ui.showLoading("Post-processing", "Registering event listeners ..");
-          await new Promise(resolve => requestAnimationFrame(resolve));
-          registerHotkeyEvents();
-          registerGlobalEventListeners();
-          await registerPluginStates();
-
-          // to initially fill caches related to the query/filters, preRenderEvent is called without rendering afterwards
-          await this.cache.ui.showLoading("Post-processing", "Pre-render event ..");
-          await new Promise(resolve => requestAnimationFrame(resolve));
-          await this.preRenderEvent();
-
-          await this.cache.ui.showLoading("Post-processing", "Updating metrics UI ..");
-          await new Promise(resolve => requestAnimationFrame(resolve));
-          await this.cache.metrics.updateUI();
-
-          await this.cache.ui.showLoading("Post-processing", "Finalizing rendering ..");
-          await new Promise(resolve => requestAnimationFrame(resolve));
-
-          if (this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE) {
-            // suppresses the info in case of loading from a json model
-            if (this.cache.nodePositionsFromExcelImport.size !== 0) {
-              this.cache.ui.info(`Created view "${this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME}". Applying ${this.cache.DEFAULTS.LAYOUT} layout to nodes without coordinates ..`);
-            }
-            await this.cache.graph.setLayout({type: this.cache.DEFAULTS.LAYOUT, ...this.cache.DEFAULTS.LAYOUT_INTERNALS[this.cache.DEFAULTS.LAYOUT]});
-          }
-
-          this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED = true;
-          await this.cache.graph.render();
-
-          if (this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE) {
-            this.cache.ui.debug("Initially persisting custom layout ..");
-            await this.cache.lm.persistNodePositions();
-            this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = false;
-          }
-
-          await this.cache.lm.setInitialNodePositions();
-        } catch (errorMsg) {
-          this.cache.ui.error(`Error in this.cache.graph.vent.AFTER_RENDER: ${errorMsg}`);
-          this.cache.ui.error("Graph setup failed. Please check your input this.cache.data.");
-          await this.cache.ui.hideLoading();
-        } finally {
-          this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING = false;
-        }
-      }
 
       let layout = this.cache.data.layouts[this.cache.data.selectedLayout];
       if (!layout.isCustom) {
         await this.cache.graph.setLayout({type: this.cache.data.selectedLayout, ...layout.internals});
       }
+    }
+  }
+
+  async initialAfterRenderEvent() {
+    if (this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING) return;
+
+    try {
+      this.cache.ui.debug("ONCE AFTER RENDER");
+      await this.cache.ui.showLoading("Post-processing", "Post-processing ..");
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING = true;
+
+      await this.cache.ui.showLoading("Post-processing", "Registering event listeners ..");
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      registerHotkeyEvents();
+      registerGlobalEventListeners();
+      await registerPluginStates();
+
+      // to initially fill caches related to the query/filters, preRenderEvent is called without rendering afterwards
+      await this.cache.ui.showLoading("Post-processing", "Pre-render event ..");
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      await this.preRenderEvent();
+
+      await this.cache.ui.showLoading("Post-processing", "Updating metrics UI ..");
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      await this.cache.metrics.updateUI();
+
+      await this.cache.ui.showLoading("Post-processing", "Finalizing rendering ..");
+      await new Promise(resolve => requestAnimationFrame(resolve));
+
+      if (this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE) {
+        // suppresses the info in case of loading from a json model
+        if (this.cache.nodePositionsFromExcelImport.size !== 0) {
+          this.cache.ui.info(`Created view "${this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME}". Applying ${this.cache.DEFAULTS.LAYOUT} layout to nodes without coordinates ..`);
+        }
+        await this.cache.graph.setLayout({type: this.cache.DEFAULTS.LAYOUT, ...this.cache.DEFAULTS.LAYOUT_INTERNALS[this.cache.DEFAULTS.LAYOUT]});
+      }
+
+      this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED = true;
+      await this.cache.graph.render();
+
+      if (this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE) {
+        this.cache.ui.debug("Initially persisting custom layout ..");
+        await this.cache.lm.persistNodePositions();
+        this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = false;
+      }
+
+      await this.cache.lm.setInitialNodePositions();
+    } catch (errorMsg) {
+      this.cache.ui.error(`Error in this.cache.graph.vent.AFTER_RENDER: ${errorMsg}`);
+      this.cache.ui.error("Graph setup failed. Please check your input this.cache.data.");
+      await this.cache.ui.hideLoading();
+    } finally {
+      this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING = false;
     }
   }
 
@@ -772,7 +727,7 @@ class GraphCoreManager {
 }
 
 function registerHotkeyEvents() {
-  if (EVENT_LOCKS.HOTKEY_EVENTS_REGISTERED) return;
+  if (this.cache.EVENT_LOCKS.HOTKEY_EVENTS_REGISTERED) return;
 
   document.addEventListener('keydown', async (event) => {
     const activeElement = document.activeElement;
@@ -789,46 +744,46 @@ function registerHotkeyEvents() {
 
     switch (event.key) {
       case "p":
-        await exportPNG();
+        await this.cache.io.exportPNG();
         break;
       case "s":
-        await exportGraphAsJSON();
+        await this.cache.io.exportGraphAsJSON();
         break;
       case "r":
-        await resetLayout();
+        await this.cache.lm.resetLayout();
         break;
       case "f":
-        await cache.graph.fitView();
+        await this.cache.graph.fitView();
         break;
       case "e":
-        await toggleEditMode();
+        await this.cache.ui.toggleEditMode();
         break;
       case "d":
-        await toggleDataEditor();
+        await this.cache.ui.toggleDataEditor();
         break;
       case "q":
-        toggleQueryEditor();
+        this.cache.ui.toggleQueryEditor();
         break;
       case "m":
-        cache.metrics.toggleUI();
+        this.cache.metrics.toggleUI();
         break;
       default:
         break;
     }
   });
 
-  EVENT_LOCKS.HOTKEY_EVENTS_REGISTERED = true;
+  this.cache.EVENT_LOCKS.HOTKEY_EVENTS_REGISTERED = true;
 }
 
 function registerGlobalEventListeners() {
-  if (EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED) return;
+  if (this.cache.EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED) return;
 
   ['input', 'keydown', 'keyup', 'mousedown', 'mouseup', 'focus', 'blur', 'scroll', 'selectionchange'].forEach(evt =>
-    query.text.addEventListener(evt, moveCaret)
+    query.text.addEventListener(evt, this.cache.qm.moveCaret)
   );
 
-  makeBottomBarResizable();
-  EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED = true;
+  this.cache.ui.makeBottomBarResizable();
+  this.cache.EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED = true;
 }
 
 async function registerPluginStates() {
