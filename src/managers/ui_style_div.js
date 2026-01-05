@@ -40,7 +40,7 @@ function createStyleDiv(cache) {
   function createCard(label, parent = undefined) {
     const card = document.createElement("div");
     card.classList.add("card-labeled");
-    card.cache.data.et.label = label;
+    card.dataset.label = label;
     card.id = label;
     if (parent) {
       parent.appendChild(card);

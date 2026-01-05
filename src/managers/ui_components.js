@@ -251,18 +251,18 @@ class InvertibleRangeSlider {
       this.isInverted = false;
     } else {
       let filterData = this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(this.propID);
-      this.currentMin = filterData.cache.data.lowerThreshold;
-      this.currentMax = filterData.cache.data.upperThreshold;
-      this.isInverted = filterData.cache.data.isInverted;
+      this.currentMin = filterData.lowerThreshold;
+      this.currentMax = filterData.upperThreshold;
+      this.isInverted = filterData.isInverted;
     }
   }
 
   writeCurrentFilterSettings() {
     if (this.cache.data.layouts[this.cache.data.selectedLayout].filters.has(this.propID)) {
       let filterData = this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(this.propID);
-      filterData.cache.data.lowerThreshold = this.currentMin;
-      filterData.cache.data.upperThreshold = this.currentMax;
-      filterData.cache.data.isInverted = this.isInverted;
+      filterData.lowerThreshold = this.currentMin;
+      filterData.upperThreshold = this.currentMax;
+      filterData.isInverted = this.isInverted;
     }
   }
 
@@ -536,12 +536,6 @@ class UIComponentManager {
       await this.cache.fm.resetFilters(section, subSection);
     };
     return btn;
-  }
-
-  alignUIWithJSConstants() {
-    document.getElementById("resetSelectedElementsStyleBtn").title = this.cache.CFG.RESET_SELECTION_BUTTON_RESETS_POSITIONS
-      ? "Reset the visual appearance and positions of the selected elements to their defaults"
-      : "Reset the visual appearance of the selected elements to their defaults";
   }
 
   createCircleGroupButtonWithQuadrants(propID) {

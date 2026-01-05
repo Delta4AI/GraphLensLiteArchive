@@ -68,7 +68,7 @@ class NetworkMetrics {
     this.collapsed = !willOpen;
   }
 
-  async updateUI() {
+  async updateMetricUI() {
     if (!this.cache.visibleElementsChanged) return;
 
     const metricName = this.m[this.selected].label;
@@ -77,7 +77,7 @@ class NetworkMetrics {
 
     this.resetNodeToolTipMetricTexts();
 
-    const metricResult = await this.m[this.selected]?.calculate();
+    const metricResult = await this.m[this.selected]?.calculate(this.cache);
 
     /* multiselect */
     const selectedValues = Array.from(this.multiselect.selectedOptions, opt => opt.value);
@@ -147,7 +147,7 @@ class NetworkMetrics {
     this.cache.toolTips.set(nodeId, tempDiv.innerHTML);
   }
 
-  buildUI() {
+  buildMetricUI() {
     const container = document.createElement('div');
     container.className = 'nw-root';
     container.id = 'networkMetricsContainer';
@@ -175,7 +175,7 @@ class NetworkMetrics {
     });
     dropdown.addEventListener('change', async (e) => {
       this.selected = e.target.value;
-      await this.updateUI();
+      await this.updateMetricUI();
     });
     dropdownContainer.appendChild(dropdown);
 

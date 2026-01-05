@@ -469,11 +469,13 @@ class QueryManager {
     const range = sel.getRangeAt(0).cloneRange();
     range.collapse(true);
 
+    let tmpQuery = this.cache ? this.cache.query : window.cache.query;
+
     const rect = range.getBoundingClientRect();
-    const parentRect = this.cache.query.text.getBoundingClientRect();
+    const parentRect = tmpQuery.text.getBoundingClientRect();
 
     if (!rect || !rect.height) {
-      this.cache.query.caret.style.display = 'none';
+      tmpQuery.caret.style.display = 'none';
       return;
     }
 
@@ -481,14 +483,14 @@ class QueryManager {
     const overlapsHoriz = rect.right > parentRect.left && rect.left < parentRect.right;
 
     if (!(overlapsVert && overlapsHoriz)) {
-      this.cache.query.caret.style.display = 'none';
+      tmpQuery.caret.style.display = 'none';
       return;
     }
 
-    this.cache.query.caret.style.display = 'block';
-    this.cache.query.caret.style.left = `${rect.left - parentRect.left}px`;
-    this.cache.query.caret.style.top = `${rect.top - parentRect.top}px`;
-    this.cache.query.caret.style.height = `${rect.height}px`;
+    tmpQuery.caret.style.display = 'block';
+    tmpQuery.caret.style.left = `${rect.left - parentRect.left}px`;
+    tmpQuery.caret.style.top = `${rect.top - parentRect.top}px`;
+    tmpQuery.caret.style.height = `${rect.height}px`;
   }
 
   handleQueryValidationEvent() {
@@ -658,51 +660,50 @@ class QueryManager {
   }
 
   updateUIFromQueryInstructions() {
-
-    function setFilter(obj) {
-      // normal slider
-      if (obj[1].type === "KW" && obj[1].value === "BETWEEN") {
-        this.cache.ui.checkCheckbox(obj[0].propID, true);
-        this.cache.propIDToInvertibleRangeSliders.get(obj[0].propID).setTo(obj[2].value, obj[4].value, false);
-      }
-
-      // inverted slider
-      else if (obj[1].type === "KW" && obj[1].value === "LOWER THAN") {
-        this.cache.ui.checkCheckbox(obj[0].propID, true);
-        this.cache.propIDToInvertibleRangeSliders.get(obj[0].propID).setTo(obj[2].value, obj[4].value, true);
-      }
-
-      // category
-      else if (obj[1].type === "KW" && obj[1].value === "IN [") {
-        this.cache.ui.checkCheckbox(obj[0].propID, true);
-        const dropdown = this.cache.propIDToDropdownChecklists.get(obj[0].propID);
-        dropdown.deselectAllCategories(true);
-        for (const dropdownElem of obj) {
-          if (dropdownElem.type === "STR") {
-            dropdown.selectCategory(dropdownElem.value);
-          }
-        }
-      }
-    }
-
-    function refreshUI(obj) {
-      if (obj.constructor === Array) {
-        if (obj[0].constructor === Object && obj[0].type === "property") {
-          setFilter(obj);
-        } else {
-          // nested instruction
-          for (const nestedInst of obj) {
-            refreshUI(nestedInst);
-          }
-        }
-      }
-    }
-
     this.cache.ui.uncheckAllCheckboxes();
     this.decodeQueryAndBuildAST();
 
     for (const inst of this.cache.query.ast.instructions) {
-      refreshUI(inst);
+      this.refreshUI(inst);
+    }
+  }
+
+  setFilter(obj) {
+    // normal slider
+    if (obj[1].type === "KW" && obj[1].value === "BETWEEN") {
+      this.cache.ui.checkCheckbox(obj[0].propID, true);
+      this.cache.propIDToInvertibleRangeSliders.get(obj[0].propID).setTo(obj[2].value, obj[4].value, false);
+    }
+
+    // inverted slider
+    else if (obj[1].type === "KW" && obj[1].value === "LOWER THAN") {
+      this.cache.ui.checkCheckbox(obj[0].propID, true);
+      this.cache.propIDToInvertibleRangeSliders.get(obj[0].propID).setTo(obj[2].value, obj[4].value, true);
+    }
+
+    // category
+    else if (obj[1].type === "KW" && obj[1].value === "IN [") {
+      this.cache.ui.checkCheckbox(obj[0].propID, true);
+      const dropdown = this.cache.propIDToDropdownChecklists.get(obj[0].propID);
+      dropdown.deselectAllCategories(true);
+      for (const dropdownElem of obj) {
+        if (dropdownElem.type === "STR") {
+          dropdown.selectCategory(dropdownElem.value);
+        }
+      }
+    }
+  }
+
+  refreshUI(obj) {
+    if (obj.constructor === Array) {
+      if (obj[0].constructor === Object && obj[0].type === "property") {
+        this.setFilter(obj);
+      } else {
+        // nested instruction
+        for (const nestedInst of obj) {
+          this.refreshUI(nestedInst);
+        }
+      }
     }
   }
 
@@ -879,7 +880,7 @@ class QueryManager {
         this.cache.query.text.style.removeProperty('width');
         this.cache.query.overlay.style.removeProperty('width');
         this.cache.query.sizeChangeLocked = false;
-        console.ui.info("Alignment restored, width unlocked");
+        this.cache.ui.info("Alignment restored, width unlocked");
       }
       this.cache.query.lastGoodWidth = this.cache.query.text.offsetWidth;
       return;
