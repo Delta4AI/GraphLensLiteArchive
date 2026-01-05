@@ -856,13 +856,13 @@ class IOManager {
     if (fileData.nodeDataHeaders) {
       for (const nodeHeader of fileData.nodeDataHeaders) {
         const nodePropHash = StaticUtilities.generatePropHashId(this.cache.CFG.EXCEL_NODE_HEADER, nodeHeader.subGroup, nodeHeader.key);
-        this.cache.data.filterDefaults.set(nodePropHash, getDefaultFilterObject());
+        this.cache.data.filterDefaults.set(nodePropHash, this.getDefaultFilterObject());
       }
     }
     if (fileData.edgeDataHeaders) {
       for (const edgeHeader of fileData.edgeDataHeaders) {
         const edgePropHash = StaticUtilities.generatePropHashId(this.cache.CFG.EXCEL_EDGE_HEADER, edgeHeader.subGroup, edgeHeader.key);
-        this.cache.data.filterDefaults.set(edgePropHash, getDefaultFilterObject());
+        this.cache.data.filterDefaults.set(edgePropHash, this.getDefaultFilterObject());
       }
     }
   }

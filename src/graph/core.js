@@ -108,7 +108,7 @@ class GraphCoreManager {
     }
 
     await this.preRenderEvent();
-    await this.cache.metrics.updateUI();
+    await this.cache.metrics.updateMetricUI();
 
     try {
       if (this.cache.bubbleSetChanged || this.cache.styleChanged || this.cache.layoutChanged || forceRender) {
@@ -151,7 +151,7 @@ class GraphCoreManager {
         this.BEHAVIOURS.DRAG_ELEMENT
       ];
 
-      if (!DISABLE_HOVER_EFFECT) {
+      if (!this.cache.CFG.DISABLE_HOVER_EFFECT) {
         behaviors.push(this.BEHAVIOURS.HOVER_ACTIVATE);
       }
 
@@ -305,9 +305,9 @@ class GraphCoreManager {
 
       await this.cache.ui.showLoading("Post-processing", "Registering event listeners ..");
       await new Promise(resolve => requestAnimationFrame(resolve));
-      registerHotkeyEvents();
-      registerGlobalEventListeners();
-      await registerPluginStates();
+      this.registerHotkeyEvents();
+      this.registerGlobalEventListeners();
+      await this.registerPluginStates();
 
       // to initially fill caches related to the query/filters, preRenderEvent is called without rendering afterwards
       await this.cache.ui.showLoading("Post-processing", "Pre-render event ..");
@@ -316,7 +316,7 @@ class GraphCoreManager {
 
       await this.cache.ui.showLoading("Post-processing", "Updating metrics UI ..");
       await new Promise(resolve => requestAnimationFrame(resolve));
-      await this.cache.metrics.updateUI();
+      await this.cache.metrics.updateMetricUI();
 
       await this.cache.ui.showLoading("Post-processing", "Finalizing rendering ..");
       await new Promise(resolve => requestAnimationFrame(resolve));
@@ -340,8 +340,8 @@ class GraphCoreManager {
 
       await this.cache.lm.setInitialNodePositions();
     } catch (errorMsg) {
-      this.cache.ui.error(`Error in this.cache.graph.vent.AFTER_RENDER: ${errorMsg}`);
-      this.cache.ui.error("Graph setup failed. Please check your input this.cache.data.");
+      this.cache.ui.error(`Error in initial AFTER_RENDER: ${errorMsg}`);
+      this.cache.ui.error("Graph setup failed. Please check your input data.");
       await this.cache.ui.hideLoading();
     } finally {
       this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING = false;
@@ -575,10 +575,6 @@ class GraphCoreManager {
     );
   }
 
-  async getSelectedNodes() {
-    return await this.cache.graph.getNodeData().filter(n => n.states?.includes("selected"));
-  }
-
   createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
     const filterObject = (obj, excludedKeys) => {
       return Object.keys(obj)
@@ -724,72 +720,73 @@ class GraphCoreManager {
     status.innerHTML = "";
     status.style.height = "0";
   }
-}
 
-function registerHotkeyEvents() {
-  if (this.cache.EVENT_LOCKS.HOTKEY_EVENTS_REGISTERED) return;
 
-  document.addEventListener('keydown', async (event) => {
-    const activeElement = document.activeElement;
+  registerHotkeyEvents() {
+    if (this.cache.EVENT_LOCKS.HOTKEY_EVENTS_REGISTERED) return;
 
-    // Skip hotkeys if currently focused on an input, textarea, or select element
-    if (
-      activeElement.tagName === "INPUT" ||
-      activeElement.tagName === "TEXTAREA" ||
-      activeElement.tagName === "SELECT" ||
-      activeElement.isContentEditable
-    ) {
-      return;
+    document.addEventListener('keydown', async (event) => {
+      const activeElement = document.activeElement;
+
+      // Skip hotkeys if currently focused on an input, textarea, or select element
+      if (
+        activeElement.tagName === "INPUT" ||
+        activeElement.tagName === "TEXTAREA" ||
+        activeElement.tagName === "SELECT" ||
+        activeElement.isContentEditable
+      ) {
+        return;
+      }
+
+      switch (event.key) {
+        case "p":
+          await this.cache.io.exportPNG();
+          break;
+        case "s":
+          await this.cache.io.exportGraphAsJSON();
+          break;
+        case "r":
+          await this.cache.lm.resetLayout();
+          break;
+        case "f":
+          await this.cache.graph.fitView();
+          break;
+        case "e":
+          await this.cache.ui.toggleEditMode();
+          break;
+        case "d":
+          await this.cache.ui.toggleDataEditor();
+          break;
+        case "q":
+          this.cache.ui.toggleQueryEditor();
+          break;
+        case "m":
+          this.cache.metrics.toggleUI();
+          break;
+        default:
+          break;
+      }
+    });
+
+    this.cache.EVENT_LOCKS.HOTKEY_EVENTS_REGISTERED = true;
+  }
+
+  registerGlobalEventListeners() {
+    if (this.cache.EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED) return;
+
+    ['input', 'keydown', 'keyup', 'mousedown', 'mouseup', 'focus', 'blur', 'scroll', 'selectionchange'].forEach(evt =>
+      this.cache.query.text.addEventListener(evt, () => this.cache.qm.moveCaret())
+    );
+
+    this.cache.ui.makeBottomBarResizable();
+    this.cache.EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED = true;
+  }
+
+  async registerPluginStates() {
+    this.cache.ui.debug("Registering bubble set plugin instances ..");
+    for (const group of this.cache.bs.traverseBubbleSets()) {
+      this.cache.INSTANCES.BUBBLE_GROUPS[group] = await this.cache.graph.getPluginInstance(`bubbleSetPlugin-${group}`);
     }
-
-    switch (event.key) {
-      case "p":
-        await this.cache.io.exportPNG();
-        break;
-      case "s":
-        await this.cache.io.exportGraphAsJSON();
-        break;
-      case "r":
-        await this.cache.lm.resetLayout();
-        break;
-      case "f":
-        await this.cache.graph.fitView();
-        break;
-      case "e":
-        await this.cache.ui.toggleEditMode();
-        break;
-      case "d":
-        await this.cache.ui.toggleDataEditor();
-        break;
-      case "q":
-        this.cache.ui.toggleQueryEditor();
-        break;
-      case "m":
-        this.cache.metrics.toggleUI();
-        break;
-      default:
-        break;
-    }
-  });
-
-  this.cache.EVENT_LOCKS.HOTKEY_EVENTS_REGISTERED = true;
-}
-
-function registerGlobalEventListeners() {
-  if (this.cache.EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED) return;
-
-  ['input', 'keydown', 'keyup', 'mousedown', 'mouseup', 'focus', 'blur', 'scroll', 'selectionchange'].forEach(evt =>
-    query.text.addEventListener(evt, this.cache.qm.moveCaret)
-  );
-
-  this.cache.ui.makeBottomBarResizable();
-  this.cache.EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED = true;
-}
-
-async function registerPluginStates() {
-  this.cache.ui.debug("Registering bubble set plugin instances ..");
-  for (const group of this.cache.bs.traverseBubbleSets()) {
-    this.cache.INSTANCES.BUBBLE_GROUPS[group] = await this.cache.graph.getPluginInstance(`bubbleSetPlugin-${group}`);
   }
 }
 

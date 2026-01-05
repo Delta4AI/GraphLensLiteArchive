@@ -374,7 +374,7 @@ async function loadDemoData() {
         cache.gcm.resetEventLocks();
         cache.io.preProcessData(data);
         cache.buildDataTable(data);
-        cache.initialize(data);
+        // cache.initialize(data);
         cache.ui.buildUI();
 
         await cache.gcm.createGraphInstance();

@@ -26,7 +26,7 @@ class GraphLayoutManager {
     this.cache.ui.buildFilterUI();
     this.cache.ui.clearActivePropsCacheOnLayoutChange();
 
-    await this.cache.metrics.updateUI();
+    await this.cache.metrics.updateMetricUI();
 
     this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED = false;
 

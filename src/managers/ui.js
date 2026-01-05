@@ -458,7 +458,7 @@ class UIManager {
     this.cache.query.caret = document.getElementById("queryCaret");
     this.cache.query.editorDiv = document.getElementById("queryEditor");
 
-    this.cache.query.sizeObserver = new ResizeObserver(() => requestAnimationFrame(this.cache.qm.validateAlignment));
+    this.cache.query.sizeObserver = new ResizeObserver(() => requestAnimationFrame(() => this.cache.qm.validateAlignment()))
     this.cache.query.sizeObserver.observe(this.cache.query.editorDiv);
 
     this.cache.query.text.addEventListener("scroll", () => {
@@ -467,19 +467,21 @@ class UIManager {
     });
 
     this.cache.uiComponents.buildDropdownOptions();
-    this.cache.uiComponents.buildMetricsUI();
-    this.cache.uiComponents.buildFilterUI();
-    this.cache.uiComponents.alignUIWithJSConstants();
+
+    const div = document.getElementById("metricsContainer");
+    div.innerHTML = "";
+    div.appendChild(this.cache.metrics.buildMetricUI());
+
+    this.buildFilterUI();
+
+    document.getElementById("resetSelectedElementsStyleBtn").title = this.cache.CFG.RESET_SELECTION_BUTTON_RESETS_POSITIONS
+      ? "Reset the visual appearance and positions of the selected elements to their defaults"
+      : "Reset the visual appearance of the selected elements to their defaults";
+
     this.showUI(true);
 
     this.cache.query.lastGoodWidth = this.cache.query.editorDiv.offsetWidth;
     this.cache.qm.validateAlignment();
-  }
-
-  buildMetricsUI() {
-    const div = document.getElementById("metricsContainer");
-    div.innerHTML = "";
-    div.appendChild(this.cache.metrics.buildUI());
   }
 
   buildFilterUI() {
@@ -531,7 +533,11 @@ class UIManager {
       const col2 = document.createElement('div');
       col2.className = "filter-row-col2";
       row.appendChild(col2);
-      const sliderOrDropdown = isCategoricalProperty ? new DropdownChecklist(propID) : new InvertibleRangeSlider(propID);
+
+      const sliderOrDropdown = isCategoricalProperty
+        ? new DropdownChecklist(propID, this.cache)
+        : new InvertibleRangeSlider(propID, this.cache);
+
       sliderOrDropdown.appendTo(col2);
       const col3 = document.createElement('div');
       col3.className = "filter-row-col3";
@@ -550,7 +556,7 @@ class UIManager {
     }
     const staticStyleDiv = document.getElementById("staticStyleDiv");
     staticStyleDiv.innerHTML = "";
-    staticStyleDiv.appendChild(createStyleDiv());
+    staticStyleDiv.appendChild(createStyleDiv(this.cache));
     this.manageDynamicWidgets();
     this.handleEditModeUIChanges();
     this.cache.qm.updateQueryTextArea();

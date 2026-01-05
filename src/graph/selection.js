@@ -43,13 +43,18 @@ class GraphSelectionManager {
     for (const item of elemData) {
       const elem = this.cache.graph.getElementData(item.id);
       this.updateElementSelectedState(elem, enable);
-      this.cache.data.push(elem);
+      updatedData.push(elem);
     }
     await this.cache.graph.updateData(updatedData);
     await this.cache.graph.render();
 
     await this.cache.ui.hideLoading();
     await new Promise(resolve => requestAnimationFrame(resolve));
+  }
+
+  // TODO: is this placed right?
+  async getSelectedNodes() {
+    return await this.cache.graph.getNodeData().filter(n => n.states?.includes("selected"));
   }
 
   updateElementSelectedState(element, shouldSelect) {

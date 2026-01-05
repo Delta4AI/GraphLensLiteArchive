@@ -203,7 +203,7 @@ class DataTable {
       row[4] = node.label || '';
       row[5] = node.description || '';
 
-      for (let [section, subSection, prop, data] of traverseD4Data(node)) {
+      for (let [section, subSection, prop, data] of this.cache.gcm.traverseD4Data(node)) {
         const headerKey = `${section}::${subSection}::${prop}`;
         const headerIdx = this.headerIndexMap.get(headerKey);
         if (headerIdx !== undefined) {
@@ -724,14 +724,17 @@ class DataTable {
       await this.cache.gcm.destroyGraphAndRollBackUI();
       this.cache.gcm.resetEventLocks();
       this.cache.io.preProcessData(updatedFileData);
-      this.cache.initialize(updatedFileData);
+      // this.cache.initialize(updatedFileData);
+      this.cache.buildDataTable(updatedFileData);
       this.cache.ui.buildUI();
+      // this.fileData = structuredClone(updatedFileData);
 
       await this.cache.gcm.createGraphInstance();
       await this.cache.graph.render();
 
-      this.fileData = structuredClone(updatedFileData);
-      this.loadTabData();
+      // this.fileData = structuredClone(updatedFileData);
+      // this.loadTabData();
+      console.log("DATA TABLE UPDATE DONE!")
 
     } catch (err) {
       this.cache.ui.error(`Error updating graph: ${err}`);
@@ -1086,7 +1089,7 @@ class DataTable {
 }
 
 function buildDataTable(fileData) {
-  this.cache.dataTable.onPendingChangesUpdated(({hasPendingChanges, hasChangesFromOriginal}) => {
+  this.dataTable.onPendingChangesUpdated(({hasPendingChanges, hasChangesFromOriginal}) => {
     const applyBtn = document.getElementById('updateDataTableBtn');
     const resetBtn = document.getElementById('resetDataTableBtn');
 
@@ -1098,7 +1101,7 @@ function buildDataTable(fileData) {
       resetBtn.disabled = !hasChangesFromOriginal;
     }
   });
-  this.cache.dataTable.populateFromFileData(fileData);
+  this.dataTable.populateFromFileData(fileData);
 
   const applyBtn = document.getElementById('updateDataTableBtn');
   const resetBtn = document.getElementById('resetDataTableBtn');

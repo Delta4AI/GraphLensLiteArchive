@@ -120,13 +120,7 @@ class GraphBubbleSetManager {
     let empty = !members || members.size === 0;
     const membersAsArray = [...members];
 
-    function getAvoidMembers() {
-      if (empty) return [];
-      if (this.cache.CFG.APPLY_BUBBLE_SET_HOTFIX && this.cache.CFG.AVOID_MEMBERS_IN_BUBBLE_GROUPS) return [];
-      return [...this.cache.nodeRef.keys()].filter(nodeID => !membersAsArray.includes(nodeID));
-    }
-
-    const avoidMembers = getAvoidMembers();
+    const avoidMembers = empty ? [] : this.getAvoidMembers(members);
 
     if (StaticUtilities.arraysAreEqual(membersAsArray, [...this.cache.INSTANCES.BUBBLE_GROUPS[group].members.keys()])) {
       this.cache.ui.debug("BUBBLE GROUPS IN SYNC - SKIPPING UPDATE");
@@ -141,6 +135,16 @@ class GraphBubbleSetManager {
       label: empty ? false : this.cache.data.bubbleSetStyle[group].label,
     });
     await this.cache.INSTANCES.BUBBLE_GROUPS[group].drawBubbleSets();
+  }
+
+  getAvoidMembers(members) {
+    if (this.cache.CFG.APPLY_BUBBLE_SET_HOTFIX && this.cache.CFG.AVOID_MEMBERS_IN_BUBBLE_GROUPS) return [];
+
+    const checkMembership = members instanceof Set
+      ? (nodeID) => members.has(nodeID)
+      : (nodeID) => members.includes(nodeID);
+
+    return [...this.cache.nodeRef.keys()].filter(nodeID => !checkMembership(nodeID));
   }
 
   async clearBubbleSetInstanceMembers() {
