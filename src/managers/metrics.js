@@ -174,8 +174,12 @@ class NetworkMetrics {
       dropdown.appendChild(opt);
     });
     dropdown.addEventListener('change', async (e) => {
-      this.selected = e.target.value;
-      await this.updateMetricUI();
+      try {
+        this.selected = e.target.value;
+        await this.updateMetricUI();
+      } catch (err) {
+        this.cache.ui.error(`Failed to update metrics: ${err.message}`);
+      }
     });
     dropdownContainer.appendChild(dropdown);
 

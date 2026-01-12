@@ -106,13 +106,17 @@ class DropdownChecklist {
   }
 
   async handleSelection(ev) {
-    ev.target.checked
-      ? this.selectedCategories.add(ev.target.value)
-      : this.selectedCategories.delete(ev.target.value);
-    this.anchor.textContent = `${this.selectedCategories.size}/${this.categories.size} selected`;
-    await this.cache.fm.handleFilterEvent(ev.target.checked ? "Showing" : "Hiding" + " Elements",
-      `Nodes and related edges for ${this.propID} ${ev.target.value}`, this.propID);
-    // this.cache.ui.debug(`${this.propID} ${ev.target.value} ${ev.target.checked}`);
+    try {
+      ev.target.checked
+        ? this.selectedCategories.add(ev.target.value)
+        : this.selectedCategories.delete(ev.target.value);
+      this.anchor.textContent = `${this.selectedCategories.size}/${this.categories.size} selected`;
+      await this.cache.fm.handleFilterEvent(ev.target.checked ? "Showing" : "Hiding" + " Elements",
+        `Nodes and related edges for ${this.propID} ${ev.target.value}`, this.propID);
+      // this.cache.ui.debug(`${this.propID} ${ev.target.value} ${ev.target.checked}`);
+    } catch (err) {
+      this.cache.ui.error(`Failed to handle category selection: ${err.message}`);
+    }
   }
 
   appendListeners() {
@@ -185,18 +189,26 @@ class DropdownChecklist {
   }
 
   async selectAllCategories(skipFilterEvent = false) {
-    this.categories.forEach(category => this.selectedCategories.add(category)); // Add all categories
-    this.updateCheckboxStates(true);
-    if (!skipFilterEvent) {
-      await this.cache.fm.handleFilterEvent("Showing Elements", `Nodes and related edges for ${this.propID}`, this.propID);
+    try {
+      this.categories.forEach(category => this.selectedCategories.add(category)); // Add all categories
+      this.updateCheckboxStates(true);
+      if (!skipFilterEvent) {
+        await this.cache.fm.handleFilterEvent("Showing Elements", `Nodes and related edges for ${this.propID}`, this.propID);
+      }
+    } catch (err) {
+      this.cache.ui.error(`Failed to select all categories: ${err.message}`);
     }
   }
 
   async deselectAllCategories(skipFilterEvent = false) {
-    this.categories.forEach(category => this.selectedCategories.delete(category)); // Clear all categories
-    this.updateCheckboxStates(false);
-    if (!skipFilterEvent) {
-      await this.cache.fm.handleFilterEvent("Hiding Elements", `Nodes and related edges for ${this.propID}`, this.propID);
+    try {
+      this.categories.forEach(category => this.selectedCategories.delete(category)); // Clear all categories
+      this.updateCheckboxStates(false);
+      if (!skipFilterEvent) {
+        await this.cache.fm.handleFilterEvent("Hiding Elements", `Nodes and related edges for ${this.propID}`, this.propID);
+      }
+    } catch (err) {
+      this.cache.ui.error(`Failed to deselect all categories: ${err.message}`);
     }
   }
 
@@ -385,15 +397,23 @@ class InvertibleRangeSlider {
 
     this.sliderStart.addEventListener("input", () => this.handleThresholdOnInputEvent(true));
     this.sliderStart.addEventListener("change", async () => {
-      this.writeCurrentFilterSettings();
-      await this.cache.fm.handleFilterEvent("Filtering",
-        `Applying lower threshold ${this.sliderStart.value} for ${this.propID}`, this.propID);
+      try {
+        this.writeCurrentFilterSettings();
+        await this.cache.fm.handleFilterEvent("Filtering",
+          `Applying lower threshold ${this.sliderStart.value} for ${this.propID}`, this.propID);
+      } catch (err) {
+        this.cache.ui.error(`Failed to apply lower threshold: ${err.message}`);
+      }
     });
     this.sliderEnd.addEventListener("input", () => this.handleThresholdOnInputEvent(false));
     this.sliderEnd.addEventListener("change", async () => {
-      this.writeCurrentFilterSettings();
-      await this.cache.fm.handleFilterEvent("Filtering",
-        `Applying upper threshold ${this.sliderEnd.value} for ${this.propID}`, this.propID);
+      try {
+        this.writeCurrentFilterSettings();
+        await this.cache.fm.handleFilterEvent("Filtering",
+          `Applying upper threshold ${this.sliderEnd.value} for ${this.propID}`, this.propID);
+      } catch (err) {
+        this.cache.ui.error(`Failed to apply upper threshold: ${err.message}`);
+      }
     });
 
     // initially dispatch input event once to match slider visuals to the current state
@@ -470,11 +490,11 @@ class InvertibleRangeSlider {
     const clampedMin = Math.min(Math.max(min, this.sliderMin), this.sliderMax);
     const clampedMax = Math.min(Math.max(max, this.sliderMin), this.sliderMax);
 
-    if (!inverted && min >= max) {
+    if (!inverted && min > max) {
       this.cache.ui.error(`Cannot set min threshold to ${min} and max threshold to ${max} for ${this.propID}`);
       return;
     }
-    if (inverted && max <= min) {
+    if (inverted && max < min) {
       this.cache.ui.error(`Cannot set threshold to LOWER THAN ${min} OR GREATER THAN ${max} for inverted ${this.propID}`);
       return;
     }
@@ -549,21 +569,25 @@ class UIComponentManager {
       this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(propID)[`${group}Members`].size === 0 ? quadrant.classList.remove("active") : quadrant.classList.add("active");
 
       quadrant.addEventListener('click', async () => {
-        let shouldShowRemove = quadrant.classList.contains("active");
-        let members = this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(propID)[`${group}Members`];
+        try {
+          let shouldShowRemove = quadrant.classList.contains("active");
+          let members = this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(propID)[`${group}Members`];
 
-        if (shouldShowRemove) {
-          this.cache.data.layouts[this.cache.data.selectedLayout][`${group}Props`].delete(propID);
-          quadrant.title = `Remove ${propID} from ${group}.`;
-          members.delete(propID);
-          quadrant.classList.remove("active");
-          await this.cache.gcm.decideToRenderOrDraw();
-        } else {
-          this.cache.data.layouts[this.cache.data.selectedLayout][`${group}Props`].add(propID);
-          quadrant.title = `Highlight ${propID} and add to bubble-group (${group})`;
-          members.add(propID);
-          quadrant.classList.add("active");
-          await this.cache.gcm.decideToRenderOrDraw();
+          if (shouldShowRemove) {
+            this.cache.data.layouts[this.cache.data.selectedLayout][`${group}Props`].delete(propID);
+            quadrant.title = `Remove ${propID} from ${group}.`;
+            members.delete(propID);
+            quadrant.classList.remove("active");
+            await this.cache.gcm.decideToRenderOrDraw();
+          } else {
+            this.cache.data.layouts[this.cache.data.selectedLayout][`${group}Props`].add(propID);
+            quadrant.title = `Highlight ${propID} and add to bubble-group (${group})`;
+            members.add(propID);
+            quadrant.classList.add("active");
+            await this.cache.gcm.decideToRenderOrDraw();
+          }
+        } catch (err) {
+          this.cache.ui.error(`Failed to update bubble set group: ${err.message}`);
         }
       });
 
@@ -763,10 +787,14 @@ class UIComponentManager {
 
     input.addEventListener('change', updateCheckbox);
     wrapper.addEventListener('change', async () => {
-      this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(propID).active = input.checked;
-      input.checked ? this.cache.activeProps.add(propID) : this.cache.activeProps.delete(propID);
-      let status = input.checked ? "Showing" : "Hiding";
-      await this.cache.fm.handleFilterEvent(`${status} Elements`, `Nodes and related edges for ${propID}`);
+      try {
+        this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(propID).active = input.checked;
+        input.checked ? this.cache.activeProps.add(propID) : this.cache.activeProps.delete(propID);
+        let status = input.checked ? "Showing" : "Hiding";
+        await this.cache.fm.handleFilterEvent(`${status} Elements`, `Nodes and related edges for ${propID}`);
+      } catch (err) {
+        this.cache.ui.error(`Failed to toggle filter: ${err.message}`);
+      }
     });
 
     wrapper.append(input, customCheckbox);
@@ -865,16 +893,25 @@ class UIComponentManager {
     btn.textContent = shouldAdd ? "+" : "-";
     btn.title = shouldAdd ? "Add to selection" : "Remove from selection";
     btn.addEventListener("click", async () => {
-      const nodeIDs = this.cache.propIDsToNodeIDsToBeShown.get(propID) || [];
-      if (nodeIDs.size > 0) {
-        const nodes = this.cache.graph.getNodeData([...nodeIDs]);
-        await this.cache.sm.updateSelectedState(nodes, shouldAdd);
-      }
+      try {
+        if (!this.cache.graph) {
+          this.cache.ui.warning("Please wait for graph to initialize");
+          return;
+        }
 
-      const edgeIDs = this.cache.propIDsToEdgeIDsToBeShown.get(propID) || [];
-      if (edgeIDs.size > 0) {
-        const edges = this.cache.graph.getEdgeData([...edgeIDs]);
-        await this.cache.sm.updateSelectedState(edges, shouldAdd);
+        const nodeIDs = this.cache.propIDsToNodeIDsToBeShown.get(propID) || [];
+        if (nodeIDs.size > 0) {
+          const nodes = this.cache.graph.getNodeData([...nodeIDs]);
+          await this.cache.sm.updateSelectedState(nodes, shouldAdd);
+        }
+
+        const edgeIDs = this.cache.propIDsToEdgeIDsToBeShown.get(propID) || [];
+        if (edgeIDs.size > 0) {
+          const edges = this.cache.graph.getEdgeData([...edgeIDs]);
+          await this.cache.sm.updateSelectedState(edges, shouldAdd);
+        }
+      } catch (err) {
+        this.cache.ui.error(`Failed to update selection: ${err.message}`);
       }
     });
     return btn;

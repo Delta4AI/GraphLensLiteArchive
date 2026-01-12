@@ -6,20 +6,29 @@ class GraphStyleManager {
   async resetStyleForSelectedElements() {
   for (const node of this.cache.nodeRef.values()) {
     if (this.cache.selectedNodes.includes(node.id)) {
-      if (this.cache.CFG.RESET_SELECTION_BUTTON_RESETS_POSITIONS) {
-        console.log("bar");
+      if (node.originalType !== undefined) {
+        node.type = node.originalType;
       }
-      node.style = structuredClone(node.originalStyle);
+      if (node.originalStyle !== undefined) {
+        node.style = structuredClone(node.originalStyle);
+      }
     }
   }
 
   for (const edge of this.cache.edgeRef.values()) {
     if (this.cache.selectedEdges.includes(edge.id)) {
-      edge.style = structuredClone(edge.originalStyle);
+      if (edge.originalType !== undefined) {
+        edge.type = edge.originalType;
+      }
+      if (edge.originalStyle !== undefined) {
+        edge.style = structuredClone(edge.originalStyle);
+      }
     }
   }
   await this.handleStyleChangeLoadingEvent("Style", `Resetting Styles`);
-  await this.cache.lm.restoreInitialNodePositions(true);
+  if (this.cache.CFG.RESET_SELECTION_BUTTON_RESETS_POSITIONS) {
+    await this.cache.lm.restoreInitialNodePositions(true);
+  }
 }
 
   async handleStyleChangeLoadingEvent(header, text) {

@@ -589,7 +589,7 @@ class GraphCoreManager {
     const filteredNodes = this.cache.data.nodes
       .map(node => {
         const filteredNode = filterObject(node, [
-          "D4Data", "features", "featureValues", "featureWithinThreshold", "originalStyle"]);
+          "D4Data", "features", "featureValues", "featureWithinThreshold", "originalStyle", "originalType"]);
 
         // load positions from the layouts position Map
         const position = this.cache.data.layouts[this.cache.data.selectedLayout].positions.get(node.id);
@@ -613,7 +613,7 @@ class GraphCoreManager {
     const filteredEdges = this.cache.data.edges
       .map(edge => {
         const filteredEdge = filterObject(edge, [
-          "D4Data", "features", "featureValues", "featureWithinThreshold", "originalStyle"]);
+          "D4Data", "features", "featureValues", "featureWithinThreshold", "originalStyle", "originalType"]);
 
         Object.assign(filteredEdge, this.cache.style.getEdgeStyleOrDefaults(edge));
 
@@ -630,7 +630,9 @@ class GraphCoreManager {
   async preRenderEvent() {
     if (this.cache.styleChanged) return;
 
-    this.cache.qm.resetQuery();
+    if (!this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT) {
+      this.cache.qm.resetQuery();
+    }
 
     this.cache.nodeIDsToBeShown = new Set();
     this.cache.propIDsToNodeIDsToBeShown = new Map();  // this is used by the bubble-grouping functionality after rendering
