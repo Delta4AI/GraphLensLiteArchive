@@ -309,16 +309,16 @@ class IOManager {
       return;
     }
 
-    function getOrNull(row, key) {
+    const getOrNull = (row, key) => {
       const lowerCaseKey = key.toString().toLowerCase().trim();
       const value = row[Object.keys(row).find(key => key.toLowerCase() === lowerCaseKey)];
       if (value && value.toString().trim() !== "") {
         return value;
       }
       return null;
-    }
+    };
 
-    function validateColumns(requiredColumns, firstRowKeys, sheetName) {
+    const validateColumns = (requiredColumns, firstRowKeys, sheetName) => {
       for (const column of requiredColumns) {
         if (!firstRowKeys.includes(column)) {
           const origColumn = firstRowKeys.filter(k => k.toLowerCase().trim() === column)[0];
@@ -326,9 +326,9 @@ class IOManager {
           return;
         }
       }
-    }
+    };
 
-    function sanitizeColumns(sheetJson, sheetDescriptor) {
+    const sanitizeColumns = (sheetJson, sheetDescriptor) => {
       if (!sheetJson || sheetJson.length === 0) return;
 
       const firstRow = sheetJson[0];
@@ -354,9 +354,9 @@ class IOManager {
       Object.entries(columnMapping).forEach(([original, sanitized]) => {
         this.cache.ui.warning(`Column "${original}" in "${sheetDescriptor}" sheet was renamed to "${sanitized}" for proper group parsing.`);
       });
-    }
+    };
 
-    function removeEmptyColumns(sheetJson, sheetDescriptor) {
+    const removeEmptyColumns = (sheetJson, sheetDescriptor) => {
       const propertyDefs = sheetDescriptor === 'edges'
         ? EXCEL_EDGE_PROPERTIES : EXCEL_NODE_PROPERTIES;
       const requiredCols = propertyDefs.filter(prop => prop.required).map(prop => prop.column);
@@ -400,9 +400,9 @@ class IOManager {
       sheetJson.forEach(row => {
         allEmptyColumns.forEach(col => delete row[col]);
       });
-    }
+    };
 
-    function worksheetToJson(worksheet) {
+    const worksheetToJson = (worksheet) => {
       if (!worksheet) return [];
 
       const jsonData = [];
@@ -427,12 +427,35 @@ class IOManager {
 
         const hasData = Object.values(rowData).some(val => val !== null && val !== undefined && val !== '');
         if (hasData) {
-          jsonData.data.push(rowData);
+          jsonData.push(rowData);
         }
       });
 
       return {"headers": headers, "jsonData": jsonData};
-    }
+    };
+
+    const decodeKey = (key) => {
+      let subGroup = this.cache.CFG.EXCEL_UNCATEGORIZED_SUBHEADER;
+      let trimmedKey;
+
+      const matches = key.match(/\[.*?\]/g);
+      if (matches && matches.length >= 2) {
+        const lastBracketContent = matches[matches.length - 1];
+        subGroup = lastBracketContent.substring(1, lastBracketContent.length - 1).trim();
+
+        // For multiple brackets, preserve all except the last one in the key
+        const lastBracketIndex = key.lastIndexOf(matches[matches.length - 1]);
+        trimmedKey = key.substring(0, lastBracketIndex).trim();
+      } else if (matches && matches.length === 1) {
+        const bracketContent = matches[0];
+        subGroup = bracketContent.substring(1, bracketContent.length - 1).trim();
+        trimmedKey = key.substring(0, key.indexOf('[')).trim();
+      } else {
+        trimmedKey = key.trim();
+      }
+
+      return {"subGroup": subGroup, "key": trimmedKey};
+    };
 
     const nodesDataDict = worksheetToJson(nodesSheet);
     const edgesDataDict = worksheetToJson(edgesSheet);
@@ -480,7 +503,7 @@ class IOManager {
       .filter(k => !nonDataEdgeColumns.has(k.toLowerCase().trim()) && !k.startsWith("__EMPTY") && k !== "__rowNum__")
       .map((k) => decodeKey(k));
 
-    function addNodeOrEdgeStyle(nodeOrEdge, row, propertyMap, descriptor) {
+    const addNodeOrEdgeStyle = (nodeOrEdge, row, propertyMap, descriptor) => {
       nodeOrEdge.style = {};
 
       propertyMap.forEach(({column, type, required, apply}) => {
@@ -528,32 +551,9 @@ class IOManager {
           }
         }
       });
-    }
+    };
 
-    function decodeKey(key) {
-      let subGroup = this.cache.CFG.EXCEL_UNCATEGORIZED_SUBHEADER;
-      let trimmedKey;
-
-      const matches = key.match(/\[.*?\]/g);
-      if (matches && matches.length >= 2) {
-        const lastBracketContent = matches[matches.length - 1];
-        subGroup = lastBracketContent.substring(1, lastBracketContent.length - 1).trim();
-
-        // For multiple brackets, preserve all except the last one in the key
-        const lastBracketIndex = key.lastIndexOf(matches[matches.length - 1]);
-        trimmedKey = key.substring(0, lastBracketIndex).trim();
-      } else if (matches && matches.length === 1) {
-        const bracketContent = matches[0];
-        subGroup = bracketContent.substring(1, bracketContent.length - 1).trim();
-        trimmedKey = key.substring(0, key.indexOf('[')).trim();
-      } else {
-        trimmedKey = key.trim();
-      }
-
-      return {"subGroup": subGroup, "key": trimmedKey};
-    }
-
-    function validateUserData(row, key) {
+    const validateUserData = (row, key) => {
       const val = row[key];
 
       if (val === null || val.toString().trim() === "") {
@@ -561,9 +561,9 @@ class IOManager {
       }
 
       return {"value": val, ...decodeKey(key)};
-    }
+    };
 
-    function addNodeOrEdgeUserData(nodeOrEdge, row, propertyMap, header, descriptor) {
+    const addNodeOrEdgeUserData = (nodeOrEdge, row, propertyMap, header, descriptor) => {
       nodeOrEdge.D4Data = {
         [header]: {},
       };
@@ -593,7 +593,7 @@ class IOManager {
           "exists": true
         }
       }
-    }
+    };
 
     const nodeIDs = new Set();
 
@@ -706,25 +706,35 @@ class IOManager {
         nodeFeatures.add(propId);
 
         if (isNaN(data)) {
+          // Split categorical values by pipe separator
+          const values = String(data).includes('|')
+            ? String(data).split('|').map(v => v.trim()).filter(v => v !== '')
+            : [data];
+
           if (!nodeFeatureValues.has(propId)) {
             nodeFeatureValues.set(propId, new Set());
           }
-          nodeFeatureValues.get(propId).add(data);
+          values.forEach(val => {
+            nodeFeatureValues.get(propId).add(val);
+            this.populateFilterPropsLowsAndHighs(propId, val);
+          });
         } else {
           nodeFeatureValues.set(propId, data);
+          this.populateFilterPropsLowsAndHighs(propId, data);
         }
         nodeFeatureWithinThreshold.set(propId, null);
-        this.populateFilterPropsLowsAndHighs(propId, data);
       }
 
       if (node.style?.x && node.style?.y) {
         this.cache.nodePositionsFromExcelImport.set(node.id, {x: node.style.x, y: node.style.y});
       }
 
+      const nodeDefaults = this.cache.style.getNodeStyleOrDefaults(node);
       return {
         ...node,
-        ...this.cache.style.getNodeStyleOrDefaults(node),
-        originalStyle: structuredClone(this.cache.style.getNodeStyleOrDefaults(node).style),
+        ...nodeDefaults,
+        originalType: nodeDefaults.type,
+        originalStyle: structuredClone(nodeDefaults.style),
         features: nodeFeatures,
         featureValues: nodeFeatureValues,
         featureIsWithinThreshold: nodeFeatureWithinThreshold,
@@ -740,21 +750,31 @@ class IOManager {
         let propId = StaticUtilities.generatePropHashId(section, subsection, prop);
         edgeFeatures.add(propId);
         if (isNaN(data)) {
+          // Split categorical values by pipe separator
+          const values = String(data).includes('|')
+            ? String(data).split('|').map(v => v.trim()).filter(v => v !== '')
+            : [data];
+
           if (!edgeFeatureValues.has(propId)) {
             edgeFeatureValues.set(propId, new Set());
           }
-          edgeFeatureValues.get(propId).add(data);
+          values.forEach(val => {
+            edgeFeatureValues.get(propId).add(val);
+            this.populateFilterPropsLowsAndHighs(propId, val);
+          });
         } else {
           edgeFeatureValues.set(propId, data);
+          this.populateFilterPropsLowsAndHighs(propId, data);
         }
         edgeFeatureWithinThreshold.set(propId, null);
-        this.populateFilterPropsLowsAndHighs(propId, data);
       }
 
+      const edgeDefaults = this.cache.style.getEdgeStyleOrDefaults(edge);
       return {
         ...edge,
-        ...this.cache.style.getEdgeStyleOrDefaults(edge),
-        originalStyle: structuredClone(this.cache.style.getEdgeStyleOrDefaults(edge).style),
+        ...edgeDefaults,
+        originalType: edgeDefaults.type,
+        originalStyle: structuredClone(edgeDefaults.style),
         features: edgeFeatures,
         featureValues: edgeFeatureValues,
         featureIsWithinThreshold: edgeFeatureWithinThreshold,
@@ -901,7 +921,7 @@ class IOManager {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "this.cache.graph.json";
+    a.download = "graph-export.json";
     a.click();
     URL.revokeObjectURL(url);
     await this.cache.ui.hideLoading();
@@ -1007,7 +1027,11 @@ class IOManager {
 
         this.cache.io.preProcessData(fileData);
         this.cache.buildDataTable(fileData);
-        this.cache.initialize(fileData);
+        // Pass only headers to initialize, not nodes/edges (already processed)
+        this.cache.initialize({
+          nodeDataHeaders: fileData.nodeDataHeaders,
+          edgeDataHeaders: fileData.edgeDataHeaders
+        });
         this.cache.ui.buildUI();
         await this.cache.gcm.createGraphInstance();
 
@@ -1038,13 +1062,13 @@ class IOManager {
     try {
       await this.cache.ui.showLoading("Loading", "Generating picture data");
       await new Promise(resolve => requestAnimationFrame(resolve));
-      const imageData = this.cache.graph.toDataURL({
+      const imageData = await this.cache.graph.toDataURL({
         type: "image/png", mode: "viewport"
       });
 
       const link = document.createElement('a');
       link.href = imageData;
-      link.download = 'this.cache.graph.png';
+      link.download = 'graph-export.png';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

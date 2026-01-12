@@ -112,7 +112,11 @@ class QueryAST {
     // --- IN [ a, b, c ] -------------------------------------------------
     if (op.startsWith('IN')) {
       const set = tokens.slice(2).map(t => t.value);
-      validated = set.includes(propVal);
+      // Split pipe-separated values and check if any match
+      const values = String(propVal).includes('|')
+        ? String(propVal).split('|').map(v => v.trim()).filter(v => v !== '')
+        : [propVal];
+      validated = values.some(val => set.includes(val));
     }
 
     element.featureIsWithinThreshold.set(tokens[0].propID, validated);
@@ -512,8 +516,13 @@ class QueryManager {
   }
 
   async handleQueryUpdateEvent() {
-    this.updateUIFromQueryInstructions();
-    await this.cache.fm.handleFilterEvent("Updating Graph from Query", this.cache.query.text.textContent, null, false);
+    this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT = true;
+    try {
+      this.updateUIFromQueryInstructions();
+      await this.cache.fm.handleFilterEvent("Updating Graph from Query", this.cache.query.text.textContent, null, false);
+    } finally {
+      this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT = false;
+    }
   }
 
   async handleQuerySelectEvent() {
