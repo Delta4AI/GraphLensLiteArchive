@@ -36,7 +36,8 @@
         "nsis",
         "portable",
         "zip"
-      ]
+      ],
+      "signAndEditExecutable": false
     },
     "linux": {
       "target": [
