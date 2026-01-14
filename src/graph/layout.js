@@ -32,6 +32,10 @@ class GraphLayoutManager {
 
     await this.cache.gcm.decideToRenderOrDraw(true);
 
+    // Update manual bubble group status after layout change
+    this.cache.bs.updateManualGroupStatus();
+    this.cache.bs.updateManualGroupButtonState();
+
     this.cache.ui.info(`Switched to view: ${this.cache.data.selectedLayout}`);
   }
 
@@ -60,6 +64,7 @@ class GraphLayoutManager {
     };
     for (let group of this.cache.bs.traverseBubbleSets()) {
       this.cache.data.layouts[layoutName][`${group}Props`] = structuredClone(currentLayout[`${group}Props`]);
+      this.cache.data.layouts[layoutName][`${group}ManualMembers`] = structuredClone(currentLayout[`${group}ManualMembers`] || new Set());
     }
 
     this.cache.ui.buildDropdownOptions();

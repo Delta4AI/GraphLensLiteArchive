@@ -188,7 +188,7 @@ const CFG = {
   AVOID_MEMBERS_IN_BUBBLE_GROUPS: false,
 
 // Maximum capacity of selection memory
-  MAX_SELECTION_MEMORY: 10,
+  MAX_SELECTION_MEMORY: 25,
 
 // Header automatically assigned to properties without a group definition
   EXCEL_UNCATEGORIZED_SUBHEADER: "Uncategorized Properties",

@@ -598,6 +598,33 @@ class UIComponentManager {
     return circleButton;
   }
 
+  createManualBubbleGroupButton() {
+    const circleButton = document.createElement('div');
+    circleButton.className = `circle-button-compact`;
+    circleButton.id = 'manualBubbleGroupButton';
+
+    for (let [group, quadrantPosition] of Object.entries(DEFAULTS.BUBBLE_GROUP_QUADRANT_POSITIONS)) {
+      const quadrant = document.createElement('button');
+      quadrant.classList.add("quadrant");
+      quadrant.classList.add(quadrantPosition);
+      quadrant.classList.add("manual");
+      quadrant.classList.add("compact");
+
+      quadrant.addEventListener('click', async () => {
+        try {
+          await this.cache.bs.toggleSelectedNodesInManualGroup(group);
+        } catch (err) {
+          this.cache.ui.error(`Failed to update manual bubble group: ${err.message}`);
+        }
+      });
+
+      quadrant.title = `Toggle selected nodes in manual ${group}`;
+      circleButton.appendChild(quadrant);
+    }
+
+    return circleButton;
+  }
+
   buildToolTipText(nodeOrEdgeID, isEdge) {
     function initAndAddHeader() {
       const idFormatted = `<span class='purple'>ID: </span>${item.id}`;
