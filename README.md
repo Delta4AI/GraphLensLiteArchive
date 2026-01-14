@@ -6,15 +6,14 @@ Works in any modern browser, with native Electron desktops for Windows and Linux
 ---
 
 ## Quickstart
-1. Download a [template](templates/GLL_template.xlsx)
-2. Download the [latest release](https://github.com/Delta4AI/GraphLensLite/releases/latest) for your OS
-3. (Optional) Put your own data into the template
-4. Launch Graph Lens Lite and load the file
+1. Download the [latest release](https://github.com/Delta4AI/GraphLensLite/releases/latest) for your OS
+2. (Optional) Download a [template](templates/GLL_template.xlsx) and populate with your own data
+3. Launch Graph Lens Lite and start exploring by either loading a demo network or a file
 
 ---
 
 ## Screenshots
-TBD
+TBC
 
 ---
 
@@ -26,17 +25,16 @@ TBD
     npm run serve
     ```
 2. Open browser, go to [http://localhost:8080/graph_lens_lite.html](http://localhost:8080/graph_lens_lite.html)
-3. Run WebStorm JavaScript debugger
-    - URL: `http://localhost:8000/graph_lens_lite.html`
-    - Browser: Chromium
-4. Set Breakpoints and debug
-5. **Alternatively**, create compound run configuration in WebStorm:
-   1. Add `npm run serve` npm configuration
-   2. Add `JavaScript Debug` (with URL and Browser from step 3)
-   3. Add `Compound` configuratoin, add `npm run serve` and `JavaScript Debug` as children
-   4. Debug the compound configuration to start everything at once#
-
-### Run electron app
+3. (Optional) Create compound run configuration with JavaScript debugger in WebStorm
+   1. Create JavaScript debug configuration: 
+       - URL: `http://localhost:8000/graph_lens_lite.html`
+       - Browser: Chromium
+   2. Create `npm run serve` npm configuration
+   3. Add `Compound` configuration, add `npm run serve` and `JavaScript Debug` as children
+   4. Debug the compound configuration to start everything at once
+   5. Set Breakpoints and debug
+      
+### Common npm goals
 ```bash
 # Install prerequisites (fedora)
 sudo dnf install libxcrypt-compat wine
@@ -59,3 +57,9 @@ npm install --save-dev electron@latest electron-builder@latest
 ## Known issues
 
 1. Deselection by clicking on empty spaces in the canvas take a long time on large graphs (see [GitHub issue](https://github.com/antvis/G6/issues/7195))
+2. The Query Editor cursor tends to change position on multiline queries
+
+---
+
+## Reference
+TBC
