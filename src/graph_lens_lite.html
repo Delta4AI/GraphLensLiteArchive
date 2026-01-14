@@ -99,6 +99,7 @@
               onclick="cache.gcm.focusNodes()">🔍</button>
       <button id="deselectNodesBtn" class="tiny-btn red disabled" title="Clear node selection"
               onclick="cache.sm.toggleSelectionForAllNodes(false)">×</button>
+      <span id="manualBubbleGroupButtonContainer" class="manual-group-container"></span>
       <br>
       Selected edges: <span id="selectedEdges" class="red"></span>
       <button id="focusEdgesBtn" class="tiny-btn disabled ml-1" title="Center and zoom the viewport to show all selected edges"
@@ -113,6 +114,10 @@
               onclick="cache.sm.undoSelection()">↩</button>
       <button class="small-btn disabled" title="Redo Selection" id="redoSelectionBtn"
               onclick="cache.sm.redoSelection()">↪</button>
+      <div id="manualGroupSeparator" class="button-separator" style="display: none;"></div>
+      <span id="manualBubbleGroupStatus" class="manual-group-status" style="display: none;"></span>
+      <button id="clearManualGroupsBtn" class="small-btn red" title="Clear all manual bubble groups"
+              onclick="cache.bs.clearAllManualGroups()" style="display: none;">×</button>
     </div>
     <div id="innerGraphContainer"></div>
   </div>

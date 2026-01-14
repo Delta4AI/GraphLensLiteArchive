@@ -48,6 +48,9 @@ class StashManager {
     for (const group of this.cache.bs.traverseBubbleSets()) {
       this.cache.data.stash[stashName].bubbleSets[group] = [...this.cache.INSTANCES.BUBBLE_GROUPS[group].members.keys()];
       this.cache.data.stash[stashName].groupedProps[group] = new Set([...this.cache.data.layouts[this.cache.data.selectedLayout][`${group}Props`]]);
+      // Save manual bubble group members
+      const manualMembers = this.cache.data.layouts[this.cache.data.selectedLayout][`${group}ManualMembers`] || new Set();
+      this.cache.data.stash[stashName].groupedProps[`${group}ManualMembers`] = new Set([...manualMembers]);
     }
 
     await this.captureStashViewport(stashName);
@@ -92,6 +95,9 @@ class StashManager {
     for (const group of this.cache.bs.traverseBubbleSets()) {
       this.cache.data.layouts[this.cache.data.selectedLayout][`${group}Props`] = new Set([...groupedProps[group]]);
       this.cache.lastBubbleSetMembers.set(group, new Set(this.cache.data.stash[selected].bubbleSets[group]));
+      // Restore manual bubble group members
+      const manualMembers = groupedProps[`${group}ManualMembers`] || new Set();
+      this.cache.data.layouts[this.cache.data.selectedLayout][`${group}ManualMembers`] = new Set([...manualMembers]);
     }
 
     this.cache.ui.buildFilterUI();
@@ -102,6 +108,10 @@ class StashManager {
     await this.restoreStashViewport();
     await this.cache.sm.selectNodes(this.cache.data.stash[selected].selectedNodes);
     await this.cache.sm.selectEdges(this.cache.data.stash[selected].selectedEdges);
+
+    // Update manual bubble group status after loading stash
+    this.cache.bs.updateManualGroupStatus();
+    this.cache.bs.updateManualGroupButtonState();
 
     this.cache.ui.info(`Applied filter profile: ${selected}`);
   }

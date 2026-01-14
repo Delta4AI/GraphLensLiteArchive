@@ -48,6 +48,9 @@ class GraphSelectionManager {
     await this.cache.graph.updateData(updatedData);
     await this.cache.graph.render();
 
+    // Update manual bubble group button state when selection changes
+    this.cache.bs.updateManualGroupButtonState();
+
     await this.cache.ui.hideLoading();
     await new Promise(resolve => requestAnimationFrame(resolve));
   }
@@ -92,6 +95,9 @@ class GraphSelectionManager {
       this.updateElementSelectedState(edge, snapshot.edges.includes(edge.id));
     }
     await this.cache.graph.render();
+
+    // Update manual bubble group button state when selection is synced (undo/redo)
+    this.cache.bs.updateManualGroupButtonState();
   }
 
   undoSelection() {

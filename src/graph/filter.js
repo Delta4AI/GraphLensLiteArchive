@@ -31,6 +31,10 @@ class GraphFilterManager {
 
     await this.cache.ui.showLoading(header, text);
     await new Promise(resolve => requestAnimationFrame(resolve));
+
+    // Clean up manual bubble groups (remove filtered-out nodes)
+    this.cache.bs.cleanupManualGroupMembers();
+
     await this.cache.gcm.decideToRenderOrDraw();
   }
 

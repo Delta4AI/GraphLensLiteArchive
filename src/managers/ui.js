@@ -472,6 +472,11 @@ class UIManager {
     div.innerHTML = "";
     div.appendChild(this.cache.metrics.buildMetricUI());
 
+    // Initialize manual bubble group button
+    const manualButtonContainer = document.getElementById("manualBubbleGroupButtonContainer");
+    manualButtonContainer.innerHTML = "";
+    manualButtonContainer.appendChild(this.cache.uiComponents.createManualBubbleGroupButton());
+
     this.buildFilterUI();
 
     document.getElementById("resetSelectedElementsStyleBtn").title = this.cache.CFG.RESET_SELECTION_BUTTON_RESETS_POSITIONS
