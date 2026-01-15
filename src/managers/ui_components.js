@@ -106,6 +106,10 @@ class DropdownChecklist {
   }
 
   async handleSelection(ev) {
+    if (this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) {
+      ev.preventDefault();
+      return;
+    }
     try {
       ev.target.checked
         ? this.selectedCategories.add(ev.target.value)
@@ -305,6 +309,10 @@ class InvertibleRangeSlider {
     input.style.boxSizing = 'border-box';
     input.value = initialValue;
     input.addEventListener('keydown', (ev) => {
+      if (this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) {
+        ev.preventDefault();
+        return;
+      }
       if (ev.key === 'Enter') {
         let newValue = parseFloat(input.value);
         const sliderElem = document.getElementById(relatedSliderId);
@@ -395,8 +403,12 @@ class InvertibleRangeSlider {
       this.sliderEnd.dispatchEvent(new Event('change'));
     });
 
-    this.sliderStart.addEventListener("input", () => this.handleThresholdOnInputEvent(true));
+    this.sliderStart.addEventListener("input", () => {
+      if (this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) return;
+      this.handleThresholdOnInputEvent(true);
+    });
     this.sliderStart.addEventListener("change", async () => {
+      if (this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) return;
       try {
         this.writeCurrentFilterSettings();
         await this.cache.fm.handleFilterEvent("Filtering",
@@ -405,8 +417,12 @@ class InvertibleRangeSlider {
         this.cache.ui.error(`Failed to apply lower threshold: ${err.message}`);
       }
     });
-    this.sliderEnd.addEventListener("input", () => this.handleThresholdOnInputEvent(false));
+    this.sliderEnd.addEventListener("input", () => {
+      if (this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) return;
+      this.handleThresholdOnInputEvent(false);
+    });
     this.sliderEnd.addEventListener("change", async () => {
+      if (this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) return;
       try {
         this.writeCurrentFilterSettings();
         await this.cache.fm.handleFilterEvent("Filtering",
@@ -814,6 +830,7 @@ class UIComponentManager {
 
     input.addEventListener('change', updateCheckbox);
     wrapper.addEventListener('change', async () => {
+      if (this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) return;
       try {
         this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(propID).active = input.checked;
         input.checked ? this.cache.activeProps.add(propID) : this.cache.activeProps.delete(propID);

@@ -102,6 +102,17 @@ class StashManager {
 
     this.cache.ui.buildFilterUI();
 
+    // Restore query text and check if it was manually edited
+    this.cache.qm.updateQueryTextArea();
+    if (this.cache.data.layouts[this.cache.data.selectedLayout]["query"]) {
+      // Stash has a custom query, lock filters
+      this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = true;
+    } else {
+      // No custom query, filters are unlocked
+      this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = false;
+    }
+    this.cache.ui.updateFilterLockState();
+
     await this.cache.ui.showLoading("Loading filter profile", `Applying profile ${selected} ..`);
     await this.cache.bs.clearBubbleSetInstanceMembers();
     await this.cache.gcm.decideToRenderOrDraw(true);

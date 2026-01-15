@@ -492,6 +492,20 @@ class UIManager {
   buildFilterUI() {
     const div = document.getElementById("filterContainer");
     div.innerHTML = "";
+
+    // Always create lock status bar, show/hide based on lock state
+    const statusBar = this.createFilterLockStatusBar();
+    statusBar.id = 'filterLockStatusBar';
+    statusBar.style.display = this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY ? 'flex' : 'none';
+    div.appendChild(statusBar);
+
+    // Add/remove locked class on container
+    if (this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) {
+      div.classList.add('locked');
+    } else {
+      div.classList.remove('locked');
+    }
+
     let sectionsCreated = new Set();
     let subSectionsCreated = new Set();
     const sortedPropIDs = this.cache.CFG.SORT_FILTERS ?
@@ -639,6 +653,64 @@ class UIManager {
     }
   }
 }
+
+  createFilterLockStatusBar() {
+    const statusBar = document.createElement('div');
+    statusBar.className = 'filter-lock-status-bar';
+    statusBar.innerHTML = `
+      <div class="filter-lock-message">
+        <span class="filter-lock-icon">🔒</span>
+        <span>Filters locked | Query manually edited</span>
+      </div>
+      <button class="filter-unlock-btn" onclick="cache.ui.unlockFiltersAndResetQuery()">
+        Unlock
+      </button>
+    `;
+    return statusBar;
+  }
+
+  updateFilterLockState() {
+    const statusBar = document.getElementById('filterLockStatusBar');
+    const container = document.getElementById('filterContainer');
+
+    if (statusBar && container) {
+      const isLocked = this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY;
+
+      if (isLocked) {
+        statusBar.style.display = 'flex';
+        container.classList.add('locked');
+      } else {
+        statusBar.style.display = 'none';
+        container.classList.remove('locked');
+      }
+
+      // Disable/enable all range inputs programmatically to fully prevent interaction
+      const rangeInputs = container.querySelectorAll('input[type="range"]');
+      rangeInputs.forEach(input => {
+        input.disabled = isLocked;
+      });
+
+      // Disable/enable number inputs
+      const numberInputs = container.querySelectorAll('input[type="number"]');
+      numberInputs.forEach(input => {
+        input.disabled = isLocked;
+      });
+    }
+  }
+
+  async unlockFiltersAndResetQuery() {
+    this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = false;
+    this.cache.qm.resetQuery();
+    this.updateFilterLockState(); // Update UI without full rebuild
+
+    // Apply the reset query without re-locking
+    this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT = true;
+    try {
+      await this.cache.fm.handleFilterEvent("Resetting Query", "Syncing filters with UI state", null, false);
+    } finally {
+      this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT = false;
+    }
+  }
 }
 
 export {UIManager};

@@ -517,8 +517,10 @@ class QueryManager {
 
   async handleQueryUpdateEvent() {
     this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT = true;
+    this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = true;
     try {
       this.updateUIFromQueryInstructions();
+      this.cache.ui.updateFilterLockState(); // Show lock status bar
       await this.cache.fm.handleFilterEvent("Updating Graph from Query", this.cache.query.text.textContent, null, false);
     } finally {
       this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT = false;
@@ -744,6 +746,10 @@ class QueryManager {
     this.cache.query.overlay.innerHTML = "";
     this.updateQueryTextArea();
     this.moveCaretToEnd();
+
+    // Clear filter lock when resetting query
+    this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = false;
+    this.cache.ui.updateFilterLockState();
   }
 
   storeQuery() {

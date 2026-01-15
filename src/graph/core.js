@@ -630,7 +630,8 @@ class GraphCoreManager {
   async preRenderEvent() {
     if (this.cache.styleChanged) return;
 
-    if (!this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT) {
+    // Only reset query if not manually updated AND filters not locked by manual query
+    if (!this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT && !this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) {
       this.cache.qm.resetQuery();
     }
 

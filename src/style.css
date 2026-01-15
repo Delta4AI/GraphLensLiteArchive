@@ -548,6 +548,87 @@ h5 {
     align-items: center;
 }
 
+/* Filter lock status bar */
+.filter-lock-status-bar {
+    background-color: #FFF3CD;
+    border: 1px solid #FFE69C;
+    border-left: 4px solid #FFC107;
+    border-radius: 3px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #856404;
+    font-size: 0.9em;
+}
+
+.filter-lock-message {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 12px;
+}
+
+.filter-lock-icon {
+    font-size: 1em;
+}
+
+.filter-unlock-btn {
+    background-color: #403C53;
+    color: white;
+    border: 1px solid #000;
+    border-radius: 3px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 0.85em;
+    white-space: nowrap;
+}
+
+.filter-unlock-btn:hover {
+    background-color: #C33D35;
+}
+
+/* Locked filter state - show not-allowed cursor on container */
+#filterContainer.locked {
+    cursor: not-allowed !important;
+}
+
+/* Locked filter state - disable all interactive elements */
+#filterContainer.locked .header-card button,
+#filterContainer.locked .sub-header-card button,
+#filterContainer.locked .circle-button,
+#filterContainer.locked .circle-button .quadrant,
+#filterContainer.locked .checkbox-container,
+#filterContainer.locked .dropdown-checklist,
+#filterContainer.locked .filter-row-col1 label,
+#filterContainer.locked .filter-row-col2,
+#filterContainer.locked .slider-container,
+#filterContainer.locked input[type="number"],
+#filterContainer.locked .range-slider-thumb,
+#filterContainer.locked .range-slider,
+#filterContainer.locked .header-card,
+#filterContainer.locked .sub-header-card {
+    opacity: 0.5;
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+}
+
+/* Keep range inputs invisible when locked to prevent browser default disabled styling from showing */
+#filterContainer.locked input[type="range"] {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+}
+
+/* Keep "Add to Query" buttons in edit mode active - full opacity and interactive */
+#filterContainer.locked button.purple,
+#filterContainer.locked .show-on-edit button.purple {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
 /* adapted from https://css-loaders.com */
 .loader {
     width: 40px;
