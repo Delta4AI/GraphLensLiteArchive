@@ -1033,6 +1033,14 @@ class IOManager {
           edgeDataHeaders: fileData.edgeDataHeaders
         });
         this.cache.ui.buildUI();
+
+        // Check if loaded file has custom query and lock filters if so
+        this.cache.qm.updateQueryTextArea();
+        if (this.cache.data.layouts[this.cache.data.selectedLayout]["query"]) {
+          this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = true;
+          this.cache.ui.updateFilterLockState();
+        }
+
         await this.cache.gcm.createGraphInstance();
 
         if (!this.cache.graph) {

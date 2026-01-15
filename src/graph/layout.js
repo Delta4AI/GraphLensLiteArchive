@@ -24,6 +24,10 @@ class GraphLayoutManager {
     }
 
     this.cache.ui.buildFilterUI();
+
+    // Clear filter lock when switching layouts (layouts don't store queries yet)
+    this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = false;
+    this.cache.ui.updateFilterLockState();
     this.cache.ui.clearActivePropsCacheOnLayoutChange();
 
     await this.cache.metrics.updateMetricUI();

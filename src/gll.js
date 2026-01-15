@@ -87,6 +87,8 @@ class Cache {
       GLOBAL_EVENTS_REGISTERED: false,
       SKIP_QUERY_VALIDATION: false,
       QUERY_SELECTION_EVENT: false,
+      QUERY_UPDATE_EVENT: false,
+      FILTERS_LOCKED_BY_MANUAL_QUERY: false,
     };
 
     this.excelData = excelData;
