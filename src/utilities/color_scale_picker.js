@@ -13,8 +13,9 @@ class ColorScalePicker {
     this.categories = [];
     this.defaultColorForMissing = '#CCCCCC';
     this.elementType = "nodes";
+    this.currentProperty = null;
     this.dom = {};
-    
+
     this.cache = cache;
   }
 
@@ -27,9 +28,22 @@ class ColorScalePicker {
     content.className = 'picker-content';
     this.dom.content = content;
 
+    const title = document.createElement('h3');
+    title.textContent = 'Map Property to Color Scale';
+    title.style.marginBottom = '20px';
+    title.style.textAlign = 'center';
+    content.appendChild(title);
+
+    const dropdownLabel = document.createElement('div');
+    dropdownLabel.textContent = 'Select Property to Map:';
+    dropdownLabel.style.fontWeight = 'bold';
+    dropdownLabel.style.marginBottom = '8px';
+    content.appendChild(dropdownLabel);
+
     const dropdown = document.createElement('select');
     dropdown.className = 'picker-dropdown';
     this.dom.dropdown = dropdown;
+    content.appendChild(dropdown);
 
     const gradient = document.createElement('div');
     gradient.className = 'picker-gradient disabled';
@@ -98,7 +112,7 @@ class ColorScalePicker {
     this.dom.applyButton = applyButton;
 
     buttons.append(cancelButton, defaultColorContainer, applyButton);
-    content.append(dropdown, gradient, handleContainer, controls, categoryContainer, buttons);
+    content.append(gradient, handleContainer, controls, categoryContainer, buttons);
     overlay.appendChild(content);
 
     this.element = overlay;
@@ -165,13 +179,49 @@ class ColorScalePicker {
 
     const counterEl = document.createElement('div');
     counterEl.className = 'picker-property-counter';
+    counterEl.style.padding = '15px';
+    counterEl.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
+    counterEl.style.borderRadius = '4px';
+    counterEl.style.marginTop = '15px';
     this.element.querySelector('.picker-content').insertBefore(
       counterEl,
       this.element.querySelector('.picker-gradient')
     );
 
-    const elementTypeLabel = this.elementType === 'nodes' ? 'Nodes' : 'Edges';
-    counterEl.textContent = `Affected ${elementTypeLabel}: ${elementsWithPropertyCount} / ${totalElements}`;
+    const elementTypeLabel = this.elementType === 'nodes' ? 'nodes' : 'edges';
+
+    // Extract property label after last "::"
+    const propertyDisplayName = property.includes('::')
+      ? property.split('::').pop()
+      : property;
+
+    // Get the current property being styled (like "Node Fill Color")
+    const targetProperty = this.currentProperty || 'color';
+
+    let summaryHTML = `
+      <div style="font-size: 14px;">
+        Coloring <strong>${targetProperty}</strong> for <strong>${elementsWithPropertyCount}</strong> of <strong>${totalElements}</strong> affected ${elementTypeLabel}
+    `;
+
+    // Add property range for continuous (non-category) properties
+    if (!filterObj.isCategory) {
+      const values = Array.from(elementsWithProperty)
+        .map(id => elementRef.get(id)?.featureValues.get(property))
+        .filter(v => v !== undefined);
+
+      const minVal = Math.min(...values);
+      const maxVal = Math.max(...values);
+
+      summaryHTML += `<br><div style="font-size: 13px; color: #333; margin-top: 8px;">
+          <strong>${propertyDisplayName}</strong> min: ${minVal.toFixed(2)} &nbsp;&nbsp;&nbsp;&nbsp; <strong>${propertyDisplayName}</strong> max: ${maxVal.toFixed(2)}
+        </div>`;
+    }
+
+    summaryHTML += `
+      </div>
+    `;
+
+    counterEl.innerHTML = summaryHTML;
 
     if (this.dom.defaultColorContainer) {
       if (elementsWithPropertyCount === totalElements) {
@@ -399,9 +449,8 @@ class ColorScalePicker {
 
         if (value !== undefined && categoryColorMap.has(value)) {
           colorMap.set(elementId, categoryColorMap.get(value));
-        } else {
-          colorMap.set(elementId, this.defaultColorForMissing);
         }
+        // Skip elements without the property - they'll keep their original color
       });
     } else {
       Array.from(selectedElements).forEach(elementId => {
@@ -412,9 +461,8 @@ class ColorScalePicker {
           const normalizedValue = ((value - this.minValue) / (this.maxValue - this.minValue)) * 100;
           const color = this.getColorForValue(normalizedValue);
           colorMap.set(elementId, color);
-        } else {
-          colorMap.set(elementId, this.defaultColorForMissing);
         }
+        // Skip elements without the property - they'll keep their original color
       });
     }
 
@@ -494,7 +542,13 @@ function replaceColorScale(obj, elemID, colorMap) {
     const value = obj[key];
 
     if (value === "set_continuous_color_scale") {
-      obj[key] = colorMap.get(elemID);
+      // Only replace if element has a color in the map
+      if (colorMap.has(elemID)) {
+        obj[key] = colorMap.get(elemID);
+      } else {
+        // Delete the key so this property is not modified for elements without the property
+        delete obj[key];
+      }
     } else if (typeof value === 'object') {
       replaceColorScale(value, elemID, colorMap);
     }

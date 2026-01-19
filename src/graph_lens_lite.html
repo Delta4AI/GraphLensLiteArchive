@@ -60,27 +60,6 @@
           <span id="visibleEdges" class="red">0</span>/<span id="totalEdges">0</span> edges
         </h5>
         <hr>
-        <div class="show-on-edit-full-width">
-          <label for="selectStash">Filter Profiles:</label>
-          <button class="small-btn" id="addStash"
-                  title="Save current filter settings and bubble groups as a new profile (can be reapplied in different view)"
-                  onclick="cache.stash.saveStash()">📥
-          </button>
-          <select class="disabled" name="selectStash" id="selectStash"></select>
-          <button class="small-btn red disabled" id="removeStash"
-                  title="Delete selected profile"
-                  onclick="cache.stash.removeStash()">✗
-          </button>
-          <button class="small-btn orange disabled" id="overwriteStash"
-                  title="Overwrite selected profile with current settings"
-                  onclick="cache.stash.overwriteStash()">⟳
-          </button>
-          <button class="small-btn green disabled" id="applyStash"
-                  title="Apply selected profile to current view"
-                  onclick="cache.stash.loadStash()">✔
-          </button>
-          <hr>
-        </div>
         <div id="metricsContainer"></div>
         <div class="edit-container show-on-edit">
           <div id="staticStyleDiv"></div>
