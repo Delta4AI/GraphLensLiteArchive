@@ -294,6 +294,26 @@ class IOManager {
   }
 
   restoreSetsFromJSON(jsonContent) {
+    // Deduplicate headers to fix old exported files with duplicate headers
+    if (jsonContent.nodeDataHeaders) {
+      const seen = new Set();
+      jsonContent.nodeDataHeaders = jsonContent.nodeDataHeaders.filter(h => {
+        const key = `${h.subGroup}::${h.key}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+    if (jsonContent.edgeDataHeaders) {
+      const seen = new Set();
+      jsonContent.edgeDataHeaders = jsonContent.edgeDataHeaders.filter(h => {
+        const key = `${h.subGroup}::${h.key}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
     // Restore Sets in layouts
     if (jsonContent.layouts) {
       for (const layoutName in jsonContent.layouts) {
@@ -983,17 +1003,18 @@ class IOManager {
 
     await this.cache.ui.showLoading("Exporting graph ..");
     await new Promise(resolve => requestAnimationFrame(resolve));
-    if (!this.cache.data.nodeDataHeaders) {
-      this.cache.data.nodeDataHeaders = [];
-    }
-    if (!this.cache.data.edgeDataHeaders) {
-      this.cache.data.edgeDataHeaders = [];
-    }
+    // Clear and rebuild headers from filterDefaults to avoid duplicates
+    this.cache.data.nodeDataHeaders = [];
+    this.cache.data.edgeDataHeaders = [];
+
     for (const filterDefaultKey of this.cache.data.filterDefaults.keys()) {
       const [nodeOrEdge, subGroup, key] = StaticUtilities.decodePropHashId(filterDefaultKey);
       const targetList = nodeOrEdge === this.cache.CFG.EXCEL_NODE_HEADER ? this.cache.data.nodeDataHeaders : this.cache.data.edgeDataHeaders;
       const elem = {subGroup: subGroup, key: key};
-      if (!targetList.includes(elem)) {
+
+      // Check if header already exists by comparing actual values
+      const exists = targetList.some(h => h.subGroup === elem.subGroup && h.key === elem.key);
+      if (!exists) {
         targetList.push(elem);
       }
     }

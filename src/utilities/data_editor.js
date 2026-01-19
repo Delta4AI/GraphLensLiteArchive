@@ -93,8 +93,15 @@ class DataTable {
     }
 
     this.headers = ["Del", "Row #", "Type", "ID", "Label", "Description"];
-    this.headers.push(...this.fileData.nodeDataHeaders.map(o => `${this.cache.CFG.EXCEL_NODE_HEADER}::${o.subGroup}::${o.key}`));
-    this.headers.push(...this.fileData.edgeDataHeaders.map(o => `${this.cache.CFG.EXCEL_EDGE_HEADER}::${o.subGroup}::${o.key}`));
+
+    // Deduplicate headers to prevent duplicate columns
+    const nodeHeaders = this.fileData.nodeDataHeaders.map(o => `${this.cache.CFG.EXCEL_NODE_HEADER}::${o.subGroup}::${o.key}`);
+    const edgeHeaders = this.fileData.edgeDataHeaders.map(o => `${this.cache.CFG.EXCEL_EDGE_HEADER}::${o.subGroup}::${o.key}`);
+    const uniqueNodeHeaders = [...new Set(nodeHeaders)];
+    const uniqueEdgeHeaders = [...new Set(edgeHeaders)];
+
+    this.headers.push(...uniqueNodeHeaders);
+    this.headers.push(...uniqueEdgeHeaders);
 
     this.headerIndexMap.clear();
     this.headers.forEach((header, index) => {
