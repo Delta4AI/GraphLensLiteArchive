@@ -76,6 +76,14 @@ const regionFromTz = (tz) => {
   return map[prefix] || "";
 };
 
+const normalizeEquipment = (raw) => {
+  const text = String(raw || "").trim();
+  if (!text || text === "\\N") return "Unknown";
+  const tokens = text.split(/\s+/).filter(Boolean);
+  const cleaned = tokens.map((t) => t.replace(/[^A-Za-z]/g, "")).filter(Boolean);
+  return cleaned.length ? cleaned.join(" ") : "Unknown";
+};
+
 // Simple CSV parser that respects quoted fields
 function parseCSV(text) {
   return text
@@ -122,14 +130,16 @@ async function main() {
   const nodes = [];
   const nodeIdSet = new Set();
   const nodeGeo = new Map();
-
+  const usedCountries = new Set();
   for (const a of airports) {
     // OpenFlights airports.dat fields:
     // 0 ID, 1 Name, 2 City, 3 Country, 4 IATA, 5 ICAO, 6 Lat, 7 Lon, 8 Altitude, 9 TZ, 10 DST, 11 TzDB, 12 Type, 13 Source
     const iata = a[4] && a[4] !== "\\N" ? a[4] : "";
     const icao = a[5] && a[5] !== "\\N" ? a[5] : "";
     const id = iata || icao;
+    const country = a[3] || "";
     if (!id || nodeIdSet.has(id)) continue;
+    if (usedCountries.has(country)) continue;
 
     const lat = Number(a[6]);
     const lon = Number(a[7]);
@@ -142,7 +152,7 @@ async function main() {
       "Description": [a[1], a[2], a[3]].filter(Boolean).join(", "),
       "iata [codes]": iata,
       "icao [codes]": icao,
-      "country [geo]": a[3] || "",
+      "country [geo]": country,
       "region [geo]": regionFromTz(tz),
       "lat [geo]": a[6] || "",
       "lon [geo]": a[7] || "",
@@ -152,12 +162,52 @@ async function main() {
     };
 
     nodeIdSet.add(id);
+    usedCountries.add(country);
     if (!Number.isNaN(lat) && !Number.isNaN(lon)) {
       nodeGeo.set(id, { lat, lon });
     }
     nodes.push(row);
     nodesSheet.addRow(nodeHeaders.map((h) => row[h]));
     if (nodes.length >= nodeCount) break;
+  }
+
+  // Fill remaining slots (if unique countries run out)
+  if (nodes.length < nodeCount) {
+    for (const a of airports) {
+      const iata = a[4] && a[4] !== "\\N" ? a[4] : "";
+      const icao = a[5] && a[5] !== "\\N" ? a[5] : "";
+      const id = iata || icao;
+      const country = a[3] || "";
+      if (!id || nodeIdSet.has(id)) continue;
+
+      const lat = Number(a[6]);
+      const lon = Number(a[7]);
+      const tz = a[11] || "";
+      const seed = hashInt(id);
+
+      const row = {
+        "ID": id,
+        "Label": a[1] || id,
+        "Description": [a[1], a[2], a[3]].filter(Boolean).join(", "),
+        "iata [codes]": iata,
+        "icao [codes]": icao,
+        "country [geo]": country,
+        "region [geo]": regionFromTz(tz),
+        "lat [geo]": a[6] || "",
+        "lon [geo]": a[7] || "",
+        "altitude_m [geo]": a[8] || "",
+        "zone [geo]": tz.split("/")[0] || "",
+        "bio_risk_level [health]": pickFrom(["low", "medium", "high"], seed >> 3),
+      };
+
+      nodeIdSet.add(id);
+      if (!Number.isNaN(lat) && !Number.isNaN(lon)) {
+        nodeGeo.set(id, { lat, lon });
+      }
+      nodes.push(row);
+      nodesSheet.addRow(nodeHeaders.map((h) => row[h]));
+      if (nodes.length >= nodeCount) break;
+    }
   }
 
   // Edges sheet
@@ -198,13 +248,13 @@ async function main() {
       "Start Arrow": "FALSE",
       "End Arrow": "FALSE",
       "airline [carrier]": airline || "",
-      "equipment [aircraft]": equipment || "",
+      "equipment [aircraft]": normalizeEquipment(equipment),
       "distance_km [geo]": distance,
       "flight_count [traffic]": flightCount,
       "avg_delay_min [ops]": avgDelay,
       "weight [traffic]": flightCount,
     };
-
+    
     edgeKeys.add(key);
     edgesSheet.addRow(edgeHeaders.map((h) => row[h]));
     degree.set(source, (degree.get(source) || 0) + 1);
@@ -244,7 +294,7 @@ async function main() {
     addEdge(source, target, "Generated", "N/A");
   }
 
-  await workbook.xlsx.writeFile("airport-network-template.xlsx");
+  await workbook.xlsx.writeFile("../templates/airport-network-template.xlsx");
   console.log("Generated airport-network-template.xlsx");
 }
 
