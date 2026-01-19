@@ -490,9 +490,12 @@ class GraphCoreManager {
       }
       this.cache.edgeRef.set(edgeID, edge);
 
-      // Save to current layout's style map
+      // Save to current layout's style map (including type)
       const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
-      currentLayout.edgeStyles.set(edgeID, structuredClone(edge.style));
+      currentLayout.edgeStyles.set(edgeID, {
+        type: edge.type,
+        style: structuredClone(edge.style)
+      });
     }
 
     await this.cache.style.handleStyleChangeLoadingEvent("Style", "Updating Edge Styles");
@@ -565,9 +568,12 @@ class GraphCoreManager {
       }
       this.cache.nodeRef.set(nodeID, node);
 
-      // Save to current layout's style map
+      // Save to current layout's style map (including type)
       const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
-      currentLayout.nodeStyles.set(nodeID, structuredClone(node.style));
+      currentLayout.nodeStyles.set(nodeID, {
+        type: node.type,
+        style: structuredClone(node.style)
+      });
     }
 
     await this.cache.style.handleStyleChangeLoadingEvent("Style", `Updating Node Styles`);
@@ -615,7 +621,24 @@ class GraphCoreManager {
         // load positions from the layouts position Map
         const position = this.cache.data.layouts[this.cache.data.selectedLayout].positions.get(node.id);
 
-        Object.assign(filteredNode, this.cache.style.getNodeStyleOrDefaults(node));
+        // Check if current layout has custom style for this node
+        const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+        const layoutData = currentLayout.nodeStyles.get(node.id);
+
+        if (layoutData) {
+          // Use layout-specific style and type
+          Object.assign(filteredNode, this.cache.style.getNodeStyleOrDefaults(node));
+          // Override with layout-specific type and style
+          if (layoutData.type !== undefined) {
+            filteredNode.type = layoutData.type;
+          }
+          if (layoutData.style) {
+            filteredNode.style = structuredClone(layoutData.style);
+          }
+        } else {
+          // Use default style
+          Object.assign(filteredNode, this.cache.style.getNodeStyleOrDefaults(node));
+        }
 
         // Restore visibility if it was set in the loaded data
         if (savedVisibility) {
@@ -639,7 +662,24 @@ class GraphCoreManager {
         // Preserve visibility from loaded data before applying styles
         const savedVisibility = edge.style?.visibility;
 
-        Object.assign(filteredEdge, this.cache.style.getEdgeStyleOrDefaults(edge));
+        // Check if current layout has custom style for this edge
+        const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+        const layoutData = currentLayout.edgeStyles.get(edge.id);
+
+        if (layoutData) {
+          // Use layout-specific style and type
+          Object.assign(filteredEdge, this.cache.style.getEdgeStyleOrDefaults(edge));
+          // Override with layout-specific type and style
+          if (layoutData.type !== undefined) {
+            filteredEdge.type = layoutData.type;
+          }
+          if (layoutData.style) {
+            filteredEdge.style = structuredClone(layoutData.style);
+          }
+        } else {
+          // Use default style
+          Object.assign(filteredEdge, this.cache.style.getEdgeStyleOrDefaults(edge));
+        }
 
         // Restore visibility if it was set in the loaded data
         if (savedVisibility) {
