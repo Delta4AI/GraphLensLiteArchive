@@ -776,7 +776,7 @@ class IOManager {
 
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "GLL_template.xlsx";
+    a.download = "simple-template.xlsx";
     document.body.appendChild(a);
     a.click();
     a.remove();
