@@ -142,20 +142,17 @@ static async prompt(message) {
       const title = document.createElement('h3');
       title.textContent = 'Create New View Preset';
       title.style.marginTop = '0';
+      title.style.textAlign = 'center';
       container.appendChild(title);
 
       // Name input
-      const nameLabel = document.createElement('label');
-      nameLabel.textContent = 'Name:';
-      nameLabel.style.display = 'block';
-      nameLabel.style.marginBottom = '5px';
-      container.appendChild(nameLabel);
-
       const nameInput = document.createElement('input');
       nameInput.type = 'text';
       nameInput.className = 'p-prompt';
+      nameInput.placeholder = 'Enter view preset name...';
       nameInput.style.width = '100%';
-      nameInput.style.marginBottom = '15px';
+      nameInput.style.marginBottom = '20px';
+      nameInput.style.padding = '8px';
       container.appendChild(nameInput);
 
       // Mode selection
@@ -205,6 +202,22 @@ static async prompt(message) {
       templateLabel.textContent = ' Create from Template';
       templateLabel.style.fontWeight = 'bold';
 
+      // Template dropdown (inline, initially hidden)
+      const dropdown = document.createElement('select');
+      dropdown.id = 'template-type-select';
+      dropdown.className = 'p-prompt';
+      dropdown.style.width = '150px';
+      dropdown.style.marginLeft = '10px';
+      dropdown.style.display = 'none';
+
+      // Populate dropdown with layout types
+      for (const [key, value] of Object.entries(layoutInternals)) {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+        dropdown.appendChild(option);
+      }
+
       const templateDesc = document.createElement('p');
       templateDesc.textContent = 'Starts fresh with selected layout algorithm and default filters';
       templateDesc.style.fontSize = '12px';
@@ -215,42 +228,15 @@ static async prompt(message) {
 
       templateDiv.appendChild(templateRadio);
       templateDiv.appendChild(templateLabel);
+      templateDiv.appendChild(dropdown);
       templateDiv.appendChild(templateDesc);
-
-      // Template dropdown (initially hidden)
-      const dropdownContainer = document.createElement('div');
-      dropdownContainer.id = 'template-dropdown-container';
-      dropdownContainer.style.marginLeft = '20px';
-      dropdownContainer.style.display = 'none';
-
-      const dropdownLabel = document.createElement('label');
-      dropdownLabel.textContent = 'Layout Type:';
-      dropdownLabel.style.display = 'block';
-      dropdownLabel.style.marginBottom = '5px';
-      dropdownContainer.appendChild(dropdownLabel);
-
-      const dropdown = document.createElement('select');
-      dropdown.id = 'template-type-select';
-      dropdown.className = 'p-prompt';
-      dropdown.style.width = '200px';
-
-      // Populate dropdown with layout types
-      for (const [key, value] of Object.entries(layoutInternals)) {
-        const option = document.createElement('option');
-        option.value = key;
-        option.textContent = key.charAt(0).toUpperCase() + key.slice(1);
-        dropdown.appendChild(option);
-      }
-
-      dropdownContainer.appendChild(dropdown);
-      templateDiv.appendChild(dropdownContainer);
       modeContainer.appendChild(templateDiv);
 
       container.appendChild(modeContainer);
 
       // Show/hide dropdown based on radio selection
       const updateDropdownVisibility = () => {
-        dropdownContainer.style.display = templateRadio.checked ? 'block' : 'none';
+        dropdown.style.display = templateRadio.checked ? 'inline-block' : 'none';
       };
 
       cloneRadio.addEventListener('change', updateDropdownVisibility);
@@ -258,16 +244,22 @@ static async prompt(message) {
 
       // Buttons
       const buttonContainer = document.createElement('div');
-      buttonContainer.style.textAlign = 'right';
-      buttonContainer.style.marginTop = '20px';
-
-      const createBtn = document.createElement('button');
-      createBtn.textContent = 'Create';
-      createBtn.className = 'p-button ml-1';
+      buttonContainer.style.display = 'flex';
+      buttonContainer.style.justifyContent = 'flex-end';
+      buttonContainer.style.gap = '10px';
+      buttonContainer.style.marginTop = '25px';
 
       const cancelBtn = document.createElement('button');
       cancelBtn.textContent = 'Cancel';
       cancelBtn.className = 'p-button';
+      cancelBtn.style.backgroundColor = '#878996';
+      cancelBtn.style.color = 'white';
+
+      const createBtn = document.createElement('button');
+      createBtn.textContent = 'Create';
+      createBtn.className = 'p-button';
+      createBtn.style.backgroundColor = '#015C0C';
+      createBtn.style.color = 'white';
 
       buttonContainer.appendChild(cancelBtn);
       buttonContainer.appendChild(createBtn);
