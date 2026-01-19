@@ -275,6 +275,8 @@ class IOManager {
             this.cache.ui.error("File does not contain edges or nodes.");
             resolve(null);
           } else {
+            // Convert arrays back to Sets for specific properties
+            this.restoreSetsFromJSON(jsonContent);
             resolve(jsonContent);
           }
         } catch (errorMsg) {
@@ -289,6 +291,95 @@ class IOManager {
       reader.readAsText(file);
     });
 
+  }
+
+  restoreSetsFromJSON(jsonContent) {
+    // Restore Sets in layouts
+    if (jsonContent.layouts) {
+      for (const layoutName in jsonContent.layouts) {
+        const layout = jsonContent.layouts[layoutName];
+
+        // Restore bubble group manual members
+        for (const key in layout) {
+          if (key.endsWith('ManualMembers') && Array.isArray(layout[key])) {
+            layout[key] = new Set(layout[key]);
+          }
+          if (key.endsWith('Props') && Array.isArray(layout[key])) {
+            layout[key] = new Set(layout[key]);
+          }
+        }
+
+        // Restore filters Map and nested Sets
+        if (layout.filters && typeof layout.filters === 'object') {
+          const filtersMap = new Map(Object.entries(layout.filters));
+
+          // Restore Sets within each filter value
+          for (const [propId, filterValue] of filtersMap.entries()) {
+            if (filterValue.categories && Array.isArray(filterValue.categories)) {
+              filterValue.categories = new Set(filterValue.categories);
+            }
+            // Restore bubble group member Sets
+            for (const key in filterValue) {
+              if (key.endsWith('Members') && Array.isArray(filterValue[key])) {
+                filterValue[key] = new Set(filterValue[key]);
+              }
+              if (key.endsWith('IDs') && Array.isArray(filterValue[key])) {
+                filterValue[key] = new Set(filterValue[key]);
+              }
+              if (key.endsWith('MembersHidden') && Array.isArray(filterValue[key])) {
+                filterValue[key] = new Set(filterValue[key]);
+              }
+              if (key.endsWith('IDsHidden') && Array.isArray(filterValue[key])) {
+                filterValue[key] = new Set(filterValue[key]);
+              }
+            }
+          }
+
+          layout.filters = filtersMap;
+        }
+
+        // Restore positions Map
+        if (layout.positions && typeof layout.positions === 'object') {
+          layout.positions = new Map(Object.entries(layout.positions));
+        }
+
+        // Restore style Maps
+        if (layout.nodeStyles && typeof layout.nodeStyles === 'object') {
+          layout.nodeStyles = new Map(Object.entries(layout.nodeStyles));
+        }
+        if (layout.edgeStyles && typeof layout.edgeStyles === 'object') {
+          layout.edgeStyles = new Map(Object.entries(layout.edgeStyles));
+        }
+      }
+    }
+
+    // Restore Sets in filterDefaults
+    if (jsonContent.filterDefaults && typeof jsonContent.filterDefaults === 'object') {
+      const filterDefaultsMap = new Map(Object.entries(jsonContent.filterDefaults));
+
+      // Restore Sets within each filter default value
+      for (const [propId, filterValue] of filterDefaultsMap.entries()) {
+        if (filterValue.categories && Array.isArray(filterValue.categories)) {
+          filterValue.categories = new Set(filterValue.categories);
+        }
+      }
+
+      jsonContent.filterDefaults = filterDefaultsMap;
+    }
+
+    // Restore Sets in stash
+    if (jsonContent.stash) {
+      for (const stashName in jsonContent.stash) {
+        const stash = jsonContent.stash[stashName];
+        if (stash.groupedProps) {
+          for (const key in stash.groupedProps) {
+            if (Array.isArray(stash.groupedProps[key])) {
+              stash.groupedProps[key] = new Set(stash.groupedProps[key]);
+            }
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -729,8 +820,11 @@ class IOManager {
         this.cache.nodePositionsFromExcelImport.set(node.id, {x: node.style.x, y: node.style.y});
       }
 
+      // Preserve visibility from loaded data before applying defaults
+      const savedVisibility = node.style?.visibility;
+
       const nodeDefaults = this.cache.style.getNodeStyleOrDefaults(node);
-      return {
+      const processedNode = {
         ...node,
         ...nodeDefaults,
         originalType: nodeDefaults.type,
@@ -739,6 +833,13 @@ class IOManager {
         featureValues: nodeFeatureValues,
         featureIsWithinThreshold: nodeFeatureWithinThreshold,
       };
+
+      // Restore visibility if it was set in loaded data
+      if (savedVisibility) {
+        processedNode.style.visibility = savedVisibility;
+      }
+
+      return processedNode;
     });
 
     this.cache.data.edges = fileData.edges.map((edge) => {
@@ -769,8 +870,11 @@ class IOManager {
         edgeFeatureWithinThreshold.set(propId, null);
       }
 
+      // Preserve visibility from loaded data before applying defaults
+      const savedVisibility = edge.style?.visibility;
+
       const edgeDefaults = this.cache.style.getEdgeStyleOrDefaults(edge);
-      return {
+      const processedEdge = {
         ...edge,
         ...edgeDefaults,
         originalType: edgeDefaults.type,
@@ -778,14 +882,19 @@ class IOManager {
         features: edgeFeatures,
         featureValues: edgeFeatureValues,
         featureIsWithinThreshold: edgeFeatureWithinThreshold,
-      }
-    });
+      };
 
-    this.cache.data.bubbleSetStyle = fileData.bubbleSetStyle || this.cache.DEFAULTS.BUBBLE_GROUP_STYLE;
+      // Restore visibility if it was set in loaded data
+      if (savedVisibility) {
+        processedEdge.style.visibility = savedVisibility;
+      }
+
+      return processedEdge;
+    });
 
     const excelHasCoordinates = this.cache.nodePositionsFromExcelImport.size > 0;
     this.cache.data.selectedLayout = fileData.selectedLayout || (
-      excelHasCoordinates ? this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME : this.cache.DEFAULTS.LAYOUT);
+      excelHasCoordinates ? this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME : "Default");
 
     // create individual map for each layout, no matter if default or manual, with positions, current filters, ..
     if (fileData.layouts) {
@@ -794,15 +903,10 @@ class IOManager {
         this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = true;
       }
     } else {
-      this.cache.data.layouts = Object.keys(this.cache.DEFAULTS.LAYOUT_INTERNALS).reduce((acc, key) => {
-        if (this.cache.data?.layouts?.[key]) {
-          this.cache.ui.warning("Layout with key '" + key + "' already exists.");
-          return acc;
-        } else {
-          acc[key] = this.cache.lm.createDefaultLayout(key, false);
-          return acc;
-        }
-      }, {});
+      // Create only a single "Default" layout using force layout
+      this.cache.data.layouts = {
+        "Default": this.cache.lm.createDefaultLayout(this.cache.DEFAULTS.LAYOUT, false)
+      };
 
       if (excelHasCoordinates) {
         this.cache.data.layouts[this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME] = this.cache.lm.createDefaultLayout(this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME, true);
@@ -917,6 +1021,30 @@ class IOManager {
         targetList.push(elem);
       }
     }
+
+    // Capture current visibility state from the graph
+    if (this.cache.graph) {
+      const {nodes, edges} = await this.cache.graph.getData();
+
+      // Update visibility in cache.data.nodes based on current graph state
+      for (const node of this.cache.data.nodes) {
+        const graphNode = nodes.find(n => n.id === node.id);
+        if (graphNode && graphNode.style) {
+          if (!node.style) node.style = {};
+          node.style.visibility = graphNode.style.visibility || "visible";
+        }
+      }
+
+      // Update visibility in cache.data.edges based on current graph state
+      for (const edge of this.cache.data.edges) {
+        const graphEdge = edges.find(e => e.id === edge.id);
+        if (graphEdge && graphEdge.style) {
+          if (!edge.style) edge.style = {};
+          edge.style.visibility = graphEdge.style.visibility || "visible";
+        }
+      }
+    }
+
     const blob = new Blob([JSON.stringify(this.cache.data, replacer)], {type: "application/json"});
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -949,7 +1077,11 @@ class IOManager {
         positions: new Map(Object.entries(layout.positions || {})),
         filters: this.parseFiltersAsMap(layout.filters),
         isCustom: layout.isCustom || false,
-        query: layout["query"] || undefined
+        query: layout["query"] || undefined,
+        // Per-view styles
+        nodeStyles: new Map(Object.entries(layout.nodeStyles || {})),
+        edgeStyles: new Map(Object.entries(layout.edgeStyles || {})),
+        bubbleSetStyle: layout.bubbleSetStyle || structuredClone(this.cache.DEFAULTS.BUBBLE_GROUP_STYLE),
       };
 
       for (let group of this.cache.bs.traverseBubbleSets()) {
@@ -1034,11 +1166,12 @@ class IOManager {
         });
         this.cache.ui.buildUI();
 
-        // Check if loaded file has custom query and lock filters if so
-        this.cache.qm.updateQueryTextArea();
-        if (this.cache.data.layouts[this.cache.data.selectedLayout]["query"]) {
+        // Check if there's a saved query and set lock state
+        const savedQuery = this.cache.data.layouts[this.cache.data.selectedLayout]["query"];
+        if (savedQuery) {
           this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = true;
-          this.cache.ui.updateFilterLockState();
+          this.cache.qm.updateQueryTextArea();
+          this.cache.qm.updateUIFromQueryInstructions();
         }
 
         await this.cache.gcm.createGraphInstance();
@@ -1052,6 +1185,11 @@ class IOManager {
         await this.cache.graph.render();
         await this.cache.graph.fitView();
         this.cache.ui.debug("Initial graph rendered.");
+
+        // Update UI lock state if query was applied
+        if (savedQuery) {
+          this.cache.ui.updateFilterLockState();
+        }
       })
       .catch(async (errorMsg) => {
         this.cache.ui.error(`Error loading graph: ${errorMsg}`);

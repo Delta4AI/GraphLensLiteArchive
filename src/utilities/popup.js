@@ -132,6 +132,197 @@ static async prompt(message) {
     });
   }
 
+  static async layoutCreationDialog(layoutInternals) {
+    return new Promise((resolve) => {
+      // Create container
+      const container = document.createElement('div');
+      container.style.padding = '10px';
+
+      // Title
+      const title = document.createElement('h3');
+      title.textContent = 'Create New View Preset';
+      title.style.marginTop = '0';
+      container.appendChild(title);
+
+      // Name input
+      const nameLabel = document.createElement('label');
+      nameLabel.textContent = 'Name:';
+      nameLabel.style.display = 'block';
+      nameLabel.style.marginBottom = '5px';
+      container.appendChild(nameLabel);
+
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.className = 'p-prompt';
+      nameInput.style.width = '100%';
+      nameInput.style.marginBottom = '15px';
+      container.appendChild(nameInput);
+
+      // Mode selection
+      const modeContainer = document.createElement('div');
+
+      // Clone option
+      const cloneDiv = document.createElement('div');
+      cloneDiv.style.marginBottom = '10px';
+
+      const cloneRadio = document.createElement('input');
+      cloneRadio.type = 'radio';
+      cloneRadio.name = 'layout-mode';
+      cloneRadio.value = 'clone';
+      cloneRadio.checked = true;
+      cloneRadio.id = 'mode-clone';
+
+      const cloneLabel = document.createElement('label');
+      cloneLabel.htmlFor = 'mode-clone';
+      cloneLabel.textContent = ' Clone Current View';
+      cloneLabel.style.fontWeight = 'bold';
+
+      const cloneDesc = document.createElement('p');
+      cloneDesc.textContent = 'Copies all settings: positions, filters, query, and bubble groups';
+      cloneDesc.style.fontSize = '12px';
+      cloneDesc.style.color = '#666';
+      cloneDesc.style.marginLeft = '20px';
+      cloneDesc.style.marginTop = '5px';
+      cloneDesc.style.marginBottom = '0';
+
+      cloneDiv.appendChild(cloneRadio);
+      cloneDiv.appendChild(cloneLabel);
+      cloneDiv.appendChild(cloneDesc);
+      modeContainer.appendChild(cloneDiv);
+
+      // Template option
+      const templateDiv = document.createElement('div');
+      templateDiv.style.marginBottom = '10px';
+
+      const templateRadio = document.createElement('input');
+      templateRadio.type = 'radio';
+      templateRadio.name = 'layout-mode';
+      templateRadio.value = 'template';
+      templateRadio.id = 'mode-template';
+
+      const templateLabel = document.createElement('label');
+      templateLabel.htmlFor = 'mode-template';
+      templateLabel.textContent = ' Create from Template';
+      templateLabel.style.fontWeight = 'bold';
+
+      const templateDesc = document.createElement('p');
+      templateDesc.textContent = 'Starts fresh with selected layout algorithm and default filters';
+      templateDesc.style.fontSize = '12px';
+      templateDesc.style.color = '#666';
+      templateDesc.style.marginLeft = '20px';
+      templateDesc.style.marginTop = '5px';
+      templateDesc.style.marginBottom = '10px';
+
+      templateDiv.appendChild(templateRadio);
+      templateDiv.appendChild(templateLabel);
+      templateDiv.appendChild(templateDesc);
+
+      // Template dropdown (initially hidden)
+      const dropdownContainer = document.createElement('div');
+      dropdownContainer.id = 'template-dropdown-container';
+      dropdownContainer.style.marginLeft = '20px';
+      dropdownContainer.style.display = 'none';
+
+      const dropdownLabel = document.createElement('label');
+      dropdownLabel.textContent = 'Layout Type:';
+      dropdownLabel.style.display = 'block';
+      dropdownLabel.style.marginBottom = '5px';
+      dropdownContainer.appendChild(dropdownLabel);
+
+      const dropdown = document.createElement('select');
+      dropdown.id = 'template-type-select';
+      dropdown.className = 'p-prompt';
+      dropdown.style.width = '200px';
+
+      // Populate dropdown with layout types
+      for (const [key, value] of Object.entries(layoutInternals)) {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+        dropdown.appendChild(option);
+      }
+
+      dropdownContainer.appendChild(dropdown);
+      templateDiv.appendChild(dropdownContainer);
+      modeContainer.appendChild(templateDiv);
+
+      container.appendChild(modeContainer);
+
+      // Show/hide dropdown based on radio selection
+      const updateDropdownVisibility = () => {
+        dropdownContainer.style.display = templateRadio.checked ? 'block' : 'none';
+      };
+
+      cloneRadio.addEventListener('change', updateDropdownVisibility);
+      templateRadio.addEventListener('change', updateDropdownVisibility);
+
+      // Buttons
+      const buttonContainer = document.createElement('div');
+      buttonContainer.style.textAlign = 'right';
+      buttonContainer.style.marginTop = '20px';
+
+      const createBtn = document.createElement('button');
+      createBtn.textContent = 'Create';
+      createBtn.className = 'p-button ml-1';
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.className = 'p-button';
+
+      buttonContainer.appendChild(cancelBtn);
+      buttonContainer.appendChild(createBtn);
+      container.appendChild(buttonContainer);
+
+      let isResolved = false;
+
+      const popup = new Popup(container, {
+        width: '400px',
+        showFullscreenButton: false,
+        closeOnClickOutside: false,
+        onClose: () => {
+          if (!isResolved) {
+            resolve(null);
+          }
+        }
+      });
+
+      const handleCreate = () => {
+        const name = nameInput.value.trim();
+        if (!name) {
+          alert('Please enter a name for the layout');
+          return;
+        }
+
+        isResolved = true;
+        popup.close();
+
+        const mode = cloneRadio.checked ? 'clone' : 'template';
+        const result = {
+          name: name,
+          mode: mode,
+          templateType: mode === 'template' ? dropdown.value : null
+        };
+
+        resolve(result);
+      };
+
+      createBtn.addEventListener('click', handleCreate);
+      cancelBtn.addEventListener('click', () => {
+        isResolved = true;
+        popup.close();
+        resolve(null);
+      });
+
+      nameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          handleCreate();
+        }
+      });
+
+      setTimeout(() => nameInput.focus(), 0);
+    });
+  }
+
   init(content) {
     this.createPopup(content);
     this.setupCloseHandlers();

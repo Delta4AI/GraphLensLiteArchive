@@ -877,24 +877,24 @@ function createStyleDiv(cache) {
 
       const rowOne = createNewRow(card);
       appendLabel(rowOne, "Fill Color");
-      createColorControls(rowOne, `Bubble Set ${group} Fill Color`, cache.data.bubbleSetStyle[group].fill, [], false);
+      createColorControls(rowOne, `Bubble Set ${group} Fill Color`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].fill, [], false);
       appendVerticalRule(rowOne, "Fill Opacity");
-      createNumericalSlider(rowOne, `Bubble Set ${group} Fill Opacity`, cache.data.bubbleSetStyle[group].fillOpacity,
+      createNumericalSlider(rowOne, `Bubble Set ${group} Fill Opacity`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].fillOpacity,
         {min: 0, max: 1, step: 0.01}, `Define the fill opacity of the bubble set ${group}.`);
       appendVerticalRule(rowOne, "Stroke Color");
-      createColorControls(rowOne, `Bubble Set ${group} Stroke Color`, cache.data.bubbleSetStyle[group].stroke, [], false);
+      createColorControls(rowOne, `Bubble Set ${group} Stroke Color`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].stroke, [], false);
       appendVerticalRule(rowOne, "Stroke Opacity");
-      createNumericalSlider(rowOne, `Bubble Set ${group} Stroke Opacity`, cache.data.bubbleSetStyle[group].strokeOpacity,
+      createNumericalSlider(rowOne, `Bubble Set ${group} Stroke Opacity`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].strokeOpacity,
         {min: 0, max: 1, step: 0.01}, `Define the stroke opacity of the bubble set ${group}.`);
 
       const rowTwo = createNewRow(card);
       appendLabel(rowTwo, "Label");
       const enableTextSwitch = createSwitch(async () => {
         await cache.bs.updateBubbleSetStyle(`Bubble Set ${group} Label`, enableTextSwitch.isChecked());
-      }, undefined, cache.data.bubbleSetStyle[group].label);
+      }, undefined, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].label);
       rowTwo.appendChild(enableTextSwitch);
       appendVerticalRule(rowTwo, "Label Text", undefined, undefined, optionalCSSClass);
-      const labelInput = createInput(120, `${group} label text`, `Enter the label text for the bubble set ${group}.`, cache.data.bubbleSetStyle[group].labelText, async () => {
+      const labelInput = createInput(120, `${group} label text`, `Enter the label text for the bubble set ${group}.`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].labelText, async () => {
         const val = labelInput.value.trim();
         await cache.bs.updateBubbleSetStyle(`Bubble Set ${group} Label Text`, val);
       });
@@ -903,11 +903,11 @@ function createStyleDiv(cache) {
       appendVerticalRule(rowTwo, "Label Background", undefined, undefined, optionalCSSClass);
       const enableBackgroundSwitch = createSwitch(async () => {
         await cache.bs.updateBubbleSetStyle(`Bubble Set ${group} Label Background`, enableBackgroundSwitch.isChecked());
-      }, undefined, cache.data.bubbleSetStyle[group].labelBackground || true);
+      }, undefined, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].labelBackground || true);
       enableBackgroundSwitch.classList.add(optionalCSSClass);
       rowTwo.appendChild(enableBackgroundSwitch);
       appendVerticalRule(rowTwo, "Label Background Color", undefined, undefined, optionalCSSClass);
-      createColorControls(rowTwo, `Bubble Set ${group} Label Background Color`, cache.data.bubbleSetStyle[group].labelBackgroundFill || cache.data.bubbleSetStyle[group].fill, [], false, optionalCSSClass);
+      createColorControls(rowTwo, `Bubble Set ${group} Label Background Color`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].labelBackgroundFill || cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].fill, [], false, optionalCSSClass);
     }
   }
 

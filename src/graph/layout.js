@@ -16,17 +16,22 @@ class GraphLayoutManager {
     this.cache.data.selectedLayout = document.getElementById('selectView').value;
     await this.cache.ui.showLoading("Switching View", this.cache.data.selectedLayout);
     await new Promise(resolve => requestAnimationFrame(resolve));
-    let layout = this.cache.data.layouts[this.cache.data.selectedLayout];
 
-    if (!layout.isCustom) {
-      await this.cache.graph.setLayout({type: this.cache.data.selectedLayout, ...layout.internals});
-      await this.cache.graph.layout();
-    }
+    const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
 
+    // Apply per-view node and edge styles
+    await this.applyLayoutStyles(currentLayout);
+
+    // All layouts are now position-based, no need to re-apply layout algorithms
     this.cache.ui.buildFilterUI();
 
-    // Clear filter lock when switching layouts (layouts don't store queries yet)
-    this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = false;
+    // Update filter lock state based on whether this layout has a custom query
+    this.cache.qm.updateQueryTextArea();
+    if (currentLayout["query"]) {
+      this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = true;
+    } else {
+      this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = false;
+    }
     this.cache.ui.updateFilterLockState();
     this.cache.ui.clearActivePropsCacheOnLayoutChange();
 
@@ -36,50 +41,218 @@ class GraphLayoutManager {
 
     await this.cache.gcm.decideToRenderOrDraw(true);
 
+    // Force bubble group sync - recalculate which nodes should be in groups for this view
+    this.cache.bubbleSetChanged = true;
+    await this.cache.bs.updateBubbleSetIfChanged();
+
     // Update manual bubble group status after layout change
     this.cache.bs.updateManualGroupStatus();
     this.cache.bs.updateManualGroupButtonState();
+    this.cache.bs.refreshBubbleStyleElements();
 
     this.cache.ui.info(`Switched to view: ${this.cache.data.selectedLayout}`);
   }
 
+  async applyLayoutStyles(layout) {
+    // Apply per-view node styles - reset ALL nodes, not just styled ones
+    const nodeUpdates = [];
+    for (const [nodeID, node] of this.cache.nodeRef.entries()) {
+      let newStyle;
+      if (layout.nodeStyles && layout.nodeStyles.has(nodeID)) {
+        // Apply view-specific style
+        newStyle = structuredClone(layout.nodeStyles.get(nodeID));
+      } else {
+        // Reset to original default style
+        newStyle = structuredClone(node.originalStyle);
+      }
+
+      // Apply positions from the layout's position map (positions are stored separately)
+      const position = layout.positions.get(nodeID);
+      if (position && position.style) {
+        newStyle.x = position.style.x;
+        newStyle.y = position.style.y;
+      }
+
+      nodeUpdates.push({id: nodeID, style: newStyle});
+
+      // Update the nodeRef cache to keep it in sync
+      node.style = newStyle;
+      this.cache.nodeRef.set(nodeID, node);
+    }
+    if (nodeUpdates.length > 0) {
+      this.cache.graph.updateNodeData(nodeUpdates);
+    }
+
+    // Apply per-view edge styles - reset ALL edges, not just styled ones
+    const edgeUpdates = [];
+    for (const [edgeID, edge] of this.cache.edgeRef.entries()) {
+      let newStyle;
+      if (layout.edgeStyles && layout.edgeStyles.has(edgeID)) {
+        // Apply view-specific style
+        newStyle = structuredClone(layout.edgeStyles.get(edgeID));
+      } else {
+        // Reset to original default style
+        newStyle = structuredClone(edge.originalStyle);
+      }
+      edgeUpdates.push({id: edgeID, style: newStyle});
+
+      // Update the edgeRef cache to keep it in sync
+      edge.style = newStyle;
+      this.cache.edgeRef.set(edgeID, edge);
+    }
+    if (edgeUpdates.length > 0) {
+      this.cache.graph.updateEdgeData(edgeUpdates);
+    }
+
+    // Bubble set styles are automatically used since all references now use the current layout
+  }
+
   async addLayout() {
-    let layoutName = await Popup.prompt("Enter View Name: ");
-    if (!layoutName) {
+    // Show dialog with clone vs template options
+    const result = await Popup.layoutCreationDialog(this.cache.DEFAULTS.LAYOUT_INTERNALS);
+    if (!result) {
       this.cache.ui.info("Creating view canceled");
       return;
     }
 
+    // Check if name already exists
     let existing = Object.keys(this.cache.data.layouts);
-
-    if (existing.includes(layoutName)) {
-      this.cache.ui.error(`View with name "${layoutName}" already exists.`);
+    if (existing.includes(result.name)) {
+      this.cache.ui.error(`View with name "${result.name}" already exists.`);
       return;
     }
 
     const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
 
-    // create new layout object by copying positions and filters from current one
-    this.cache.data.layouts[layoutName] = {
-      internals: null,
-      positions: structuredClone(currentLayout.positions),
-      filters: structuredClone(currentLayout.filters),
-      isCustom: true
-    };
-    for (let group of this.cache.bs.traverseBubbleSets()) {
-      this.cache.data.layouts[layoutName][`${group}Props`] = structuredClone(currentLayout[`${group}Props`]);
-      this.cache.data.layouts[layoutName][`${group}ManualMembers`] = structuredClone(currentLayout[`${group}ManualMembers`] || new Set());
-    }
+    if (result.mode === 'clone') {
+      // Clone current view - copy everything including CURRENT visual state
+      // Capture ALL node and edge styles as they currently appear
+      const nodeStyles = new Map();
+      for (const [nodeID, node] of this.cache.nodeRef.entries()) {
+        nodeStyles.set(nodeID, structuredClone(node.style));
+      }
 
-    this.cache.ui.buildDropdownOptions();
-    document.getElementById('selectView').value = layoutName;
-    await this.cache.lm.changeLayout();
-    this.cache.ui.info(`Created view ${layoutName}`);
+      const edgeStyles = new Map();
+      for (const [edgeID, edge] of this.cache.edgeRef.entries()) {
+        edgeStyles.set(edgeID, structuredClone(edge.style));
+      }
+
+      this.cache.data.layouts[result.name] = {
+        internals: null,
+        positions: structuredClone(currentLayout.positions),
+        filters: structuredClone(currentLayout.filters),
+        isCustom: true,
+        // Capture complete current visual state
+        nodeStyles: nodeStyles,
+        edgeStyles: edgeStyles,
+        bubbleSetStyle: structuredClone(currentLayout.bubbleSetStyle),
+      };
+
+      // Copy query if it exists
+      if (currentLayout["query"]) {
+        this.cache.data.layouts[result.name]["query"] = currentLayout["query"];
+      }
+
+      // Copy bubble group props and manual members
+      for (let group of this.cache.bs.traverseBubbleSets()) {
+        this.cache.data.layouts[result.name][`${group}Props`] = structuredClone(currentLayout[`${group}Props`]);
+        this.cache.data.layouts[result.name][`${group}ManualMembers`] = structuredClone(currentLayout[`${group}ManualMembers`] || new Set());
+      }
+
+      this.cache.ui.info(`Cloned view: ${result.name}`);
+
+      // Switch to the new layout
+      this.cache.uiComponents.buildDropdownOptions();
+      document.getElementById('selectView').value = result.name;
+
+      // The changeLayout call will handle:
+      // - Applying styles and positions
+      // - Syncing bubble groups via updateBubbleSetIfChanged
+      // - Refreshing all UI elements
+      await this.cache.lm.changeLayout();
+    } else {
+      // Create from template - apply layout algorithm once and store positions
+      this.cache.ui.info(`Creating template view: ${result.name} (${result.templateType})`);
+
+      // Create the layout structure first
+      this.cache.data.layouts[result.name] = {
+        internals: null,
+        positions: new Map(),  // Will be filled after layout
+        filters: structuredClone(this.cache.data.filterDefaults),  // Reset to defaults
+        isCustom: true,  // All layouts are custom (position-based)
+        query: undefined,  // No query
+        // Start with default styles
+        nodeStyles: new Map(),
+        edgeStyles: new Map(),
+        bubbleSetStyle: structuredClone(this.cache.DEFAULTS.BUBBLE_GROUP_STYLE),
+      };
+
+      // Initialize empty bubble group props (no groups selected)
+      for (let group of this.cache.bs.traverseBubbleSets()) {
+        this.cache.data.layouts[result.name][`${group}Props`] = new Set();
+        this.cache.data.layouts[result.name][`${group}ManualMembers`] = new Set();
+      }
+
+      // Switch to the new layout
+      this.cache.uiComponents.buildDropdownOptions();
+      document.getElementById('selectView').value = result.name;
+      this.cache.data.selectedLayout = result.name;
+
+      await this.cache.ui.showLoading("Creating View", `Applying ${result.templateType} layout`);
+
+      // Clear the filter lock since this is a fresh template with no query
+      this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = false;
+
+      // Clear selection FIRST before doing anything else
+      await this.cache.sm.toggleSelectionForAllNodes(false);
+      await this.cache.sm.toggleSelectionForAllEdges(false);
+
+      // Update UI to show the new layout's filters and query
+      this.cache.ui.buildFilterUI();
+      this.cache.qm.updateQueryTextArea();
+      this.cache.ui.updateFilterLockState();
+      this.cache.ui.clearActivePropsCacheOnLayoutChange();
+
+      // Clear bubble groups completely
+      await this.cache.bs.clearBubbleSetInstanceMembers();
+      this.cache.lastBubbleSetMembers.clear();
+      for (let group of this.cache.bs.traverseBubbleSets()) {
+        this.cache.lastBubbleSetMembers.set(group, new Set());
+      }
+
+      // Process filters to determine which nodes should be visible
+      await this.cache.gcm.preRenderEvent();
+
+      // Apply the layout algorithm once
+      await this.cache.graph.setLayout({type: result.templateType, ...this.cache.DEFAULTS.LAYOUT_INTERNALS[result.templateType]});
+      await this.cache.graph.layout();
+
+      // Persist the positions so they're stored permanently
+      await this.cache.lm.persistNodePositions();
+
+      // Render with the full pipeline
+      this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED = false;
+      await this.cache.gcm.decideToRenderOrDraw(true);
+
+      // Ensure bubble groups are properly cleared and synced for this new view
+      this.cache.bubbleSetChanged = true;
+      await this.cache.bs.updateBubbleSetIfChanged();
+
+      // Update metrics and bubble group status
+      await this.cache.metrics.updateMetricUI();
+      this.cache.bs.updateManualGroupStatus();
+      this.cache.bs.updateManualGroupButtonState();
+      this.cache.bs.refreshBubbleStyleElements();
+
+      await this.cache.ui.hideLoading();
+      this.cache.ui.info(`Created template view: ${result.name} (${result.templateType})`);
+    }
   }
 
   async removeSelectedLayout() {
-    if (!this.cache.data.layouts[this.cache.data.selectedLayout].isCustom) {
-      this.cache.ui.error("Cannot delete default layout.");
+    // Protect the "Default" layout from deletion
+    if (this.cache.data.selectedLayout === "Default") {
+      this.cache.ui.error("Cannot delete the Default layout.");
       return;
     }
 
@@ -87,14 +260,11 @@ class GraphLayoutManager {
     if (!confirmed) return false;
 
     delete this.cache.data.layouts[this.cache.data.selectedLayout];
-    this.cache.ui.buildDropdownOptions();
+    this.cache.uiComponents.buildDropdownOptions();
 
-    document.getElementById('selectView').value = this.cache.DEFAULTS.LAYOUT;
+    // Switch back to Default layout after deletion
+    document.getElementById('selectView').value = "Default";
     await this.changeLayout();
-  }
-
-  async resetLayout() {
-    await this.restoreInitialNodePositions();
   }
 
   async getPos() {
@@ -102,30 +272,6 @@ class GraphLayoutManager {
     const pos = await this.cache.graph.getPosition();
     console.log(`Zoom: ${zoom}`);
     console.log(`Position: ${pos}`);
-  }
-
-  async setInitialNodePositions(override = false) {
-    if (!this.cache.initialNodePositions.has(this.cache.data.selectedLayout) || override) {
-      this.cache.ui.debug(`Setting initial node positions for layout "${this.cache.data.selectedLayout}" ..`);
-      this.cache.initialNodePositions.set(this.cache.data.selectedLayout, new Map());
-      for (const nodeID of this.cache.nodeRef.keys()) {
-        const pos = await this.cache.graph.getElementPosition(nodeID);
-        this.cache.initialNodePositions.get(this.cache.data.selectedLayout).set(nodeID, {style: {x: pos[0], y: pos[1]}});
-      }
-    }
-  }
-
-  async restoreInitialNodePositions(selectedNodesOnly = false) {
-    for (const nodeID of this.cache.nodeRef.keys()) {
-      if (selectedNodesOnly && !this.cache.selectedNodes.includes(nodeID)) continue;
-
-      const currentPos = await this.cache.graph.getElementPosition(nodeID);
-      const initialPos = this.cache.initialNodePositions.get(this.cache.data.selectedLayout).get(nodeID);
-
-      if (currentPos[0] !== initialPos.style.x || currentPos[1] !== initialPos.style.y) {
-        await this.cache.graph.translateElementTo(nodeID, [initialPos.style.x, initialPos.style.y]);
-      }
-    }
   }
 
   async layoutSelectedNodes(action) {
@@ -397,11 +543,16 @@ class GraphLayoutManager {
 
   createDefaultLayout(key, overridePositionsFromExcel = false) {
     const defLayout = {
-      internals: this.cache.DEFAULTS.LAYOUT_INTERNALS[key] || null,
+      layoutType: key,  // Store layout algorithm type for initial render only
+      internals: null,
       positions: new Map(),
       filters: structuredClone(this.cache.data.filterDefaults),
-      isCustom: false,
+      isCustom: true,  // All layouts are position-based
       query: undefined,
+      // Per-view styles
+      nodeStyles: new Map(),
+      edgeStyles: new Map(),
+      bubbleSetStyle: structuredClone(this.cache.DEFAULTS.BUBBLE_GROUP_STYLE),
     };
 
     if (overridePositionsFromExcel) {
@@ -409,9 +560,7 @@ class GraphLayoutManager {
       for (const [nodeID, positions] of this.cache.nodePositionsFromExcelImport) {
         defLayout.positions.set(nodeID, {style: {x: positions.x, y: positions.y}});
       }
-      defLayout.type = this.cache.DEFAULTS.LAYOUT;
-      defLayout.internals = this.cache.DEFAULTS.LAYOUT_INTERNALS[this.cache.DEFAULTS.LAYOUT];
-      defLayout.isCustom = true;
+      defLayout.layoutType = this.cache.DEFAULTS.LAYOUT;
     }
 
     for (let group of this.cache.bs.traverseBubbleSets()) {

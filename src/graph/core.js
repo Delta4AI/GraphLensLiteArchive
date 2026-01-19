@@ -174,7 +174,7 @@ class GraphCoreManager {
           members: [],
           avoidMembers: [this.cache.CFG.INVISIBLE_DUMMY_NODE.id],
           // avoidMembers: [...this.cache.nodeRef.keys()],
-          ...this.cache.data.bubbleSetStyle[group],
+          ...this.cache.data.layouts[this.cache.data.selectedLayout].bubbleSetStyle[group],
           strokeOpacity: 0,  // hide bubble groups initially (1 node persists due to bug)
           fillOpacity: 0,
           label: false,
@@ -214,19 +214,29 @@ class GraphCoreManager {
       this.cache.graph.on("afterlayout", async () => {
         /**
          * Applies persisted positions (excel data or after moving nodes) after layouting has finished
+         * Also persists positions if this was the initial layout computation
          */
         if (this.cache.EVENT_LOCKS.AFTER_LAYOUT_RUNNING) return;
 
         this.cache.ui.debug("AFTER LAYOUT");
         this.cache.EVENT_LOCKS.AFTER_LAYOUT_RUNNING = true;
 
-        if (this.cache.data.layouts[this.cache.data.selectedLayout].positions.size > 0) {
-          this.cache.graph.updateNodeData(Array.from(this.cache.data.layouts[this.cache.data.selectedLayout].positions, ([id, pos]) => ({
+        const layout = this.cache.data.layouts[this.cache.data.selectedLayout];
+
+        if (layout.positions.size > 0) {
+          // Apply stored positions
+          this.cache.graph.updateNodeData(Array.from(layout.positions, ([id, pos]) => ({
             id,
             style: pos.style
           })));
           await this.cache.graph.draw();
+        } else if (layout.layoutType) {
+          // Initial layout - persist the computed positions and clean up layoutType
+          await this.cache.lm.persistNodePositions();
+          delete layout.layoutType;
+          this.cache.ui.debug("Initial layout positions persisted");
         }
+
         this.cache.EVENT_LOCKS.AFTER_LAYOUT_RUNNING = false;
       })
 
@@ -288,8 +298,10 @@ class GraphCoreManager {
       });
 
       let layout = this.cache.data.layouts[this.cache.data.selectedLayout];
-      if (!layout.isCustom) {
-        await this.cache.graph.setLayout({type: this.cache.data.selectedLayout, ...layout.internals});
+      // If layout has no positions yet but has a layoutType, apply that layout algorithm once
+      if (layout.positions.size === 0 && layout.layoutType) {
+        const internals = this.cache.DEFAULTS.LAYOUT_INTERNALS[layout.layoutType] || {};
+        await this.cache.graph.setLayout({type: layout.layoutType, ...internals});
       }
     }
   }
@@ -337,8 +349,6 @@ class GraphCoreManager {
         await this.cache.lm.persistNodePositions();
         this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = false;
       }
-
-      await this.cache.lm.setInitialNodePositions();
     } catch (errorMsg) {
       this.cache.ui.error(`Error in initial AFTER_RENDER: ${errorMsg}`);
       this.cache.ui.error("Graph setup failed. Please check your input data.");
@@ -479,6 +489,10 @@ class GraphCoreManager {
         StaticUtilities.deepMerge(edge, overrides);
       }
       this.cache.edgeRef.set(edgeID, edge);
+
+      // Save to current layout's style map
+      const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+      currentLayout.edgeStyles.set(edgeID, structuredClone(edge.style));
     }
 
     await this.cache.style.handleStyleChangeLoadingEvent("Style", "Updating Edge Styles");
@@ -550,6 +564,10 @@ class GraphCoreManager {
         StaticUtilities.deepMerge(node, overrides);
       }
       this.cache.nodeRef.set(nodeID, node);
+
+      // Save to current layout's style map
+      const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+      currentLayout.nodeStyles.set(nodeID, structuredClone(node.style));
     }
 
     await this.cache.style.handleStyleChangeLoadingEvent("Style", `Updating Node Styles`);
@@ -575,7 +593,7 @@ class GraphCoreManager {
     );
   }
 
-  createSimplifiedDataForGraphObject(resetToCachedPositions = false) {
+  createSimplifiedDataForGraphObject() {
     const filterObject = (obj, excludedKeys) => {
       return Object.keys(obj)
         .filter(key => !excludedKeys.includes(key)) // Exclude specified keys
@@ -591,19 +609,22 @@ class GraphCoreManager {
         const filteredNode = filterObject(node, [
           "D4Data", "features", "featureValues", "featureWithinThreshold", "originalStyle", "originalType"]);
 
+        // Preserve visibility from loaded data before applying styles
+        const savedVisibility = node.style?.visibility;
+
         // load positions from the layouts position Map
         const position = this.cache.data.layouts[this.cache.data.selectedLayout].positions.get(node.id);
 
         Object.assign(filteredNode, this.cache.style.getNodeStyleOrDefaults(node));
 
-        if (position) {
-          filteredNode.style.x = position.x;
-          filteredNode.style.y = position.y;
+        // Restore visibility if it was set in the loaded data
+        if (savedVisibility) {
+          filteredNode.style.visibility = savedVisibility;
         }
 
-        if (resetToCachedPositions) {
-          const {style: {x, y}} = this.cache.initialNodePositions.get(this.cache.data.selectedLayout).get(node.id);
-          Object.assign(filteredNode.style, {x, y});
+        if (position && position.style) {
+          filteredNode.style.x = position.style.x;
+          filteredNode.style.y = position.style.y;
         }
 
         return filteredNode;
@@ -615,7 +636,15 @@ class GraphCoreManager {
         const filteredEdge = filterObject(edge, [
           "D4Data", "features", "featureValues", "featureWithinThreshold", "originalStyle", "originalType"]);
 
+        // Preserve visibility from loaded data before applying styles
+        const savedVisibility = edge.style?.visibility;
+
         Object.assign(filteredEdge, this.cache.style.getEdgeStyleOrDefaults(edge));
+
+        // Restore visibility if it was set in the loaded data
+        if (savedVisibility) {
+          filteredEdge.style.visibility = savedVisibility;
+        }
 
         return filteredEdge;
       });
@@ -747,9 +776,6 @@ class GraphCoreManager {
           break;
         case "s":
           await this.cache.io.exportGraphAsJSON();
-          break;
-        case "r":
-          await this.cache.lm.resetLayout();
           break;
         case "f":
           await this.cache.graph.fitView();

@@ -26,9 +26,6 @@ class GraphStyleManager {
     }
   }
   await this.handleStyleChangeLoadingEvent("Style", `Resetting Styles`);
-  if (this.cache.CFG.RESET_SELECTION_BUTTON_RESETS_POSITIONS) {
-    await this.cache.lm.restoreInitialNodePositions(true);
-  }
 }
 
   async handleStyleChangeLoadingEvent(header, text) {
