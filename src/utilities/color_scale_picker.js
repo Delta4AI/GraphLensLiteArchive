@@ -242,7 +242,6 @@ class ColorScalePicker {
 
     this.handles = [
       {pos: 0, color: this.defaultColors.min, value: this.minValue, fixed: true},
-      {pos: 50, color: this.defaultColors.zero, value: (this.maxValue + this.minValue) / 2, fixed: false},
       {pos: 100, color: this.defaultColors.max, value: this.maxValue, fixed: true}
     ];
 
@@ -372,7 +371,7 @@ class ColorScalePicker {
   }
 
   removeHandle() {
-    if (this.handles.length <= 3) return;
+    if (this.handles.length <= 2) return;
     this.handles.splice(Math.floor(this.handles.length / 2), 1);
     this.renderHandles();
     this.updateGradient();
@@ -433,12 +432,28 @@ class ColorScalePicker {
     let lower = sortedHandles[0];
     let upper = sortedHandles[sortedHandles.length - 1];
 
+    // Find the appropriate pair of handles, skipping overlapping ones
     for (let i = 0; i < sortedHandles.length - 1; i++) {
-      if (sortedHandles[i].pos <= normalizedValue && sortedHandles[i + 1].pos >= normalizedValue) {
-        lower = sortedHandles[i];
-        upper = sortedHandles[i + 1];
+      const currentHandle = sortedHandles[i];
+      const nextHandle = sortedHandles[i + 1];
+
+      // Skip if handles are at the same position (overlapping)
+      if (currentHandle.pos === nextHandle.pos) {
+        continue;
+      }
+
+      if (currentHandle.pos <= normalizedValue && nextHandle.pos >= normalizedValue) {
+        lower = currentHandle;
+        upper = nextHandle;
         break;
       }
+    }
+
+    // Handle case where handles are at the same position (division by zero)
+    // This can happen if all handles overlap at the same position
+    if (lower.pos === upper.pos) {
+      // Use the upper color (last in sort order at that position)
+      return upper.color;
     }
 
     const t = (normalizedValue - lower.pos) / (upper.pos - lower.pos);
@@ -446,6 +461,9 @@ class ColorScalePicker {
   }
 
   interpolateColor(color1, color2, t) {
+    // Clamp t to [0, 1] range to handle edge cases
+    t = Math.max(0, Math.min(1, isNaN(t) ? 0 : t));
+
     const r1 = parseInt(color1.slice(1, 3), 16);
     const g1 = parseInt(color1.slice(3, 5), 16);
     const b1 = parseInt(color1.slice(5, 7), 16);
