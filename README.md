@@ -7,7 +7,7 @@ Works in any modern browser, with native Electron desktops for Windows and Linux
 
 ## Quickstart
 1. Download the [latest release](https://github.com/Delta4AI/GraphLensLite/releases/latest) for your OS
-2. (Optional) Download a [template](templates/GLL_template.xlsx) and populate with your own data
+2. (Optional) Download a [template](templates/simple-template.xlsx) and populate with your own data
 3. Launch Graph Lens Lite and start exploring by either loading a demo network or a file
 
 ---

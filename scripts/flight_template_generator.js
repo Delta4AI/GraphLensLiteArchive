@@ -254,7 +254,7 @@ async function main() {
       "avg_delay_min [ops]": avgDelay,
       "weight [traffic]": flightCount,
     };
-    
+
     edgeKeys.add(key);
     edgesSheet.addRow(edgeHeaders.map((h) => row[h]));
     degree.set(source, (degree.get(source) || 0) + 1);
