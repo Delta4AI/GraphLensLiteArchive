@@ -609,11 +609,30 @@ class GraphCoreManager {
         }, {});
     };
 
+    // Get current graph nodes to preserve states
+    let graphNodesMap = new Map();
+    if (this.cache.graph) {
+      try {
+        const graphNodes = this.cache.graph.getNodeData();
+        for (const gNode of graphNodes) {
+          graphNodesMap.set(gNode.id, gNode);
+        }
+      } catch (e) {
+        // Graph might not be ready yet
+      }
+    }
+
     // Process nodes and exclude their unwanted properties
     const filteredNodes = this.cache.data.nodes
       .map(node => {
         const filteredNode = filterObject(node, [
           "D4Data", "features", "featureValues", "featureWithinThreshold", "originalStyle", "originalType"]);
+
+        // Preserve states (like selection) from the current graph instance
+        const currentGraphNode = graphNodesMap.get(node.id);
+        if (currentGraphNode && currentGraphNode.states) {
+          filteredNode.states = currentGraphNode.states;
+        }
 
         // Preserve visibility from loaded data before applying styles
         const savedVisibility = node.style?.visibility;
@@ -653,11 +672,30 @@ class GraphCoreManager {
         return filteredNode;
       });
 
+    // Get current graph edges to preserve states
+    let graphEdgesMap = new Map();
+    if (this.cache.graph) {
+      try {
+        const graphEdges = this.cache.graph.getEdgeData();
+        for (const gEdge of graphEdges) {
+          graphEdgesMap.set(gEdge.id, gEdge);
+        }
+      } catch (e) {
+        // Graph might not be ready yet
+      }
+    }
+
     // Process edges if provided, and exclude unwanted properties
     const filteredEdges = this.cache.data.edges
       .map(edge => {
         const filteredEdge = filterObject(edge, [
           "D4Data", "features", "featureValues", "featureWithinThreshold", "originalStyle", "originalType"]);
+
+        // Preserve states (like selection) from the current graph instance
+        const currentGraphEdge = graphEdgesMap.get(edge.id);
+        if (currentGraphEdge && currentGraphEdge.states) {
+          filteredEdge.states = currentGraphEdge.states;
+        }
 
         // Preserve visibility from loaded data before applying styles
         const savedVisibility = edge.style?.visibility;

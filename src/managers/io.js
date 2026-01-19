@@ -1032,12 +1032,13 @@ class IOManager {
         const graphNode = nodes.find(n => n.id === node.id);
         const visibility = graphNode?.style?.visibility || "visible";
 
-        // Get the original clean style from nodeRef (which has originalStyle)
+        // Get the original clean style and type from nodeRef
         const nodeRefData = this.cache.nodeRef.get(node.id);
         if (nodeRefData && nodeRefData.originalStyle) {
-          // Reset to original clean style, then apply visibility
+          // Reset to original clean style and type, then apply visibility
           node.style = structuredClone(nodeRefData.originalStyle);
           node.style.visibility = visibility;
+          node.type = nodeRefData.originalType;
         } else {
           // Fallback: only preserve visibility
           node.style = { visibility: visibility };
@@ -1049,12 +1050,13 @@ class IOManager {
         const graphEdge = edges.find(e => e.id === edge.id);
         const visibility = graphEdge?.style?.visibility || "visible";
 
-        // Get the original clean style from edgeRef (which has originalStyle)
+        // Get the original clean style and type from edgeRef
         const edgeRefData = this.cache.edgeRef.get(edge.id);
         if (edgeRefData && edgeRefData.originalStyle) {
-          // Reset to original clean style, then apply visibility
+          // Reset to original clean style and type, then apply visibility
           edge.style = structuredClone(edgeRefData.originalStyle);
           edge.style.visibility = visibility;
+          edge.type = edgeRefData.originalType;
         } else {
           // Fallback: only preserve visibility
           edge.style = { visibility: visibility };

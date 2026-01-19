@@ -47,6 +47,8 @@ class GraphSelectionManager {
     }
     await this.cache.graph.updateData(updatedData);
     await this.cache.graph.render();
+    // Force a visual update by also calling draw()
+    await this.cache.graph.draw();
 
     // Update manual bubble group button state when selection changes
     this.cache.bs.updateManualGroupButtonState();

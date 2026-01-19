@@ -198,11 +198,16 @@ class Cache {
 
   iterNodes() {
     this.data.nodes.forEach((node) => {
-      // Clone the node and capture originalStyle to prevent polluting cache.data.nodes
+      // Clone the node first to preserve all properties
       const nodeClone = structuredClone(node);
+      // Apply default styles to ensure full baseline
+      const nodeWithDefaults = this.style.getNodeStyleOrDefaults(node);
+      // Merge defaults into the clone
+      nodeClone.type = nodeWithDefaults.type;
+      nodeClone.style = structuredClone(nodeWithDefaults.style);
       // Capture the original style and type before any modifications
-      nodeClone.originalStyle = structuredClone(node.style || {});
-      nodeClone.originalType = node.type;
+      nodeClone.originalStyle = structuredClone(nodeWithDefaults.style);
+      nodeClone.originalType = nodeWithDefaults.type;
       this.nodeRef.set(node.id, nodeClone);
       this.toolTips.set(node.id, this.uiComponents.buildToolTipText(node.id, false));
       this.nodeIDToPropIDs.set(node.id, new Set());
@@ -240,11 +245,16 @@ class Cache {
 
   iterEdges() {
     this.data.edges.forEach((edge) => {
-      // Clone the edge and capture originalStyle to prevent polluting cache.data.edges
+      // Clone the edge first to preserve all properties (id, source, target, etc.)
       const edgeClone = structuredClone(edge);
+      // Apply default styles to ensure full baseline
+      const edgeWithDefaults = this.style.getEdgeStyleOrDefaults(edge);
+      // Merge defaults into the clone
+      edgeClone.type = edgeWithDefaults.type;
+      edgeClone.style = structuredClone(edgeWithDefaults.style);
       // Capture the original style and type before any modifications
-      edgeClone.originalStyle = structuredClone(edge.style || {});
-      edgeClone.originalType = edge.type;
+      edgeClone.originalStyle = structuredClone(edgeWithDefaults.style);
+      edgeClone.originalType = edgeWithDefaults.type;
       this.edgeRef.set(edge.id, edgeClone);
       this.toolTips.set(edge.id, this.uiComponents.buildToolTipText(edge.id, true));
       this.edgeIDToPropIDs.set(edge.id, new Set());
