@@ -92,6 +92,10 @@ function createStyleDiv(cache) {
       commands.push("set_continuous_color_scale");
     }
 
+    if (value === "set_numeric_scale") {
+      commands.push("set_numeric_scale");
+    }
+
     if (property.startsWith("Bubble Set")) {
       await cache.bs.updateBubbleSetStyle(property, value);
       return;
@@ -230,7 +234,7 @@ function createStyleDiv(cache) {
     min: 0,
     max: 100,
     step: 1
-  }, tooltip = undefined) {
+  }, tooltip = undefined, enableNumericScale = true) {
     const useFloat =
       !Number.isInteger(sliderParams.min) ||
       !Number.isInteger(sliderParams.max) ||
@@ -275,6 +279,22 @@ function createStyleDiv(cache) {
 
     container.appendChild(slider);
     container.appendChild(valueInput);
+
+    // Add numeric scale button only for specific properties
+    if (enableNumericScale) {
+      const scaleButton = document.createElement("button");
+      scaleButton.className = "style-inner-button style-numeric-scale-button";
+      scaleButton.textContent = "∿";
+      scaleButton.title = `Scale ${property} based on a property's values`;
+      scaleButton.style.marginLeft = "2px";
+      scaleButton.dataset.property = property;
+      scaleButton.onclick = async () => {
+        // Store property name in picker for retrieval in core.js
+        cache.numericPicker.currentProperty = property;
+        await handleStyleChangeEvent(property, "set_numeric_scale");
+      };
+      container.appendChild(scaleButton);
+    }
 
     parent.appendChild(container);
   }
@@ -816,12 +836,12 @@ function createStyleDiv(cache) {
       "Define the offset of the selected edges labels along the X-axis.");
     createNumericalSlider(rowThree, "Edge Label Offset X", cache.DEFAULTS.EDGE.LABEL.OFFSET_X,
       {min: -100, max: 100, step: 1},
-      "Define the offset of the selected edges labels along the X-axis.");
+      "Define the offset of the selected edges labels along the X-axis.", false);
     appendVerticalRule(rowThree, "Label Offset Y",
       "Define the offset of the selected edges labels along the Y-axis.");
     createNumericalSlider(rowThree, "Edge Label Offset Y", cache.DEFAULTS.EDGE.LABEL.OFFSET_Y,
       {min: -100, max: 100, step: 1},
-      "Define the offset of the selected edges labels along the Y-axis.");
+      "Define the offset of the selected edges labels along the Y-axis.", false);
 
     const rowFour = createNewRow(edgeDiv);
     appendLabel(rowFour, "Label Color",
@@ -838,7 +858,7 @@ function createStyleDiv(cache) {
     createBooleanControls(rowFive, "Edge Start Arrow", "Enable/Disable the start arrow of the selected edges.");
     appendVerticalRule(rowFive, "Size", "Define the size of the start arrow of the selected edges.");
     createNumericalSlider(rowFive, "Edge Start Arrow Size", cache.DEFAULTS.EDGE.ARROWS.START_SIZE,
-      {min: 10, max: 40, step: 1}, "Define the size of the start arrow of the selected edges.");
+      {min: 10, max: 40, step: 1}, "Define the size of the start arrow of the selected edges.", true);
     appendVerticalRule(rowFive, "Type", "Define the type of the start arrow of the selected edges.");
     createCategoricalControls(rowFive, "Edge Start Arrow Type", cache.DEFAULTS.EDGE.ARROWS.START_TYPE,
       cache.DEFAULTS.STYLES.EDGE_ARROW_TYPES, "Define the type of the start arrow of the selected edges.");
@@ -848,7 +868,7 @@ function createStyleDiv(cache) {
     createBooleanControls(rowSix, "Edge End Arrow", "Enable/Disable the end arrow of the selected edges.");
     appendVerticalRule(rowSix, "Size", "Define the size of the end arrow of the selected edges.");
     createNumericalSlider(rowSix, "Edge End Arrow Size", cache.DEFAULTS.EDGE.ARROWS.END_SIZE,
-      {min: 10, max: 40, step: 1}, "Define the size of the end arrow of the selected edges.");
+      {min: 10, max: 40, step: 1}, "Define the size of the end arrow of the selected edges.", true);
     appendVerticalRule(rowSix, "Type", "Define the type of the end arrow of the selected edges.");
     createCategoricalControls(rowSix, "Edge End Arrow Type", cache.DEFAULTS.EDGE.ARROWS.END_TYPE,
       cache.DEFAULTS.STYLES.EDGE_ARROW_TYPES, "Define the type of the end arrow of the selected edges.");
@@ -880,12 +900,12 @@ function createStyleDiv(cache) {
       createColorControls(rowOne, `Bubble Set ${group} Fill Color`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].fill, [], false);
       appendVerticalRule(rowOne, "Fill Opacity");
       createNumericalSlider(rowOne, `Bubble Set ${group} Fill Opacity`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].fillOpacity,
-        {min: 0, max: 1, step: 0.01}, `Define the fill opacity of the bubble set ${group}.`);
+        {min: 0, max: 1, step: 0.01}, `Define the fill opacity of the bubble set ${group}.`, false);
       appendVerticalRule(rowOne, "Stroke Color");
       createColorControls(rowOne, `Bubble Set ${group} Stroke Color`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].stroke, [], false);
       appendVerticalRule(rowOne, "Stroke Opacity");
       createNumericalSlider(rowOne, `Bubble Set ${group} Stroke Opacity`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].strokeOpacity,
-        {min: 0, max: 1, step: 0.01}, `Define the stroke opacity of the bubble set ${group}.`);
+        {min: 0, max: 1, step: 0.01}, `Define the stroke opacity of the bubble set ${group}.`, false);
 
       const rowTwo = createNewRow(card);
       appendLabel(rowTwo, "Label");

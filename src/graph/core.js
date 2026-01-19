@@ -14,6 +14,7 @@ const {
 
 import {StaticUtilities} from "../utilities/static.js";
 import {replaceColorScale} from "../utilities/color_scale_picker.js";
+import {replaceNumericScale} from "../utilities/numeric_scale_picker.js";
 
 class GraphCoreManager {
   constructor(cache) {
@@ -466,6 +467,16 @@ class GraphCoreManager {
       }
     }
 
+    let numericScaleMap = null;
+    if (commands.includes("set_numeric_scale")) {
+      const propertyName = this.cache.numericPicker.currentProperty || null;
+      numericScaleMap = await this.cache.numericPicker.pickNumericScale("edges", propertyName);
+      if (!numericScaleMap) {
+        this.cache.ui.info("Aborted numeric scale picker");
+        return;
+      }
+    }
+
     for (const edgeID of this.cache.selectedEdges) {
       const edge = this.cache.edgeRef.get(edgeID);
 
@@ -481,13 +492,14 @@ class GraphCoreManager {
       }
 
       // apply overrides
+      const overridesCopy = structuredClone(overrides);
       if (colorMap) {
-        const overridesCopy = structuredClone(overrides);
-        replaceColorScale(overrides, edgeID, colorMap);
-        StaticUtilities.deepMerge(edge, overridesCopy);
-      } else {
-        StaticUtilities.deepMerge(edge, overrides);
+        replaceColorScale(overridesCopy, edgeID, colorMap);
       }
+      if (numericScaleMap) {
+        replaceNumericScale(overridesCopy, edgeID, numericScaleMap);
+      }
+      StaticUtilities.deepMerge(edge, overridesCopy);
       this.cache.edgeRef.set(edgeID, edge);
 
       // Save to current layout's style map (including type)
@@ -506,7 +518,17 @@ class GraphCoreManager {
     if (commands.includes("set_continuous_color_scale")) {
       colorMap = await this.cache.picker.pickColors("nodes");
       if (!colorMap) {
-        ui.info("Aborted color picker");
+        this.cache.ui.info("Aborted color picker");
+        return;
+      }
+    }
+
+    let numericScaleMap = null;
+    if (commands.includes("set_numeric_scale")) {
+      const propertyName = this.cache.numericPicker.currentProperty || null;
+      numericScaleMap = await this.cache.numericPicker.pickNumericScale("nodes", propertyName);
+      if (!numericScaleMap) {
+        this.cache.ui.info("Aborted numeric scale picker");
         return;
       }
     }
@@ -559,13 +581,14 @@ class GraphCoreManager {
       }
 
       // apply overrides
+      const overridesCopy = structuredClone(overrides);
       if (colorMap) {
-        const overridesCopy = structuredClone(overrides);
         replaceColorScale(overridesCopy, nodeID, colorMap);
-        StaticUtilities.deepMerge(node, overridesCopy);
-      } else {
-        StaticUtilities.deepMerge(node, overrides);
       }
+      if (numericScaleMap) {
+        replaceNumericScale(overridesCopy, nodeID, numericScaleMap);
+      }
+      StaticUtilities.deepMerge(node, overridesCopy);
       this.cache.nodeRef.set(nodeID, node);
 
       // Save to current layout's style map (including type)
