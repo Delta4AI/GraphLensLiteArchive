@@ -198,7 +198,12 @@ class Cache {
 
   iterNodes() {
     this.data.nodes.forEach((node) => {
-      this.nodeRef.set(node.id, node);
+      // Clone the node and capture originalStyle to prevent polluting cache.data.nodes
+      const nodeClone = structuredClone(node);
+      // Capture the original style and type before any modifications
+      nodeClone.originalStyle = structuredClone(node.style || {});
+      nodeClone.originalType = node.type;
+      this.nodeRef.set(node.id, nodeClone);
       this.toolTips.set(node.id, this.uiComponents.buildToolTipText(node.id, false));
       this.nodeIDToPropIDs.set(node.id, new Set());
       if (node.label) {
@@ -235,7 +240,12 @@ class Cache {
 
   iterEdges() {
     this.data.edges.forEach((edge) => {
-      this.edgeRef.set(edge.id, edge);
+      // Clone the edge and capture originalStyle to prevent polluting cache.data.edges
+      const edgeClone = structuredClone(edge);
+      // Capture the original style and type before any modifications
+      edgeClone.originalStyle = structuredClone(edge.style || {});
+      edgeClone.originalType = edge.type;
+      this.edgeRef.set(edge.id, edgeClone);
       this.toolTips.set(edge.id, this.uiComponents.buildToolTipText(edge.id, true));
       this.edgeIDToPropIDs.set(edge.id, new Set());
       if (edge.label) {

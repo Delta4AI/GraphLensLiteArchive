@@ -58,12 +58,24 @@ class GraphLayoutManager {
     const nodeUpdates = [];
     for (const [nodeID, node] of this.cache.nodeRef.entries()) {
       let newStyle;
+      let newType = node.type;
+
       if (layout.nodeStyles && layout.nodeStyles.has(nodeID)) {
-        // Apply view-specific style
-        newStyle = structuredClone(layout.nodeStyles.get(nodeID));
+        // Apply view-specific style and type
+        const layoutData = layout.nodeStyles.get(nodeID);
+        if (layoutData.style) {
+          newStyle = structuredClone(layoutData.style);
+        } else {
+          // Old format compatibility: layoutData is the style directly
+          newStyle = structuredClone(layoutData);
+        }
+        if (layoutData.type !== undefined) {
+          newType = layoutData.type;
+        }
       } else {
-        // Reset to original default style
+        // Reset to original default style and type
         newStyle = structuredClone(node.originalStyle);
+        newType = node.originalType || node.type;
       }
 
       // Apply positions from the layout's position map (positions are stored separately)
@@ -73,9 +85,10 @@ class GraphLayoutManager {
         newStyle.y = position.style.y;
       }
 
-      nodeUpdates.push({id: nodeID, style: newStyle});
+      nodeUpdates.push({id: nodeID, type: newType, style: newStyle});
 
       // Update the nodeRef cache to keep it in sync
+      node.type = newType;
       node.style = newStyle;
       this.cache.nodeRef.set(nodeID, node);
     }
@@ -87,16 +100,30 @@ class GraphLayoutManager {
     const edgeUpdates = [];
     for (const [edgeID, edge] of this.cache.edgeRef.entries()) {
       let newStyle;
+      let newType = edge.type;
+
       if (layout.edgeStyles && layout.edgeStyles.has(edgeID)) {
-        // Apply view-specific style
-        newStyle = structuredClone(layout.edgeStyles.get(edgeID));
+        // Apply view-specific style and type
+        const layoutData = layout.edgeStyles.get(edgeID);
+        if (layoutData.style) {
+          newStyle = structuredClone(layoutData.style);
+        } else {
+          // Old format compatibility: layoutData is the style directly
+          newStyle = structuredClone(layoutData);
+        }
+        if (layoutData.type !== undefined) {
+          newType = layoutData.type;
+        }
       } else {
-        // Reset to original default style
+        // Reset to original default style and type
         newStyle = structuredClone(edge.originalStyle);
+        newType = edge.originalType || edge.type;
       }
-      edgeUpdates.push({id: edgeID, style: newStyle});
+
+      edgeUpdates.push({id: edgeID, type: newType, style: newStyle});
 
       // Update the edgeRef cache to keep it in sync
+      edge.type = newType;
       edge.style = newStyle;
       this.cache.edgeRef.set(edgeID, edge);
     }
@@ -126,15 +153,21 @@ class GraphLayoutManager {
 
     if (result.mode === 'clone') {
       // Clone current view - copy everything including CURRENT visual state
-      // Capture ALL node and edge styles as they currently appear
+      // Capture ALL node and edge styles and types as they currently appear
       const nodeStyles = new Map();
       for (const [nodeID, node] of this.cache.nodeRef.entries()) {
-        nodeStyles.set(nodeID, structuredClone(node.style));
+        nodeStyles.set(nodeID, {
+          type: node.type,
+          style: structuredClone(node.style)
+        });
       }
 
       const edgeStyles = new Map();
       for (const [edgeID, edge] of this.cache.edgeRef.entries()) {
-        edgeStyles.set(edgeID, structuredClone(edge.style));
+        edgeStyles.set(edgeID, {
+          type: edge.type,
+          style: structuredClone(edge.style)
+        });
       }
 
       this.cache.data.layouts[result.name] = {

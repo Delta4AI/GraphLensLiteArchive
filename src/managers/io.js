@@ -1022,25 +1022,42 @@ class IOManager {
       }
     }
 
-    // Capture current visibility state from the graph
+    // Clean base node/edge styles - only keep visibility, remove all other style properties
+    // All styles should be stored in per-layout nodeStyles/edgeStyles maps
     if (this.cache.graph) {
       const {nodes, edges} = await this.cache.graph.getData();
 
-      // Update visibility in cache.data.nodes based on current graph state
+      // Reset cache.data.nodes to clean state, only preserving visibility
       for (const node of this.cache.data.nodes) {
         const graphNode = nodes.find(n => n.id === node.id);
-        if (graphNode && graphNode.style) {
-          if (!node.style) node.style = {};
-          node.style.visibility = graphNode.style.visibility || "visible";
+        const visibility = graphNode?.style?.visibility || "visible";
+
+        // Get the original clean style from nodeRef (which has originalStyle)
+        const nodeRefData = this.cache.nodeRef.get(node.id);
+        if (nodeRefData && nodeRefData.originalStyle) {
+          // Reset to original clean style, then apply visibility
+          node.style = structuredClone(nodeRefData.originalStyle);
+          node.style.visibility = visibility;
+        } else {
+          // Fallback: only preserve visibility
+          node.style = { visibility: visibility };
         }
       }
 
-      // Update visibility in cache.data.edges based on current graph state
+      // Reset cache.data.edges to clean state, only preserving visibility
       for (const edge of this.cache.data.edges) {
         const graphEdge = edges.find(e => e.id === edge.id);
-        if (graphEdge && graphEdge.style) {
-          if (!edge.style) edge.style = {};
-          edge.style.visibility = graphEdge.style.visibility || "visible";
+        const visibility = graphEdge?.style?.visibility || "visible";
+
+        // Get the original clean style from edgeRef (which has originalStyle)
+        const edgeRefData = this.cache.edgeRef.get(edge.id);
+        if (edgeRefData && edgeRefData.originalStyle) {
+          // Reset to original clean style, then apply visibility
+          edge.style = structuredClone(edgeRefData.originalStyle);
+          edge.style.visibility = visibility;
+        } else {
+          // Fallback: only preserve visibility
+          edge.style = { visibility: visibility };
         }
       }
     }
@@ -1074,18 +1091,23 @@ class IOManager {
     Object.entries(jsonLayouts).forEach(([key, layout]) => {
       parsedLayouts[key] = {
         internals: layout.internals || null,
-        positions: new Map(Object.entries(layout.positions || {})),
+        // Check if already a Map (from restoreSetsFromJSON), otherwise convert
+        positions: layout.positions instanceof Map ? layout.positions : new Map(Object.entries(layout.positions || {})),
         filters: this.parseFiltersAsMap(layout.filters),
         isCustom: layout.isCustom || false,
         query: layout["query"] || undefined,
-        // Per-view styles
-        nodeStyles: new Map(Object.entries(layout.nodeStyles || {})),
-        edgeStyles: new Map(Object.entries(layout.edgeStyles || {})),
+        // Per-view styles - check if already Maps
+        nodeStyles: layout.nodeStyles instanceof Map ? layout.nodeStyles : new Map(Object.entries(layout.nodeStyles || {})),
+        edgeStyles: layout.edgeStyles instanceof Map ? layout.edgeStyles : new Map(Object.entries(layout.edgeStyles || {})),
         bubbleSetStyle: layout.bubbleSetStyle || structuredClone(this.cache.DEFAULTS.BUBBLE_GROUP_STYLE),
       };
 
       for (let group of this.cache.bs.traverseBubbleSets()) {
         parsedLayouts[key][`${group}Props`] = new Set(layout[`${group}Props`] || []);
+        // Also restore ManualMembers if not already restored
+        parsedLayouts[key][`${group}ManualMembers`] = layout[`${group}ManualMembers`] instanceof Set
+          ? layout[`${group}ManualMembers`]
+          : new Set(layout[`${group}ManualMembers`] || []);
       }
     });
     return parsedLayouts;
