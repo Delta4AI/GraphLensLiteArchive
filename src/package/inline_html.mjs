@@ -8,7 +8,7 @@ function customHandler(source, context) {
   const absolutePath = path.resolve(srcPath, source.filepath);
 
   const filesToCompress = [
-    path.resolve(srcPath, 'gll.js'),
+    path.resolve(srcPath, 'gll.bundle.js'),
     path.resolve(srcPath, 'style.css')
   ];
 
