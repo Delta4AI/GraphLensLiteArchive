@@ -29,6 +29,7 @@ import {UIManager} from './managers/ui.js';
 import {UIComponentManager} from './managers/ui_components.js';
 
 import {ColorScalePicker} from './utilities/color_scale_picker.js';
+import {NumericScalePicker} from './utilities/numeric_scale_picker.js';
 import {DataTable, buildDataTable} from "./utilities/data_editor.js";
 import {StringDemoDataLoader} from "./utilities/demo_loader.js";
 import {Popup} from "./utilities/popup.js";
@@ -105,6 +106,7 @@ class Cache {
     this.uiComponents = new UIComponentManager(this);
     this.style = new GraphStyleManager(this);
     this.picker = new ColorScalePicker(this);
+    this.numericPicker = new NumericScalePicker(this);
     this.dataTable = new DataTable(this);
     this.metrics = new NetworkMetrics(this);
     this.stash = new StashManager(this);
