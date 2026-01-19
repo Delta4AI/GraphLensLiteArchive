@@ -24,7 +24,6 @@ import {GraphStyleManager} from "./graph/style.js";
 import {excelData, IOManager} from './managers/io.js';
 import {NetworkMetrics} from './managers/metrics.js';
 import {QueryManager} from './managers/query.js';
-import {StashManager} from './managers/stash.js';
 import {UIManager} from './managers/ui.js';
 import {UIComponentManager} from './managers/ui_components.js';
 
@@ -109,7 +108,6 @@ class Cache {
     this.numericPicker = new NumericScalePicker(this);
     this.dataTable = new DataTable(this);
     this.metrics = new NetworkMetrics(this);
-    this.stash = new StashManager(this);
     this.buildDataTable = buildDataTable;
   }
 

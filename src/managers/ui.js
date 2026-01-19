@@ -56,7 +56,6 @@ class UIManager {
     document.getElementById("visibleEdges").innerHTML = `${this.cache.edgeIDsToBeShown.size - this.cache.hiddenDanglingEdgeIDs.size}`;
     document.getElementById("totalEdges").innerHTML = `${this.cache.data.edges.length}`;
 
-    this.refreshStashUI();
     this.cache.bs.refreshBubbleStyleElements();
   }
 
@@ -104,36 +103,6 @@ class UIManager {
     }
   }
 
-  refreshStashUI() {
-    const select = document.getElementById("selectStash");
-    const remove = document.getElementById("removeStash");
-    const apply = document.getElementById("applyStash");
-    const overwrite = document.getElementById("overwriteStash");
-    const currentlySelected = select.value;
-
-    select.innerHTML = '';
-
-    for (const elem of [select, remove, apply, overwrite]) {
-      if (Object.keys(this.cache.data.stash).length > 0) {
-        elem.classList.remove("disabled");
-      } else {
-        elem.classList.add("disabled");
-      }
-    }
-
-    for (const key of Object.keys(this.cache.data.stash)) {
-      const option = document.createElement("option");
-      option.value = key;
-      option.textContent = key;
-      select.appendChild(option);
-    }
-
-    if (currentlySelected) {
-      select.value = currentlySelected;
-    } else if (Object.keys(this.cache.data.stash).length > 0) {
-      select.value = Object.keys(this.cache.data.stash)[0];
-    }
-  }
 
   logMessage(text, colorClass, bold = false, iconPrefix = "") {
     const timestamp = StaticUtilities.getTimestamp();

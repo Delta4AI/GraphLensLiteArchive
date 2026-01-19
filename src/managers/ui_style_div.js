@@ -90,6 +90,8 @@ function createStyleDiv(cache) {
 
     if (value === "set_continuous_color_scale") {
       commands.push("set_continuous_color_scale");
+      // Store property name in picker for display
+      cache.picker.currentProperty = property;
     }
 
     if (value === "set_numeric_scale") {

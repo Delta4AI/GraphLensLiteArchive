@@ -367,19 +367,6 @@ class IOManager {
       jsonContent.filterDefaults = filterDefaultsMap;
     }
 
-    // Restore Sets in stash
-    if (jsonContent.stash) {
-      for (const stashName in jsonContent.stash) {
-        const stash = jsonContent.stash[stashName];
-        if (stash.groupedProps) {
-          for (const key in stash.groupedProps) {
-            if (Array.isArray(stash.groupedProps[key])) {
-              stash.groupedProps[key] = new Set(stash.groupedProps[key]);
-            }
-          }
-        }
-      }
-    }
   }
 
   /**
@@ -914,19 +901,8 @@ class IOManager {
       }
     }
 
-    if (fileData.stash) {
-      this.cache.data.stash = Object.fromEntries(
-        Object.entries(fileData.stash || {}).map(([key, value]) => [
-          key,
-          {
-            ...value,
-            ...this.parseGroups(value),
-          },
-        ])
-      );
-    } else {
-      this.cache.data.stash = {};
-    }
+    // Initialize empty stash (legacy support)
+    this.cache.data.stash = {};
 
     this.cache.initialize();
     this.cache.ui.debug("Done pre-processing data");
