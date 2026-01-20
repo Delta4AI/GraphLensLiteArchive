@@ -20,10 +20,10 @@
     "create-gll-zip": "cd src && zip -r ../dist/GLL-source-bundle_${npm_package_version}.zip gll.bundle.js graph_lens_lite.html style.css lib/g6.min.js lib/exceljs.min.js ../templates/simple-template.xlsx",
     "inject-excel-template": "node src/package/inject_excel_template.mjs",
     "substitute-gll": "node src/package/substitute_gll_bundle_reference.js",
-    "dist:prep": "npm run bundle:prod && npm run inject-excel-template && npm run substitute-gll start && npm run create-inline-html",
+    "dist:prep": "node -e \"require('fs').mkdirSync('dist',{recursive:true})\" && npm run bundle:prod && npm run inject-excel-template && npm run substitute-gll start && npm run create-inline-html",
     "dist:prep:linux": "npm run clean:linux && npm run dist:prep && npm run create-gll-zip",
-    "dist-windows": "npm run dist:prep && electron-builder --win && npm run substitute-gll end",
-    "dist-linux": "npm run dist:prep:linux && electron-builder --linux && npm run substitute-gll end",
+    "dist-windows": "npm run dist:prep && electron-builder --win --publish=never && npm run substitute-gll end",
+    "dist-linux": "npm run dist:prep:linux && electron-builder --linux --publish=never && npm run substitute-gll end",
     "serve": "npx http-server src -p 8000 --cors"
   },
   "build": {
