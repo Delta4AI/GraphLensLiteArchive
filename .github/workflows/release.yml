@@ -3,32 +3,81 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*'  # Triggers on tags like v1.9.2, v2.0.0, etc.
-  workflow_dispatch:  # Allows manual trigger from GitHub UI
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
-  build-and-release:
-    runs-on: ubuntu-latest
-    
+  build-windows:
+    runs-on: windows-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      
+
       - name: Install dependencies
         run: npm install
-      
-      - name: Run dist build
-        run: npm run dist
-      
+
+      - name: Run dist build (Windows)
+        run: npm run dist -- --win
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-dist
+          path: dist/*
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run dist build (Linux)
+        run: npm run dist -- --linux
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-dist
+          path: dist/*
+
+  release:
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code (for git log)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-dist
+          path: dist
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-dist
+          path: dist
+
       - name: Get version from package.json
         id: package_version
         run: echo "version=v$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-      
+
       - name: Determine tag
         id: tag
         run: |
@@ -37,11 +86,32 @@ jobs:
           else
             echo "tag=${{ steps.package_version.outputs.version }}" >> $GITHUB_OUTPUT
           fi
-      
+
+      - name: Build release notes from commits
+        id: notes
+        run: |
+          CURRENT_TAG="${{ steps.tag.outputs.tag }}"
+          PREV_TAG=$(git tag --sort=-creatordate | grep -v "^${CURRENT_TAG}$" | head -n 1)
+          if [ -z "$PREV_TAG" ]; then
+            RANGE=""
+          else
+            RANGE="${PREV_TAG}..${CURRENT_TAG}"
+          fi
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "## Changes" >> $GITHUB_OUTPUT
+          if [ -z "$RANGE" ]; then
+            git log --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
+          else
+            git log "$RANGE" --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
+          fi
+          echo "" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
+          body: ${{ steps.notes.outputs.notes }}
           files: |
             dist/*.zip
             dist/*.exe
@@ -50,6 +120,5 @@ jobs:
             dist/*.snap
             dist/*.html
             dist/*.7z
-          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
