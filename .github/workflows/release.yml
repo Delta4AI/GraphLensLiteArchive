@@ -38,12 +38,18 @@ jobs:
             echo "tag=${{ steps.package_version.outputs.version }}" >> $GITHUB_OUTPUT
           fi
       
-      - name: Create Release
+       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           files: |
-            dist/**/*
+            dist/*.zip
+            dist/*.exe
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.snap
+            dist/*.html
+            dist/*.7z
           generate_release_notes: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
