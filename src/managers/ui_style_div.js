@@ -746,18 +746,18 @@ function createStyleDiv(cache) {
 
     const rowOne = createNewRow(arrDiv);
     appendButton(rowOne, "Shrink", "Move nodes closer together, halving their distance to the center.",
-      () => cache.lm.layoutSelectedNodes("shrink"));
+      async () => await cache.lm.layoutSelectedNodes("shrink"));
     appendButton(rowOne, "Expand", "Move nodes farther apart, doubling their distance to the center.",
-      () => cache.lm.layoutSelectedNodes("expand"));
+      async () => await cache.lm.layoutSelectedNodes("expand"));
     appendVerticalRule(rowOne);
     appendButton(rowOne, "Circle", "Arrange nodes evenly in a circular layout around the center.",
-      () => cache.lm.layoutSelectedNodes("circle"));
+      async () => await cache.lm.layoutSelectedNodes("circle"));
     appendButton(rowOne, "Force", "Apply a force-directed layout to the selected nodes.",
-      () => cache.lm.layoutSelectedNodes("force"));
+      async () => await cache.lm.layoutSelectedNodes("force"));
     appendButton(rowOne, "Grid", "Apply a uniform grid layout to the selected nodes.",
-      () => cache.lm.layoutSelectedNodes("grid"));
+      async () => await cache.lm.layoutSelectedNodes("grid"));
     appendButton(rowOne, "Random", "Apply a random layout to the selected nodes while preserving the original layout bonds.",
-      () => cache.lm.layoutSelectedNodes("random"));
+      async () => await cache.lm.layoutSelectedNodes("random"));
   }
 
   function createNodeConfigCard() {
