@@ -11,7 +11,7 @@
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "clean": "rimraf dist && mkdir -p dist",
+    "clean:linux": "rm -rf dist && mkdir -p dist",
     "bundle": "esbuild src/gll.js --bundle --outfile=src/gll.bundle.js",
     "bundle:prod": "esbuild src/gll.js --bundle --minify --target=es2020 --drop:debugger --legal-comments=none --outfile=src/gll.bundle.js",
     "bundle:watch": "esbuild src/gll.js --bundle --outfile=src/gll.bundle.js --watch --sourcemap",
@@ -20,7 +20,10 @@
     "create-gll-zip": "cd src && zip -r ../dist/GLL-source-bundle_${npm_package_version}.zip gll.bundle.js graph_lens_lite.html style.css lib/g6.min.js lib/exceljs.min.js ../templates/simple-template.xlsx",
     "inject-excel-template": "node src/package/inject_excel_template.mjs",
     "substitute-gll": "node src/package/substitute_gll_bundle_reference.js",
-    "dist": "npm run clean && npm run bundle:prod && npm run inject-excel-template && npm run substitute-gll start && (npm run create-gll-zip && npm run create-inline-html && electron-builder --linux --win; npm run substitute-gll end) || npm run substitute-gll end",
+    "dist:prep": "npm run bundle:prod && npm run inject-excel-template && npm run substitute-gll start && npm run create-inline-html",
+    "dist:prep:linux": "npm run clean:linux && npm run dist:prep && npm run create-gll-zip",
+    "dist-windows": "npm run dist:prep && electron-builder --win && npm run substitute-gll end",
+    "dist-linux": "npm run dist:prep:linux && electron-builder --linux && npm run substitute-gll end",
     "serve": "npx http-server src -p 8000 --cors"
   },
   "build": {
