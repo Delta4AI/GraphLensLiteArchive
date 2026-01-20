@@ -308,10 +308,11 @@ class GraphLayoutManager {
   }
 
   async layoutSelectedNodes(action) {
-    if (this.cache.selectedNodes.length === 0) return;
+    const cache = this.cache;
+    if (cache.selectedNodes.length === 0) return;
 
     async function groupOrSpreadSelectedNodes(scale) {
-      for (const node of await this.cache.sm.getSelectedNodes()) {
+      for (const node of await cache.sm.getSelectedNodes()) {
         const oldX = node.style.x;
         const oldY = node.style.y;
 
@@ -321,11 +322,11 @@ class GraphLayoutManager {
     }
 
     async function arrangeNodesInCircle(radius) {
-      const numNodes = this.cache.selectedNodes.length;
+      const numNodes = cache.selectedNodes.length;
       let angleStep = (2 * Math.PI) / numNodes;
 
       let i = 0;
-      for (const node of await this.cache.sm.getSelectedNodes()) {
+      for (const node of await cache.sm.getSelectedNodes()) {
         const angle = i * angleStep;
         node.style.x = origAvgX + radius * Math.cos(angle);
         node.style.y = origAvgY + radius * Math.sin(angle);
@@ -349,7 +350,7 @@ class GraphLayoutManager {
       // -----------------------------
       // Larger initial placement range
       // -----------------------------
-      const nodes = await this.cache.sm.getSelectedNodes();
+      const nodes = await cache.sm.getSelectedNodes();
       for (const node of nodes) {
         node.style.x = Math.random() * 1000 - 500;  // Range: [-500, 500]
         node.style.y = Math.random() * 1000 - 500;  // Range: [-500, 500]
@@ -380,9 +381,9 @@ class GraphLayoutManager {
         }
 
         // 2) Spring forces (edges)
-        for (const edge of await this.cache.graph.getEdgeData()) {
+        for (const edge of await cache.graph.getEdgeData()) {
           const {source, target} = edge;
-          if (this.cache.selectedNodes.includes(source) && this.cache.selectedNodes.includes(target)) {
+          if (cache.selectedNodes.includes(source) && cache.selectedNodes.includes(target)) {
             const nodeA = nodes.find((n) => n.id === source);
             const nodeB = nodes.find((n) => n.id === target);
             if (nodeA && nodeB) {
@@ -428,7 +429,7 @@ class GraphLayoutManager {
     }
 
     async function applyGridLayout() {
-      const nodes = await this.cache.sm.getSelectedNodes();
+      const nodes = await cache.sm.getSelectedNodes();
       if (nodes.length === 0) return;
 
       const count = nodes.length;
@@ -452,7 +453,7 @@ class GraphLayoutManager {
     }
 
     async function applyRandomLayout() {
-      const nodes = await this.cache.sm.getSelectedNodes();
+      const nodes = await cache.sm.getSelectedNodes();
       if (nodes.length < 2) return;
 
       // ALWAYS use the fixed original bounding‐box:
@@ -506,7 +507,7 @@ class GraphLayoutManager {
       return shuffled.slice(0, n);
     }
 
-    const sel = await this.cache.sm.getSelectedNodes();
+    const sel = await cache.sm.getSelectedNodes();
     if (sel.length == 0) return;
 
     const coords = sel.map(n => ({x: n.style.x, y: n.style.y}));
