@@ -1,7 +1,9 @@
-# Graph Lens Lite
+![Graph Lens Lite Logo](./static/logo.png)
+<div style="text-align:center">
+   Visualise and navigate property graphs through a sleek, ultra-lightweight interface.  
+   Works in any modern browser, with native Electron desktops for Windows and Linux.
+</div>
 
-Visualise and navigate **property graphs** through a sleek, ultra-lightweight interface.  
-Works in any modern browser, with native Electron desktops for Windows and Linux.
 
 ---
 
@@ -9,11 +11,6 @@ Works in any modern browser, with native Electron desktops for Windows and Linux
 1. Download the [latest release](https://github.com/Delta4AI/GraphLensLite/releases/latest) for your OS
 2. (Optional) Download a [template](templates/simple-template.xlsx) and populate with your own data
 3. Launch Graph Lens Lite and start exploring by either loading a demo network or a file
-
----
-
-## Screenshots
-TBC
 
 ---
 
@@ -34,7 +31,7 @@ TBC
    4. Debug the compound configuration to start everything at once
    5. Set Breakpoints and debug
       
-### Common npm goals
+### npm goals
 ```bash
 # Install prerequisites (fedora)
 sudo dnf install libxcrypt-compat wine
@@ -62,4 +59,4 @@ npm install --save-dev electron@latest electron-builder@latest
 ---
 
 ## Reference
-TBC
+TBD
