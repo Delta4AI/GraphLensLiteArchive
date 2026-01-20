@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '20'
       
       - name: Install dependencies
         run: npm install
@@ -25,9 +25,23 @@ jobs:
       - name: Run dist build
         run: npm run dist
       
+      - name: Get version from package.json
+        id: package_version
+        run: echo "version=v$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+      
+      - name: Determine tag
+        id: tag
+        run: |
+          if [ "${{ github.ref_type }}" == "tag" ]; then
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ steps.package_version.outputs.version }}" >> $GITHUB_OUTPUT
+          fi
+      
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ steps.tag.outputs.tag }}
           files: |
             dist/**/*
           generate_release_notes: true
