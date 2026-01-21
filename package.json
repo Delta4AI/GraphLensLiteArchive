@@ -16,14 +16,15 @@
     "bundle:prod": "esbuild src/gll.js --bundle --minify --target=es2020 --drop:debugger --legal-comments=none --outfile=src/gll.bundle.js",
     "bundle:watch": "esbuild src/gll.js --bundle --outfile=src/gll.bundle.js --watch --sourcemap",
     "bundle:serve": "esbuild src/gll.js --bundle --outfile=src/gll.bundle.js --watch --sourcemap --servedir=src",
-    "create-inline-html": "node src/package/inline_html.mjs src/graph_lens_lite.html dist/graph-lens-lite_${npm_package_version}.html",
-    "create-gll-zip": "cd src && zip -r ../dist/GLL-source-bundle_${npm_package_version}.zip gll.bundle.js graph_lens_lite.html style.css lib/g6.min.js lib/exceljs.min.js ../templates/simple-template.xlsx",
+    "create-inline-html": "node src/package/inline_html.mjs src/graph_lens_lite.html dist/graph-lens-lite_inline_${npm_package_version}.html",
     "inject-excel-template": "node src/package/inject_excel_template.mjs",
     "substitute-gll": "node src/package/substitute_gll_bundle_reference.js",
     "dist:prep": "node -e \"require('fs').mkdirSync('dist',{recursive:true})\" && npm run bundle:prod && npm run inject-excel-template && npm run substitute-gll start && npm run create-inline-html",
-    "dist:prep:linux": "npm run clean:linux && npm run dist:prep && npm run create-gll-zip",
+    "dist:prep:linux": "npm run clean:linux && npm run dist:prep",
     "dist-windows": "npm run dist:prep && electron-builder --win --publish=never && npm run substitute-gll end",
     "dist-linux": "npm run dist:prep:linux && electron-builder --linux --publish=never && npm run substitute-gll end",
+    "dist-mac": "npm run dist:prep && electron-builder --mac --publish=never && npm run substitute-gll end",
+    "dist": "npm run dist-linux && npm run dist-windows",
     "serve": "npx http-server src -p 8000 --cors -o /graph_lens_lite.html "
   },
   "build": {
@@ -37,8 +38,7 @@
     "win": {
       "target": [
         "nsis",
-        "portable",
-        "zip"
+        "portable"
       ],
       "signAndEditExecutable": false
     },
@@ -50,6 +50,12 @@
       ],
       "category": "Graphics",
       "maintainer": "Delta 4 GmbH <office@delta4.ai>"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ]
     }
   },
   "devDependencies": {
