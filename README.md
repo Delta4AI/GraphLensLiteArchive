@@ -1,8 +1,8 @@
 ![Graph Lens Lite Logo](./static/logo.png)
-<div style="text-align:center">
+<h3 align="center">
    Visualise and navigate property graphs through a sleek, ultra-lightweight interface.  
    Works in any modern browser, with native Electron desktops for Windows and Linux.
-</div>
+</h3>
 
 
 ---
