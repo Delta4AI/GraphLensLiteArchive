@@ -57,7 +57,6 @@ class GraphSelectionManager {
     await new Promise(resolve => requestAnimationFrame(resolve));
   }
 
-  // TODO: is this placed right?
   async getSelectedNodes() {
     return await this.cache.graph.getNodeData().filter(n => n.states?.includes("selected"));
   }
@@ -183,7 +182,7 @@ class GraphSelectionManager {
     const nodesToShow = [];
     const nodesToHide = [];
 
-    function isOuterNodeInSelection(nodeID) {
+    const isOuterNodeInSelection = (nodeID) => {
       let neighborsInSelection = 0;
 
       for (const edgeID of this.cache.nodeIDToEdgeIDs.get(nodeID) || []) {
@@ -203,7 +202,7 @@ class GraphSelectionManager {
       return neighborsInSelection <= 1;
     }
 
-    async function update() {
+    const update = async () => {
       if (edgesToShow.length > 0) await this.updateSelectedState(edgesToShow, true);
       if (edgesToHide.length > 0) await this.updateSelectedState(edgesToHide, false);
       if (nodesToShow.length > 0) await this.updateSelectedState(nodesToShow, true);
