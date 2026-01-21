@@ -931,9 +931,21 @@ class UIComponentManager {
     return `Click to ${enable ? 'hide' : 'show'} elements with the property:${StaticUtilities.formatPropsAsTree(propID)}`;
   }
 
+  createAddOrRemoveToSelectionGroup(propID) {
+    const group = document.createElement("div");
+    group.classList.add("pm-group");
+
+    const addBtn = this.createAddOrRemoveToSelectionButton(propID, true);
+    const removeBtn = this.createAddOrRemoveToSelectionButton(propID, false);
+
+    group.appendChild(addBtn);
+    group.appendChild(removeBtn);
+    return group;
+  }
+
   createAddOrRemoveToSelectionButton(propID, shouldAdd) {
     const btn = document.createElement("button");
-    btn.classList.add("plus-minus-button", "show-on-edit");
+    btn.classList.add("plus-minus-button");
     btn.textContent = shouldAdd ? "+" : "-";
     btn.title = shouldAdd ? "Add to selection" : "Remove from selection";
     btn.addEventListener("click", async () => {
