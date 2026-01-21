@@ -2561,9 +2561,55 @@ input:checked + .slider:before {
 
 #dataTableContainer {
     height: 100%;
-    overflow: auto;
+    display: flex;
+    flex-direction: column;
     border: 1px solid #ccc;
     background: white;
+    overflow: hidden;
+}
+
+.data-table-warning-banner {
+    background: #fff3cd;
+    border-bottom: 2px solid #ffc107;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #856404;
+    text-align: center;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+}
+
+.data-table-warning-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    font-weight: bold;
+    color: #856404;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    position: absolute;
+    right: 8px;
+}
+
+.data-table-warning-close:hover {
+    background: rgba(133, 100, 4, 0.1);
+    color: #664d03;
+}
+
+.data-table-wrapper {
+    flex: 1;
+    overflow: auto;
 }
 
 .data-table {
@@ -2576,12 +2622,14 @@ input:checked + .slider:before {
 .data-table th {
     background-color: #f0f0f0;
     border: 1px solid #ddd;
-    padding: 6px 8px;
+    padding: 2px 4px;
     text-align: left;
     font-weight: bold;
     position: sticky;
     top: 0;
     z-index: 1;
+    vertical-align: top;
+    cursor: pointer;
 }
 
 .data-table td {
@@ -2641,11 +2689,12 @@ input:checked + .slider:before {
 
 
 .data-table-sortable-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: block;
   cursor: pointer;
   user-select: none;
+  min-height: 24px;
+  position: relative;
+  padding-right: 20px;
 }
 
 .data-table-sortable-header:hover {
@@ -2653,27 +2702,74 @@ input:checked + .slider:before {
 }
 
 .data-table-header-text {
-  flex: 1;
+  width: 100%;
+  display: block;
+}
+
+.data-table-header-group-badge {
+  background-color: #403c53;
+  border: 1px solid black;
+  border-radius: 5px;
+  color: white;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: bold;
+  white-space: nowrap;
+  display: inline-block;
+  margin-right: 0;
+  margin-top: 1px;
+  margin-bottom: 2px;
+  line-height: 1.2;
+}
+
+.data-table-header-property {
+  display: inline-block;
+  font-size: 12px;
+  margin-top: 1px;
+  line-height: 1.3;
+}
+
+.data-table-header-property.size-xs {
+  font-size: 9px;
+}
+
+.data-table-header-property.size-s {
+  font-size: 10px;
+}
+
+.data-table-header-property.size-m {
+  font-size: 11px;
+}
+
+.data-table-header-property.size-l {
+  font-size: 12px;
+}
+
+.data-table-header-property.size-xl {
+  font-size: 12px;
 }
 
 .data-table-sort-indicator {
-  margin-left: 8px;
-  font-size: 12px;
-  color: #666;
-  min-width: 12px;
-  text-align: center;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 10px;
+  color: #403c53;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(64, 60, 83, 0.1);
+  border: 1px solid #403c53;
+  border-radius: 3px;
+  font-weight: bold;
+  transition: all 0.2s ease;
 }
 
-.data-table th {
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  padding: 6px 8px;
-  text-align: left;
-  font-weight: bold;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  cursor: pointer;
+.data-table-sortable-header:hover .data-table-sort-indicator {
+  background: rgba(64, 60, 83, 0.2);
+  border-color: #403c53;
 }
 
 .data-table th:hover {
@@ -2734,8 +2830,10 @@ input:checked + .slider:before {
 .data-table-tabs {
   display: flex;
   gap: 4px;
-  margin-bottom: 10px;
   border-bottom: 2px solid #ddd;
+  flex-shrink: 0;
+  overflow-x: auto;
+  background: white;
 }
 
 .data-table-tab {

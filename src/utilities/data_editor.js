@@ -33,6 +33,10 @@ class DataTable {
     }
 
     container.innerHTML = `
+      <div class="data-table-warning-banner">
+        <span><strong>⚠️</strong> Data modifications affect all views globally</span>
+        <button class="data-table-warning-close" title="Dismiss warning">×</button>
+      </div>
       <div class="data-table-tabs">
         <button class="data-table-tab active" data-tab="selectedNodes">Selected Nodes</button>
         <button class="data-table-tab" data-tab="selectedEdges">Selected Edges</button>
@@ -41,16 +45,19 @@ class DataTable {
         <button class="data-table-tab" data-tab="allEdges">All Edges</button>
         <button class="data-table-tab" data-tab="entireGraph">Entire Graph</button>
       </div>
-      <table id="dataTable" class="data-table">
-        <thead id="dataTableHead"></thead>
-        <tbody id="dataTableBody"></tbody>
-      </table>
+      <div class="data-table-wrapper">
+        <table id="dataTable" class="data-table">
+          <thead id="dataTableHead"></thead>
+          <tbody id="dataTableBody"></tbody>
+        </table>
+      </div>
     `;
 
     this.tabsContainer = container.querySelector('.data-table-tabs');
     this.table = container.querySelector('#dataTable');
     this.tableHead = container.querySelector('#dataTableHead');
     this.tableBody = container.querySelector('#dataTableBody');
+    this.warningBanner = container.querySelector('.data-table-warning-banner');
 
     this.tabsContainer.addEventListener('click', this.handleTabClick.bind(this));
     this.tableBody.addEventListener('click', this.handleTableClick.bind(this));
@@ -59,6 +66,16 @@ class DataTable {
     this.tableBody.addEventListener('keydown', this.handleTableKeydown.bind(this));
     this.tableBody.addEventListener('input', this.handleTableInput.bind(this));
     this.tableHead.addEventListener('click', this.handleHeaderTableClick.bind(this));
+
+    // Handle warning banner dismissal
+    const closeBtn = container.querySelector('.data-table-warning-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        if (this.warningBanner) {
+          this.warningBanner.style.display = 'none';
+        }
+      });
+    }
   }
 
   async handleTabClick(event) {
@@ -100,8 +117,19 @@ class DataTable {
     const uniqueNodeHeaders = [...new Set(nodeHeaders)];
     const uniqueEdgeHeaders = [...new Set(edgeHeaders)];
 
-    this.headers.push(...uniqueNodeHeaders);
-    this.headers.push(...uniqueEdgeHeaders);
+    // Filter headers based on current tab
+    const nodeOnlyTabs = ['selectedNodes', 'allNodes'];
+    const edgeOnlyTabs = ['selectedEdges', 'allEdges'];
+    const allPropertyTabs = ['selectedElements', 'entireGraph'];
+
+    if (nodeOnlyTabs.includes(this.currentTab)) {
+      this.headers.push(...uniqueNodeHeaders);
+    } else if (edgeOnlyTabs.includes(this.currentTab)) {
+      this.headers.push(...uniqueEdgeHeaders);
+    } else if (allPropertyTabs.includes(this.currentTab)) {
+      this.headers.push(...uniqueNodeHeaders);
+      this.headers.push(...uniqueEdgeHeaders);
+    }
 
     this.headerIndexMap.clear();
     this.headers.forEach((header, index) => {
@@ -314,6 +342,40 @@ class DataTable {
     this.render();
   }
 
+  formatHeaderForDisplay(header) {
+    // Check if header contains the property structure (e.g., "Node filters::GROUP::PROPERTY")
+    if (!header.includes('::')) {
+      return header;
+    }
+
+    const parts = header.split('::');
+    if (parts.length !== 3) {
+      return header;
+    }
+
+    const [typePrefix, group, property] = parts;
+
+    // Determine scaling class based on property text length
+    // Longer text gets smaller font (size-xs = 9px smallest)
+    const len = property.length;
+    let sizeClass = 'data-table-header-property';
+    if (len > 20) {
+      sizeClass += ' size-xs';  // 9px - smallest for longest text
+    } else if (len > 18) {
+      sizeClass += ' size-s';   // 10px
+    } else if (len > 16) {
+      sizeClass += ' size-m';   // 11px
+    } else if (len > 14) {
+      sizeClass += ' size-l';   // 12px
+    }
+    // ≤15 chars uses default 12px
+
+    // Strip "Node filters" or "Edge filters" prefix since Type column already indicates this
+    // Display group as a styled badge and property as main text with dynamic scaling
+    // Always break into two lines: badge on first line, property on second line
+    return `<span class="data-table-header-group-badge">${group}</span><br><span class="${sizeClass}">${property}</span>`;
+  }
+
   render() {
     if (!this.tableHead || !this.tableBody) {
       this.cache.ui.error('Table elements not found');
@@ -337,9 +399,10 @@ class DataTable {
       if (index === 0) {
         th.classList.add("data-table-delete-row-column");
       } else {
+        const formattedHeader = this.formatHeaderForDisplay(header);
         th.innerHTML = `
         <div class="data-table-sortable-header" data-column="${index}">
-          <span class="data-table-header-text">${header}</span>
+          <span class="data-table-header-text">${formattedHeader}</span>
           <span class="data-table-sort-indicator">${this.getSortIndicator(index)}</span>
         </div>
       `;
@@ -362,7 +425,8 @@ class DataTable {
           td.innerHTML = `<button class="data-table-delete-row-btn" title="Delete row ${rowIndex + 1} (${rowData[2]} ${rowData[3]})">×</button>`;
           td.classList.add('data-table-delete-row-column');
         } else {
-          td.textContent = cellData || '';
+          // Explicitly check for null/undefined to preserve 0 values
+          td.textContent = (cellData !== null && cellData !== undefined) ? cellData : '';
 
           const isBasicColumn = colIndex <= 3;
           const isReservedColumn = colIndex === 4 || colIndex === 5;
@@ -793,7 +857,11 @@ class DataTable {
       nodes: [],
       edges: [],
       nodeDataHeaders: [...this.fileData.nodeDataHeaders],
-      edgeDataHeaders: [...this.fileData.edgeDataHeaders]
+      edgeDataHeaders: [...this.fileData.edgeDataHeaders],
+      // Preserve existing layouts and selected layout to maintain per-view configurations
+      layouts: this.cache.data.layouts,
+      selectedLayout: this.cache.data.selectedLayout,
+      filterDefaults: this.cache.data.filterDefaults
     };
 
     const allowedKeys = new Set(["D4Data", "id", "label", "source", "style", "target", "description", "type"]);
@@ -1062,6 +1130,10 @@ class DataTable {
   help() {
     this.cache.popup = new Popup(`<h2>Data Editor</h2>
 <p>Explore and directly modify graph data through an interactive spreadsheet interface.</p>
+
+<div class="alert-warning">
+  <strong>⚠️ Important:</strong> Data modifications affect ALL views globally. Changing node/edge properties here will update them across all view presets. Only view-specific settings (positions, filters, styles, queries) are preserved per view.
+</div>
 
 <div class="alert-info">
   <strong>💡 Tip:</strong> All changes are staged until you click <span class="tooltip-dummy-buttons">✔ Apply</span>

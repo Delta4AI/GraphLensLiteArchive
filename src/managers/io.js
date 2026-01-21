@@ -410,7 +410,8 @@ class IOManager {
     const getOrNull = (row, key) => {
       const lowerCaseKey = key.toString().toLowerCase().trim();
       const value = row[Object.keys(row).find(key => key.toLowerCase() === lowerCaseKey)];
-      if (value && value.toString().trim() !== "") {
+      // Explicitly check for null/undefined to preserve 0 values
+      if (value !== null && value !== undefined && value.toString().trim() !== "") {
         return value;
       }
       return null;
@@ -654,7 +655,8 @@ class IOManager {
     const validateUserData = (row, key) => {
       const val = row[key];
 
-      if (val === null || val.toString().trim() === "") {
+      // Explicitly check for null/undefined to preserve 0 values
+      if (val === null || val === undefined || val.toString().trim() === "") {
         return null;
       }
 
