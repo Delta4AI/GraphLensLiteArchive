@@ -1145,7 +1145,7 @@ input:checked + .checkbox-green::after {
     height: 18px;
     margin-left: 1px;
     box-sizing: border-box;
-    border: 0.1em solid black;
+    border: 0.08em solid black;
     border-radius: 999px;
     overflow: hidden;
     position: relative;
