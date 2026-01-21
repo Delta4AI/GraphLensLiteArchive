@@ -24,7 +24,7 @@
     "dist:prep:linux": "npm run clean:linux && npm run dist:prep && npm run create-gll-zip",
     "dist-windows": "npm run dist:prep && electron-builder --win --publish=never && npm run substitute-gll end",
     "dist-linux": "npm run dist:prep:linux && electron-builder --linux --publish=never && npm run substitute-gll end",
-    "serve": "npx http-server src -p 8000 --cors"
+    "serve": "npx http-server src -p 8000 --cors -o /graph_lens_lite.html "
   },
   "build": {
     "appId": "com.delta4ai.graphlenslite",
