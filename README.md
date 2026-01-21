@@ -8,10 +8,14 @@
 ---
 
 ## Quickstart
-1. Download the [latest release](https://github.com/Delta4AI/GraphLensLite/releases/latest) for your OS
-2. (Optional) Download a [template](templates/simple-template.xlsx) and populate with your own data
-3. Launch Graph Lens Lite and start exploring by either loading a demo network or a file
-
+1. Download the [latest release](https://github.com/Delta4AI/GraphLensLite/releases/latest):
+   - **Windows**: `Graph Lens Lite Setup X.X.X.exe` (installer) or `Graph Lens Lite X.X.X.exe` (portable)
+   - **macOS**: `Graph Lens Lite-X.X.X.dmg` or `Graph Lens Lite-X.X.X.zip`
+   - **Linux**: `Graph Lens Lite-X.X.X.AppImage`, `graph-lens-lite_X.X.X_amd64.deb`, or `graph-lens-lite_X.X.X_amd64.snap`
+   - **Web (no install)**: `graph-lense-lite_inline_X.X.X.html`
+   - **From source**: clone the repo and run `npm install` then `npm run serve`
+2. (Optional) Download a [template](templates/simple-template.xlsx) and add your data
+3. Launch Graph Lens Lite and load a demo or your file
 ---
 
 ## Screenshots
