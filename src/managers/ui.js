@@ -632,7 +632,7 @@ class UIManager {
         <span>Filters locked | Query manually edited</span>
       </div>
       <button class="filter-unlock-btn" onclick="cache.ui.unlockFiltersAndResetQuery()">
-        Unlock
+        Reset
       </button>
     `;
     return statusBar;
