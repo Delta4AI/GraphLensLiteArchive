@@ -536,8 +536,7 @@ class UIManager {
         placeHolder.style.width = "18px";
         col3.appendChild(placeHolder);
       }
-      col3.appendChild(this.cache.uiComponents.createAddOrRemoveToSelectionButton(propID, true));
-      col3.appendChild(this.cache.uiComponents.createAddOrRemoveToSelectionButton(propID, false));
+      col3.appendChild(this.cache.uiComponents.createAddOrRemoveToSelectionGroup(propID));
       row.appendChild(col3);
       div.append(row);
       sliderOrDropdown.appendListeners();

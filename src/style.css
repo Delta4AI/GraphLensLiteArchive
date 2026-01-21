@@ -1138,19 +1138,54 @@ input:checked + .checkbox-green::after {
 /*************************
  +/- (add/remove) from selection buttons
  **************************/
-.plus-minus-button {
-    width: 14px;
+
+.pm-group {
+    display: inline-flex;
+    width: 18px;
     height: 18px;
-    padding: 1px 2px 1px;
-    font-size: 14px;
-    line-height: 12px;
-    border: 1px solid #403C53;
-    border-radius: 3px;
-    margin-left: 2px;
+    margin-left: 1px;
+    box-sizing: border-box;
+    border: 0.1em solid black;
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+    background: #E4E3EA;
+    transition: transform 140ms ease, border-color 140ms ease;
+    transform-origin: right center;
+}
+
+.plus-minus-button {
+    flex: 1;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    font-size: 13px;
+    line-height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 120ms ease, color 120ms ease;
+}
+
+.plus-minus-button + .plus-minus-button {
+    border-left: 1px solid #403C53;
+}
+
+.pm-group:hover {
+    border-color: #C33D35;
+    transform: scale(2.5);
+    z-index: 99;
+}
+
+.pm-group:hover .plus-minus-button + .plus-minus-button {
+    border-left-color: #C33D35;
 }
 
 .plus-minus-button:hover {
-    border-color: #C33D35;
+    background: #C33D35;
+    color: #fff;
     cursor: pointer;
 }
 
