@@ -14,41 +14,58 @@
 
 ---
 
+## Screenshots
+### Home screen
+![Home Screen with active Popup](./static/screenshots/main_view_with_popup.png)
+
+### View & layout management
+![View Management](./static/screenshots/create_new_view.png)
+
+### Query editor & visual grouping
+![Query Editor](./static/screenshots/query_editor_and_active_clusters.png)
+
+### Network metrics & data editor
+![Network Metrics](./static/screenshots/network_metrics_and_data_editor.png)
+
+### Rich styling
+![Rich Styling](./static/screenshots/rich_styling.png)
+
+### Property based color & value mapping (discrete, continuous, numerical)
+![Property based color & name mapping](./static/screenshots/property_based_categorical_color_mapping.png)
+
+---
 ## Development
-### Debug JavaScript
-1. Run http server
-    ```bash
-    cd /path/to/graph_lens_lite
-    npm run serve
-    ```
-2. Open browser, go to [http://localhost:8080/graph_lens_lite.html](http://localhost:8080/graph_lens_lite.html)
-3. (Optional) Create compound run configuration with JavaScript debugger in WebStorm
-   1. Create JavaScript debug configuration: 
-       - URL: `http://localhost:8000/graph_lens_lite.html`
-       - Browser: Chromium
-   2. Create `npm run serve` npm configuration
-   3. Add `Compound` configuration, add `npm run serve` and `JavaScript Debug` as children
-   4. Debug the compound configuration to start everything at once
-   5. Set Breakpoints and debug
-      
-### npm goals
 ```bash
-# Install prerequisites (fedora)
-sudo dnf install libxcrypt-compat wine
+# Install dependencies
+npm install                                                     # runtime dependencies
+dnf install libxcrypt-compat wine                               # build dependencies
+npm install --save-dev electron@latest electron-builder@latest  # update electron dependencies
 
-# Run the electron app
-npm start
+# Run
+npm run serve   # Start http-server
+npm start       # Start electron app
 
-# Create the source bundle zip (Linux only)
-npm run create-gll-zip
-
-# Build OS-specific artifacts
-npm run dist-linux
-npm run dist-windows
-
-# Update electron dependencies
-npm install --save-dev electron@latest electron-builder@latest
+# Build
+npm run dist-linux     # Linux build
+npm run dist-windows   # Windows build
 ```
+
+---
+
+## Contributing
+Contributions are welcome! Please file issues or submit pull requests on GitHub.
+
+---
+
+## License
+GNU GPLv3 - see [LICENSE](LICENSE) for details.
+
+---
+
+## Disclaimer
+- Uses [G6](https://g6.antv.vision/) and [ExcelJS](https://github.com/exceljs/exceljs) as dependency libraries
+- Uses the [String](https://string-db.org/) database for Demo purposes ([citation](https://doi.org/10.1093/nar/gkac1000))
+- No guarantees on the accuracy of the results
 
 ---
 
