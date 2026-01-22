@@ -14,7 +14,7 @@ class GraphLayoutManager {
 
   async changeLayout() {
     this.cache.data.selectedLayout = document.getElementById('selectView').value;
-    await this.cache.ui.showLoading("Switching View", this.cache.data.selectedLayout);
+    await this.cache.ui.showLoading("Switching Workspace", this.cache.data.selectedLayout);
     await new Promise(resolve => requestAnimationFrame(resolve));
 
     const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
@@ -50,7 +50,7 @@ class GraphLayoutManager {
     this.cache.bs.updateManualGroupButtonState();
     this.cache.bs.refreshBubbleStyleElements();
 
-    this.cache.ui.info(`Switched to view: ${this.cache.data.selectedLayout}`);
+    this.cache.ui.info(`Switched to workspace: ${this.cache.data.selectedLayout}`);
   }
 
   async applyLayoutStyles(layout) {
@@ -138,14 +138,14 @@ class GraphLayoutManager {
     // Show dialog with clone vs template options
     const result = await Popup.layoutCreationDialog(this.cache.DEFAULTS.LAYOUT_INTERNALS);
     if (!result) {
-      this.cache.ui.info("Creating view canceled");
+      this.cache.ui.info("Creating workspace canceled");
       return;
     }
 
     // Check if name already exists
     let existing = Object.keys(this.cache.data.layouts);
     if (existing.includes(result.name)) {
-      this.cache.ui.error(`View with name "${result.name}" already exists.`);
+      this.cache.ui.error(`Workspace with name "${result.name}" already exists.`);
       return;
     }
 
@@ -204,9 +204,6 @@ class GraphLayoutManager {
       // - Refreshing all UI elements
       await this.cache.lm.changeLayout();
     } else {
-      // Create from template - apply layout algorithm once and store positions
-      this.cache.ui.info(`Creating template view: ${result.name} (${result.templateType})`);
-
       // Create the layout structure first
       this.cache.data.layouts[result.name] = {
         internals: null,
@@ -231,7 +228,7 @@ class GraphLayoutManager {
       document.getElementById('selectView').value = result.name;
       this.cache.data.selectedLayout = result.name;
 
-      await this.cache.ui.showLoading("Creating View", `Applying ${result.templateType} layout`);
+      await this.cache.ui.showLoading("Creating Workspace", `Applying ${result.templateType} layout`);
 
       // Clear the filter lock since this is a fresh template with no query
       this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = false;
@@ -278,14 +275,14 @@ class GraphLayoutManager {
       this.cache.bs.refreshBubbleStyleElements();
 
       await this.cache.ui.hideLoading();
-      this.cache.ui.info(`Created template view: ${result.name} (${result.templateType})`);
+      this.cache.ui.info(`Created Workspace: ${result.name} (${result.templateType})`);
     }
   }
 
   async removeSelectedLayout() {
     // Protect the "Default" layout from deletion
     if (this.cache.data.selectedLayout === "Default") {
-      this.cache.ui.error("Cannot delete the Default layout.");
+      this.cache.ui.error("Cannot delete the Default workspace.");
       return;
     }
 
