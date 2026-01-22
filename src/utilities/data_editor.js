@@ -109,11 +109,15 @@ class DataTable {
       return;
     }
 
+    console.log('[loadTabData] Starting with nodeDataHeaders:', this.fileData.nodeDataHeaders.length, 'edgeDataHeaders:', this.fileData.edgeDataHeaders.length);
+
     this.headers = ["Del", "Row #", "Type", "ID", "Label", "Description"];
 
     // Deduplicate headers to prevent duplicate columns
     const nodeHeaders = this.fileData.nodeDataHeaders.map(o => `${this.cache.CFG.EXCEL_NODE_HEADER}::${o.subGroup}::${o.key}`);
     const edgeHeaders = this.fileData.edgeDataHeaders.map(o => `${this.cache.CFG.EXCEL_EDGE_HEADER}::${o.subGroup}::${o.key}`);
+
+    console.log('[loadTabData] Built headers - nodeHeaders:', nodeHeaders.length, 'edgeHeaders:', edgeHeaders.length);
     const uniqueNodeHeaders = [...new Set(nodeHeaders)];
     const uniqueEdgeHeaders = [...new Set(edgeHeaders)];
 
@@ -130,6 +134,9 @@ class DataTable {
       this.headers.push(...uniqueNodeHeaders);
       this.headers.push(...uniqueEdgeHeaders);
     }
+
+    console.log('[loadTabData] Final headers count:', this.headers.length, 'for tab:', this.currentTab);
+    console.log('[loadTabData] Last 3 headers:', this.headers.slice(-3));
 
     this.headerIndexMap.clear();
     this.headers.forEach((header, index) => {
@@ -165,6 +172,13 @@ class DataTable {
         this.loadEntireGraph();
         break;
     }
+
+    // Ensure preserved rows have correct number of columns
+    preservedRows.forEach(row => {
+      while (row.length < this.headers.length) {
+        row.push('');
+      }
+    });
 
     this.tableData.push(...preservedRows);
 
@@ -662,16 +676,17 @@ class DataTable {
   }
 
   async addNode() {
-    if (typeof dataTable === "undefined") return;
-
-    // if (this.currentTab !== 'entireGraph') {
-    //   this.cache.ui.error('Adding nodes is only allowed in the "Entire Graph" tab');
-    //   return;
-    // }
+    if (!this.cache || !this.tableData) return;
 
     let nodeID = await Popup.prompt("Enter Node ID: ");
     if (!nodeID) {
       this.cache.ui.info("Adding node canceled");
+      return;
+    }
+
+    nodeID = nodeID.trim();
+    if (!nodeID) {
+      this.cache.ui.error("Node ID cannot be empty");
       return;
     }
 
@@ -681,14 +696,21 @@ class DataTable {
     }
 
     this.addRow("Node", nodeID);
+    this.cache.ui.success(`Node "${nodeID}" added. Click Apply to save changes.`);
   }
 
   async addEdge() {
-    if (typeof dataTable === "undefined") return;
+    if (!this.cache || !this.tableData) return;
 
-    let edgeID = await Popup.prompt("Enter Edge ID: ");
+    let edgeID = await Popup.prompt("Enter Edge ID (format: sourceID::targetID): ");
     if (!edgeID) {
       this.cache.ui.info("Adding edge canceled");
+      return;
+    }
+
+    edgeID = edgeID.trim();
+    if (!edgeID) {
+      this.cache.ui.error("Edge ID cannot be empty");
       return;
     }
 
@@ -698,11 +720,17 @@ class DataTable {
     }
 
     if (!edgeID.includes("::")) {
-      this.cache.ui.error(`Edge ID must contain a double colon (::) to indicate the source and target nodes`);
+      this.cache.ui.error(`Edge ID must contain a double colon (::) to separate source and target nodes (e.g., "NodeA::NodeB")`);
       return;
     }
 
-    const [source, target] = edgeID.split("::");
+    const parts = edgeID.split("::");
+    if (parts.length !== 2 || !parts[0].trim() || !parts[1].trim()) {
+      this.cache.ui.error(`Invalid Edge ID format. Use: "sourceID::targetID"`);
+      return;
+    }
+
+    const [source, target] = parts.map(p => p.trim());
 
     const sourceExists = this.cache.nodeRef.has(source) ||
       this.tableData.some(row => row[2] === "Node" && row[3] === source);
@@ -720,6 +748,135 @@ class DataTable {
     }
 
     this.addRow("Edge", edgeID);
+    this.cache.ui.success(`Edge "${edgeID}" added. Click Apply to save changes.`);
+  }
+
+  async addColumn() {
+    if (!this.cache || !this.tableData) return;
+
+    // Create a custom form popup
+    const formHtml = `
+      <h2>Add Property Column</h2>
+      <div style="display: flex; flex-direction: column; gap: 15px; margin: 20px 0;">
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Property Type:</label>
+          <div style="display: flex; gap: 20px;">
+            <label style="cursor: pointer;">
+              <input type="radio" name="propertyType" value="node" checked style="margin-right: 5px;">
+              Node Property
+            </label>
+            <label style="cursor: pointer;">
+              <input type="radio" name="propertyType" value="edge" style="margin-right: 5px;">
+              Edge Property
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Property Name:</label>
+          <input type="text" id="propertyNameInput" placeholder="e.g., Temperature, Weight"
+                 style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Group Name:</label>
+          <input type="text" id="groupNameInput" placeholder="e.g., Physics, Metadata"
+                 style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+        <button onclick="window.addColumnCancel()" class="pink">Cancel</button>
+        <button onclick="window.addColumnConfirm()" class="blue">Add Column</button>
+      </div>
+    `;
+
+    return new Promise((resolve) => {
+      this.cache.popup = new Popup(formHtml);
+
+      // Store resolve function globally for button handlers
+      window.addColumnConfirm = () => {
+        const propertyTypeInput = document.querySelector('input[name="propertyType"]:checked');
+        const propertyNameInput = document.getElementById('propertyNameInput');
+        const groupNameInput = document.getElementById('groupNameInput');
+
+        console.log('[addColumn] Dialog elements:', {
+          propertyTypeInput: propertyTypeInput,
+          propertyTypeValue: propertyTypeInput?.value,
+          propertyNameInput: propertyNameInput,
+          groupNameInput: groupNameInput
+        });
+
+        if (!propertyTypeInput || !propertyNameInput || !groupNameInput) {
+          console.log('[addColumn] Missing required inputs, canceling');
+          this.cache.popup.close();
+          resolve(null);
+          return;
+        }
+
+        const result = {
+          isNodeProperty: propertyTypeInput.value === 'node',
+          propertyName: propertyNameInput.value.trim(),
+          groupName: groupNameInput.value.trim()
+        };
+
+        console.log('[addColumn] Resolved result:', result);
+
+        this.cache.popup.close();
+        resolve(result);
+      };
+
+      window.addColumnCancel = () => {
+        this.cache.popup.close();
+        resolve(null);
+      };
+    }).then(result => {
+      // Clean up global handlers
+      delete window.addColumnConfirm;
+      delete window.addColumnCancel;
+
+      if (!result) {
+        this.cache.ui.info("Adding column canceled");
+        return;
+      }
+
+      const { isNodeProperty, propertyName, groupName } = result;
+
+      if (!propertyName) {
+        this.cache.ui.error("Property name cannot be empty");
+        return;
+      }
+
+      if (!groupName) {
+        this.cache.ui.error("Group name cannot be empty");
+        return;
+      }
+
+      // Check if column already exists in the appropriate headers list
+      const exists = (isNodeProperty ? this.fileData.nodeDataHeaders : this.fileData.edgeDataHeaders)
+        .some(h => h.subGroup === groupName && h.key === propertyName);
+
+      if (exists) {
+        this.cache.ui.error(`Column "${propertyName}" in group "${groupName}" already exists for ${isNodeProperty ? 'nodes' : 'edges'}`);
+        return;
+      }
+
+      // Add to appropriate data headers list
+      if (isNodeProperty) {
+        this.fileData.nodeDataHeaders.push({ subGroup: groupName, key: propertyName });
+        console.log(`[addColumn] Added to nodeDataHeaders: ${groupName}::${propertyName}`);
+        console.log('[addColumn] Current nodeDataHeaders:', this.fileData.nodeDataHeaders);
+      } else {
+        this.fileData.edgeDataHeaders.push({ subGroup: groupName, key: propertyName });
+        console.log(`[addColumn] Added to edgeDataHeaders: ${groupName}::${propertyName}`);
+        console.log('[addColumn] Current edgeDataHeaders:', this.fileData.edgeDataHeaders);
+      }
+
+      // Reload tab data to rebuild headers with proper filtering
+      this.loadTabData();
+
+      this.cache.ui.success(`Column "${propertyName}" (${groupName}) added for ${isNodeProperty ? 'nodes' : 'edges'}. Click Apply to save changes.`);
+    });
   }
 
   addRow(type = 'Node', id = '') {
@@ -795,6 +952,14 @@ class DataTable {
       await this.cache.gcm.destroyGraphAndRollBackUI();
       this.cache.gcm.resetEventLocks();
       this.cache.io.preProcessData(updatedFileData);
+
+      // Clear any saved query to prevent filtering issues with new columns
+      const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+      if (currentLayout && currentLayout.query) {
+        delete currentLayout.query;
+        this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = false;
+      }
+
       // this.cache.initialize(updatedFileData);
       this.cache.buildDataTable(updatedFileData);
       this.cache.ui.buildUI();
@@ -803,8 +968,13 @@ class DataTable {
       await this.cache.gcm.createGraphInstance();
       await this.cache.graph.render();
 
-      // this.fileData = structuredClone(updatedFileData);
-      // this.loadTabData();
+      // Refresh UI to update node/edge counts and filter availability
+      this.cache.ui.refreshUI();
+
+      // Reload data table with updated fileData to ensure headers are in sync
+      this.fileData = updatedFileData;
+      this.loadTabData();
+
       console.log("DATA TABLE UPDATE DONE!")
 
     } catch (err) {
@@ -853,6 +1023,10 @@ class DataTable {
   }
 
   getUpdatedFileData() {
+    console.log('[getUpdatedFileData] Current fileData headers:');
+    console.log('  nodeDataHeaders:', this.fileData.nodeDataHeaders);
+    console.log('  edgeDataHeaders:', this.fileData.edgeDataHeaders);
+
     const result = {
       nodes: [],
       edges: [],
@@ -860,8 +1034,8 @@ class DataTable {
       edgeDataHeaders: [...this.fileData.edgeDataHeaders],
       // Preserve existing layouts and selected layout to maintain per-view configurations
       layouts: this.cache.data.layouts,
-      selectedLayout: this.cache.data.selectedLayout,
-      filterDefaults: this.cache.data.filterDefaults
+      selectedLayout: this.cache.data.selectedLayout
+      // filterDefaults will be rebuilt by preProcessData() from the headers
     };
 
     const allowedKeys = new Set(["D4Data", "id", "label", "source", "style", "target", "description", "type"]);
