@@ -30,6 +30,47 @@ body, html {
     flex-shrink: 0;
 }
 
+#rightSidebar {
+    min-width: 0;
+    width: 0;
+    background-color: #f4f4f4;
+    padding-right: 0;
+    overflow: hidden;
+    transition: width 0.3s ease-in-out, min-width 0.3s ease-in-out, padding-right 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    border-left: 0 solid #ccc;
+}
+
+#rightSidebar.active {
+    min-width: 360px;
+    width: 360px;
+    padding-right: 10px;
+    padding-left: 10px;
+    border-left: 1px solid #ccc;
+}
+
+#rightSidebarContentContainer {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+#rightSidebar.active #rightSidebarContentContainer {
+    opacity: 1;
+}
+
+#stylingPanelContent {
+    padding-top: 10px;
+}
+
+#closeStylingPanelBtn {
+    margin-left: auto;
+}
+
 #sidebarContentContainer {
     flex: 1;
     overflow-y: auto;

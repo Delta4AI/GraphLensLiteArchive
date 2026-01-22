@@ -899,6 +899,9 @@ class GraphCoreManager {
         case "m":
           this.cache.metrics.toggleUI();
           break;
+        case "y":
+          this.cache.ui.toggleStylingPanel();
+          break;
         default:
           break;
       }
