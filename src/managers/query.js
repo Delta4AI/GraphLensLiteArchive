@@ -777,7 +777,7 @@ class QueryManager {
   with the UI-generated this.cache.query.
 </div>
 <div class="alert-info">
-  <strong>💡 Tip:</strong> Queries are saved for each view and included when exporting the model 💾
+  <strong>💡 Tip:</strong> Queries are saved for each workspace and included when exporting the model 💾
 </div>
 
 <h3>Available Actions</h3>

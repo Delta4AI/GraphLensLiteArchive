@@ -140,7 +140,7 @@ static async prompt(message) {
 
       // Title
       const title = document.createElement('h3');
-      title.textContent = 'Create New View Preset';
+      title.textContent = 'Create New Workspace';
       title.style.marginTop = '0';
       title.style.textAlign = 'center';
       container.appendChild(title);
@@ -149,7 +149,7 @@ static async prompt(message) {
       const nameInput = document.createElement('input');
       nameInput.type = 'text';
       nameInput.className = 'p-prompt';
-      nameInput.placeholder = 'Enter view preset name...';
+      nameInput.placeholder = 'Enter workspace name...';
       nameInput.style.width = '100%';
       nameInput.style.marginBottom = '20px';
       nameInput.style.padding = '8px';
@@ -171,7 +171,7 @@ static async prompt(message) {
 
       const cloneLabel = document.createElement('label');
       cloneLabel.htmlFor = 'mode-clone';
-      cloneLabel.textContent = ' Clone Current View';
+      cloneLabel.textContent = ' Clone Current Workspace';
       cloneLabel.style.fontWeight = 'bold';
 
       const cloneDesc = document.createElement('p');
