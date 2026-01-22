@@ -4,29 +4,31 @@ class GraphStyleManager {
   }
 
   async resetStyleForSelectedElements() {
-  for (const node of this.cache.nodeRef.values()) {
-    if (this.cache.selectedNodes.includes(node.id)) {
-      if (node.originalType !== undefined) {
-        node.type = node.originalType;
-      }
-      if (node.originalStyle !== undefined) {
-        node.style = structuredClone(node.originalStyle);
-      }
-    }
-  }
+    // Get the current layout
+    const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+    if (!currentLayout) return;
 
-  for (const edge of this.cache.edgeRef.values()) {
-    if (this.cache.selectedEdges.includes(edge.id)) {
-      if (edge.originalType !== undefined) {
-        edge.type = edge.originalType;
+    // Remove selected nodes from the current layout's custom styles
+    for (const nodeId of this.cache.selectedNodes) {
+      if (currentLayout.nodeStyles.has(nodeId)) {
+        currentLayout.nodeStyles.delete(nodeId);
       }
-      if (edge.originalStyle !== undefined) {
-        edge.style = structuredClone(edge.originalStyle);
+      // Reset positions if configured
+      if (this.cache.CFG.RESET_SELECTION_BUTTON_RESETS_POSITIONS && currentLayout.positions.has(nodeId)) {
+        currentLayout.positions.delete(nodeId);
       }
     }
+
+    // Remove selected edges from the current layout's custom styles
+    for (const edgeId of this.cache.selectedEdges) {
+      if (currentLayout.edgeStyles.has(edgeId)) {
+        currentLayout.edgeStyles.delete(edgeId);
+      }
+    }
+
+    // Reapply the layout to use the original default styles
+    await this.cache.lm.changeLayout();
   }
-  await this.handleStyleChangeLoadingEvent("Style", `Resetting Styles`);
-}
 
   async handleStyleChangeLoadingEvent(header, text) {
   await this.cache.ui.showLoading(header, text);

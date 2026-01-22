@@ -32,7 +32,6 @@
           <button id="metricsToggleBtn" class="showOnLoad medium-btn" title="Toggle network metrics panel (M)" onclick="cache.metrics.toggleUI()">📊</button>
           <button id="dataToggleBtn" class="showOnLoad medium-btn" title="Toggle data editor (D)" onclick="cache.ui.toggleDataEditor()">🔢</button>
           <button id="queryToggleBtn" class="showOnLoad medium-btn" title="Toggle query editor (Q)" onclick="cache.ui.toggleQueryEditor()">📝</button>
-          <div id="lassoWrapper" class="showOnLoad medium-btn"><button id="lassoToggleBtn" class="lasso-icon" title="Toggle lasso selection (L)" onclick="cache.ui.toggleLassoSelection()"></button></div>
           <button id="editBtn" class="showOnLoad medium-btn" title="Toggle Edit mode (E)" onclick="cache.ui.toggleEditMode()">⚙️</button>
         </div>
       </div>
@@ -71,7 +70,7 @@
     <div id="sidebarStatusContainer"></div>
   </div>
   <div id="outerGraphContainer">
-    <div id="selectedElementsContainer" class="hidden">
+    <div id="selectedElementsContainer" class="showOnLoad">
       Selected nodes: <span id="selectedNodes" class="red"></span>
       <button id="focusNodesBtn" class="tiny-btn disabled ml-1" title="Center and zoom the viewport to show all selected nodes"
               onclick="cache.gcm.focusNodes()">🔍</button>
@@ -85,6 +84,8 @@
       <button id="deselectEdgesBtn" class="tiny-btn red disabled" title="Clear edge selection"
               onclick="cache.sm.toggleSelectionForAllEdges(false)">×</button>
       <hr>
+      <div id="lassoWrapper" class="showOnLoad small-btn"><button id="lassoToggleBtn" class="lasso-icon" title="Toggle lasso selection (L)" onclick="cache.ui.toggleLassoSelection()"></button></div>
+      <div class="button-separator"></div>
       <button class="small-btn disabled" title="Reset style for selected elements" id="resetSelectedElementsStyleBtn"
               onclick="cache.style.resetStyleForSelectedElements()">⟳</button>
       <div class="button-separator"></div>
