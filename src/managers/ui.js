@@ -329,6 +329,22 @@ class UIManager {
     this.handleEditModeUIChanges();
   }
 
+  toggleStylingPanel() {
+    const rightSidebar = document.getElementById("rightSidebar");
+    const styleBtn = document.getElementById("styleToggleBtn");
+    const isActive = rightSidebar.classList.contains("active");
+
+    if (isActive) {
+      rightSidebar.classList.remove("active");
+      styleBtn.classList.remove("highlight");
+      this.info("Styling panel closed");
+    } else {
+      rightSidebar.classList.add("active");
+      styleBtn.classList.add("highlight");
+      this.info("Styling panel opened");
+    }
+  }
+
   async toggleLassoSelection() {
     const lassoWrapper = document.getElementById("lassoWrapper");
     let lassoIsActive = lassoWrapper.classList.contains("active");
@@ -447,6 +463,8 @@ class UIManager {
     manualButtonContainer.appendChild(this.cache.uiComponents.createManualBubbleGroupButton());
 
     this.buildFilterUI();
+
+    this.buildStylingPanelUI();
 
     document.getElementById("resetSelectedElementsStyleBtn").title = this.cache.CFG.RESET_SELECTION_BUTTON_RESETS_POSITIONS
       ? "Reset the visual appearance and positions of the selected elements to their defaults"
@@ -678,6 +696,16 @@ class UIManager {
     } finally {
       this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT = false;
     }
+  }
+
+  buildStylingPanelUI() {
+    const content = document.getElementById("stylingPanelContent");
+    content.innerHTML = "";
+
+    const placeholder = document.createElement("div");
+    placeholder.className = "alert-info";
+    placeholder.innerHTML = "<p>Styling controls will be added here.</p>";
+    content.appendChild(placeholder);
   }
 }
 

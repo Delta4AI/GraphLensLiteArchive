@@ -32,6 +32,7 @@
           <button id="metricsToggleBtn" class="showOnLoad medium-btn" title="Toggle network metrics panel (M)" onclick="cache.metrics.toggleUI()">📊</button>
           <button id="dataToggleBtn" class="showOnLoad medium-btn" title="Toggle data editor (D)" onclick="cache.ui.toggleDataEditor()">🔢</button>
           <button id="queryToggleBtn" class="showOnLoad medium-btn" title="Toggle query editor (Q)" onclick="cache.ui.toggleQueryEditor()">📝</button>
+          <button id="styleToggleBtn" class="showOnLoad medium-btn" title="Open styling panel (Y)" onclick="cache.ui.toggleStylingPanel()">🎨</button>
           <button id="editBtn" class="showOnLoad medium-btn" title="Toggle Edit mode (E)" onclick="cache.ui.toggleEditMode()">⚙️</button>
         </div>
       </div>
@@ -99,6 +100,18 @@
               onclick="cache.bs.clearAllManualGroups()" style="display: none;">×</button>
     </div>
     <div id="innerGraphContainer"></div>
+  </div>
+  <div id="rightSidebar">
+    <div id="rightSidebarContentContainer">
+      <div class="header-row">
+        <h3>Styling Panel</h3>
+        <button id="closeStylingPanelBtn" class="small-btn red" title="Close styling panel" onclick="cache.ui.toggleStylingPanel()">×</button>
+      </div>
+      <hr>
+      <div id="stylingPanelContent">
+        <!-- Styling controls will be populated here -->
+      </div>
+    </div>
   </div>
 </div>
 <div id="bottomBar">
