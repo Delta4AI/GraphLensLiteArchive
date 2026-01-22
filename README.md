@@ -67,7 +67,7 @@ GNU GPLv3 - see [LICENSE](LICENSE) for details.
 ---
 
 ## Third‑Party Licenses
-This project includes third‑party software. See [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES) for details.
+This project includes third‑party software. See [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES) for details.
 
 ---
 
