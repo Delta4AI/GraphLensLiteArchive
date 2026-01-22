@@ -34,7 +34,7 @@ class DataTable {
 
     container.innerHTML = `
       <div class="data-table-warning-banner">
-        <span><strong>⚠️</strong> Data modifications affect all views globally</span>
+        <span><strong>⚠️</strong> Data modifications affect all workspaces globally</span>
         <button class="data-table-warning-close" title="Dismiss warning">×</button>
       </div>
       <div class="data-table-tabs">
