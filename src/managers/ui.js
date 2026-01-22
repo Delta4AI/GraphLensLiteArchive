@@ -481,8 +481,15 @@ class UIManager {
       [...this.cache.data.layouts[this.cache.data.selectedLayout].filters.keys()].sort() :
       [...this.cache.data.layouts[this.cache.data.selectedLayout].filters.keys()];
 
+    console.log('[buildFilterUI] Building filters with', sortedPropIDs.length, 'properties');
+    console.log('[buildFilterUI] First 3 propIDs:', sortedPropIDs.slice(0, 3));
+    console.log('[buildFilterUI] Last 3 propIDs:', sortedPropIDs.slice(-3));
+
     for (let propID of sortedPropIDs) {
       let [section, subSection, prop] = StaticUtilities.decodePropHashId(propID);
+      if (propID.includes('bar::foo')) {
+        console.log('[buildFilterUI] Found bar::foo - decoded as:', { propID, section, subSection, prop });
+      }
       let isCategoricalProperty = this.cache.data.filterDefaults.get(propID).isCategory;
       if (!sectionsCreated.has(section)) {
         if (sectionsCreated.size > 0) div.appendChild(document.createElement("hr"));

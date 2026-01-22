@@ -923,6 +923,27 @@ class IOManager {
       }
     }
 
+    // Rebuild layout filters in the correct order from filterDefaults
+    // This ensures new columns appear in alphabetical position, not at the end
+    for (const layoutName in this.cache.data.layouts) {
+      const layout = this.cache.data.layouts[layoutName];
+      const oldFilters = new Map(layout.filters); // Save old filter values
+      layout.filters.clear(); // Clear to rebuild in correct order
+
+      // Rebuild filters in the order they appear in filterDefaults
+      for (const [propId, defaultFilter] of this.cache.data.filterDefaults.entries()) {
+        if (oldFilters.has(propId)) {
+          // Preserve existing filter values (user's slider positions, etc.)
+          layout.filters.set(propId, oldFilters.get(propId));
+        } else {
+          // Add new property with default filter
+          layout.filters.set(propId, structuredClone(defaultFilter));
+        }
+      }
+
+      console.log(`[preProcessData] Rebuilt filters for layout "${layoutName}" with ${layout.filters.size} properties`);
+    }
+
     // Initialize empty stash (legacy support)
     this.cache.data.stash = {};
 
@@ -975,15 +996,20 @@ class IOManager {
   };
 
   populateCacheHeaders(fileData) {
+    console.log('[populateCacheHeaders] Processing headers:');
     if (fileData.nodeDataHeaders) {
+      console.log('  nodeDataHeaders:', fileData.nodeDataHeaders);
       for (const nodeHeader of fileData.nodeDataHeaders) {
         const nodePropHash = StaticUtilities.generatePropHashId(this.cache.CFG.EXCEL_NODE_HEADER, nodeHeader.subGroup, nodeHeader.key);
+        console.log(`  Created node propHash: ${nodePropHash} (section: ${this.cache.CFG.EXCEL_NODE_HEADER})`);
         this.cache.data.filterDefaults.set(nodePropHash, this.getDefaultFilterObject());
       }
     }
     if (fileData.edgeDataHeaders) {
+      console.log('  edgeDataHeaders:', fileData.edgeDataHeaders);
       for (const edgeHeader of fileData.edgeDataHeaders) {
         const edgePropHash = StaticUtilities.generatePropHashId(this.cache.CFG.EXCEL_EDGE_HEADER, edgeHeader.subGroup, edgeHeader.key);
+        console.log(`  Created edge propHash: ${edgePropHash} (section: ${this.cache.CFG.EXCEL_EDGE_HEADER})`);
         this.cache.data.filterDefaults.set(edgePropHash, this.getDefaultFilterObject());
       }
     }
