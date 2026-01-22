@@ -66,6 +66,11 @@ GNU GPLv3 - see [LICENSE](LICENSE) for details.
 
 ---
 
+## Third‑Party Licenses
+This project includes third‑party software. See [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES) for details.
+
+---
+
 ## Disclaimer
 - Uses [G6](https://g6.antv.vision/) and [ExcelJS](https://github.com/exceljs/exceljs) as dependency libraries
 - Uses the [String](https://string-db.org/) database for Demo purposes ([citation](https://doi.org/10.1093/nar/gkac1000))
