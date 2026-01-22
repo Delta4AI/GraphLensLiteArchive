@@ -940,8 +940,6 @@ class IOManager {
           layout.filters.set(propId, structuredClone(defaultFilter));
         }
       }
-
-      console.log(`[preProcessData] Rebuilt filters for layout "${layoutName}" with ${layout.filters.size} properties`);
     }
 
     // Initialize empty stash (legacy support)
@@ -996,20 +994,15 @@ class IOManager {
   };
 
   populateCacheHeaders(fileData) {
-    console.log('[populateCacheHeaders] Processing headers:');
     if (fileData.nodeDataHeaders) {
-      console.log('  nodeDataHeaders:', fileData.nodeDataHeaders);
       for (const nodeHeader of fileData.nodeDataHeaders) {
         const nodePropHash = StaticUtilities.generatePropHashId(this.cache.CFG.EXCEL_NODE_HEADER, nodeHeader.subGroup, nodeHeader.key);
-        console.log(`  Created node propHash: ${nodePropHash} (section: ${this.cache.CFG.EXCEL_NODE_HEADER})`);
         this.cache.data.filterDefaults.set(nodePropHash, this.getDefaultFilterObject());
       }
     }
     if (fileData.edgeDataHeaders) {
-      console.log('  edgeDataHeaders:', fileData.edgeDataHeaders);
       for (const edgeHeader of fileData.edgeDataHeaders) {
         const edgePropHash = StaticUtilities.generatePropHashId(this.cache.CFG.EXCEL_EDGE_HEADER, edgeHeader.subGroup, edgeHeader.key);
-        console.log(`  Created edge propHash: ${edgePropHash} (section: ${this.cache.CFG.EXCEL_EDGE_HEADER})`);
         this.cache.data.filterDefaults.set(edgePropHash, this.getDefaultFilterObject());
       }
     }

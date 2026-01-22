@@ -109,15 +109,11 @@ class DataTable {
       return;
     }
 
-    console.log('[loadTabData] Starting with nodeDataHeaders:', this.fileData.nodeDataHeaders.length, 'edgeDataHeaders:', this.fileData.edgeDataHeaders.length);
-
     this.headers = ["Del", "Row #", "Type", "ID", "Label", "Description"];
 
     // Deduplicate headers to prevent duplicate columns
     const nodeHeaders = this.fileData.nodeDataHeaders.map(o => `${this.cache.CFG.EXCEL_NODE_HEADER}::${o.subGroup}::${o.key}`);
     const edgeHeaders = this.fileData.edgeDataHeaders.map(o => `${this.cache.CFG.EXCEL_EDGE_HEADER}::${o.subGroup}::${o.key}`);
-
-    console.log('[loadTabData] Built headers - nodeHeaders:', nodeHeaders.length, 'edgeHeaders:', edgeHeaders.length);
     const uniqueNodeHeaders = [...new Set(nodeHeaders)];
     const uniqueEdgeHeaders = [...new Set(edgeHeaders)];
 
@@ -134,9 +130,6 @@ class DataTable {
       this.headers.push(...uniqueNodeHeaders);
       this.headers.push(...uniqueEdgeHeaders);
     }
-
-    console.log('[loadTabData] Final headers count:', this.headers.length, 'for tab:', this.currentTab);
-    console.log('[loadTabData] Last 3 headers:', this.headers.slice(-3));
 
     this.headerIndexMap.clear();
     this.headers.forEach((header, index) => {
@@ -800,15 +793,7 @@ class DataTable {
         const propertyNameInput = document.getElementById('propertyNameInput');
         const groupNameInput = document.getElementById('groupNameInput');
 
-        console.log('[addColumn] Dialog elements:', {
-          propertyTypeInput: propertyTypeInput,
-          propertyTypeValue: propertyTypeInput?.value,
-          propertyNameInput: propertyNameInput,
-          groupNameInput: groupNameInput
-        });
-
         if (!propertyTypeInput || !propertyNameInput || !groupNameInput) {
-          console.log('[addColumn] Missing required inputs, canceling');
           this.cache.popup.close();
           resolve(null);
           return;
@@ -819,8 +804,6 @@ class DataTable {
           propertyName: propertyNameInput.value.trim(),
           groupName: groupNameInput.value.trim()
         };
-
-        console.log('[addColumn] Resolved result:', result);
 
         this.cache.popup.close();
         resolve(result);
@@ -864,12 +847,8 @@ class DataTable {
       // Add to appropriate data headers list
       if (isNodeProperty) {
         this.fileData.nodeDataHeaders.push({ subGroup: groupName, key: propertyName });
-        console.log(`[addColumn] Added to nodeDataHeaders: ${groupName}::${propertyName}`);
-        console.log('[addColumn] Current nodeDataHeaders:', this.fileData.nodeDataHeaders);
       } else {
         this.fileData.edgeDataHeaders.push({ subGroup: groupName, key: propertyName });
-        console.log(`[addColumn] Added to edgeDataHeaders: ${groupName}::${propertyName}`);
-        console.log('[addColumn] Current edgeDataHeaders:', this.fileData.edgeDataHeaders);
       }
 
       // Reload tab data to rebuild headers with proper filtering
@@ -1023,10 +1002,6 @@ class DataTable {
   }
 
   getUpdatedFileData() {
-    console.log('[getUpdatedFileData] Current fileData headers:');
-    console.log('  nodeDataHeaders:', this.fileData.nodeDataHeaders);
-    console.log('  edgeDataHeaders:', this.fileData.edgeDataHeaders);
-
     const result = {
       nodes: [],
       edges: [],

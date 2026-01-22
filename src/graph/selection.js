@@ -322,12 +322,6 @@ class GraphSelectionManager {
     const atLeastOneNodeOrEdgeSelected = atLeastOneNodeSelected || atLeastOneEdgeSelected;
     const moreThanOneNodeSelected = selectedNodesCount > 1;
 
-    if (atLeastOneNodeOrEdgeSelected || this.cache.selectionMemory.length > 1) {
-      document.getElementById("selectedElementsContainer").classList.remove("hidden");
-    } else {
-      document.getElementById("selectedElementsContainer").classList.add("hidden");
-    }
-
     this.cache.ui.toggleStyleElementsThatRequireAtLeastOneSelectedNode(atLeastOneNodeSelected);
     this.cache.ui.toggleStyleElementsThatRequireAtLeastOneSelectedEdge(atLeastOneEdgeSelected);
     this.cache.ui.toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(atLeastOneNodeOrEdgeSelected);
