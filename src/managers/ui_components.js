@@ -360,6 +360,7 @@ class InvertibleRangeSlider {
     const div = document.createElement("div");
     div.innerHTML = this.createDivInnerHTML();
     const slider = div.firstElementChild;
+    slider.classList.add('hide-on-edit');
     slider.style.width = '100%';
     slider.title = `Set the thresholds for the numeric property: ${StaticUtilities.formatPropsAsTree(this.propID)}\n---\n  - Move handles to set min/max (≥ min ∧ ≤ max).\n  - Swap handles to invert (≤ min ∨ ≥ max).\n  - Double-click to reset.`;
 
