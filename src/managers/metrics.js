@@ -1,6 +1,13 @@
 import {Popup} from "../utilities/popup.js";
 
 const NODE_CONNECTIVITY_METRICS_PRECISION = 5;
+const METRIC_VALUE_LABELS = {
+  centrality: "Centrality",
+  betweenness: "Score",
+  closeness: "Score",
+  eigenvector: "Score",
+  pagerank: "Score",
+};
 
 const metrics = {
   centrality: {
@@ -35,6 +42,7 @@ class NetworkMetrics {
     this.m = metrics;
     this.collapsed = false;
     this.cache = cache;
+    this.metricValueCache = new Map();
 
     this.selectBtns = {
       'Add to Selection': async () => this.updateSelectedNodes(true),
@@ -78,6 +86,7 @@ class NetworkMetrics {
     this.resetNodeToolTipMetricTexts();
 
     const metricResult = await this.m[this.selected]?.calculate(this.cache);
+    this.storeMetricValues(this.selected, metricResult);
 
     /* multiselect */
     const selectedValues = Array.from(this.multiselect.selectedOptions, opt => opt.value);
@@ -110,6 +119,55 @@ class NetworkMetrics {
     };
     await this.cache.ui.hideLoading();
     await new Promise(resolve => requestAnimationFrame(resolve));
+  }
+
+  storeMetricValues(metricId, metricResult) {
+    if (!metricResult?.nodeValues) return;
+    this.metricValueCache.set(metricId, {
+      label: this.m[metricId]?.label || metricId,
+      valueLabel: METRIC_VALUE_LABELS[metricId] || "Value",
+      values: metricResult.nodeValues,
+    });
+  }
+
+  invalidateMetricValues() {
+    this.metricValueCache.clear();
+  }
+
+  async ensureMetricValues(metricId) {
+    const existing = this.metricValueCache.get(metricId);
+    if (existing?.values?.size) return existing;
+
+    const metric = this.m[metricId];
+    if (!metric) return null;
+
+    const metricName = metric.label || metricId;
+    await this.cache.ui.showLoading("Calculating", `Network Metric: ${metricName}`);
+    await new Promise(resolve => requestAnimationFrame(resolve));
+
+    const metricResult = await metric.calculate(this.cache);
+    this.storeMetricValues(metricId, metricResult);
+
+    await this.cache.ui.hideLoading();
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    return this.metricValueCache.get(metricId) || null;
+  }
+
+  getMetricScaleOptions() {
+    const options = Object.values(this.m).map(metric => {
+      const cached = this.metricValueCache.get(metric.id);
+      return {
+        id: metric.id,
+        label: metric.label,
+        valueLabel: METRIC_VALUE_LABELS[metric.id] || "Value",
+        cached: !!cached?.values?.size,
+      };
+    });
+    return options.sort((a, b) => a.label.localeCompare(b.label));
+  }
+
+  getMetricScaleValues(metricId) {
+    return this.metricValueCache.get(metricId) || null;
   }
 
   resetNodeToolTipMetricTexts() {
@@ -284,11 +342,13 @@ async function calculateDegreeCentrality(cache) {
     ((n - 1) * (n - 2))
     : 0;
 
+  const nodeValues = new Map(scores.map(s => [s.id, s.centrality]));
   return {
     scores: scores.map(s => ({
       id: s.id,
       text: `Degree ${s.degree} | Centrality ${s.centrality.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.centrality / max) * 100)} %)`
     })),
+    nodeValues,
     graphLevelMetrics: {
       "Maximum Degree Centrality": max * (n - 1),
       "Minimum Degree Centrality": min * (n - 1),
@@ -434,11 +494,13 @@ async function calculateBetweennessCentrality(cache) {
   const min = Math.min(...centralityValues);
   const centralization = scores.reduce((acc, s) => acc + (max - s.score), 0) / ((n - 1) * (n - 2) / 2);
 
+  const nodeValues = new Map(scores.map(s => [s.id, s.score]));
   return {
     scores: scores.map(s => ({
       id: s.id,
       text: `Score: ${s.score.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.score / max) * 100)}%)`
     })),
+    nodeValues,
     graphLevelMetrics: {
       "Maximum Betweenness Centrality": +max.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
       "Minimum Betweenness Centrality": +min.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
@@ -547,11 +609,13 @@ async function calculateClosenessCentrality(cache) {
   // Avoid division by zero in percentage calculations
   const maxForPercentage = max || 1;
 
+  const nodeValues = new Map(scores.map(s => [s.id, s.closeness]));
   return {
     scores: scores.map(s => ({
       id: s.id,
       text: `Score: ${s.closeness.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.closeness / maxForPercentage) * 100)}%)`
     })),
+    nodeValues,
     graphLevelMetrics: {
       "Maximum Closeness Centrality": +max.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
       "Minimum Closeness Centrality": +min.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
@@ -654,11 +718,13 @@ async function calculateEigenvectorCentrality(cache) {
   const mean = eigenVector.reduce((a, b) => a + b) / n;
   const variance = eigenVector.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n;
 
+  const nodeValues = new Map(scores.map(s => [s.id, s.centrality]));
   return {
     scores: scores.map(s => ({
       id: s.id,
       text: `Score: ${s.centrality.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.centrality / max) * 100)}%)`
     })),
+    nodeValues,
     graphLevelMetrics: {
       "Maximum Eigenvector Centrality": +max.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
       "Minimum Eigenvector Centrality": +min.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
@@ -780,11 +846,13 @@ async function calculatePageRank(cache) {
   const maxDegree = Math.max(...degrees);
   const avgDegree = degrees.reduce((a, b) => a + b) / n;
 
+  const nodeValues = new Map(sortedScores.map(s => [s.id, s.score]));
   return {
     scores: sortedScores.map(s => ({
       id: s.id,
       text: `Score: ${s.score.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round((s.score / maxScore) * 100)}%)`
     })),
+    nodeValues,
     graphLevelMetrics: {
       "Maximum PageRank Score": +maxScore.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
       "Minimum PageRank Score": +minScore.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
