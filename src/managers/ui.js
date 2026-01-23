@@ -408,21 +408,20 @@ class UIManager {
 
   handleEditModeUIChanges() {
     const editBtn = document.getElementById("editBtn");
-    const container = document.getElementById("sidebarContentContainer");
-    const sidebar = document.getElementById("sidebar");
-    const status = document.getElementById("sidebarStatusContainer");
-
     const editModeActive = editBtn.classList.contains("active");
 
     editModeActive ? editBtn.classList.add("highlight") : editBtn.classList.remove("highlight");
-
-    container.style.paddingRight = editModeActive ? "6px" : "0";
 
     // handle all edit elements
     const editElements = document.querySelectorAll('.show-on-edit, .show-on-edit-full-width');
     editElements.forEach(el => {
       editModeActive ? el.classList.add("show") : el.classList.remove("show");
       el.style.height = editModeActive ? `${el.scrollHeight}px` : "0";
+    });
+
+    const hideOnEditElements = document.querySelectorAll('.hide-on-edit');
+    hideOnEditElements.forEach(el => {
+      el.style.display = editModeActive ? "none" : "";
     });
 
     // 'collapse' all open style rows
@@ -433,35 +432,21 @@ class UIManager {
       });
     }
 
-    // handle filter row column widths
+    // handle filter row layouts
     const filterRows = document.querySelectorAll('.filter-row');
     filterRows.forEach(row => {
-      const checkboxCol = row.children[0];
-      checkboxCol.style.width = editModeActive ? "45%" : "56%";
-
       const sliderCol = row.querySelector(".filter-row-col2");
-      sliderCol.style.width = editModeActive ? "65%" : "33%";
-      sliderCol.style.display = editModeActive ? "flex" : "";
-      sliderCol.style.alignItems = editModeActive ? "center" : "";
-
-      if (sliderCol.children[2]?.id.endsWith("slider")) {
-        const sliderElem = sliderCol.children[2];
-        if (sliderElem) sliderElem.style.width = editModeActive ? "200%" : "";
-      } else if (sliderCol.children[0]?.id.endsWith("dropdown")) {
-        const dropdownElem = sliderCol.children[0];
-        if (dropdownElem) {
-          dropdownElem.style.width = editModeActive ? "96.5%" : "";
-          dropdownElem.children[0].style.width = editModeActive ? "100%" : "90%";
-          dropdownElem.children[0].style.margin = editModeActive ? "0" : "0 0 0 4px";
-        }
+      const hasRangeSlider = sliderCol.querySelector(".hide-on-edit");
+      if (hasRangeSlider) {
+        sliderCol.style.display = editModeActive ? "flex" : "";
+        sliderCol.style.alignItems = editModeActive ? "center" : "";
+        sliderCol.style.gap = editModeActive ? "4px" : "";
+      } else {
+        sliderCol.style.display = "";
+        sliderCol.style.alignItems = "";
+        sliderCol.style.gap = "";
       }
     });
-
-    sidebar.style.maxWidth = editModeActive ? "100%" : "unset";
-    status.style.maxWidth = editModeActive ? `${container.offsetWidth}px` : "375px";
-
-    const metricsContainer = document.getElementById("networkMetricsContainer");
-    metricsContainer.style.maxWidth = editModeActive ? `${container.offsetWidth}px` : "350px";
   }
 
   buildUI() {
