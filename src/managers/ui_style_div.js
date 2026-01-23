@@ -18,6 +18,13 @@ function createStyleDiv(cache) {
     appendLabel(parent, label, tooltip, id, customCSSClass);
   }
 
+  function appendHorizontalRule(parent, label = undefined, tooltip = undefined, id = undefined, customCSSClass = undefined) {
+    const horizontalRule = document.createElement("hr");
+    horizontalRule.className = "hr";
+    if (customCSSClass) horizontalRule.classList.add(customCSSClass);
+    parent.appendChild(horizontalRule);
+  }
+
   function createLabel(labelText, tooltip = undefined) {
     if (labelText) {
       const label = document.createElement("label");
@@ -37,9 +44,10 @@ function createStyleDiv(cache) {
     if (label) parent.appendChild(label);
   }
 
-  function createCard(label, parent = undefined) {
+  function createCard(label, parent = undefined, additionalCSSClass = undefined) {
     const card = document.createElement("div");
     card.classList.add("card-labeled");
+    if (additionalCSSClass) card.classList.add(additionalCSSClass);
     card.dataset.label = label;
     card.id = label;
     if (parent) {
@@ -523,15 +531,14 @@ function createStyleDiv(cache) {
 
   function createFocusCard() {
     const focDiv = createCard("Focus Elements");
-    const row = createNewRow(focDiv);
 
-    appendLabel(row, "Node ID/Label", "Select the Node ID or Label to focus.", "nodeFocusLabel");
-    appendEditableDropdown(row, true);
+    const row1 = createNewRow(focDiv);
+    appendLabel(row1, "Node", "Select the Node ID or Label to focus.", "nodeFocusLabel");
+    appendEditableDropdown(row1, true);
 
-    appendVerticalRule(row);
-
-    appendLabel(row, "Edge ID/Label", "Select the Edge ID or Label to focus.", "edgeFocusLabel");
-    appendEditableDropdown(row, false);
+    const row2 = createNewRow(focDiv);
+    appendLabel(row2, "Edge", "Select the Edge ID or Label to focus.", "edgeFocusLabel");
+    appendEditableDropdown(row2, false);
   }
 
   function appendEditableDropdown(parent, isNode, widthInPx = 220) {
@@ -549,11 +556,36 @@ function createStyleDiv(cache) {
       ? cache.nodeIDOrLabelToNodeIDs
       : cache.edgeIDOrLabelToEdgeIDs;
 
-    for (const key of sourceMap.keys()) {
-      const option = document.createElement('option');
-      option.value = key;
-      datalist.appendChild(option);
-    }
+    const getVisibleIDs = () => {
+      const visibleIDs = isNode ? cache.nodeIDsToBeShown : cache.edgeIDsToBeShown;
+      return visibleIDs && visibleIDs.size ? visibleIDs : null;
+    };
+
+    const populateFocusOptions = () => {
+      const visibleIDs = getVisibleIDs();
+      const fragment = document.createDocumentFragment();
+      datalist.textContent = '';
+      for (const [key, ids] of sourceMap.entries()) {
+        let include = !visibleIDs;
+        if (visibleIDs) {
+          for (const id of ids) {
+            if (visibleIDs.has(id)) {
+              include = true;
+              break;
+            }
+          }
+        }
+        if (include) {
+          const option = document.createElement('option');
+          option.value = key;
+          fragment.appendChild(option);
+        }
+      }
+      datalist.appendChild(fragment);
+    };
+
+    populateFocusOptions();
+    input.addEventListener('focus', populateFocusOptions);
 
     const focusButton = document.createElement('button');
     focusButton.textContent = 'Focus';
@@ -591,31 +623,35 @@ function createStyleDiv(cache) {
       async () => await cache.sm.toggleSelectionForAllEdges(true));
     appendButton(rowOne, "No Edges", "Deselect all visible edges",
       async () => await cache.sm.toggleSelectionForAllEdges(false));
-    appendVerticalRule(rowOne);
-    appendButton(rowOne, "Expand Edges",
+
+    const rowTwo = createNewRow(selDiv);
+    appendButton(rowTwo, "Expand Edges",
       "Add all edges connected to the currently selected nodes to the selection",
       async () => await cache.sm.toggleSelectionByNeighbors("expand-edges"));
-    appendButton(rowOne, "Reduce Edges",
+    appendButton(rowTwo, "Reduce Edges",
       "Remove edges that do not connect two selected nodes",
       async () => await cache.sm.toggleSelectionByNeighbors("reduce-edges"));
-    appendVerticalRule(rowOne);
-    appendButton(rowOne, "Expand Neighbors",
+
+    const rowThree = createNewRow(selDiv);
+    appendButton(rowThree, "Expand Neighbors",
       "Add all directly connected neighbor nodes (and their edges) to the current selection",
       async () => await cache.sm.toggleSelectionByNeighbors("expand-neighbors"));
-    appendButton(rowOne, "Reduce Neighbors",
+    appendButton(rowThree, "Reduce Neighbors",
       "Remove the outermost layer of selected neighbor nodes (and their edges) from the ",
       async () => await cache.sm.toggleSelectionByNeighbors("reduce-neighbors"));
 
-    const rowTwo = createNewRow(selDiv);
+    appendHorizontalRule(selDiv);
+
+    const rowFour = createNewRow(selDiv);
     const nodeIDsTT = "Enter comma-separated list of node IDs to add/remove to/from selection\nConfirm with Enter";
-    appendLabel(rowTwo, "Node ID(s)", nodeIDsTT);
+    appendLabel(rowFour, "Node IDs", nodeIDsTT);
     const topTwoNodeIDs = cache.data?.nodes?.slice(0, 2).map(n => n.id).join(',') || 'Node1,Node2';
-    const nodeIDsInput = createInput(204, topTwoNodeIDs, nodeIDsTT, undefined,
+    const nodeIDsInput = createInput(190, topTwoNodeIDs, nodeIDsTT, undefined,
       async (val) => {
         await cache.sm.addNodeOrEdgeIDsToSelectionWrapper(val, true);
       });
     nodeIDsInput.id = "selectByNodeIDsInput";
-    rowTwo.appendChild(nodeIDsInput);
+    rowFour.appendChild(nodeIDsInput);
     const nodeIDsInputSwitch = createSwitch(e => {
       const btn = document.getElementById("selectByNodeIDsButton");
       if (e.target.checked) {
@@ -628,24 +664,25 @@ function createStyleDiv(cache) {
         btn.title = "Add the selected nodes to the selection";
       }
     }, "selectByNodeIDsSwitch");
-    rowTwo.appendChild(nodeIDsInputSwitch);
+    rowFour.appendChild(nodeIDsInputSwitch);
     const includeNodesByIdBtn = createButton("Include", "Add the selected nodes to the selection", async () => {
       const elements = document.getElementById("selectByNodeIDsInput").value;
       if (elements) {
         await cache.sm.addNodeOrEdgeIDsToSelectionWrapper(elements, true);
       }
     }, "selectByNodeIDsButton");
-    rowTwo.appendChild(includeNodesByIdBtn);
+    rowFour.appendChild(includeNodesByIdBtn);
 
+    const rowFive = createNewRow(selDiv);
     const edgeIDsTT = "Enter comma-separated list of edge IDs (SourceID::TargetID) to add/remove to/from selection\nConfirm with Enter";
-    appendVerticalRule(rowTwo, "Edge ID(s)", edgeIDsTT);
+    appendLabel(rowFive, "Edge IDs", edgeIDsTT);
     const topTwoEdgeIDs = cache.data?.edges?.slice(0, 2).map(e => e.id).join(',') || 'Node1::Node2,Node1::Node3';
-    const edgeIDsInput = createInput(204, topTwoEdgeIDs, edgeIDsTT, undefined,
+    const edgeIDsInput = createInput(190, topTwoEdgeIDs, edgeIDsTT, undefined,
       async (val) => {
         await cache.sm.addNodeOrEdgeIDsToSelectionWrapper(val, false);
       });
     edgeIDsInput.id = "selectByEdgeIDsInput";
-    rowTwo.appendChild(edgeIDsInput);
+    rowFive.appendChild(edgeIDsInput);
     const edgeIDsInputSwitch = createSwitch(e => {
       const btn = document.getElementById("selectByEdgeIDsButton");
       if (e.target.checked) {
@@ -658,14 +695,14 @@ function createStyleDiv(cache) {
         btn.title = "Add the selected edges to the selection";
       }
     }, "selectByEdgeIDsSwitch");
-    rowTwo.appendChild(edgeIDsInputSwitch);
+    rowFive.appendChild(edgeIDsInputSwitch);
     const includeEdgesByIdBtn = createButton("Include", "Add the selected nodes to the selection", async () => {
       const elements = document.getElementById("selectByEdgeIDsInput").value;
       if (elements) {
         await cache.sm.addNodeOrEdgeIDsToSelectionWrapper(elements, false);
       }
     }, "selectByEdgeIDsButton");
-    rowTwo.appendChild(includeEdgesByIdBtn);
+    rowFive.appendChild(includeEdgesByIdBtn);
 
     conditionallyCreateNodeOrEdgeSelectionRow(selDiv);
   }
@@ -678,9 +715,9 @@ function createStyleDiv(cache) {
 
     if (cache.nodeLabels.length > 0) {
       const nodeLabelsTT = "Enter comma-separated list of node labels to add/remove to/from selection\nConfirm with Enter";
-      appendLabel(row, "Node Label(s)", nodeLabelsTT);
+      appendLabel(row, "Node Labels", nodeLabelsTT);
       const topTwoNodeLabels = cache.nodeLabels?.slice(0, 2).join(',') || 'Label1,Label2';
-      const nodeLabelsInput = createInput(200, topTwoNodeLabels, nodeLabelsTT, undefined,
+      const nodeLabelsInput = createInput(174, topTwoNodeLabels, nodeLabelsTT, undefined,
         async (val) => {
           await cache.sm.addNodeOrEdgeLabelsToSelectionWrapper(val, true);
         });
@@ -766,44 +803,58 @@ function createStyleDiv(cache) {
     const rowOne = createNewRow(nodeDiv);
     appendLabel(rowOne, "Shape");
     createNodeShapeControls(rowOne);
-    appendVerticalRule(rowOne, "Size");
-    createNumericalSlider(rowOne, "Node Size", cache.DEFAULTS.NODE.SIZE,
-      {min: 10, max: 50, step: 1});
-    appendVerticalRule(rowOne, "Fill Color");
-    createColorControls(rowOne, "Node Fill Color", cache.DEFAULTS.NODE.FILL_COLOR, cache.DEFAULTS.STYLES.NODE_COLORS);
 
     const rowTwo = createNewRow(nodeDiv);
-    appendLabel(rowTwo, "Border Size", "Defines the width of the border of the selected nodes.");
-    createNumericalSlider(rowTwo, "Node Border Size", cache.DEFAULTS.NODE.LINE_WIDTH,
-      {min: 1, max: 10, step: 1}, "Defines the width of the border of the selected nodes.");
-    appendVerticalRule(rowTwo, "Border Color", "Defines the fill color of the selected nodes.");
-    createColorControls(rowTwo, "Node Border Color", cache.DEFAULTS.NODE.STROKE_COLOR,
-      cache.DEFAULTS.STYLES.NODE_BORDER_COLORS);
+    appendLabel(rowTwo, "Size");
+    createNumericalSlider(rowTwo, "Node Size", cache.DEFAULTS.NODE.SIZE, {min: 10, max: 50, step: 1});
 
     const rowThree = createNewRow(nodeDiv);
-    appendLabel(rowThree, "Label", "Customize the selected nodes labels.");
-    createLabelControls(rowThree, "Node Label", true);
-    appendVerticalRule(rowThree, "Font Size", "Defines the font size of the selected nodes labels.");
-    createNumericalSlider(rowThree, "Node Label Font Size", cache.DEFAULTS.NODE.LABEL.FONT_SIZE,
-      {min: 10, max: 30, step: 1}, "Defines the font size of the selected nodes labels.");
-    appendVerticalRule(rowThree, "Placement", "Defines the placement of the selected nodes labels.");
-    createCategoricalControls(rowThree, "Node Label Placement", cache.DEFAULTS.NODE.LABEL.PLACEMENT,
-      cache.DEFAULTS.STYLES.NODE_LABEL_PLACEMENTS, "Defines the placement of the selected nodes labels.");
+    appendLabel(rowThree, "Fill Color");
+    createColorControls(rowThree, "Node Fill Color", cache.DEFAULTS.NODE.FILL_COLOR, cache.DEFAULTS.STYLES.NODE_COLORS);
 
     const rowFour = createNewRow(nodeDiv);
-    appendLabel(rowFour, "Label Color",
-      "Defines the foreground (text) color of the selected nodes labels.");
-    createColorControls(rowFour, "Node Label Font Color", cache.DEFAULTS.NODE.LABEL.FOREGROUND_COLOR,
-      cache.DEFAULTS.STYLES.NODE_LABEL_COLORS);
-    appendVerticalRule(rowFour, "Label Background Color",
-      "Defines the background color of the selected nodes labels.");
-    createColorControls(rowFour, "Node Label Background Color", cache.DEFAULTS.NODE.LABEL.BACKGROUND_COLOR,
-      cache.DEFAULTS.STYLES.NODE_LABEL_BACKGROUND_COLORS);
+    appendLabel(rowFour, "Border Size", "Defines the width of the border of the selected nodes.");
+    createNumericalSlider(rowFour, "Node Border Size", cache.DEFAULTS.NODE.LINE_WIDTH,
+      {min: 1, max: 10, step: 1}, "Defines the width of the border of the selected nodes.");
 
     const rowFive = createNewRow(nodeDiv);
-    appendLabel(rowFive, "Badges", "Add Badges to the selected nodes.");
-    createNodeBadgeControls(rowFive);
+    appendLabel(rowFive, "Border Color", "Defines the fill color of the selected nodes.");
+    createColorControls(rowFive, "Node Border Color", cache.DEFAULTS.NODE.STROKE_COLOR,
+      cache.DEFAULTS.STYLES.NODE_BORDER_COLORS);
 
+    appendHorizontalRule(nodeDiv);
+
+    const rowSix = createNewRow(nodeDiv);
+    appendLabel(rowSix, "Label", "Customize the selected nodes labels.");
+    createLabelControls(rowSix, "Node Label", true);
+
+    const rowSeven = createNewRow(nodeDiv);
+    appendLabel(rowSeven, "Label Font Size", "Defines the font size of the selected nodes labels.");
+    createNumericalSlider(rowSeven, "Node Label Font Size", cache.DEFAULTS.NODE.LABEL.FONT_SIZE,
+      {min: 10, max: 30, step: 1}, "Defines the font size of the selected nodes labels.");
+
+    const rowEight = createNewRow(nodeDiv);
+    appendLabel(rowEight, "Label Placement", "Defines the placement of the selected nodes labels.");
+    createCategoricalControls(rowEight, "Node Label Placement", cache.DEFAULTS.NODE.LABEL.PLACEMENT,
+      cache.DEFAULTS.STYLES.NODE_LABEL_PLACEMENTS, "Defines the placement of the selected nodes labels.");
+
+    const rowNine = createNewRow(nodeDiv);
+    appendLabel(rowNine, "Label Color",
+      "Defines the foreground (text) color of the selected nodes labels.");
+    createColorControls(rowNine, "Node Label Font Color", cache.DEFAULTS.NODE.LABEL.FOREGROUND_COLOR,
+      cache.DEFAULTS.STYLES.NODE_LABEL_COLORS);
+
+    const rowTen = createNewRow(nodeDiv);
+    appendLabel(rowTen, "Label Background Color",
+      "Defines the background color of the selected nodes labels.");
+    createColorControls(rowTen, "Node Label Background Color", cache.DEFAULTS.NODE.LABEL.BACKGROUND_COLOR,
+      cache.DEFAULTS.STYLES.NODE_LABEL_BACKGROUND_COLORS);
+
+    appendHorizontalRule(nodeDiv);
+
+    const rowEleven = createNewRow(nodeDiv);
+    appendLabel(rowEleven, "Badges", "Add Badges to the selected nodes.");
+    createNodeBadgeControls(rowEleven);
   }
 
   function createEdgeConfigCard() {
@@ -812,82 +863,116 @@ function createStyleDiv(cache) {
     const rowOne = createNewRow(edgeDiv);
     appendLabel(rowOne, "Type", "Change the geometric edge type of the selected edges.");
     createEdgeTypeControls(rowOne);
-    appendVerticalRule(rowOne, "Width", "Change the width of the selected edges.");
-    createNumericalSlider(rowOne, "Edge Width", cache.DEFAULTS.EDGE.LINE_WIDTH,
-      {min: 0.1, max: 10.0, step: 0.1}, "Change the width of the selected edges.");
-    appendVerticalRule(rowOne, "Dash", "Define the dash pattern of the selected edges.");
-    createNumericalSlider(rowOne, "Edge Dash", cache.DEFAULTS.EDGE.LINE_DASH,
-      {min: 0, max: 40, step: 1}, "Define the dash pattern of the selected edges.");
-    appendVerticalRule(rowOne, "Color", "Define the selected edges color.");
-    createColorControls(rowOne, "Edge Color", cache.DEFAULTS.EDGE.COLOR, cache.DEFAULTS.STYLES.EDGE_COLORS);
 
     const rowTwo = createNewRow(edgeDiv);
-    appendLabel(rowTwo, "Label", "Customize the selected edges labels.");
-    createLabelControls(rowTwo, "Edge Label");
-    appendVerticalRule(rowTwo, "Font Size", "Defines the font size of the selected edges labels.");
-    createNumericalSlider(rowTwo, "Edge Label Font Size", cache.DEFAULTS.EDGE.LABEL.FONT_SIZE,
-      {min: 10, max: 30, step: 1}, "Defines the font size of the selected edges labels.");
-    appendVerticalRule(rowTwo, "Placement", "Defines the placement of the selected edges labels.");
-    createCategoricalControls(rowTwo, "Edge Label Placement", cache.DEFAULTS.EDGE.LABEL.PLACEMENT,
-      cache.DEFAULTS.STYLES.EDGE_LABEL_PLACEMENTS, "Defines the placement of the selected edges labels.");
-    appendVerticalRule(rowTwo, "Rotate", "Enable/Disable label rotation.");
-    createBooleanControls(rowTwo, "Edge Label Auto Rotate", "Enable/Disable label rotation.");
+    appendLabel(rowTwo, "Line Width", "Change the width of the selected edges.");
+    createNumericalSlider(rowTwo, "Edge Width", cache.DEFAULTS.EDGE.LINE_WIDTH,
+      {min: 0.1, max: 10.0, step: 0.1}, "Change the width of the selected edges.");
 
     const rowThree = createNewRow(edgeDiv);
-    appendLabel(rowThree, "Label Offset X",
+    appendLabel(rowThree, "Line Dash", "Define the dash pattern of the selected edges.");
+    createNumericalSlider(rowThree, "Edge Dash", cache.DEFAULTS.EDGE.LINE_DASH,
+      {min: 0, max: 40, step: 1}, "Define the dash pattern of the selected edges.");
+
+    const rowFour = createNewRow(edgeDiv);
+    appendLabel(rowFour, "Color", "Define the selected edges color.");
+    createColorControls(rowFour, "Edge Color", cache.DEFAULTS.EDGE.COLOR, cache.DEFAULTS.STYLES.EDGE_COLORS);
+
+    appendHorizontalRule(edgeDiv);
+
+    const rowFive = createNewRow(edgeDiv);
+    appendLabel(rowFive, "Label", "Customize the selected edges labels.");
+    createLabelControls(rowFive, "Edge Label");
+
+    const rowSix = createNewRow(edgeDiv);
+    appendLabel(rowSix, "Label Font Size", "Defines the font size of the selected edges labels.");
+    createNumericalSlider(rowSix, "Edge Label Font Size", cache.DEFAULTS.EDGE.LABEL.FONT_SIZE,
+      {min: 10, max: 30, step: 1}, "Defines the font size of the selected edges labels.");
+
+    const rowSeven = createNewRow(edgeDiv);
+    appendLabel(rowSeven, "Label Placement", "Defines the placement of the selected edges labels.");
+    createCategoricalControls(rowSeven, "Edge Label Placement", cache.DEFAULTS.EDGE.LABEL.PLACEMENT,
+      cache.DEFAULTS.STYLES.EDGE_LABEL_PLACEMENTS, "Defines the placement of the selected edges labels.");
+
+    const rowEight = createNewRow(edgeDiv);
+    appendLabel(rowEight, "Label Auto Rotate", "Enable/Disable label rotation.");
+    createBooleanControls(rowEight, "Edge Label Auto Rotate", "Enable/Disable label rotation.");
+
+    const rowNine = createNewRow(edgeDiv);
+    appendLabel(rowNine, "Label Offset X",
       "Define the offset of the selected edges labels along the X-axis.");
-    createNumericalSlider(rowThree, "Edge Label Offset X", cache.DEFAULTS.EDGE.LABEL.OFFSET_X,
+    createNumericalSlider(rowNine, "Edge Label Offset X", cache.DEFAULTS.EDGE.LABEL.OFFSET_X,
       {min: -100, max: 100, step: 1},
       "Define the offset of the selected edges labels along the X-axis.", false);
-    appendVerticalRule(rowThree, "Label Offset Y",
+
+    const rowTen = createNewRow(edgeDiv);
+    appendLabel(rowTen, "Label Offset Y",
       "Define the offset of the selected edges labels along the Y-axis.");
-    createNumericalSlider(rowThree, "Edge Label Offset Y", cache.DEFAULTS.EDGE.LABEL.OFFSET_Y,
+    createNumericalSlider(rowTen, "Edge Label Offset Y", cache.DEFAULTS.EDGE.LABEL.OFFSET_Y,
       {min: -100, max: 100, step: 1},
       "Define the offset of the selected edges labels along the Y-axis.", false);
 
-    const rowFour = createNewRow(edgeDiv);
-    appendLabel(rowFour, "Label Color",
+    const rowEleven = createNewRow(edgeDiv);
+    appendLabel(rowEleven, "Label Color",
       "Defines the foreground (text) color of the selected edges labels.");
-    createColorControls(rowFour, "Edge Label Font Color", cache.DEFAULTS.EDGE.LABEL.FOREGROUND_COLOR,
+    createColorControls(rowEleven, "Edge Label Font Color", cache.DEFAULTS.EDGE.LABEL.FOREGROUND_COLOR,
       cache.DEFAULTS.STYLES.EDGE_LABEL_COLORS, "Defines the foreground (text) color of the selected edges labels.");
-    appendVerticalRule(rowFour, "Label Background Color",
+
+    const rowTwelve = createNewRow(edgeDiv);
+    appendLabel(rowTwelve, "Label Background Color",
       "Defines the background color of the selected edges labels.");
-    createColorControls(rowFour, "Edge Label Background Color", cache.DEFAULTS.EDGE.LABEL.BACKGROUND_COLOR,
+    createColorControls(rowTwelve, "Edge Label Background Color", cache.DEFAULTS.EDGE.LABEL.BACKGROUND_COLOR,
       cache.DEFAULTS.STYLES.EDGE_LABEL_BACKGROUND_COLORS, "Defines the background color of the selected edges labels.");
 
-    const rowFive = createNewRow(edgeDiv);
-    appendLabel(rowFive, "Start Arrow", "Enable/Disable the start arrow of the selected edges.");
-    createBooleanControls(rowFive, "Edge Start Arrow", "Enable/Disable the start arrow of the selected edges.");
-    appendVerticalRule(rowFive, "Size", "Define the size of the start arrow of the selected edges.");
-    createNumericalSlider(rowFive, "Edge Start Arrow Size", cache.DEFAULTS.EDGE.ARROWS.START_SIZE,
+    appendHorizontalRule(edgeDiv);
+
+    const rowThirteen = createNewRow(edgeDiv);
+    appendLabel(rowThirteen, "Start Arrow", "Enable/Disable the start arrow of the selected edges.");
+    createBooleanControls(rowThirteen, "Edge Start Arrow", "Enable/Disable the start arrow of the selected edges.");
+
+    const rowFourteen = createNewRow(edgeDiv);
+    appendLabel(rowFourteen, "Start Arrow Size", "Define the size of the start arrow of the selected edges.");
+    createNumericalSlider(rowFourteen, "Edge Start Arrow Size", cache.DEFAULTS.EDGE.ARROWS.START_SIZE,
       {min: 10, max: 40, step: 1}, "Define the size of the start arrow of the selected edges.", true);
-    appendVerticalRule(rowFive, "Type", "Define the type of the start arrow of the selected edges.");
-    createCategoricalControls(rowFive, "Edge Start Arrow Type", cache.DEFAULTS.EDGE.ARROWS.START_TYPE,
+
+    const rowFifteen = createNewRow(edgeDiv);
+    appendLabel(rowFifteen, "Start Arrow Type", "Define the type of the start arrow of the selected edges.");
+    createCategoricalControls(rowFifteen, "Edge Start Arrow Type", cache.DEFAULTS.EDGE.ARROWS.START_TYPE,
       cache.DEFAULTS.STYLES.EDGE_ARROW_TYPES, "Define the type of the start arrow of the selected edges.");
 
-    const rowSix = createNewRow(edgeDiv);
-    appendLabel(rowSix, "End Arrow", "Enable/Disable the end arrow of the selected edges.");
-    createBooleanControls(rowSix, "Edge End Arrow", "Enable/Disable the end arrow of the selected edges.");
-    appendVerticalRule(rowSix, "Size", "Define the size of the end arrow of the selected edges.");
-    createNumericalSlider(rowSix, "Edge End Arrow Size", cache.DEFAULTS.EDGE.ARROWS.END_SIZE,
+    const rowSixteen = createNewRow(edgeDiv);
+    appendLabel(rowSixteen, "End Arrow", "Enable/Disable the end arrow of the selected edges.");
+    createBooleanControls(rowSixteen, "Edge End Arrow", "Enable/Disable the end arrow of the selected edges.");
+
+    const rowEighteen = createNewRow(edgeDiv);
+    appendLabel(rowEighteen, "End Arrow Size", "Define the size of the end arrow of the selected edges.");
+    createNumericalSlider(rowEighteen, "Edge End Arrow Size", cache.DEFAULTS.EDGE.ARROWS.END_SIZE,
       {min: 10, max: 40, step: 1}, "Define the size of the end arrow of the selected edges.", true);
-    appendVerticalRule(rowSix, "Type", "Define the type of the end arrow of the selected edges.");
-    createCategoricalControls(rowSix, "Edge End Arrow Type", cache.DEFAULTS.EDGE.ARROWS.END_TYPE,
+
+    const rowNineteen = createNewRow(edgeDiv);
+    appendLabel(rowNineteen, "End Arrow Type", "Define the type of the end arrow of the selected edges.");
+    createCategoricalControls(rowNineteen, "Edge End Arrow Type", cache.DEFAULTS.EDGE.ARROWS.END_TYPE,
       cache.DEFAULTS.STYLES.EDGE_ARROW_TYPES, "Define the type of the end arrow of the selected edges.");
 
-    const rowSeven = createNewRow(edgeDiv);
-    appendLabel(rowSeven, "Halo", "Enable/Disable a halo around the selected edges.");
-    createBooleanControls(rowSeven, "Edge Halo", "Enable/Disable a halo around the selected edges.");
-    appendVerticalRule(rowSeven, "Color", "Define the color of the halo for the selected edges.");
-    createColorControls(rowSeven, "Edge Halo Color", cache.DEFAULTS.EDGE.COLOR,
+    appendHorizontalRule(edgeDiv);
+
+    const rowTwenty = createNewRow(edgeDiv);
+    appendLabel(rowTwenty, "Halo", "Enable/Disable a halo around the selected edges.");
+    createBooleanControls(rowTwenty, "Edge Halo", "Enable/Disable a halo around the selected edges.");
+
+    const rowTwentyOne = createNewRow(edgeDiv);
+    appendLabel(rowTwentyOne, "Halo Color", "Define the color of the halo for the selected edges.");
+    createColorControls(rowTwentyOne, "Edge Halo Color", cache.DEFAULTS.EDGE.COLOR,
       cache.DEFAULTS.STYLES.EDGE_COLORS);
-    appendVerticalRule(rowSeven, "Width", "Define the halo width for the selected edges.");
-    createNumericalSlider(rowSeven, "Edge Halo Width", cache.DEFAULTS.EDGE.HALO.WIDTH,
+
+    const rowTwentyTwo = createNewRow(edgeDiv);
+    appendLabel(rowTwentyTwo, "Halo Width", "Define the halo width for the selected edges.");
+    createNumericalSlider(rowTwentyTwo, "Edge Halo Width", cache.DEFAULTS.EDGE.HALO.WIDTH,
       {min: 1, max: 30, step: 1}, "Define the halo width for the selected edges.");
   }
 
   function createBubbleSetConfigCard() {
-    const bubbleDiv = createCard("Bubble Set Configuration");
+    const bubbleDiv = createCard("Bubble Set Configuration", undefined, "bubble-set-config-card-header");
     const optionalCSSClass = "bubbleSetOptionalLabelConfig";
 
     let rowCount = 0;
@@ -900,36 +985,42 @@ function createStyleDiv(cache) {
       const rowOne = createNewRow(card);
       appendLabel(rowOne, "Fill Color");
       createColorControls(rowOne, `Bubble Set ${group} Fill Color`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].fill, [], false);
-      appendVerticalRule(rowOne, "Fill Opacity");
-      createNumericalSlider(rowOne, `Bubble Set ${group} Fill Opacity`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].fillOpacity,
-        {min: 0, max: 1, step: 0.01}, `Define the fill opacity of the bubble set ${group}.`, false);
-      appendVerticalRule(rowOne, "Stroke Color");
-      createColorControls(rowOne, `Bubble Set ${group} Stroke Color`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].stroke, [], false);
-      appendVerticalRule(rowOne, "Stroke Opacity");
-      createNumericalSlider(rowOne, `Bubble Set ${group} Stroke Opacity`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].strokeOpacity,
-        {min: 0, max: 1, step: 0.01}, `Define the stroke opacity of the bubble set ${group}.`, false);
 
       const rowTwo = createNewRow(card);
-      appendLabel(rowTwo, "Label");
+      appendLabel(rowTwo, "Fill Opacity");
+      createNumericalSlider(rowTwo, `Bubble Set ${group} Fill Opacity`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].fillOpacity,
+        {min: 0, max: 1, step: 0.01}, `Define the fill opacity of the bubble set ${group}.`, false);
+
+      const rowThree = createNewRow(card);
+      appendLabel(rowThree, "Stroke Color");
+      createColorControls(rowThree, `Bubble Set ${group} Stroke Color`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].stroke, [], false);
+
+      const rowFour = createNewRow(card);
+      appendLabel(rowFour, "Stroke Opacity");
+      createNumericalSlider(rowFour, `Bubble Set ${group} Stroke Opacity`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].strokeOpacity,
+        {min: 0, max: 1, step: 0.01}, `Define the stroke opacity of the bubble set ${group}.`, false);
+
+      const rowFive = createNewRow(card);
+      appendLabel(rowFive, "Label Text");
       const enableTextSwitch = createSwitch(async () => {
         await cache.bs.updateBubbleSetStyle(`Bubble Set ${group} Label`, enableTextSwitch.isChecked());
       }, undefined, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].label);
-      rowTwo.appendChild(enableTextSwitch);
-      appendVerticalRule(rowTwo, "Label Text", undefined, undefined, optionalCSSClass);
+      rowFive.appendChild(enableTextSwitch);
       const labelInput = createInput(120, `${group} label text`, `Enter the label text for the bubble set ${group}.`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].labelText, async () => {
         const val = labelInput.value.trim();
         await cache.bs.updateBubbleSetStyle(`Bubble Set ${group} Label Text`, val);
       });
       labelInput.classList.add(optionalCSSClass);
-      rowTwo.appendChild(labelInput);
-      appendVerticalRule(rowTwo, "Label Background", undefined, undefined, optionalCSSClass);
+      rowFive.appendChild(labelInput);
+
+      const rowSix = createNewRow(card);
+      appendLabel(rowSix, "Label Background Color", undefined, undefined, optionalCSSClass);
       const enableBackgroundSwitch = createSwitch(async () => {
         await cache.bs.updateBubbleSetStyle(`Bubble Set ${group} Label Background`, enableBackgroundSwitch.isChecked());
       }, undefined, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].labelBackground || true);
       enableBackgroundSwitch.classList.add(optionalCSSClass);
-      rowTwo.appendChild(enableBackgroundSwitch);
-      appendVerticalRule(rowTwo, "Label Background Color", undefined, undefined, optionalCSSClass);
-      createColorControls(rowTwo, `Bubble Set ${group} Label Background Color`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].labelBackgroundFill || cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].fill, [], false, optionalCSSClass);
+      rowSix.appendChild(enableBackgroundSwitch);
+      createColorControls(rowSix, `Bubble Set ${group} Label Background Color`, cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].labelBackgroundFill || cache.data.layouts[cache.data.selectedLayout].bubbleSetStyle[group].fill, [], false, optionalCSSClass);
     }
   }
 
