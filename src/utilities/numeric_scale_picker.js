@@ -10,6 +10,8 @@ class NumericScalePicker {
     this.propertyName = null;
     this.dom = {};
     this.cache = cache;
+    this.metricValuePrefix = "__metric__:";
+    this.activeMetricSource = null;
   }
 
   createDom() {
@@ -215,26 +217,75 @@ class NumericScalePicker {
       });
     });
 
-    dropdown.innerHTML = '<option value="">Select property</option>';
-    Array.from(available).sort().forEach(prop => {
-      const opt = document.createElement('option');
-      opt.value = prop;
-      opt.textContent = prop;
-      dropdown.appendChild(opt);
-    });
+    const metricOptions = this.elementType === 'nodes'
+      ? this.cache.metrics.getMetricScaleOptions()
+      : [];
 
-    dropdown.onchange = () => this.selectProperty(dropdown.value);
+    dropdown.innerHTML = '<option value="">Select property</option>';
+    const propertyOptions = Array.from(available).sort();
+    if (propertyOptions.length > 0) {
+      const dataGroup = document.createElement('optgroup');
+      dataGroup.label = 'Data Properties';
+      propertyOptions.forEach(prop => {
+        const opt = document.createElement('option');
+        opt.value = prop;
+        opt.textContent = prop;
+        dataGroup.appendChild(opt);
+      });
+      dropdown.appendChild(dataGroup);
+    }
+
+    if (metricOptions.length > 0) {
+      const metricGroup = document.createElement('optgroup');
+      metricGroup.label = 'Network Metrics';
+      metricOptions.forEach(metric => {
+        const opt = document.createElement('option');
+        opt.value = `${this.metricValuePrefix}${metric.id}`;
+        opt.textContent = `${metric.label} (${metric.valueLabel})${metric.cached ? '' : ' (calculate)'}`;
+        metricGroup.appendChild(opt);
+      });
+      dropdown.appendChild(metricGroup);
+    }
+
+    dropdown.onchange = async () => this.selectProperty(dropdown.value);
   }
 
-  selectProperty(property) {
+  async selectProperty(property) {
     if (!property) return;
 
     const selectedElements = this.elementType === 'nodes' ? this.cache.selectedNodes : this.cache.selectedEdges;
     const elementRef = this.elementType === 'nodes' ? this.cache.nodeRef : this.cache.edgeRef;
+    let metricSource = this.getMetricSource(property);
+    if (property.startsWith(this.metricValuePrefix) && !metricSource) {
+      const metricId = property.slice(this.metricValuePrefix.length);
+      metricSource = await this.cache.metrics.ensureMetricValues(metricId);
+    }
+    if (property.startsWith(this.metricValuePrefix) && !metricSource) {
+      this.cache.ui.warning('Metric values not available yet. Calculate the metric first.');
+      return;
+    }
+    this.activeMetricSource = metricSource;
 
-    const values = Array.from(selectedElements)
-      .map(id => elementRef.get(id)?.featureValues.get(property))
-      .filter(v => v !== undefined && !isNaN(v));
+    const values = [];
+    let elementsWithProperty = 0;
+
+    if (metricSource) {
+      Array.from(selectedElements).forEach(id => {
+        const value = metricSource.values.get(id);
+        if (value !== undefined && !isNaN(value)) {
+          values.push(value);
+          elementsWithProperty += 1;
+        }
+      });
+    } else {
+      Array.from(selectedElements).forEach(id => {
+        const value = elementRef.get(id)?.featureValues.get(property);
+        if (value !== undefined && !isNaN(value)) {
+          values.push(value);
+          elementsWithProperty += 1;
+        }
+      });
+    }
 
     if (values.length === 0) {
       this.cache.ui.warning('No numeric values found for selected property');
@@ -244,14 +295,13 @@ class NumericScalePicker {
     this.minValue = Math.min(...values);
     this.maxValue = Math.max(...values);
 
-    const elementsWithProperty = values.length;
     const totalElements = selectedElements.length;
     const elementTypeLabel = this.elementType === 'nodes' ? 'nodes' : 'edges';
 
     // Extract property label after last "::"
-    const propertyDisplayName = property.includes('::')
-      ? property.split('::').pop()
-      : property;
+    const propertyDisplayName = metricSource
+      ? `${metricSource.label} (${metricSource.valueLabel})`
+      : (property.includes('::') ? property.split('::').pop() : property);
 
     this.dom.summaryInfo.innerHTML = `
       <div style="font-size: 14px; margin-bottom: 8px;">
@@ -282,12 +332,13 @@ class NumericScalePicker {
 
     const selectedElements = this.elementType === 'nodes' ? this.cache.selectedNodes : this.cache.selectedEdges;
     const elementRef = this.elementType === 'nodes' ? this.cache.nodeRef : this.cache.edgeRef;
+    const metricSource = this.getMetricSource(property);
 
     const scaleMap = new Map();
 
     Array.from(selectedElements).forEach(elementId => {
       const element = elementRef.get(elementId);
-      const value = element?.featureValues.get(property);
+      const value = metricSource ? metricSource.values.get(elementId) : element?.featureValues.get(property);
 
       if (value !== undefined && !isNaN(value)) {
         // Linear interpolation from [minValue, maxValue] to [minOutput, maxOutput]
@@ -310,6 +361,12 @@ class NumericScalePicker {
   close() {
     this.element?.remove();
     this.element = null;
+  }
+
+  getMetricSource(property) {
+    if (!property || !property.startsWith(this.metricValuePrefix)) return null;
+    const metricId = property.slice(this.metricValuePrefix.length);
+    return this.cache.metrics.getMetricScaleValues(metricId);
   }
 }
 

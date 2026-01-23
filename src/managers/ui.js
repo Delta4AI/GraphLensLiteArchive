@@ -75,12 +75,12 @@ class UIManager {
   }
 
   toggleStyleElementsThatRequireAtLeastOneVisibleNode(enable) {
-    this.toggleDisabledElements(["selectByNodeIDsInput", "Node ID(s)", "selectByNodeIDsSwitch",
+    this.toggleDisabledElements(["selectByNodeIDsInput", "Node IDs", "selectByNodeIDsSwitch",
       "selectByNodeIDsSwitchLabel", "selectByNodeIDsButton"], enable);
   }
 
   toggleStyleElementsThatRequireAtLeastOneVisibleEdge(enable) {
-    this.toggleDisabledElements(["selectByEdgeIDsInput", "Edge ID(s)", "selectByEdgeIDsSwitch",
+    this.toggleDisabledElements(["selectByEdgeIDsInput", "Edge IDs", "selectByEdgeIDsSwitch",
       "selectByEdgeIDsSwitchLabel", "selectByEdgeIDsButton"], enable);
   }
 

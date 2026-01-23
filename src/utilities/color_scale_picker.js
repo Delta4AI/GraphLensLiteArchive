@@ -15,6 +15,8 @@ class ColorScalePicker {
     this.elementType = "nodes";
     this.currentProperty = null;
     this.dom = {};
+    this.metricValuePrefix = "__metric__:";
+    this.activeMetricSource = null;
 
     this.cache = cache;
   }
@@ -146,31 +148,94 @@ class ColorScalePicker {
       });
     });
 
-    dropdown.innerHTML = '<option value="">Select property</option>';
-    Array.from(available).sort().forEach(prop => {
-      const opt = document.createElement('option');
-      opt.value = prop;
-      opt.textContent = prop;
-      dropdown.appendChild(opt);
-    });
+    const metricOptions = this.elementType === 'nodes'
+      ? this.cache.metrics.getMetricScaleOptions()
+      : [];
 
-    dropdown.onchange = () => this.selectProperty(dropdown.value, filters.get(dropdown.value));
+    dropdown.innerHTML = '<option value="">Select property</option>';
+    const propertyOptions = Array.from(available).sort();
+    if (propertyOptions.length > 0) {
+      const dataGroup = document.createElement('optgroup');
+      dataGroup.label = 'Data Properties';
+      propertyOptions.forEach(prop => {
+        const opt = document.createElement('option');
+        opt.value = prop;
+        opt.textContent = prop;
+        dataGroup.appendChild(opt);
+      });
+      dropdown.appendChild(dataGroup);
+    }
+
+    if (metricOptions.length > 0) {
+      const metricGroup = document.createElement('optgroup');
+      metricGroup.label = 'Network Metrics';
+      metricOptions.forEach(metric => {
+        const opt = document.createElement('option');
+        opt.value = `${this.metricValuePrefix}${metric.id}`;
+        opt.textContent = `${metric.label} (${metric.valueLabel})${metric.cached ? '' : ' (calculate)'}`;
+        metricGroup.appendChild(opt);
+      });
+      dropdown.appendChild(metricGroup);
+    }
+
+    dropdown.onchange = async () => {
+      const value = dropdown.value;
+      const metricSource = this.getMetricSource(value);
+      if (metricSource) {
+        await this.selectProperty(value, {isCategory: false}, metricSource);
+      } else {
+        await this.selectProperty(value, filters.get(value));
+      }
+    };
   }
 
-  selectProperty(property, filterObj) {
+  async selectProperty(property, filterObj, metricSource = null) {
     if (!property) return;
 
     const selectedElements = this.elementType === 'nodes' ? this.cache.selectedNodes : this.cache.selectedEdges;
     const elementRef = this.elementType === 'nodes' ? this.cache.nodeRef : this.cache.edgeRef;
+    if (property.startsWith(this.metricValuePrefix) && !metricSource) {
+      const metricId = property.slice(this.metricValuePrefix.length);
+      metricSource = await this.cache.metrics.ensureMetricValues(metricId);
+      filterObj = {isCategory: false};
+    }
+    if (property.startsWith(this.metricValuePrefix) && !metricSource) {
+      this.cache.ui.warning('Metric values not available yet. Calculate the metric first.');
+      return;
+    }
+    if (!filterObj) {
+      this.cache.ui.warning('No values found for selected property');
+      return;
+    }
+    this.activeMetricSource = metricSource;
 
+    const values = [];
     const elementsWithProperty = Array.from(selectedElements)
       .filter(id => {
+        if (metricSource) {
+          const value = metricSource.values.get(id);
+          if (value !== undefined) {
+            values.push(value);
+            return true;
+          }
+          return false;
+        }
         const element = elementRef.get(id);
-        return element?.featureValues.has(property);
+        const value = element?.featureValues.get(property);
+        if (value !== undefined) {
+          values.push(value);
+          return true;
+        }
+        return false;
       });
 
     const totalElements = selectedElements.length;
     const elementsWithPropertyCount = elementsWithProperty.length;
+
+    if (!filterObj.isCategory && values.length === 0) {
+      this.cache.ui.warning('No numeric values found for selected property');
+      return;
+    }
 
     const existingCounter = this.element.querySelector('.picker-property-counter');
     if (existingCounter) {
@@ -191,9 +256,9 @@ class ColorScalePicker {
     const elementTypeLabel = this.elementType === 'nodes' ? 'nodes' : 'edges';
 
     // Extract property label after last "::"
-    const propertyDisplayName = property.includes('::')
-      ? property.split('::').pop()
-      : property;
+    const propertyDisplayName = metricSource
+      ? `${metricSource.label} (${metricSource.valueLabel})`
+      : (property.includes('::') ? property.split('::').pop() : property);
 
     // Get the current property being styled (like "Node Fill Color")
     const targetProperty = this.currentProperty || 'color';
@@ -205,10 +270,6 @@ class ColorScalePicker {
 
     // Add property range for continuous (non-category) properties
     if (!filterObj.isCategory) {
-      const values = Array.from(elementsWithProperty)
-        .map(id => elementRef.get(id)?.featureValues.get(property))
-        .filter(v => v !== undefined);
-
       const minVal = Math.min(...values);
       const maxVal = Math.max(...values);
 
@@ -282,10 +343,13 @@ class ColorScalePicker {
   initializeGradient(property) {
     const selectedElements = this.elementType === 'nodes' ? this.cache.selectedNodes : this.cache.selectedEdges;
     const elementRef = this.elementType === 'nodes' ? this.cache.nodeRef : this.cache.edgeRef;
-
-    const values = Array.from(selectedElements)
-      .map(id => elementRef.get(id)?.featureValues.get(property))
-      .filter(v => v !== undefined);
+    const values = this.activeMetricSource
+      ? Array.from(selectedElements)
+        .map(id => this.activeMetricSource.values.get(id))
+        .filter(v => v !== undefined)
+      : Array.from(selectedElements)
+        .map(id => elementRef.get(id)?.featureValues.get(property))
+        .filter(v => v !== undefined);
 
     this.minValue = Math.min(...values);
     this.maxValue = Math.max(...values);
@@ -434,7 +498,10 @@ class ColorScalePicker {
     const selectedElements = this.elementType === 'nodes' ? this.cache.selectedNodes : this.cache.selectedEdges;
     const elementRef = this.elementType === 'nodes' ? this.cache.nodeRef : this.cache.edgeRef;
 
-    const filterObj = this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(dropdown.value);
+    const metricSource = this.getMetricSource(dropdown.value);
+    const filterObj = metricSource
+      ? {isCategory: false}
+      : this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(dropdown.value);
     const isCategory = filterObj?.isCategory;
 
     if (isCategory) {
@@ -455,7 +522,9 @@ class ColorScalePicker {
     } else {
       Array.from(selectedElements).forEach(elementId => {
         const element = elementRef.get(elementId);
-        const value = element?.featureValues.get(dropdown.value);
+        const value = metricSource
+          ? metricSource.values.get(elementId)
+          : element?.featureValues.get(dropdown.value);
 
         if (value !== undefined) {
           const normalizedValue = ((value - this.minValue) / (this.maxValue - this.minValue)) * 100;
@@ -530,6 +599,12 @@ class ColorScalePicker {
   close() {
     this.element?.remove();
     this.element = null;
+  }
+
+  getMetricSource(property) {
+    if (!property || !property.startsWith(this.metricValuePrefix)) return null;
+    const metricId = property.slice(this.metricValuePrefix.length);
+    return this.cache.metrics.getMetricScaleValues(metricId);
   }
 }
 
