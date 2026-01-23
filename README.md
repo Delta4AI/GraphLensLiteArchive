@@ -62,7 +62,7 @@ Contributions are welcome! Please file issues or submit pull requests on GitHub.
 ---
 
 ## License
-GNU GPLv3 - see [LICENSE](LICENSE) for details.
+MIT - see [LICENSE](LICENSE) for details.
 
 ---
 
