@@ -372,6 +372,18 @@ class UIManager {
     }, 300);
   }
 
+  toggleSelectionEditor() {
+    const container = document.getElementById("selectedElementsContainer");
+    const panel = document.getElementById("selectionEditorPanel");
+    const toggleBtn = document.getElementById("selectionEditorToggleBtn");
+    if (!container || !panel || !toggleBtn) return;
+
+    const isExpanded = container.classList.toggle("expanded");
+    toggleBtn.textContent = isExpanded ? "▴" : "▾";
+    toggleBtn.title = isExpanded ? "Collapse selection editor" : "Expand selection editor";
+    toggleBtn.setAttribute("aria-expanded", isExpanded ? "true" : "false");
+  }
+
   async toggleLassoSelection() {
     const lassoWrapper = document.getElementById("lassoWrapper");
     let lassoIsActive = lassoWrapper.classList.contains("active");
@@ -712,6 +724,18 @@ class UIManager {
     const content = document.getElementById("stylingPanelContent");
     content.innerHTML = "";
     content.appendChild(createStyleDiv(this.cache));
+    this.mountSelectionEditorCards();
+  }
+
+  mountSelectionEditorCards() {
+    const selectionPanel = document.getElementById("selectionEditorPanel");
+    if (!selectionPanel) return;
+
+    selectionPanel.innerHTML = "";
+    ["Focus Elements", "Select Elements", "Arrange Selection"].forEach((cardId) => {
+      const card = document.getElementById(cardId);
+      if (card) selectionPanel.appendChild(card);
+    });
   }
 }
 
