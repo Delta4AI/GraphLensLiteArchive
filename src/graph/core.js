@@ -421,7 +421,12 @@ class GraphCoreManager {
     // Update bubble groups to exclude hidden dangling nodes
     await this.cache.bs.updateBubbleSetIfChanged();
 
-    await this.cache.fm.handleFilterEvent("Hiding Elements", "Hiding nodes and edges that are not connected to any other node or edge.");
+    await this.cache.fm.handleFilterEvent(
+      "Hiding Elements",
+      "Hiding nodes and edges that are not connected to any other node or edge.",
+      null,
+      false
+    );
   }
 
   async showDanglingElements() {
@@ -431,8 +436,12 @@ class GraphCoreManager {
     // Update bubble groups to restore hidden dangling nodes
     await this.cache.bs.updateBubbleSetIfChanged();
 
-    await this.cache.fm.handleFilterEvent("Showing Elements",
-      "Showing all previously hidden nodes and edges that are not connected to any other node or edge.");
+    await this.cache.fm.handleFilterEvent(
+      "Showing Elements",
+      "Showing all previously hidden nodes and edges that are not connected to any other node or edge.",
+      null,
+      false
+    );
   }
 
   async focusNodes(nodeIDs = undefined) {

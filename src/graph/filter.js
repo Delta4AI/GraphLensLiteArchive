@@ -35,7 +35,17 @@ class GraphFilterManager {
     // Clean up manual bubble groups (remove filtered-out nodes)
     this.cache.bs.cleanupManualGroupMembers();
 
-    await this.cache.gcm.decideToRenderOrDraw();
+    // Prevent query reset during preRenderEvent when we explicitly skip it.
+    if (!shouldResetQuery) {
+      this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT = true;
+    }
+    try {
+      await this.cache.gcm.decideToRenderOrDraw();
+    } finally {
+      if (!shouldResetQuery) {
+        this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT = false;
+      }
+    }
   }
 
   resetFeatureIsWithinThresholdMaps() {
