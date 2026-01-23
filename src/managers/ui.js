@@ -180,6 +180,31 @@ class UIManager {
     }, 300);
   }
 
+  async closeBottomBar() {
+    const queryBtn = document.getElementById("queryToggleBtn");
+    const dataBtn = document.getElementById("dataToggleBtn");
+
+    if (dataBtn.classList.contains("highlight")) {
+      await this.toggleDataEditor();
+      return;
+    }
+
+    if (queryBtn.classList.contains("highlight")) {
+      this.toggleQueryEditor();
+      return;
+    }
+
+    const bottomBar = document.getElementById("bottomBar");
+    if (bottomBar.classList.contains("active")) {
+      this.hideBottomBar();
+      setTimeout(() => {
+        if (this.cache.graph) {
+          this.cache.graph.resize();
+        }
+      }, 300);
+    }
+  }
+
   async toggleDataEditor() {
     const queryBtn = document.getElementById("queryToggleBtn");
     const dataBtn = document.getElementById("dataToggleBtn");

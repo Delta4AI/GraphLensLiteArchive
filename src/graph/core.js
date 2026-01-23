@@ -911,6 +911,9 @@ class GraphCoreManager {
         case "y":
           this.cache.ui.toggleStylingPanel();
           break;
+        case "l":
+          await this.cache.ui.toggleLassoSelection();
+          break;
         default:
           break;
       }
