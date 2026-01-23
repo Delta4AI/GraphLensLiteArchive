@@ -90,10 +90,14 @@
               onclick="cache.sm.undoSelection()">↩</button>
       <button class="small-btn disabled" title="Redo Selection" id="redoSelectionBtn"
               onclick="cache.sm.redoSelection()">↪</button>
+      <div class="button-separator"></div>
+      <button class="small-btn" title="Expand selection editor" id="selectionEditorToggleBtn"
+              onclick="cache.ui.toggleSelectionEditor()">▾</button>
       <div id="manualGroupSeparator" class="button-separator" style="display: none;"></div>
       <span id="manualBubbleGroupStatus" class="manual-group-status" style="display: none;"></span>
       <button id="clearManualGroupsBtn" class="small-btn red" title="Clear all manual bubble groups"
               onclick="cache.bs.clearAllManualGroups()" style="display: none;">×</button>
+      <div id="selectionEditorPanel" class="selection-editor-panel"></div>
     </div>
     <div id="innerGraphContainer"></div>
   </div>
