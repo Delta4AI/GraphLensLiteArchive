@@ -8,7 +8,7 @@ class GraphFilterManager {
     const affectedPropIDs = Array.from(this.cache.propIDs).filter(id => id.startsWith(idPrefix));
 
     for (const propID of affectedPropIDs) {
-      this.cache.fm.checkCheckbox(propID, true);
+      this.cache.ui.checkCheckbox(propID, true);
       const slider = this.cache.propIDToInvertibleRangeSliders.get(propID);
       const dropdown = this.cache.propIDToDropdownChecklists.get(propID);
 
