@@ -110,6 +110,9 @@ class GraphFilterManager {
       await this.cache.graph.hideElement(hideElementsDiff);
       this.cache.visibleElementsChanged = true;
     }
+    if (this.cache.visibleElementsChanged) {
+      this.cache.metrics.invalidateMetricValues();
+    }
 
   }
 }
