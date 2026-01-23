@@ -171,6 +171,13 @@ class UIManager {
       this.hideBottomBar();
       queryBtn.classList.remove("highlight");
     }
+
+    // Wait for CSS transition to complete (300ms) before resizing graph canvas
+    setTimeout(() => {
+      if (this.cache.graph) {
+        this.cache.graph.resize();
+      }
+    }, 300);
   }
 
   async toggleDataEditor() {
@@ -190,6 +197,13 @@ class UIManager {
     }
 
     await this.hideLoading();
+
+    // Wait for CSS transition to complete (300ms) before resizing graph canvas
+    setTimeout(() => {
+      if (this.cache.graph) {
+        this.cache.graph.resize();
+      }
+    }, 300);
   }
 
   showEditor(editorType) {
@@ -288,7 +302,7 @@ class UIManager {
       shadowBar.style.height = clampedHeight + 'px';
     }
 
-    function handleMouseUp(e) {
+    const handleMouseUp = (e) => {
       if (!isResizing) return;
 
       isResizing = false;
@@ -307,6 +321,11 @@ class UIManager {
 
         bottomBar.style.height = finalHeight + 'px';
         mainContent.style.height = newMainHeight + 'px';
+
+        // Resize graph canvas after manual resize (no transition, resize immediately)
+        if (this.cache.graph) {
+          this.cache.graph.resize();
+        }
       }
 
       shadowBar.style.display = 'none';
@@ -332,17 +351,25 @@ class UIManager {
   toggleStylingPanel() {
     const rightSidebar = document.getElementById("rightSidebar");
     const styleBtn = document.getElementById("styleToggleBtn");
+    const outerGraphContainer = document.getElementById("outerGraphContainer");
     const isActive = rightSidebar.classList.contains("active");
 
     if (isActive) {
       rightSidebar.classList.remove("active");
       styleBtn.classList.remove("highlight");
-      this.info("Styling panel closed");
+      outerGraphContainer.classList.remove("styling-panel-active");
     } else {
       rightSidebar.classList.add("active");
       styleBtn.classList.add("highlight");
-      this.info("Styling panel opened");
+      outerGraphContainer.classList.add("styling-panel-active");
     }
+
+    // Wait for CSS transition to complete (300ms) before resizing graph canvas
+    setTimeout(() => {
+      if (this.cache.graph) {
+        this.cache.graph.resize();
+      }
+    }, 300);
   }
 
   async toggleLassoSelection() {
@@ -559,9 +586,7 @@ class UIManager {
       div.append(row);
       sliderOrDropdown.appendListeners();
     }
-    const staticStyleDiv = document.getElementById("staticStyleDiv");
-    staticStyleDiv.innerHTML = "";
-    staticStyleDiv.appendChild(createStyleDiv(this.cache));
+
     this.manageDynamicWidgets();
     this.handleEditModeUIChanges();
     this.cache.qm.updateQueryTextArea();
@@ -701,11 +726,7 @@ class UIManager {
   buildStylingPanelUI() {
     const content = document.getElementById("stylingPanelContent");
     content.innerHTML = "";
-
-    const placeholder = document.createElement("div");
-    placeholder.className = "alert-info";
-    placeholder.innerHTML = "<p>Styling controls will be added here.</p>";
-    content.appendChild(placeholder);
+    content.appendChild(createStyleDiv(this.cache));
   }
 }
 
