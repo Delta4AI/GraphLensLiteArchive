@@ -64,7 +64,7 @@ body, html {
 }
 
 #stylingPanelContent {
-    padding-top: 10px;
+    padding-top: 3px;
 }
 
 #closeStylingPanelBtn {
@@ -160,6 +160,7 @@ body, html {
 #outerGraphContainer {
     flex: 1 1 auto;
     min-width: 0;
+    position: relative;
 }
 
 #innerGraphContainer {
@@ -185,7 +186,7 @@ body, html {
     border: 1px solid #403C53;
     border-radius: 5px;
     background-color: #E4E3EA80;
-    transition: opacity 0.1s ease-in-out;
+    transition: opacity 0.1s ease-in-out, right 0.3s ease-in-out;
     text-align: center;
     padding: 2px;
     font-size: 13px;
@@ -490,6 +491,10 @@ h5 {
     margin-top: 4px;
 }
 
+.bubble-set-config-card-header::before {
+    font-size: 12px;
+}
+
 .alert-warning {
     background-color: #fff3cd;
     border-left: 4px solid #ffc107;
@@ -516,7 +521,7 @@ h5 {
     color: white;
     background-color: #878996;
     border-radius: 5px;
-    padding: 2px;
+    padding: 0.09rem;
     font-size: 11px;
 }
 
@@ -1185,6 +1190,7 @@ input:checked + .checkbox-green::after {
     width: 18px;
     height: 18px;
     margin-left: 1px;
+    margin-right: 1px;
     box-sizing: border-box;
     border: 0.08em solid black;
     border-radius: 999px;
