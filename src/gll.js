@@ -30,7 +30,8 @@ import {UIComponentManager} from './managers/ui_components.js';
 import {ColorScalePicker} from './utilities/color_scale_picker.js';
 import {NumericScalePicker} from './utilities/numeric_scale_picker.js';
 import {DataTable, buildDataTable} from "./utilities/data_editor.js";
-import {StringDemoDataLoader} from "./utilities/demo_loader.js";
+import {StringDemoDataLoader} from "./utilities/string_demo_loader.js";
+import {ReactomeDemoDataLoader} from "./utilities/reactome_demo_loader.js";
 import {Popup} from "./utilities/popup.js";
 import {StaticUtilities} from "./utilities/static.js";
 
@@ -323,32 +324,70 @@ let cache = new Cache();
 async function loadDemoData() {
   const formContent = document.createElement('div');
   formContent.innerHTML = `
-    <h3>Load STRING Demo Data</h3>
-    <div style="margin-bottom: 10px;">
-      <label for="genes-input" style="display: block; margin-bottom: 5px;">Genes (comma- or space-separated):</label>
-      <input type="text" id="genes-input" value="TP53" style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+    <div class="demo-tabs">
+      <button id="tab-string" class="p-button demo-tab active">STRING</button>
+      <button id="tab-reactome" class="p-button demo-tab">Reactome</button>
     </div>
-    <div style="margin-bottom: 10px;">
-      <label for="species-input" style="display: block; margin-bottom: 5px;">Species (NCBI Taxonomy ID):</label>
-      <input type="number" id="species-input" value="9606" style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+
+    <div id="panel-string">
+      <h3>Load STRING Demo Data</h3>
+      <div class="demo-field">
+        <label for="genes-input" class="demo-label">Genes (comma- or space-separated):</label>
+        <input type="text" id="genes-input" value="TP53" class="demo-input">
+      </div>
+      <div class="demo-field">
+        <label for="species-input" class="demo-label">Species (NCBI Taxonomy ID):</label>
+        <input type="number" id="species-input" value="9606" class="demo-input">
+      </div>
+      <div class="demo-field">
+        <label for="nodes-input" class="demo-label">Additional Nodes:</label>
+        <input type="number" id="nodes-input" value="50" class="demo-input">
+      </div>
+      <div class="demo-field-last">
+        <label for="score-input" class="demo-label">Required Score (0-1000):</label>
+        <input type="number" id="score-input" value="400" min="0" max="1000" class="demo-input">
+      </div>
+      <div class="demo-attribution">
+        <strong>Data Source:</strong> STRING Database API<br>
+        <a href="https://string-db.org/" target="_blank">🔗 Visit STRING Database</a> | 
+        <a href="https://doi.org/10.1093/nar/gkac1000" target="_blank">📄 Citation</a><br>
+        <em>Szklarczyk D, Gable AL, Nastou KC, et al. The STRING database in 2023: protein-protein association networks and functional enrichment analyses for any sequenced genome of interest. Nucleic Acids Res. 2023.</em>
+      </div>
+      <div class="demo-actions">
+        <button id="load-btn-string" class="p-button ml-1">Load</button>
+        <button id="cancel-btn-string" class="p-button">Cancel</button>
+      </div>
     </div>
-    <div style="margin-bottom: 10px;">
-      <label for="nodes-input" style="display: block; margin-bottom: 5px;">Additional Nodes:</label>
-      <input type="number" id="nodes-input" value="50" style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-    </div>
-    <div style="margin-bottom: 20px;">
-      <label for="score-input" style="display: block; margin-bottom: 5px;">Required Score (0-1000):</label>
-      <input type="number" id="score-input" value="400" min="0" max="1000" style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-    </div>
-    <div style="background-color: #f5f5f5; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 12px; color: #666;">
-      <strong>Data Source:</strong> STRING Database API<br>
-      <a href="https://string-db.org/" target="_blank" style="color: #0066cc;">🔗 Visit STRING Database</a> | 
-      <a href="https://doi.org/10.1093/nar/gkac1000" target="_blank" style="color: #0066cc;">📄 Citation</a><br>
-      <em>Szklarczyk D, Gable AL, Nastou KC, et al. The STRING database in 2023: protein-protein association networks and functional enrichment analyses for any sequenced genome of interest. Nucleic Acids Res. 2023.</em>
-    </div>
-    <div style="text-align: right;">
-      <button id="load-btn" class="p-button ml-1">Load</button>
-      <button id="cancel-btn" class="p-button">Cancel</button>
+
+    <div id="panel-reactome" style="display: none;">
+      <h3>Load Reactome Pathway Data</h3>
+      <div class="demo-field">
+        <label for="pathway-input" class="demo-label">Pathway ID:</label>
+        <input type="text" id="pathway-input" value="R-HSA-1640170" class="demo-input">
+        <small class="demo-hint">e.g. R-HSA-1640170 (Cell Cycle Checkpoints)</small>
+      </div>
+      <div class="demo-field">
+        <label for="max-reactions-input" class="demo-label">Max Reactions:</label>
+        <input type="number" id="max-reactions-input" value="200" min="1" max="2000" class="demo-input">
+        <small class="demo-hint">Limits API calls. Large pathways can have 500+ reactions.</small>
+      </div>
+      <div class="demo-field-last">
+        <label class="demo-checkbox-label">
+          <input type="checkbox" id="disease-toggle" checked>
+          Include disease reactions
+        </label>
+        <small class="demo-hint">Reactome annotates reactions involved in disease processes (e.g. mutations, loss-of-function). Uncheck to show only normal physiological reactions.</small>
+      </div>
+      <div class="demo-attribution">
+        <strong>Data Source:</strong> Reactome Pathway Database<br>
+        <a href="https://reactome.org/" target="_blank">🔗 Visit Reactome</a> | 
+        <a href="https://doi.org/10.1093/nar/gkab1028" target="_blank">📄 Citation</a><br>
+        <em>Gillespie M, Jassal B, Stephan R, et al. The reactome pathway knowledgebase 2022. Nucleic Acids Res. 2022.</em>
+      </div>
+      <div class="demo-actions">
+        <button id="load-btn-reactome" class="p-button ml-1">Load</button>
+        <button id="cancel-btn-reactome" class="p-button">Cancel</button>
+      </div>
     </div>
   `;
 
@@ -360,14 +399,45 @@ async function loadDemoData() {
       onClose: () => resolve(false)
     });
 
+    // Tab switching
+    const tabString = formContent.querySelector('#tab-string');
+    const tabReactome = formContent.querySelector('#tab-reactome');
+    const panelString = formContent.querySelector('#panel-string');
+    const panelReactome = formContent.querySelector('#panel-reactome');
+
+    const activateTab = (activeTab, activePanel, inactiveTab, inactivePanel) => {
+      activeTab.classList.add('active');
+      inactiveTab.classList.remove('active');
+      activePanel.style.display = '';
+      inactivePanel.style.display = 'none';
+    };
+
+    tabString.addEventListener('click', () => {
+      activateTab(tabString, panelString, tabReactome, panelReactome);
+      setTimeout(() => genesInput.focus(), 50);
+    });
+
+    tabReactome.addEventListener('click', () => {
+      activateTab(tabReactome, panelReactome, tabString, panelString);
+      setTimeout(() => pathwayInput.focus(), 50);
+    });
+
+    // STRING inputs
     const genesInput = formContent.querySelector('#genes-input');
     const speciesInput = formContent.querySelector('#species-input');
     const nodesInput = formContent.querySelector('#nodes-input');
     const scoreInput = formContent.querySelector('#score-input');
-    const loadBtn = formContent.querySelector('#load-btn');
-    const cancelBtn = formContent.querySelector('#cancel-btn');
+    const loadBtnString = formContent.querySelector('#load-btn-string');
+    const cancelBtnString = formContent.querySelector('#cancel-btn-string');
 
-    const handleLoad = async () => {
+    // Reactome inputs
+    const pathwayInput = formContent.querySelector('#pathway-input');
+    const maxReactionsInput = formContent.querySelector('#max-reactions-input');
+    const diseaseToggle = formContent.querySelector('#disease-toggle');
+    const loadBtnReactome = formContent.querySelector('#load-btn-reactome');
+    const cancelBtnReactome = formContent.querySelector('#cancel-btn-reactome');
+
+    const handleLoadString = async () => {
       const genesText = genesInput.value.trim();
       if (!genesText) {
         cache.ui.error('Please enter at least one gene');
@@ -390,12 +460,46 @@ async function loadDemoData() {
       const data = await stringDemoDataLoader.loadNetwork();
 
       if (data) {
-
         await cache.gcm.destroyGraphAndRollBackUI();
         cache.gcm.resetEventLocks();
         cache.io.preProcessData(data);
         cache.buildDataTable(data);
-        // cache.initialize(data);
+        cache.ui.buildUI();
+
+        await cache.gcm.createGraphInstance();
+        await cache.graph.render();
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+
+      await cache.ui.hideLoading();
+    };
+
+    const handleLoadReactome = async () => {
+      const pathwayId = pathwayInput.value.trim();
+      if (!pathwayId) {
+        cache.ui.error('Please enter a Reactome pathway ID');
+        return;
+      }
+
+      const maxReactions = parseInt(maxReactionsInput.value) || 200;
+
+      popup.close();
+
+      const reactomeDemoDataLoader = new ReactomeDemoDataLoader(
+        cache,
+        pathwayId,
+        diseaseToggle.checked,
+        maxReactions
+      );
+      const data = await reactomeDemoDataLoader.loadNetwork();
+
+      if (data) {
+        await cache.gcm.destroyGraphAndRollBackUI();
+        cache.gcm.resetEventLocks();
+        cache.io.preProcessData(data);
+        cache.buildDataTable(data);
         cache.ui.buildUI();
 
         await cache.gcm.createGraphInstance();
@@ -413,15 +517,23 @@ async function loadDemoData() {
       resolve(false);
     };
 
-    loadBtn.addEventListener('click', handleLoad);
-    cancelBtn.addEventListener('click', handleCancel);
+    loadBtnString.addEventListener('click', handleLoadString);
+    cancelBtnString.addEventListener('click', handleCancel);
+    loadBtnReactome.addEventListener('click', handleLoadReactome);
+    cancelBtnReactome.addEventListener('click', handleCancel);
 
     [genesInput, speciesInput, nodesInput, scoreInput].forEach(input => {
       input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
-          handleLoad();
+          handleLoadString();
         }
       });
+    });
+
+    pathwayInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        handleLoadReactome();
+      }
     });
 
     setTimeout(() => genesInput.focus(), 100);

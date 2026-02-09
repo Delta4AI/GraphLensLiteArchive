@@ -2665,6 +2665,10 @@ input:checked + .slider:before {
     color: white;
 }
 
+/*************************
+ Data Editor
+ **************************/
+
 #dataTableContainer {
     height: 100%;
     display: flex;
@@ -2962,4 +2966,75 @@ input:checked + .slider:before {
   background: white;
   border-top-color: #4CAF50;
   font-weight: bold;
+}
+
+/*************************
+ Demo Loader
+ **************************/
+.demo-tabs {
+    display: flex;
+    border-bottom: 2px solid #ddd;
+    margin-bottom: 15px;
+}
+
+.demo-tab {
+    flex: 1;
+    border-radius: 5px 5px 0 0;
+    border-bottom: 3px solid transparent;
+    opacity: 0.6;
+    cursor: pointer;
+}
+
+.demo-tab.active {
+    border-bottom-color: #C33D35;
+    font-weight: bold;
+    opacity: 1;
+}
+
+.demo-field {
+    margin-bottom: 10px;
+}
+
+.demo-field-last {
+    margin-bottom: 20px;
+}
+
+.demo-label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.demo-input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.demo-hint {
+    color: #888;
+}
+
+.demo-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.demo-attribution {
+    background-color: #f5f5f5;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    font-size: 12px;
+    color: #666;
+}
+
+.demo-attribution a {
+    color: #C33D35;
+}
+
+.demo-actions {
+    text-align: right;
 }
