@@ -8,38 +8,161 @@ class StringDemoDataLoader {
     this.requiredScore = requiredScore;
   }
 
-  async loadNetwork() {
-    const params = new URLSearchParams({
-      identifiers: this.genes.join('%0d'),
-      species: this.species,
-      add_nodes: this.amountOfNodes,
-      required_score: this.requiredScore
-    });
+async loadNetwork() {
+  if (this.genes.length === 1 && this.amountOfNodes === 0) {
+    return await this._loadSingleProtein();
+  }
 
-    const url = `${this.baseUrl}/network?${params}`;
+  const params = new URLSearchParams({
+    identifiers: this.genes.join('%0d'),
+    species: this.species,
+    add_nodes: this.amountOfNodes,
+    required_score: this.requiredScore
+  });
 
-    await this.cache.ui.showLoading("Demo Data", `Loading STRING network with ${this.genes.length} genes: ${this.genes.join(',')}, ${this.amountOfNodes} additional nodes, species ${this.species}, minimum confidence: ${this.requiredScore}. URL: ${url}`);
-    try {
-      const stringData = await this._fetchFromString(url);
+  const url = `${this.baseUrl}/network?${params}`;
 
-      if (!stringData || stringData.length === 0) {
-        this.cache.ui.warning('No interaction data returned from STRING');
-        return null;
-      }
+  await this.cache.ui.showLoading("Demo Data", `Loading STRING network with ${this.genes.length} genes: ${this.genes.join(',')}, ${this.amountOfNodes} additional nodes, species ${this.species}, minimum confidence: ${this.requiredScore}. URL: ${url}`);
+  try {
+    const stringData = await this._fetchFromString(url);
 
-      const allProteins = new Set();
-      stringData.forEach(interaction => {
-        allProteins.add(interaction.preferredName_A);
-        allProteins.add(interaction.preferredName_B);
-      });
-
-      const annotations = await this._fetchFunctionalAnnotations(Array.from(allProteins));
-      return this._convertToAppFormat(stringData, annotations);
-    } catch (err) {
-      this.cache.ui.error(`Failed to load STRING network. Make sure gene symbols and species ID exist. ${url}`);
+    if (!stringData || stringData.length === 0) {
+      this.cache.ui.warning('No interaction data returned from STRING');
       return null;
     }
+
+    const allProteins = new Set();
+    stringData.forEach(interaction => {
+      allProteins.add(interaction.preferredName_A);
+      allProteins.add(interaction.preferredName_B);
+    });
+
+    const annotations = await this._fetchFunctionalAnnotations(Array.from(allProteins));
+    return this._convertToAppFormat(stringData, annotations);
+  } catch (err) {
+    this.cache.ui.error(`Failed to load STRING network. Make sure gene symbols and species ID exist. ${url}`);
+    return null;
   }
+}
+
+async _loadSingleProtein() {
+  const params = new URLSearchParams({
+    identifiers: this.genes[0],
+    species: this.species
+  });
+
+  const url = `${this.baseUrl}/get_string_ids?${params}`;
+
+  await this.cache.ui.showLoading("Demo Data", `Loading protein info for ${this.genes[0]}, species ${this.species}. URL: ${url}`);
+
+  try {
+    const stringData = await this._fetchFromString(url);
+
+    if (!stringData || stringData.length === 0) {
+      this.cache.ui.warning('No protein data returned from STRING');
+      return null;
+    }
+
+    const proteinInfo = stringData[0];
+    const annotationData = await this._fetchFunctionalAnnotations([proteinInfo.preferredName]);
+
+    // Convert single protein to app format (no edges, just one node)
+    return this._convertSingleProteinToAppFormat(proteinInfo, annotationData);
+  } catch (err) {
+    this.cache.ui.error(`Failed to load protein info from STRING. Make sure gene symbol and species ID exist. ${url}`);
+    return null;
+  }
+}
+
+_convertSingleProteinToAppFormat(proteinInfo, annotationData) {
+  // Process annotations the same way as in _convertToAppFormat
+  const annotationsBySourceAndSubcategory = new Map();
+  const proteinToAnnotations = new Map();
+
+  annotationData.forEach(ann => {
+    const category = ann.category;
+    const description = this._sanitizeForAST(ann.description);
+    const proteins = ann.preferredNames || [];
+
+    const { source, subcategory } = this._getSourceAndSubcategory(category);
+
+    if (!annotationsBySourceAndSubcategory.has(source)) {
+      annotationsBySourceAndSubcategory.set(source, new Map());
+    }
+    if (!annotationsBySourceAndSubcategory.get(source).has(subcategory)) {
+      annotationsBySourceAndSubcategory.get(source).set(subcategory, new Set());
+    }
+    annotationsBySourceAndSubcategory.get(source).get(subcategory).add(description);
+
+    proteins.forEach(protein => {
+      if (!proteinToAnnotations.has(protein)) {
+        proteinToAnnotations.set(protein, new Map());
+      }
+      if (!proteinToAnnotations.get(protein).has(source)) {
+        proteinToAnnotations.get(protein).set(source, new Map());
+      }
+      if (!proteinToAnnotations.get(protein).get(source).has(subcategory)) {
+        proteinToAnnotations.get(protein).get(source).set(subcategory, []);
+      }
+      proteinToAnnotations.get(protein).get(source).get(subcategory).push(description);
+    });
+  });
+
+  // Filter out categories with only 1 unique value
+  const filteredAnnotations = new Map();
+  annotationsBySourceAndSubcategory.forEach((subcategories, source) => {
+    const filteredSubcategories = new Map();
+    subcategories.forEach((annotations, subcategory) => {
+      if (annotations.size > 1) {
+        filteredSubcategories.set(subcategory, annotations);
+      }
+    });
+    if (filteredSubcategories.size > 0) {
+      filteredAnnotations.set(source, filteredSubcategories);
+    }
+  });
+
+  // Build headers
+  const nodeDataHeaders = [];
+  filteredAnnotations.forEach((subcategories, source) => {
+    subcategories.forEach((annotations, subcategory) => {
+      nodeDataHeaders.push({subGroup: source, key: subcategory});
+    });
+  });
+
+  // Build node with filters
+  const proteinAnnotations = proteinToAnnotations.get(proteinInfo.preferredName) || new Map();
+  const nodeFilters = {};
+
+  filteredAnnotations.forEach((subcategories, source) => {
+    if (!nodeFilters[source]) {
+      nodeFilters[source] = {};
+    }
+
+    subcategories.forEach((annotations, subcategory) => {
+      const proteinSourceAnnotations = proteinAnnotations.get(source) || new Map();
+      const proteinSubcategoryAnnotations = proteinSourceAnnotations.get(subcategory) || [];
+      nodeFilters[source][subcategory] = proteinSubcategoryAnnotations.length > 0 ?
+        proteinSubcategoryAnnotations[0] : `No ${subcategory}`;
+    });
+  });
+
+  return {
+    nodes: [{
+      id: proteinInfo.stringId,
+      label: proteinInfo.preferredName,
+      style: {
+        labelText: proteinInfo.preferredName,
+      },
+      D4Data: {
+        'Node filters': nodeFilters
+      }
+    }],
+    edges: [],
+    nodeDataHeaders,
+    edgeDataHeaders: []
+  };
+}
 
 _getEdgeColor(score, minScore, maxScore) {
   const normalizedScore = maxScore === minScore ? 0 : (score - minScore) / (maxScore - minScore);

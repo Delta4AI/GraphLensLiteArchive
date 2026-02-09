@@ -325,7 +325,7 @@ async function loadDemoData() {
   formContent.innerHTML = `
     <h3>Load STRING Demo Data</h3>
     <div style="margin-bottom: 10px;">
-      <label for="genes-input" style="display: block; margin-bottom: 5px;">Genes (comma-separated):</label>
+      <label for="genes-input" style="display: block; margin-bottom: 5px;">Genes (comma- or space-separated):</label>
       <input type="text" id="genes-input" value="TP53" style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
     </div>
     <div style="margin-bottom: 10px;">
@@ -374,10 +374,10 @@ async function loadDemoData() {
         return;
       }
 
-      const genes = genesText.split(',').map(g => g.trim()).filter(g => g);
+      const genes = genesText.split(/[\s,]+/).map(g => g.trim()).filter(g => g);
       const species = parseInt(speciesInput.value) || 9606;
-      const amountOfNodes = parseInt(nodesInput.value) || 50;
-      const requiredScore = parseInt(scoreInput.value) || 400;
+      const amountOfNodes = nodesInput.value !== '' ? parseInt(nodesInput.value) : 50;
+      const requiredScore = scoreInput.value !== '' ? parseInt(scoreInput.value) : 400;
 
       if (genes.length === 0) {
         cache.ui.error('Please enter at least one valid gene');
