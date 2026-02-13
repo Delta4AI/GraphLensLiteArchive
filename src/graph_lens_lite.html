@@ -26,7 +26,7 @@
     <div class="sidebar-resize-handle"></div>
     <div id="sidebarContentContainer">
       <div class="header-row">
-        <h3>Graph Lens Lite <span id="versionInfo" style="font-size: 0.6em; color: #666; font-weight: normal;"></span></h3>
+        <h3 id="appHeader" class="disabled-header" onclick="cache.ui.reloadApp()">Graph Lens Lite <span id="versionInfo" style="font-size: 0.6em; color: #666; font-weight: normal;"></span></h3>
         <div class="showOnLoad button-group">
           <button id="exportModel" class="showOnLoad medium-btn" onclick="cache.io.exportGraphAsJSON()" title="Save Model (S)">💾</button>
           <button id="exportImage" class="showOnLoad medium-btn" onclick="cache.io.exportPNG()" title="Save Image (P)">📷️</button>
@@ -36,9 +36,11 @@
           <button id="editBtn" class="showOnLoad medium-btn" title="Toggle Edit mode (E)" onclick="cache.ui.toggleEditMode()">⚙️</button>
         </div>
       </div>
-      <input type="file" id="fileInput" name="fileInput" onchange="cache.io.loadFileWrapper(event);"
-             title="Load graph data from Excel (.xlsx, .xls) or Graph Lens Lite exports (.json)"
-             accept=".json, .xls, .xlsx"/>
+      <div class="hideOnLoad">
+        <input type="file" id="fileInput" name="fileInput" onchange="cache.io.loadFileWrapper(event);"
+               title="Load graph data from Excel (.xlsx, .xls) or Graph Lens Lite exports (.json)"
+               accept=".json, .xls, .xlsx"/>
+      </div>
       <div class="hideOnLoad">
         <button onclick="cache.io.downloadExcelTemplate()" class="mt-2">📥 Download Excel Template</button>
         <br>
