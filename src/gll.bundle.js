@@ -1,23 +1,3697 @@
-(()=>{var Ne=l=>{throw TypeError(l)};var Re=(l,e,t)=>e.has(l)||Ne("Cannot "+t);var Ie=(l,e,t)=>e.has(l)?Ne("Cannot add the same private member more than once"):e instanceof WeakSet?e.add(l):e.set(l,t);var Q=(l,e,t)=>(Re(l,e,"access private method"),t);var z={NODE:{FILL_COLOR:"#C33D35",SIZE:20,LINE_WIDTH:1,TYPE:"hexagon",STROKE_COLOR:null,BADGE:{FONT_SIZE:8,COLOR:"#C33D35"},LABEL:{FOREGROUND_COLOR:"#000000",BACKGROUND:!1,BACKGROUND_COLOR:null,BACKGROUND_RADIUS:5,PADDING:2,PLACEMENT:"bottom",FONT_SIZE:12,CURSOR:"default",LINE_SPACING:0,MAX_LINES:1,MAX_WIDTH:"200%",TEXT_ALIGN:"middle",WORD_WRAP:!1,Z_INDEX:0,OFFSET_X:0,OFFSET_Y:0}},EDGE:{COLOR:"#403C5390",LINE_WIDTH:.75,LINE_DASH:0,TYPE:"line",ARROWS:{START:!1,END:!1,START_SIZE:8,START_TYPE:"triangle",END_SIZE:8,END_TYPE:"triangle"},LABEL:{TEXT:null,FOREGROUND_COLOR:"#000000",BACKGROUND:!1,BACKGROUND_COLOR:null,BACKGROUND_CURSOR:"default",BACKGROUND_FILL_OPACITY:1,BACKGROUND_RADIUS:0,BACKGROUND_STROKE_OPACITY:1,CURSOR:"default",FILL_OPACITY:1,FONT_WEIGHT:"normal",MAX_LINES:1,MAX_WIDTH:"80%",PADDING:0,PLACEMENT:"center",FONT_SIZE:12,AUTO_ROTATE:!1,OFFSET_X:4,OFFSET_Y:0,TEXT_ALIGN:"left",TEXT_BASE_LINE:"middle",TEXT_OVERFLOW:"ellipsis",VISIBILITY:"visible",WORD_WRAP:!1,OPACITY:1},HALO:{ENABLED:!1,COLOR:"#403C53",WIDTH:3}},LAYOUT:"force",LAYOUT_INTERNALS:{force:{gravity:10},circular:{startRadius:10,endRadius:300},radial:{direction:"LR",nodeSize:32,unitRadius:100,linkDistance:200},concentric:{nodeSize:32,maxLevelDiff:.5,sortBy:"degree",preventOverlap:!0},grid:{sortBy:"id",nodeSize:32},mds:{nodeSize:32,linkDistance:100}},CUSTOM_LAYOUT_NAME:"custom",BUBBLE_GROUP_STYLE:{groupOne:{fill:"#403C53",fillOpacity:.25,stroke:"#C33D35",strokeOpacity:1,virtualEdges:!0,labelFill:"#fff",labelPadding:2,labelBackgroundFill:"#403C53",labelBackgroundRadius:5,label:!0,labelText:"group one"},groupTwo:{fill:"#c33d35",fillOpacity:.25,stroke:"#403c53",strokeOpacity:1,virtualEdges:!0,labelFill:"#fff",labelPadding:2,labelBackgroundFill:"#c33d35",labelBackgroundRadius:5,label:!0,labelText:"group two"},groupThree:{fill:"#EFB0AA",fillOpacity:.4,stroke:"#8CA6D9",strokeOpacity:1,virtualEdges:!0,labelFill:"#fff",labelPadding:2,labelBackgroundFill:"#EFB0AA",labelBackgroundRadius:5,label:!0,labelText:"group three"},groupFour:{fill:"#8CA6D9",fillOpacity:.4,stroke:"#EFB0AA",strokeOpacity:1,virtualEdges:!0,labelFill:"#fff",labelPadding:2,labelBackgroundFill:"#8CA6D9",labelBackgroundRadius:5,label:!0,labelText:"group four"}},BUBBLE_GROUP_QUADRANT_POSITIONS:{groupOne:"top-left",groupTwo:"top-right",groupThree:"bottom-left",groupFour:"bottom-right"},STYLES:{NODE_FORM:{"\u25CF":"circle","\u25C6":"diamond","\u2B22":"hexagon","\u25A0":"rect","\u25B2":"triangle","\u2605":"star"},NODE_COLORS:{red:"#C33D35",purple:"#403C53",blue:"#8CA6D9",pink:"#EFB0AA",grey:"#ABACBD"},NODE_SIZES:{s:15,m:25,l:35,xl:50},NODE_BORDER_COLORS:{red:"#C33D35",purple:"#403C53",blue:"#8CA6D9",pink:"#EFB0AA",grey:"#ABACBD",none:"#00000000"},NODE_BORDER_SIZES:{sm:.5,md:1,lg:2,xlg:4},NODE_LABEL_FONT_SIZES:{sm:10,md:12,lg:14,xlg:20},NODE_LABEL_COLORS:{black:"#000000",red:"#C33D35",purple:"#403C53",grey:"#ABACBD"},NODE_LABEL_PLACEMENTS:["left","right","top","bottom","left-top","left-bottom","right-top","right-bottom","top-left","top-right","bottom-left","bottom-right","center"],NODE_LABEL_BACKGROUND_COLORS:{red:"#C33D35",purple:"#403C53",blue:"#8CA6D9",pink:"#EFB0AA",grey:"#ABACBD",none:"#00000000"},NODE_BADGE_PLACEMENTS:["left","right","top","bottom","left-top","left-bottom","right-top","right-bottom","top-left","top-right","bottom-left","bottom-right"],EDGE_TYPES:["line","cubic","quadratic","polyline"],EDGE_COLORS:{red:"#C33D35",purple:"#403C53",blue:"#8CA6D9",pink:"#EFB0AA",grey:"#ABACBD"},EDGE_DASHS:{none:0,dashed:10},EDGE_LABEL_FONT_SIZES:{sm:8,md:12,lg:16},EDGE_LABEL_PLACEMENTS:["start","center","end"],EDGE_LABEL_COLORS:{red:"#C33D35",purple:"#403C53",blue:"#8CA6D9",pink:"#EFB0AA",grey:"#ABACBD"},EDGE_LABEL_BACKGROUND_COLORS:{red:"#C33D35",purple:"#403C53",blue:"#8CA6D9",pink:"#EFB0AA",grey:"#ABACBD"},EDGE_LABEL_OFFSET_X:{"-25":-25,0:0,25:25},EDGE_LABEL_OFFSET_Y:{"-25":-25,0:0,25:25},EDGE_ARROW_TYPES:["triangle","circle","diamond","vee","rect","triangleRect","simple"],EDGE_HALO:{enable:!0,disable:!1},EDGE_HALO_STROKE:{red:"#C33D35",purple:"#403C53",blue:"#8CA6D9"},EDGE_HALO_WIDTH:{sm:2,md:3,lg:5}}},Ae={HIDE_SLIDERS_WITH_SAME_MIN_MAX_VALUES:!0,FILTER_STEP_SIZE_INTEGER:1,FILTER_STEP_SIZE_FLOAT:1e-6,FILTER_VISUAL_FLOAT_PRECISION:3,SORT_FILTERS:!1,SORT_TOOLTIPS:!0,TOOLTIP_MAX_COLUMNS:1,TOOLTIP_HIDE_NULL_VALUES:!1,MAX_NODES_BEFORE_HIDING_LABELS:1e3,HIDE_LABELS:!1,MAX_NODES_BEFORE_DISABLING_HOVER_EFFECT:300,DISABLE_HOVER_EFFECT:!1,MAX_NODES_BEFORE_DISABLING_AVOID_MEMBERS_IN_BUBBLE_GROUPS:300,AVOID_MEMBERS_IN_BUBBLE_GROUPS:!1,MAX_SELECTION_MEMORY:25,EXCEL_UNCATEGORIZED_SUBHEADER:"Uncategorized Properties",EXCEL_NODE_HEADER:"Node filters",EXCEL_EDGE_HEADER:"Edge filters",APPLY_BUBBLE_SET_HOTFIX:!1,QUERY_BTN_USE_CURRENT_FILTER:!0,RESET_SELECTION_BUTTON_RESETS_POSITIONS:!0,INVISIBLE_DUMMY_NODE:{id:"INVISIBLEDUMMYNODEWITHIMPOSSIBLEID",style:{visibility:"hidden"}},INVISIBLE_CHAR:"\u200B"};var _=class{static isString(e){return typeof e=="string"||e instanceof String}static isNumber(e){let t=parseFloat(e);return!isNaN(t)&&isFinite(t)}static isInList(e,t){return t.includes(e)}static isBoolean(e){if(typeof e=="boolean")return!0;if(typeof e=="string"){let t=e.trim().toLowerCase();return t==="true"||t==="false"}return typeof e=="number"?e===1||e===0:!1}static isHexColor(e){return this.isString(e)?/^#(?:[A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$/.test(e.trim()):!1}static getReadableForegroundColor(e){if(e==="#00000000")return"#000000";e=e.replace(/^#/,"");let t=parseInt(e.length===3?e[0]+e[0]:e.substring(0,2),16),s=parseInt(e.length===3?e[1]+e[1]:e.substring(2,4),16),a=parseInt(e.length===3?e[2]+e[2]:e.substring(4,6),16);return .2126*t+.7152*s+.0722*a>186?"#000000":"#FFFFFF"}static deepMerge(e,t){if(!(!this.isObject(e)||!this.isObject(t)))for(let[s,a]of Object.entries(t))this.isObject(a)&&this.isObject(e[s])?this.deepMerge(e[s],a):e[s]=a}static isObject(e){return e!==null&&typeof e=="object"&&!Array.isArray(e)}static arraysAreEqual(e,t){if(e===t)return!0;if(!e||!t||e.length!==t.length)return!1;for(let s=0;s<e.length;s++)if(e[s]!==t[s])return!1;return!0}static isInteger(e){return e%1===0}static formatNumber(e,t){return this.isInteger(e)?e:parseFloat(e).toFixed(t)}static getLineMetrics(e){if(!e||!e.firstChild)return{lines:0,lastLineWidth:0};let t=document.createRange();t.selectNodeContents(e);let s=Array.from(t.getClientRects()),a=new Map;s.forEach(h=>{let m=Math.round(h.top);a.has(m)||a.set(m,[]),a.get(m).push(h)});let i=a.size;if(i===0)return{lines:0,lastLineWidth:0};let n=Math.max(...a.keys()),o=a.get(n),c=Math.min(...o.map(h=>h.left)),r=Math.max(...o.map(h=>h.right)),d=Math.round(r-c);return{lines:i,lastLineWidth:d}}static generatePropHashId(e,t,s){return`${e}::${t}::${s}`}static decodePropHashId(e){return e.split("::")}static setsAreEqual(e,t){if(e.size!==t.size)return!1;for(let s of e)if(!t.has(s))return!1;return!0}static formatPropsAsTree(e=void 0,t=void 0,s=void 0,a=void 0){if(e){let n=this.decodePropHashId(e);t=n[0],s=n[1],a=n[2]}let i=`
- \u2514\u2500 ${t}`;return s&&(i+=`
-        \u2514\u2500 ${s}`),a&&(i+=`
-                \u2514\u2500 ${a}`),i}static humanFileSize(e){let t=e===0?0:Math.floor(Math.log(e)/Math.log(1024));return+(e/Math.pow(1024,t)).toFixed(2)+" "+["B","kB","MB","GB","TB"][t]}static getTimestamp(e=!1){let t=new Date,s=String(t.getHours()).padStart(2,"0"),a=String(t.getMinutes()).padStart(2,"0"),i=String(t.getSeconds()).padStart(2,"0");if(e){let n=String(t.getMilliseconds()).padStart(3,"0");return`${s}:${a}:${i}.${n}`}return`${s}:${a}:${i}`}};var ee=class{constructor(e){this.defaultColors={min:"#403C53",zero:"#FFFFFF",max:"#C33D35"},this.handles=[],this.element=null,this.resolvePromise=null,this.minValue=0,this.maxValue=0,this.categories=[],this.defaultColorForMissing="#CCCCCC",this.elementType="nodes",this.currentProperty=null,this.dom={},this.cache=e}createDom(){let e=document.createElement("div");e.className="picker-overlay",this.dom.overlay=e;let t=document.createElement("div");t.className="picker-content",this.dom.content=t;let s=document.createElement("h3");s.textContent="Map Property to Color Scale",s.style.marginBottom="20px",s.style.textAlign="center",t.appendChild(s);let a=document.createElement("div");a.textContent="Select Property to Map:",a.style.fontWeight="bold",a.style.marginBottom="8px",t.appendChild(a);let i=document.createElement("select");i.className="picker-dropdown",this.dom.dropdown=i,t.appendChild(i);let n=document.createElement("div");n.className="picker-gradient disabled",this.dom.gradient=n;let o=document.createElement("div");o.className="picker-handle-container",this.dom.handleContainer=o;let c=document.createElement("div");c.className="picker-controls disabled",this.dom.controls=c;let r=document.createElement("button");r.className="picker-button plus-minus",r.textContent="+",r.onclick=()=>this.addHandle(),this.dom.addButton=r;let d=document.createElement("button");d.className="picker-button plus-minus",d.textContent="-",d.onclick=()=>this.removeHandle(),this.dom.removeButton=d;let h=document.createElement("div");h.className="picker-category-container",h.style.display="none",this.dom.categoryContainer=h,c.append(r,d);let m=document.createElement("div");m.className="picker-button-container",this.dom.buttons=m;let f=document.createElement("button");f.className="picker-button secondary",f.textContent="Cancel",f.onclick=()=>this.cancel(),this.dom.cancelButton=f;let E=document.createElement("div");E.className="picker-default-color-container disabled",this.dom.defaultColorContainer=E;let C=document.createElement("span");C.textContent="Default color:",C.title="Default color for elements with missing values",this.dom.label=C;let w=document.createElement("input");w.type="color",w.className="picker-default-color",w.value=this.defaultColorForMissing,w.addEventListener("input",L=>{this.defaultColorForMissing=L.target.value}),this.dom.defaultColorEl=w,E.append(C,w);let D=document.createElement("button");return D.className="picker-button primary disabled",D.textContent="Apply",D.onclick=()=>this.apply(),this.dom.applyButton=D,m.append(f,E,D),t.append(n,o,c,h,m),e.appendChild(t),this.element=e,e}async pickColors(e="nodes"){return this.elementType=e,new Promise(t=>{this.resolvePromise=t,document.body.appendChild(this.createDom()),this.initializeFilters(),this.setupHandleDragging()})}initializeFilters(){let e=this.element.querySelector(".picker-dropdown"),t=new Map(this.cache.data.layouts[this.cache.data.selectedLayout].filters),s=new Set;(this.elementType==="nodes"?this.cache.selectedNodes:this.cache.selectedEdges).forEach(i=>{(this.elementType==="nodes"?this.cache.nodeRef.get(i):this.cache.edgeRef.get(i))?.features.forEach(o=>{t.has(o)&&s.add(o)})}),e.innerHTML='<option value="">Select property</option>',Array.from(s).sort().forEach(i=>{let n=document.createElement("option");n.value=i,n.textContent=i,e.appendChild(n)}),e.onchange=()=>this.selectProperty(e.value,t.get(e.value))}selectProperty(e,t){if(!e)return;let s=this.elementType==="nodes"?this.cache.selectedNodes:this.cache.selectedEdges,a=this.elementType==="nodes"?this.cache.nodeRef:this.cache.edgeRef,i=Array.from(s).filter(E=>a.get(E)?.featureValues.has(e)),n=s.length,o=i.length,c=this.element.querySelector(".picker-property-counter");c&&c.remove();let r=document.createElement("div");r.className="picker-property-counter",r.style.padding="15px",r.style.backgroundColor="rgba(0, 0, 0, 0.05)",r.style.borderRadius="4px",r.style.marginTop="15px",this.element.querySelector(".picker-content").insertBefore(r,this.element.querySelector(".picker-gradient"));let d=this.elementType==="nodes"?"nodes":"edges",h=e.includes("::")?e.split("::").pop():e,f=`
+(() => {
+  // src/config.js
+  var VERSION = "1.10.3";
+  var DEFAULTS = {
+    NODE: {
+      FILL_COLOR: "#C33D35",
+      SIZE: 20,
+      LINE_WIDTH: 1,
+      TYPE: "hexagon",
+      STROKE_COLOR: null,
+      BADGE: {
+        FONT_SIZE: 8,
+        COLOR: "#C33D35"
+      },
+      LABEL: {
+        FOREGROUND_COLOR: "#000000",
+        BACKGROUND: false,
+        BACKGROUND_COLOR: null,
+        BACKGROUND_RADIUS: 5,
+        PADDING: 2,
+        PLACEMENT: "bottom",
+        FONT_SIZE: 12,
+        CURSOR: "default",
+        LINE_SPACING: 0,
+        MAX_LINES: 1,
+        MAX_WIDTH: "200%",
+        TEXT_ALIGN: "middle",
+        WORD_WRAP: false,
+        Z_INDEX: 0,
+        OFFSET_X: 0,
+        OFFSET_Y: 0
+      }
+    },
+    EDGE: {
+      COLOR: "#403C5390",
+      LINE_WIDTH: 0.75,
+      LINE_DASH: 0,
+      TYPE: "line",
+      ARROWS: { START: false, END: false, START_SIZE: 8, START_TYPE: "triangle", END_SIZE: 8, END_TYPE: "triangle" },
+      LABEL: {
+        TEXT: null,
+        FOREGROUND_COLOR: "#000000",
+        BACKGROUND: false,
+        BACKGROUND_COLOR: null,
+        BACKGROUND_CURSOR: "default",
+        BACKGROUND_FILL_OPACITY: 1,
+        BACKGROUND_RADIUS: 0,
+        BACKGROUND_STROKE_OPACITY: 1,
+        CURSOR: "default",
+        FILL_OPACITY: 1,
+        FONT_WEIGHT: "normal",
+        MAX_LINES: 1,
+        MAX_WIDTH: "80%",
+        PADDING: 0,
+        PLACEMENT: "center",
+        FONT_SIZE: 12,
+        AUTO_ROTATE: false,
+        OFFSET_X: 4,
+        OFFSET_Y: 0,
+        TEXT_ALIGN: "left",
+        TEXT_BASE_LINE: "middle",
+        TEXT_OVERFLOW: "ellipsis",
+        VISIBILITY: "visible",
+        WORD_WRAP: false,
+        OPACITY: 1
+      },
+      HALO: {
+        ENABLED: false,
+        COLOR: "#403C53",
+        WIDTH: 3
+      }
+    },
+    LAYOUT: "force",
+    LAYOUT_INTERNALS: {
+      "force": { gravity: 10 },
+      // "fruchterman": {gravity: 5, speed: 5, clustering: true, nodeClusterBy: 'cluster', clusterGravity: 16},
+      // "antv-dagre": {nodesep: 100, ranksep: 70, controlPoints: true},
+      "circular": { startRadius: 10, endRadius: 300 },
+      "radial": { direction: "LR", nodeSize: 32, unitRadius: 100, linkDistance: 200 },
+      "concentric": { nodeSize: 32, maxLevelDiff: 0.5, sortBy: "degree", preventOverlap: true },
+      "grid": { sortBy: "id", nodeSize: 32 },
+      "mds": { nodeSize: 32, linkDistance: 100 }
+    },
+    CUSTOM_LAYOUT_NAME: "custom",
+    BUBBLE_GROUP_STYLE: {
+      "groupOne": {
+        fill: "#403C53",
+        fillOpacity: 0.25,
+        stroke: "#C33D35",
+        strokeOpacity: 1,
+        virtualEdges: true,
+        labelFill: "#fff",
+        labelPadding: 2,
+        labelBackgroundFill: "#403C53",
+        labelBackgroundRadius: 5,
+        label: true,
+        labelText: "group one"
+      },
+      "groupTwo": {
+        fill: "#c33d35",
+        fillOpacity: 0.25,
+        stroke: "#403c53",
+        strokeOpacity: 1,
+        virtualEdges: true,
+        labelFill: "#fff",
+        labelPadding: 2,
+        labelBackgroundFill: "#c33d35",
+        labelBackgroundRadius: 5,
+        label: true,
+        labelText: "group two"
+      },
+      "groupThree": {
+        fill: "#EFB0AA",
+        fillOpacity: 0.4,
+        stroke: "#8CA6D9",
+        strokeOpacity: 1,
+        virtualEdges: true,
+        labelFill: "#fff",
+        labelPadding: 2,
+        labelBackgroundFill: "#EFB0AA",
+        labelBackgroundRadius: 5,
+        label: true,
+        labelText: "group three"
+      },
+      "groupFour": {
+        fill: "#8CA6D9",
+        fillOpacity: 0.4,
+        stroke: "#EFB0AA",
+        strokeOpacity: 1,
+        virtualEdges: true,
+        labelFill: "#fff",
+        labelPadding: 2,
+        labelBackgroundFill: "#8CA6D9",
+        labelBackgroundRadius: 5,
+        label: true,
+        labelText: "group four"
+      }
+    },
+    BUBBLE_GROUP_QUADRANT_POSITIONS: {
+      groupOne: "top-left",
+      groupTwo: "top-right",
+      groupThree: "bottom-left",
+      groupFour: "bottom-right"
+    },
+    STYLES: {
+      NODE_FORM: { "\u25CF": "circle", "\u25C6": "diamond", "\u2B22": "hexagon", "\u25A0": "rect", "\u25B2": "triangle", "\u2605": "star" },
+      NODE_COLORS: { red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD" },
+      NODE_SIZES: { s: 15, m: 25, l: 35, xl: 50 },
+      NODE_BORDER_COLORS: {
+        red: "#C33D35",
+        purple: "#403C53",
+        blue: "#8CA6D9",
+        pink: "#EFB0AA",
+        grey: "#ABACBD",
+        none: "#00000000"
+      },
+      NODE_BORDER_SIZES: { sm: 0.5, md: 1, lg: 2, xlg: 4 },
+      NODE_LABEL_FONT_SIZES: { sm: 10, md: 12, lg: 14, xlg: 20 },
+      NODE_LABEL_COLORS: { black: "#000000", red: "#C33D35", purple: "#403C53", grey: "#ABACBD" },
+      NODE_LABEL_PLACEMENTS: ["left", "right", "top", "bottom", "left-top", "left-bottom", "right-top", "right-bottom", "top-left", "top-right", "bottom-left", "bottom-right", "center"],
+      NODE_LABEL_BACKGROUND_COLORS: {
+        red: "#C33D35",
+        purple: "#403C53",
+        blue: "#8CA6D9",
+        pink: "#EFB0AA",
+        grey: "#ABACBD",
+        none: "#00000000"
+      },
+      NODE_BADGE_PLACEMENTS: ["left", "right", "top", "bottom", "left-top", "left-bottom", "right-top", "right-bottom", "top-left", "top-right", "bottom-left", "bottom-right"],
+      EDGE_TYPES: ["line", "cubic", "quadratic", "polyline"],
+      EDGE_COLORS: { red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD" },
+      // EDGE_WIDTHS: {sm: 0.5, md: 0.75, lg: 1, xlg: 3},
+      EDGE_DASHS: { none: 0, dashed: 10 },
+      EDGE_LABEL_FONT_SIZES: { sm: 8, md: 12, lg: 16 },
+      EDGE_LABEL_PLACEMENTS: ["start", "center", "end"],
+      EDGE_LABEL_COLORS: { red: "#C33D35", purple: "#403C53", blue: "#8CA6D9", pink: "#EFB0AA", grey: "#ABACBD" },
+      EDGE_LABEL_BACKGROUND_COLORS: {
+        red: "#C33D35",
+        purple: "#403C53",
+        blue: "#8CA6D9",
+        pink: "#EFB0AA",
+        grey: "#ABACBD"
+      },
+      EDGE_LABEL_OFFSET_X: { "-25": -25, "0": 0, "25": 25 },
+      EDGE_LABEL_OFFSET_Y: { "-25": -25, "0": 0, "25": 25 },
+      // EDGE_LABEL_AUTOROTATE: {enable: true, disable: false},
+      // EDGE_ARROW_SIZES: {sm: 8, md: 10, lg: 14},
+      EDGE_ARROW_TYPES: ["triangle", "circle", "diamond", "vee", "rect", "triangleRect", "simple"],
+      EDGE_HALO: { enable: true, disable: false },
+      EDGE_HALO_STROKE: { red: "#C33D35", purple: "#403C53", blue: "#8CA6D9" },
+      EDGE_HALO_WIDTH: { sm: 2, md: 3, lg: 5 }
+    }
+  };
+  var CFG = {
+    // Determines if filter sliders should be hidden when the minimum and maximum values are identical
+    HIDE_SLIDERS_WITH_SAME_MIN_MAX_VALUES: true,
+    // Specifies the slider step size for integer-based properties
+    FILTER_STEP_SIZE_INTEGER: 1,
+    // Specifies the slider step size for float-based properties
+    FILTER_STEP_SIZE_FLOAT: 1e-6,
+    // Specifies the slider thumb- and tooltip-values (only visually); internally, the full float precision is used
+    FILTER_VISUAL_FLOAT_PRECISION: 3,
+    // If true, filters in the side-panel are sorted alphabetically
+    SORT_FILTERS: false,
+    // If true, filters in the tooltips are sorted alphabetically
+    SORT_TOOLTIPS: true,
+    // Maximum tooltip columns
+    TOOLTIP_MAX_COLUMNS: 1,
+    // If true, properties with null (empty) values are not displayed in tooltips
+    TOOLTIP_HIDE_NULL_VALUES: false,
+    // if network is greater than defined threshold, no labels are shown until explicity set via UI
+    MAX_NODES_BEFORE_HIDING_LABELS: 1e3,
+    HIDE_LABELS: false,
+    // if network is greater than defined threshold, hover effects are disabled
+    MAX_NODES_BEFORE_DISABLING_HOVER_EFFECT: 300,
+    DISABLE_HOVER_EFFECT: false,
+    // if network is greater than defined threshold, bubble groups may span across non-bubble group members
+    MAX_NODES_BEFORE_DISABLING_AVOID_MEMBERS_IN_BUBBLE_GROUPS: 300,
+    AVOID_MEMBERS_IN_BUBBLE_GROUPS: false,
+    // Maximum capacity of selection memory
+    MAX_SELECTION_MEMORY: 25,
+    // Header automatically assigned to properties without a group definition
+    EXCEL_UNCATEGORIZED_SUBHEADER: "Uncategorized Properties",
+    // Node filter header
+    EXCEL_NODE_HEADER: "Node filters",
+    // Edge filter header
+    EXCEL_EDGE_HEADER: "Edge filters",
+    // Set to true in case original g6.min.js is used and issue #7195 is NOT resolved (https://github.com/antvis/G6/issues/7195)
+    APPLY_BUBBLE_SET_HOTFIX: false,
+    // Set to true to use current filter configuration for pushing property to query editor, e.g. if slider is inverted
+    // false uses defaults (non-inverted) and min/max
+    QUERY_BTN_USE_CURRENT_FILTER: true,
+    // Set to true to reset positions of selected elements when clicking the reset selection button in the top right selection frame
+    RESET_SELECTION_BUTTON_RESETS_POSITIONS: true,
+    INVISIBLE_DUMMY_NODE: {
+      id: "INVISIBLEDUMMYNODEWITHIMPOSSIBLEID",
+      style: {
+        visibility: "hidden"
+      }
+    },
+    INVISIBLE_CHAR: "\u200B"
+  };
+
+  // src/utilities/static.js
+  var StaticUtilities = class {
+    static isString(value) {
+      return typeof value === "string" || value instanceof String;
+    }
+    static isNumber(value) {
+      const parsed = parseFloat(value);
+      return !isNaN(parsed) && isFinite(parsed);
+    }
+    static isInList(value, allowedValues) {
+      return allowedValues.includes(value);
+    }
+    static isBoolean(value) {
+      if (typeof value === "boolean") {
+        return true;
+      }
+      if (typeof value === "string") {
+        const lowerVal = value.trim().toLowerCase();
+        return lowerVal === "true" || lowerVal === "false";
+      }
+      if (typeof value === "number") {
+        return value === 1 || value === 0;
+      }
+      return false;
+    }
+    static isHexColor(value) {
+      if (!this.isString(value)) return false;
+      const hexRegex = /^#(?:[A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$/;
+      return hexRegex.test(value.trim());
+    }
+    static getReadableForegroundColor(hex) {
+      if (hex === "#00000000") return "#000000";
+      hex = hex.replace(/^#/, "");
+      let r = parseInt(hex.length === 3 ? hex[0] + hex[0] : hex.substring(0, 2), 16);
+      let g = parseInt(hex.length === 3 ? hex[1] + hex[1] : hex.substring(2, 4), 16);
+      let b = parseInt(hex.length === 3 ? hex[2] + hex[2] : hex.substring(4, 6), 16);
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b > 186 ? "#000000" : "#FFFFFF";
+    }
+    /**
+     * Recursively merges properties from `source` into `target`.
+     * - Existing properties in `target` remain if not in `source`.
+     * - Matching keys in `source` overwrite `target`.
+     * - New keys are added to `target`.
+     */
+    static deepMerge(target, source) {
+      if (!this.isObject(target) || !this.isObject(source)) return;
+      for (const [key, value] of Object.entries(source)) {
+        if (this.isObject(value) && this.isObject(target[key])) {
+          this.deepMerge(target[key], value);
+        } else {
+          target[key] = value;
+        }
+      }
+    }
+    static isObject(obj) {
+      return obj !== null && typeof obj === "object" && !Array.isArray(obj);
+    }
+    static arraysAreEqual(a, b) {
+      if (a === b) return true;
+      if (!a || !b) return false;
+      if (a.length !== b.length) return false;
+      for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return false;
+      }
+      return true;
+    }
+    static isInteger(value) {
+      return value % 1 === 0;
+    }
+    static formatNumber(value, precision) {
+      return this.isInteger(value) ? value : parseFloat(value).toFixed(precision);
+    }
+    static getLineMetrics(el) {
+      if (!el || !el.firstChild) {
+        return { lines: 0, lastLineWidth: 0 };
+      }
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const rects = Array.from(range.getClientRects());
+      const groups = /* @__PURE__ */ new Map();
+      rects.forEach((rc) => {
+        const key = Math.round(rc.top);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(rc);
+      });
+      const lines = groups.size;
+      if (lines === 0) return { lines: 0, lastLineWidth: 0 };
+      const lastTop = Math.max(...groups.keys());
+      const lastRects = groups.get(lastTop);
+      const left = Math.min(...lastRects.map((r) => r.left));
+      const right = Math.max(...lastRects.map((r) => r.right));
+      const lastLineWidth = Math.round(right - left);
+      return { lines, lastLineWidth };
+    }
+    static generatePropHashId(section, subSection, prop) {
+      return `${section}::${subSection}::${prop}`;
+    }
+    static decodePropHashId(propId) {
+      return propId.split("::");
+    }
+    static setsAreEqual(setA, setB) {
+      if (setA.size !== setB.size) return false;
+      for (let item of setA) {
+        if (!setB.has(item)) return false;
+      }
+      return true;
+    }
+    static formatPropsAsTree(propID = void 0, section = void 0, subSection = void 0, prop = void 0) {
+      if (propID) {
+        const decoded = this.decodePropHashId(propID);
+        section = decoded[0];
+        subSection = decoded[1];
+        prop = decoded[2];
+      }
+      let retStr = `
+ \u2514\u2500 ${section}`;
+      if (subSection) retStr += `
+        \u2514\u2500 ${subSection}`;
+      if (prop) retStr += `
+                \u2514\u2500 ${prop}`;
+      return retStr;
+    }
+    static humanFileSize(size) {
+      let i = size === 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
+      return +(size / Math.pow(1024, i)).toFixed(2) + " " + ["B", "kB", "MB", "GB", "TB"][i];
+    }
+    static getTimestamp(includeMilliseconds = false) {
+      const now = /* @__PURE__ */ new Date();
+      const hh = String(now.getHours()).padStart(2, "0");
+      const mm = String(now.getMinutes()).padStart(2, "0");
+      const ss = String(now.getSeconds()).padStart(2, "0");
+      if (includeMilliseconds) {
+        const ms = String(now.getMilliseconds()).padStart(3, "0");
+        return `${hh}:${mm}:${ss}.${ms}`;
+      }
+      return `${hh}:${mm}:${ss}`;
+    }
+  };
+
+  // src/utilities/color_scale_picker.js
+  var ColorScalePicker = class {
+    constructor(cache3) {
+      this.defaultColors = {
+        min: "#403C53",
+        zero: "#FFFFFF",
+        max: "#C33D35"
+      };
+      this.handles = [];
+      this.element = null;
+      this.resolvePromise = null;
+      this.minValue = 0;
+      this.maxValue = 0;
+      this.categories = [];
+      this.defaultColorForMissing = "#CCCCCC";
+      this.elementType = "nodes";
+      this.currentProperty = null;
+      this.dom = {};
+      this.metricValuePrefix = "__metric__:";
+      this.activeMetricSource = null;
+      this.cache = cache3;
+    }
+    createDom() {
+      const overlay = document.createElement("div");
+      overlay.className = "picker-overlay";
+      this.dom.overlay = overlay;
+      const content = document.createElement("div");
+      content.className = "picker-content";
+      this.dom.content = content;
+      const title = document.createElement("h3");
+      title.textContent = "Map Property to Color Scale";
+      title.style.marginBottom = "20px";
+      title.style.textAlign = "center";
+      content.appendChild(title);
+      const dropdownLabel = document.createElement("div");
+      dropdownLabel.textContent = "Select Property to Map:";
+      dropdownLabel.style.fontWeight = "bold";
+      dropdownLabel.style.marginBottom = "8px";
+      content.appendChild(dropdownLabel);
+      const dropdown = document.createElement("select");
+      dropdown.className = "picker-dropdown";
+      this.dom.dropdown = dropdown;
+      content.appendChild(dropdown);
+      const gradient = document.createElement("div");
+      gradient.className = "picker-gradient disabled";
+      this.dom.gradient = gradient;
+      const handleContainer = document.createElement("div");
+      handleContainer.className = "picker-handle-container";
+      this.dom.handleContainer = handleContainer;
+      const controls = document.createElement("div");
+      controls.className = "picker-controls disabled";
+      this.dom.controls = controls;
+      const addButton = document.createElement("button");
+      addButton.className = "picker-button plus-minus";
+      addButton.textContent = "+";
+      addButton.onclick = () => this.addHandle();
+      this.dom.addButton = addButton;
+      const removeButton = document.createElement("button");
+      removeButton.className = "picker-button plus-minus";
+      removeButton.textContent = "-";
+      removeButton.onclick = () => this.removeHandle();
+      this.dom.removeButton = removeButton;
+      const categoryContainer = document.createElement("div");
+      categoryContainer.className = "picker-category-container";
+      categoryContainer.style.display = "none";
+      this.dom.categoryContainer = categoryContainer;
+      controls.append(addButton, removeButton);
+      const buttons = document.createElement("div");
+      buttons.className = "picker-button-container";
+      this.dom.buttons = buttons;
+      const cancelButton = document.createElement("button");
+      cancelButton.className = "picker-button secondary";
+      cancelButton.textContent = "Cancel";
+      cancelButton.onclick = () => this.cancel();
+      this.dom.cancelButton = cancelButton;
+      const defaultColorContainer = document.createElement("div");
+      defaultColorContainer.className = "picker-default-color-container disabled";
+      this.dom.defaultColorContainer = defaultColorContainer;
+      const label = document.createElement("span");
+      label.textContent = "Default color:";
+      label.title = "Default color for elements with missing values";
+      this.dom.label = label;
+      const defaultColorEl = document.createElement("input");
+      defaultColorEl.type = "color";
+      defaultColorEl.className = "picker-default-color";
+      defaultColorEl.value = this.defaultColorForMissing;
+      defaultColorEl.addEventListener("input", (e) => {
+        this.defaultColorForMissing = e.target.value;
+      });
+      this.dom.defaultColorEl = defaultColorEl;
+      defaultColorContainer.append(label, defaultColorEl);
+      const applyButton = document.createElement("button");
+      applyButton.className = "picker-button primary disabled";
+      applyButton.textContent = "Apply";
+      applyButton.onclick = () => this.apply();
+      this.dom.applyButton = applyButton;
+      buttons.append(cancelButton, defaultColorContainer, applyButton);
+      content.append(gradient, handleContainer, controls, categoryContainer, buttons);
+      overlay.appendChild(content);
+      this.element = overlay;
+      return overlay;
+    }
+    async pickColors(elementType = "nodes") {
+      this.elementType = elementType;
+      return new Promise((resolve) => {
+        this.resolvePromise = resolve;
+        document.body.appendChild(this.createDom());
+        this.initializeFilters();
+        this.setupHandleDragging();
+      });
+    }
+    initializeFilters() {
+      const dropdown = this.element.querySelector(".picker-dropdown");
+      const filters = new Map(this.cache.data.layouts[this.cache.data.selectedLayout].filters);
+      const available = /* @__PURE__ */ new Set();
+      const selectedElements = this.elementType === "nodes" ? this.cache.selectedNodes : this.cache.selectedEdges;
+      selectedElements.forEach((elementId) => {
+        const element = this.elementType === "nodes" ? this.cache.nodeRef.get(elementId) : this.cache.edgeRef.get(elementId);
+        element?.features.forEach((f) => {
+          if (filters.has(f)) available.add(f);
+        });
+      });
+      const metricOptions = this.elementType === "nodes" ? this.cache.metrics.getMetricScaleOptions() : [];
+      dropdown.innerHTML = '<option value="">Select property</option>';
+      const propertyOptions = Array.from(available).sort();
+      if (propertyOptions.length > 0) {
+        const dataGroup = document.createElement("optgroup");
+        dataGroup.label = "Data Properties";
+        propertyOptions.forEach((prop) => {
+          const opt = document.createElement("option");
+          opt.value = prop;
+          opt.textContent = prop;
+          dataGroup.appendChild(opt);
+        });
+        dropdown.appendChild(dataGroup);
+      }
+      if (metricOptions.length > 0) {
+        const metricGroup = document.createElement("optgroup");
+        metricGroup.label = "Network Metrics";
+        metricOptions.forEach((metric) => {
+          const opt = document.createElement("option");
+          opt.value = `${this.metricValuePrefix}${metric.id}`;
+          opt.textContent = `${metric.label} (${metric.valueLabel})${metric.cached ? "" : " (calculate)"}`;
+          metricGroup.appendChild(opt);
+        });
+        dropdown.appendChild(metricGroup);
+      }
+      dropdown.onchange = async () => {
+        const value = dropdown.value;
+        const metricSource = this.getMetricSource(value);
+        if (metricSource) {
+          await this.selectProperty(value, { isCategory: false }, metricSource);
+        } else {
+          await this.selectProperty(value, filters.get(value));
+        }
+      };
+    }
+    async selectProperty(property, filterObj, metricSource = null) {
+      if (!property) return;
+      const selectedElements = this.elementType === "nodes" ? this.cache.selectedNodes : this.cache.selectedEdges;
+      const elementRef = this.elementType === "nodes" ? this.cache.nodeRef : this.cache.edgeRef;
+      if (property.startsWith(this.metricValuePrefix) && !metricSource) {
+        const metricId = property.slice(this.metricValuePrefix.length);
+        metricSource = await this.cache.metrics.ensureMetricValues(metricId);
+        filterObj = { isCategory: false };
+      }
+      if (property.startsWith(this.metricValuePrefix) && !metricSource) {
+        this.cache.ui.warning("Metric values not available yet. Calculate the metric first.");
+        return;
+      }
+      if (!filterObj) {
+        this.cache.ui.warning("No values found for selected property");
+        return;
+      }
+      this.activeMetricSource = metricSource;
+      const values = [];
+      const elementsWithProperty = Array.from(selectedElements).filter((id) => {
+        if (metricSource) {
+          const value2 = metricSource.values.get(id);
+          if (value2 !== void 0) {
+            values.push(value2);
+            return true;
+          }
+          return false;
+        }
+        const element = elementRef.get(id);
+        const value = element?.featureValues.get(property);
+        if (value !== void 0) {
+          values.push(value);
+          return true;
+        }
+        return false;
+      });
+      const totalElements = selectedElements.length;
+      const elementsWithPropertyCount = elementsWithProperty.length;
+      if (!filterObj.isCategory && values.length === 0) {
+        this.cache.ui.warning("No numeric values found for selected property");
+        return;
+      }
+      const existingCounter = this.element.querySelector(".picker-property-counter");
+      if (existingCounter) {
+        existingCounter.remove();
+      }
+      const counterEl = document.createElement("div");
+      counterEl.className = "picker-property-counter";
+      counterEl.style.padding = "15px";
+      counterEl.style.backgroundColor = "rgba(0, 0, 0, 0.05)";
+      counterEl.style.borderRadius = "4px";
+      counterEl.style.marginTop = "15px";
+      this.element.querySelector(".picker-content").insertBefore(
+        counterEl,
+        this.element.querySelector(".picker-gradient")
+      );
+      const elementTypeLabel = this.elementType === "nodes" ? "nodes" : "edges";
+      const propertyDisplayName = metricSource ? `${metricSource.label} (${metricSource.valueLabel})` : property.includes("::") ? property.split("::").pop() : property;
+      const targetProperty = this.currentProperty || "color";
+      let summaryHTML = `
       <div style="font-size: 14px;">
-        Coloring <strong>${this.currentProperty||"color"}</strong> for <strong>${o}</strong> of <strong>${n}</strong> affected ${d}
-    `;if(!t.isCategory){let E=Array.from(i).map(D=>a.get(D)?.featureValues.get(e)).filter(D=>D!==void 0),C=Math.min(...E),w=Math.max(...E);f+=`<br><div style="font-size: 13px; color: #333; margin-top: 8px;">
-          <strong>${h}</strong> min: ${C.toFixed(2)} &nbsp;&nbsp;&nbsp;&nbsp; <strong>${h}</strong> max: ${w.toFixed(2)}
-        </div>`}f+=`
+        Coloring <strong>${targetProperty}</strong> for <strong>${elementsWithPropertyCount}</strong> of <strong>${totalElements}</strong> affected ${elementTypeLabel}
+    `;
+      if (!filterObj.isCategory) {
+        const minVal = Math.min(...values);
+        const maxVal = Math.max(...values);
+        summaryHTML += `<br><div style="font-size: 13px; color: #333; margin-top: 8px;">
+          <strong>${propertyDisplayName}</strong> min: ${minVal.toFixed(2)} &nbsp;&nbsp;&nbsp;&nbsp; <strong>${propertyDisplayName}</strong> max: ${maxVal.toFixed(2)}
+        </div>`;
+      }
+      summaryHTML += `
       </div>
-    `,r.innerHTML=f,this.dom.defaultColorContainer&&(o===n?this.dom.defaultColorContainer.classList.add("disabled"):this.dom.defaultColorContainer.classList.remove("disabled"));for(let E of[this.dom.applyButton,this.dom.controls,this.dom.gradient])E.classList.remove("disabled");t.isCategory?(this.categories=[...t.categories].map(E=>({name:E,color:this.generateRandomColor()})),this.renderCategories()):this.initializeGradient(e)}renderCategories(){let e=this.element.querySelector(".picker-gradient"),t=this.element.querySelector(".picker-handle-container"),s=this.element.querySelector(".picker-controls"),a=this.element.querySelector(".picker-category-container");e.style.display="none",t.style.display="none",s.style.display="none",a.innerHTML="",a.style.display="block",this.categories.forEach(i=>{let n=document.createElement("div");n.className="picker-category-row";let o=document.createElement("span");o.textContent=i.name;let c=document.createElement("input");c.type="color",c.value=i.color,c.oninput=r=>{i.color=r.target.value},n.append(o,c),a.appendChild(n)})}generateRandomColor(){return`#${Math.floor(Math.random()*16777215).toString(16).padStart(6,"0")}`}initializeGradient(e){let t=this.elementType==="nodes"?this.cache.selectedNodes:this.cache.selectedEdges,s=this.elementType==="nodes"?this.cache.nodeRef:this.cache.edgeRef,a=Array.from(t).map(i=>s.get(i)?.featureValues.get(e)).filter(i=>i!==void 0);this.minValue=Math.min(...a),this.maxValue=Math.max(...a),this.handles=[{pos:0,color:this.defaultColors.min,value:this.minValue,fixed:!0},{pos:100,color:this.defaultColors.max,value:this.maxValue,fixed:!0}],this.element.querySelector(".picker-gradient").style.display="block",this.element.querySelector(".picker-handle-container").style.display="block",this.element.querySelector(".picker-controls").style.display="flex",this.element.querySelector(".picker-category-container").style.display="none",this.renderHandles(),this.updateGradient()}setupHandleDragging(){let e=this.element.querySelector(".picker-handle-container");e.addEventListener("mousedown",t=>{let s=t.target.closest(".picker-handle");if(!s)return;let a=parseInt(s.dataset.index,10),i=this.handles[a];if(i.fixed)return;let n=o=>{let c=e.getBoundingClientRect(),r=(o.clientX-c.left)/c.width*100;r=Math.max(0,Math.min(100,r)),this.updateHandlePosition(i,r)};document.addEventListener("mousemove",n),document.addEventListener("mouseup",()=>{document.removeEventListener("mousemove",n)},{once:!0})})}updateHandlePosition(e,t){e.pos=t,e.value=this.minValue+t/100*(this.maxValue-this.minValue),this.handles.sort((s,a)=>s.pos-a.pos),this.renderHandles(),this.updateGradient()}renderHandles(){let e=this.element.querySelector(".picker-handle-container");e.innerHTML="",this.handles.forEach((t,s)=>{let a=document.createElement("div");a.className="picker-handle",a.style.left=`${t.pos}%`,a.style.backgroundColor=t.color,a.dataset.index=s,a.dataset.fixed=t.fixed,a.style.zIndex=t.fixed?1:2;let i=document.createElement("div");i.className="picker-handle-value",i.textContent=t.value.toFixed(2);let n=document.createElement("input");n.type="color",n.value=t.color,n.className="picker-handle-color",n.style.opacity="0",n.style.position="absolute",n.style.width="100%",n.style.height="100%",n.style.cursor="pointer",n.addEventListener("input",o=>{t.color=o.target.value,a.style.backgroundColor=o.target.value,this.updateGradient()}),t.fixed||(a.style.cursor="move"),a.appendChild(i),a.appendChild(n),e.appendChild(a)})}updateGradient(){let e=this.element.querySelector(".picker-gradient"),t=[...this.handles].sort((s,a)=>s.pos-a.pos).map(s=>`${s.color} ${s.pos}%`).join(", ");e.style.background=`linear-gradient(to right, ${t})`}addHandle(){if(this.handles.length>=10)return;let e=this.generateRandomColor(),t=[...this.handles].sort((o,c)=>o.pos-c.pos),s=0,a=1;for(let o=0;o<t.length-1;o++){let c=t[o+1].pos-t[o].pos;c>s&&(s=c,a=o+1)}let i=(t[a-1].pos+t[a].pos)/2,n=this.minValue+i/100*(this.maxValue-this.minValue);this.handles.push({pos:i,color:e,value:n,fixed:!1}),this.handles.sort((o,c)=>o.pos-c.pos),this.renderHandles(),this.updateGradient()}removeHandle(){this.handles.length<=2||(this.handles.splice(Math.floor(this.handles.length/2),1),this.renderHandles(),this.updateGradient())}apply(){let e=this.element.querySelector(".picker-dropdown"),t=new Map,s=this.elementType==="nodes"?this.cache.selectedNodes:this.cache.selectedEdges,a=this.elementType==="nodes"?this.cache.nodeRef:this.cache.edgeRef;if(this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(e.value)?.isCategory){let o=new Map(this.categories.map(c=>[c.name,c.color]));Array.from(s).forEach(c=>{let d=a.get(c)?.featureValues.get(e.value),h=d instanceof Set?Array.from(d)[0]:d;h!==void 0&&o.has(h)&&t.set(c,o.get(h))})}else Array.from(s).forEach(o=>{let r=a.get(o)?.featureValues.get(e.value);if(r!==void 0){let d=(r-this.minValue)/(this.maxValue-this.minValue)*100,h=this.getColorForValue(d);t.set(o,h)}});this.resolvePromise(t),this.close()}cancel(){this.resolvePromise(null),this.close()}getColorForValue(e){let t=[...this.handles].sort((n,o)=>n.pos-o.pos),s=t[0],a=t[t.length-1];for(let n=0;n<t.length-1;n++){let o=t[n],c=t[n+1];if(o.pos!==c.pos&&o.pos<=e&&c.pos>=e){s=o,a=c;break}}if(s.pos===a.pos)return a.color;let i=(e-s.pos)/(a.pos-s.pos);return this.interpolateColor(s.color,a.color,i)}interpolateColor(e,t,s){s=Math.max(0,Math.min(1,isNaN(s)?0:s));let a=parseInt(e.slice(1,3),16),i=parseInt(e.slice(3,5),16),n=parseInt(e.slice(5,7),16),o=parseInt(t.slice(1,3),16),c=parseInt(t.slice(3,5),16),r=parseInt(t.slice(5,7),16),d=Math.round(a+(o-a)*s),h=Math.round(i+(c-i)*s),m=Math.round(n+(r-n)*s);return`#${(d<<16|h<<8|m).toString(16).padStart(6,"0")}`}close(){this.element?.remove(),this.element=null}};function te(l,e,t){if(typeof l!="object"||l===null)return l;for(let s in l){let a=l[s];a==="set_continuous_color_scale"?t.has(e)?l[s]=t.get(e):delete l[s]:typeof a=="object"&&te(a,e,t)}return l}var se=class{constructor(e){this.element=null,this.resolvePromise=null,this.minValue=0,this.maxValue=0,this.minOutput=0,this.maxOutput=100,this.elementType="nodes",this.propertyName=null,this.dom={},this.cache=e}createDom(){let e=document.createElement("div");e.className="picker-overlay",this.dom.overlay=e;let t=document.createElement("div");t.className="picker-content numeric-scale-picker",this.dom.content=t;let s=document.createElement("h3");s.textContent="Map Property to Numeric Scale",s.style.marginBottom="20px",s.style.textAlign="center",t.appendChild(s);let a=document.createElement("div");a.textContent="Select Property to Map:",a.style.fontWeight="bold",a.style.marginBottom="8px",t.appendChild(a);let i=document.createElement("select");i.className="picker-dropdown",this.dom.dropdown=i,t.appendChild(i);let n=document.createElement("div");n.className="numeric-scale-config",n.style.display="none",n.style.marginTop="20px",n.style.padding="15px",n.style.backgroundColor="rgba(0, 0, 0, 0.05)",n.style.borderRadius="4px",this.dom.rangeConfig=n;let o=document.createElement("div");o.className="numeric-scale-summary-info",this.dom.summaryInfo=o,n.appendChild(o);let c=document.createElement("hr");c.style.border="none",c.style.borderTop="1px solid rgba(0, 0, 0, 0.2)",c.style.margin="12px 0",n.appendChild(c);let r=document.createElement("div");r.style.display="flex",r.style.alignItems="center",r.style.gap="10px";let d=document.createElement("span");d.innerHTML=`Set <strong>${this.propertyName||"output"}</strong> range to:`,d.style.fontSize="14px",this.dom.outputLabel=d,r.appendChild(d);let h=document.createElement("input");h.type="number",h.className="style-input",h.style.width="70px",h.value=this.minOutput,h.step="any",h.oninput=()=>{this.minOutput=parseFloat(h.value)||0},this.dom.minOutputInput=h,r.appendChild(h);let m=document.createElement("span");m.textContent="\u2192",m.style.fontSize="18px",m.style.color="#666",r.appendChild(m);let f=document.createElement("input");f.type="number",f.className="style-input",f.style.width="70px",f.value=this.maxOutput,f.step="any",f.oninput=()=>{this.maxOutput=parseFloat(f.value)||100},this.dom.maxOutputInput=f,r.appendChild(f),n.appendChild(r),t.appendChild(n);let E=document.createElement("div");E.className="picker-button-container",E.style.marginTop="20px";let C=document.createElement("button");C.className="picker-button secondary",C.textContent="Cancel",C.onclick=()=>this.cancel();let w=document.createElement("button");return w.className="picker-button primary disabled",w.textContent="Apply",w.onclick=()=>this.apply(),this.dom.applyButton=w,E.append(C,w),t.appendChild(E),e.appendChild(t),this.element=e,e}async pickNumericScale(e="nodes",t=null){return this.elementType=e,this.propertyName=t,this.setDefaultOutputRange(),new Promise(s=>{this.resolvePromise=s,document.body.appendChild(this.createDom()),this.dom.minOutputInput&&(this.dom.minOutputInput.value=this.minOutput),this.dom.maxOutputInput&&(this.dom.maxOutputInput.value=this.maxOutput),this.initializeFilters()})}setDefaultOutputRange(){if(this.elementType==="nodes"){let e=this.cache.DEFAULTS.NODE;switch(this.propertyName){case"Node Size":this.minOutput=e.SIZE,this.maxOutput=50;break;case"Node Border Size":this.minOutput=e.LINE_WIDTH,this.maxOutput=10;break;case"Node Label Font Size":this.minOutput=e.LABEL.FONT_SIZE,this.maxOutput=30;break;default:this.minOutput=0,this.maxOutput=100}}else{let e=this.cache.DEFAULTS.EDGE;switch(this.propertyName){case"Edge Width":this.minOutput=e.LINE_WIDTH,this.maxOutput=10;break;case"Edge Dash":this.minOutput=e.LINE_DASH,this.maxOutput=40;break;case"Edge Label Font Size":this.minOutput=e.LABEL.FONT_SIZE,this.maxOutput=30;break;case"Edge Halo Width":this.minOutput=e.HALO.WIDTH,this.maxOutput=10;break;default:this.minOutput=0,this.maxOutput=100}}}initializeFilters(){let e=this.element.querySelector(".picker-dropdown"),t=new Map(this.cache.data.layouts[this.cache.data.selectedLayout].filters),s=new Set;(this.elementType==="nodes"?this.cache.selectedNodes:this.cache.selectedEdges).forEach(i=>{(this.elementType==="nodes"?this.cache.nodeRef.get(i):this.cache.edgeRef.get(i))?.features.forEach(o=>{let c=t.get(o);c&&!c.isCategory&&s.add(o)})}),e.innerHTML='<option value="">Select property</option>',Array.from(s).sort().forEach(i=>{let n=document.createElement("option");n.value=i,n.textContent=i,e.appendChild(n)}),e.onchange=()=>this.selectProperty(e.value)}selectProperty(e){if(!e)return;let t=this.elementType==="nodes"?this.cache.selectedNodes:this.cache.selectedEdges,s=this.elementType==="nodes"?this.cache.nodeRef:this.cache.edgeRef,a=Array.from(t).map(r=>s.get(r)?.featureValues.get(e)).filter(r=>r!==void 0&&!isNaN(r));if(a.length===0){this.cache.ui.warning("No numeric values found for selected property");return}this.minValue=Math.min(...a),this.maxValue=Math.max(...a);let i=a.length,n=t.length,o=this.elementType==="nodes"?"nodes":"edges",c=e.includes("::")?e.split("::").pop():e;this.dom.summaryInfo.innerHTML=`
+    `;
+      counterEl.innerHTML = summaryHTML;
+      if (this.dom.defaultColorContainer) {
+        if (elementsWithPropertyCount === totalElements) {
+          this.dom.defaultColorContainer.classList.add("disabled");
+        } else {
+          this.dom.defaultColorContainer.classList.remove("disabled");
+        }
+      }
+      for (const elem of [this.dom.applyButton, this.dom.controls, this.dom.gradient]) {
+        elem.classList.remove("disabled");
+      }
+      if (filterObj.isCategory) {
+        this.categories = [...filterObj.categories].map((name) => ({ name, color: this.generateRandomColor() }));
+        this.renderCategories();
+      } else {
+        this.initializeGradient(property);
+      }
+    }
+    renderCategories() {
+      const gradient = this.element.querySelector(".picker-gradient");
+      const handleContainer = this.element.querySelector(".picker-handle-container");
+      const controls = this.element.querySelector(".picker-controls");
+      const categoryContainer = this.element.querySelector(".picker-category-container");
+      gradient.style.display = "none";
+      handleContainer.style.display = "none";
+      controls.style.display = "none";
+      categoryContainer.innerHTML = "";
+      categoryContainer.style.display = "block";
+      this.categories.forEach((cat) => {
+        const row = document.createElement("div");
+        row.className = "picker-category-row";
+        const label = document.createElement("span");
+        label.textContent = cat.name;
+        const colorInput = document.createElement("input");
+        colorInput.type = "color";
+        colorInput.value = cat.color;
+        colorInput.oninput = (e) => {
+          cat.color = e.target.value;
+        };
+        row.append(label, colorInput);
+        categoryContainer.appendChild(row);
+      });
+    }
+    generateRandomColor() {
+      return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")}`;
+    }
+    initializeGradient(property) {
+      const selectedElements = this.elementType === "nodes" ? this.cache.selectedNodes : this.cache.selectedEdges;
+      const elementRef = this.elementType === "nodes" ? this.cache.nodeRef : this.cache.edgeRef;
+      const values = this.activeMetricSource ? Array.from(selectedElements).map((id) => this.activeMetricSource.values.get(id)).filter((v) => v !== void 0) : Array.from(selectedElements).map((id) => elementRef.get(id)?.featureValues.get(property)).filter((v) => v !== void 0);
+      this.minValue = Math.min(...values);
+      this.maxValue = Math.max(...values);
+      this.handles = [
+        { pos: 0, color: this.defaultColors.min, value: this.minValue, fixed: true },
+        { pos: 100, color: this.defaultColors.max, value: this.maxValue, fixed: true }
+      ];
+      this.element.querySelector(".picker-gradient").style.display = "block";
+      this.element.querySelector(".picker-handle-container").style.display = "block";
+      this.element.querySelector(".picker-controls").style.display = "flex";
+      this.element.querySelector(".picker-category-container").style.display = "none";
+      this.renderHandles();
+      this.updateGradient();
+    }
+    setupHandleDragging() {
+      const container = this.element.querySelector(".picker-handle-container");
+      container.addEventListener("mousedown", (e) => {
+        const handleEl = e.target.closest(".picker-handle");
+        if (!handleEl) return;
+        const idx = parseInt(handleEl.dataset.index, 10);
+        const handleObj = this.handles[idx];
+        if (handleObj.fixed) return;
+        const onMove = (moveEvent) => {
+          const rect = container.getBoundingClientRect();
+          let pos = (moveEvent.clientX - rect.left) / rect.width * 100;
+          pos = Math.max(0, Math.min(100, pos));
+          this.updateHandlePosition(handleObj, pos);
+        };
+        document.addEventListener("mousemove", onMove);
+        document.addEventListener("mouseup", () => {
+          document.removeEventListener("mousemove", onMove);
+        }, { once: true });
+      });
+    }
+    updateHandlePosition(handle, newPos) {
+      handle.pos = newPos;
+      handle.value = this.minValue + newPos / 100 * (this.maxValue - this.minValue);
+      this.handles.sort((a, b) => a.pos - b.pos);
+      this.renderHandles();
+      this.updateGradient();
+    }
+    renderHandles() {
+      const container = this.element.querySelector(".picker-handle-container");
+      container.innerHTML = "";
+      this.handles.forEach((handle, i) => {
+        const element = document.createElement("div");
+        element.className = "picker-handle";
+        element.style.left = `${handle.pos}%`;
+        element.style.backgroundColor = handle.color;
+        element.dataset.index = i;
+        element.dataset.fixed = handle.fixed;
+        element.style.zIndex = handle.fixed ? 1 : 2;
+        const value = document.createElement("div");
+        value.className = "picker-handle-value";
+        value.textContent = handle.value.toFixed(2);
+        const colorPicker = document.createElement("input");
+        colorPicker.type = "color";
+        colorPicker.value = handle.color;
+        colorPicker.className = "picker-handle-color";
+        colorPicker.style.opacity = "0";
+        colorPicker.style.position = "absolute";
+        colorPicker.style.width = "100%";
+        colorPicker.style.height = "100%";
+        colorPicker.style.cursor = "pointer";
+        colorPicker.addEventListener("input", (e) => {
+          handle.color = e.target.value;
+          element.style.backgroundColor = e.target.value;
+          this.updateGradient();
+        });
+        if (!handle.fixed) {
+          element.style.cursor = "move";
+        }
+        element.appendChild(value);
+        element.appendChild(colorPicker);
+        container.appendChild(element);
+      });
+    }
+    updateGradient() {
+      const gradient = this.element.querySelector(".picker-gradient");
+      const stops = [...this.handles].sort((a, b) => a.pos - b.pos).map((h) => `${h.color} ${h.pos}%`).join(", ");
+      gradient.style.background = `linear-gradient(to right, ${stops})`;
+    }
+    addHandle() {
+      if (this.handles.length >= 10) return;
+      const newColor = this.generateRandomColor();
+      const sortedHandles = [...this.handles].sort((a, b) => a.pos - b.pos);
+      let maxGap = 0;
+      let insertIndex = 1;
+      for (let i = 0; i < sortedHandles.length - 1; i++) {
+        const gap = sortedHandles[i + 1].pos - sortedHandles[i].pos;
+        if (gap > maxGap) {
+          maxGap = gap;
+          insertIndex = i + 1;
+        }
+      }
+      const pos = (sortedHandles[insertIndex - 1].pos + sortedHandles[insertIndex].pos) / 2;
+      const value = this.minValue + pos / 100 * (this.maxValue - this.minValue);
+      this.handles.push({ pos, color: newColor, value, fixed: false });
+      this.handles.sort((a, b) => a.pos - b.pos);
+      this.renderHandles();
+      this.updateGradient();
+    }
+    removeHandle() {
+      if (this.handles.length <= 2) return;
+      this.handles.splice(Math.floor(this.handles.length / 2), 1);
+      this.renderHandles();
+      this.updateGradient();
+    }
+    apply() {
+      const dropdown = this.element.querySelector(".picker-dropdown");
+      const colorMap = /* @__PURE__ */ new Map();
+      const selectedElements = this.elementType === "nodes" ? this.cache.selectedNodes : this.cache.selectedEdges;
+      const elementRef = this.elementType === "nodes" ? this.cache.nodeRef : this.cache.edgeRef;
+      const metricSource = this.getMetricSource(dropdown.value);
+      const filterObj = metricSource ? { isCategory: false } : this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(dropdown.value);
+      const isCategory = filterObj?.isCategory;
+      if (isCategory) {
+        const categoryColorMap = new Map(
+          this.categories.map((cat) => [cat.name, cat.color])
+        );
+        Array.from(selectedElements).forEach((elementId) => {
+          const element = elementRef.get(elementId);
+          const valueSet = element?.featureValues.get(dropdown.value);
+          const value = valueSet instanceof Set ? Array.from(valueSet)[0] : valueSet;
+          if (value !== void 0 && categoryColorMap.has(value)) {
+            colorMap.set(elementId, categoryColorMap.get(value));
+          }
+        });
+      } else {
+        Array.from(selectedElements).forEach((elementId) => {
+          const element = elementRef.get(elementId);
+          const value = metricSource ? metricSource.values.get(elementId) : element?.featureValues.get(dropdown.value);
+          if (value !== void 0) {
+            const normalizedValue = (value - this.minValue) / (this.maxValue - this.minValue) * 100;
+            const color = this.getColorForValue(normalizedValue);
+            colorMap.set(elementId, color);
+          }
+        });
+      }
+      this.resolvePromise(colorMap);
+      this.close();
+    }
+    cancel() {
+      this.resolvePromise(null);
+      this.close();
+    }
+    getColorForValue(normalizedValue) {
+      const sortedHandles = [...this.handles].sort((a, b) => a.pos - b.pos);
+      let lower = sortedHandles[0];
+      let upper = sortedHandles[sortedHandles.length - 1];
+      for (let i = 0; i < sortedHandles.length - 1; i++) {
+        const currentHandle = sortedHandles[i];
+        const nextHandle = sortedHandles[i + 1];
+        if (currentHandle.pos === nextHandle.pos) {
+          continue;
+        }
+        if (currentHandle.pos <= normalizedValue && nextHandle.pos >= normalizedValue) {
+          lower = currentHandle;
+          upper = nextHandle;
+          break;
+        }
+      }
+      if (lower.pos === upper.pos) {
+        return upper.color;
+      }
+      const t = (normalizedValue - lower.pos) / (upper.pos - lower.pos);
+      return this.interpolateColor(lower.color, upper.color, t);
+    }
+    interpolateColor(color1, color2, t) {
+      t = Math.max(0, Math.min(1, isNaN(t) ? 0 : t));
+      const r1 = parseInt(color1.slice(1, 3), 16);
+      const g1 = parseInt(color1.slice(3, 5), 16);
+      const b1 = parseInt(color1.slice(5, 7), 16);
+      const r2 = parseInt(color2.slice(1, 3), 16);
+      const g2 = parseInt(color2.slice(3, 5), 16);
+      const b2 = parseInt(color2.slice(5, 7), 16);
+      const r = Math.round(r1 + (r2 - r1) * t);
+      const g = Math.round(g1 + (g2 - g1) * t);
+      const b = Math.round(b1 + (b2 - b1) * t);
+      return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, "0")}`;
+    }
+    close() {
+      this.element?.remove();
+      this.element = null;
+    }
+    getMetricSource(property) {
+      if (!property || !property.startsWith(this.metricValuePrefix)) return null;
+      const metricId = property.slice(this.metricValuePrefix.length);
+      return this.cache.metrics.getMetricScaleValues(metricId);
+    }
+  };
+  function replaceColorScale(obj, elemID, colorMap) {
+    if (typeof obj !== "object" || obj === null) {
+      return obj;
+    }
+    for (let key in obj) {
+      const value = obj[key];
+      if (value === "set_continuous_color_scale") {
+        if (colorMap.has(elemID)) {
+          obj[key] = colorMap.get(elemID);
+        } else {
+          delete obj[key];
+        }
+      } else if (typeof value === "object") {
+        replaceColorScale(value, elemID, colorMap);
+      }
+    }
+    return obj;
+  }
+
+  // src/utilities/numeric_scale_picker.js
+  var NumericScalePicker = class {
+    constructor(cache3) {
+      this.element = null;
+      this.resolvePromise = null;
+      this.minValue = 0;
+      this.maxValue = 0;
+      this.minOutput = 0;
+      this.maxOutput = 100;
+      this.elementType = "nodes";
+      this.propertyName = null;
+      this.dom = {};
+      this.cache = cache3;
+      this.metricValuePrefix = "__metric__:";
+      this.activeMetricSource = null;
+    }
+    createDom() {
+      const overlay = document.createElement("div");
+      overlay.className = "picker-overlay";
+      this.dom.overlay = overlay;
+      const content = document.createElement("div");
+      content.className = "picker-content numeric-scale-picker";
+      this.dom.content = content;
+      const title = document.createElement("h3");
+      title.textContent = "Map Property to Numeric Scale";
+      title.style.marginBottom = "20px";
+      title.style.textAlign = "center";
+      content.appendChild(title);
+      const dropdownLabel = document.createElement("div");
+      dropdownLabel.textContent = "Select Property to Map:";
+      dropdownLabel.style.fontWeight = "bold";
+      dropdownLabel.style.marginBottom = "8px";
+      content.appendChild(dropdownLabel);
+      const dropdown = document.createElement("select");
+      dropdown.className = "picker-dropdown";
+      this.dom.dropdown = dropdown;
+      content.appendChild(dropdown);
+      const rangeConfig = document.createElement("div");
+      rangeConfig.className = "numeric-scale-config";
+      rangeConfig.style.display = "none";
+      rangeConfig.style.marginTop = "20px";
+      rangeConfig.style.padding = "15px";
+      rangeConfig.style.backgroundColor = "rgba(0, 0, 0, 0.05)";
+      rangeConfig.style.borderRadius = "4px";
+      this.dom.rangeConfig = rangeConfig;
+      const summaryInfo = document.createElement("div");
+      summaryInfo.className = "numeric-scale-summary-info";
+      this.dom.summaryInfo = summaryInfo;
+      rangeConfig.appendChild(summaryInfo);
+      const separator = document.createElement("hr");
+      separator.style.border = "none";
+      separator.style.borderTop = "1px solid rgba(0, 0, 0, 0.2)";
+      separator.style.margin = "12px 0";
+      rangeConfig.appendChild(separator);
+      const outputRow = document.createElement("div");
+      outputRow.style.display = "flex";
+      outputRow.style.alignItems = "center";
+      outputRow.style.gap = "10px";
+      const outputLabel = document.createElement("span");
+      outputLabel.innerHTML = `Set <strong>${this.propertyName || "output"}</strong> range to:`;
+      outputLabel.style.fontSize = "14px";
+      this.dom.outputLabel = outputLabel;
+      outputRow.appendChild(outputLabel);
+      const minOutputInput = document.createElement("input");
+      minOutputInput.type = "number";
+      minOutputInput.className = "style-input";
+      minOutputInput.style.width = "70px";
+      minOutputInput.value = this.minOutput;
+      minOutputInput.step = "any";
+      minOutputInput.oninput = () => {
+        this.minOutput = parseFloat(minOutputInput.value) || 0;
+      };
+      this.dom.minOutputInput = minOutputInput;
+      outputRow.appendChild(minOutputInput);
+      const arrow = document.createElement("span");
+      arrow.textContent = "\u2192";
+      arrow.style.fontSize = "18px";
+      arrow.style.color = "#666";
+      outputRow.appendChild(arrow);
+      const maxOutputInput = document.createElement("input");
+      maxOutputInput.type = "number";
+      maxOutputInput.className = "style-input";
+      maxOutputInput.style.width = "70px";
+      maxOutputInput.value = this.maxOutput;
+      maxOutputInput.step = "any";
+      maxOutputInput.oninput = () => {
+        this.maxOutput = parseFloat(maxOutputInput.value) || 100;
+      };
+      this.dom.maxOutputInput = maxOutputInput;
+      outputRow.appendChild(maxOutputInput);
+      rangeConfig.appendChild(outputRow);
+      content.appendChild(rangeConfig);
+      const buttons = document.createElement("div");
+      buttons.className = "picker-button-container";
+      buttons.style.marginTop = "20px";
+      const cancelButton = document.createElement("button");
+      cancelButton.className = "picker-button secondary";
+      cancelButton.textContent = "Cancel";
+      cancelButton.onclick = () => this.cancel();
+      const applyButton = document.createElement("button");
+      applyButton.className = "picker-button primary disabled";
+      applyButton.textContent = "Apply";
+      applyButton.onclick = () => this.apply();
+      this.dom.applyButton = applyButton;
+      buttons.append(cancelButton, applyButton);
+      content.appendChild(buttons);
+      overlay.appendChild(content);
+      this.element = overlay;
+      return overlay;
+    }
+    async pickNumericScale(elementType = "nodes", propertyName = null) {
+      this.elementType = elementType;
+      this.propertyName = propertyName;
+      this.setDefaultOutputRange();
+      return new Promise((resolve) => {
+        this.resolvePromise = resolve;
+        document.body.appendChild(this.createDom());
+        if (this.dom.minOutputInput) {
+          this.dom.minOutputInput.value = this.minOutput;
+        }
+        if (this.dom.maxOutputInput) {
+          this.dom.maxOutputInput.value = this.maxOutput;
+        }
+        this.initializeFilters();
+      });
+    }
+    setDefaultOutputRange() {
+      if (this.elementType === "nodes") {
+        const defaults = this.cache.DEFAULTS.NODE;
+        switch (this.propertyName) {
+          case "Node Size":
+            this.minOutput = defaults.SIZE;
+            this.maxOutput = 50;
+            break;
+          case "Node Border Size":
+            this.minOutput = defaults.LINE_WIDTH;
+            this.maxOutput = 10;
+            break;
+          case "Node Label Font Size":
+            this.minOutput = defaults.LABEL.FONT_SIZE;
+            this.maxOutput = 30;
+            break;
+          default:
+            this.minOutput = 0;
+            this.maxOutput = 100;
+        }
+      } else {
+        const defaults = this.cache.DEFAULTS.EDGE;
+        switch (this.propertyName) {
+          case "Edge Width":
+            this.minOutput = defaults.LINE_WIDTH;
+            this.maxOutput = 10;
+            break;
+          case "Edge Dash":
+            this.minOutput = defaults.LINE_DASH;
+            this.maxOutput = 40;
+            break;
+          case "Edge Label Font Size":
+            this.minOutput = defaults.LABEL.FONT_SIZE;
+            this.maxOutput = 30;
+            break;
+          case "Edge Halo Width":
+            this.minOutput = defaults.HALO.WIDTH;
+            this.maxOutput = 10;
+            break;
+          default:
+            this.minOutput = 0;
+            this.maxOutput = 100;
+        }
+      }
+    }
+    initializeFilters() {
+      const dropdown = this.element.querySelector(".picker-dropdown");
+      const filters = new Map(this.cache.data.layouts[this.cache.data.selectedLayout].filters);
+      const available = /* @__PURE__ */ new Set();
+      const selectedElements = this.elementType === "nodes" ? this.cache.selectedNodes : this.cache.selectedEdges;
+      selectedElements.forEach((elementId) => {
+        const element = this.elementType === "nodes" ? this.cache.nodeRef.get(elementId) : this.cache.edgeRef.get(elementId);
+        element?.features.forEach((f) => {
+          const filterObj = filters.get(f);
+          if (filterObj && !filterObj.isCategory) {
+            available.add(f);
+          }
+        });
+      });
+      const metricOptions = this.elementType === "nodes" ? this.cache.metrics.getMetricScaleOptions() : [];
+      dropdown.innerHTML = '<option value="">Select property</option>';
+      const propertyOptions = Array.from(available).sort();
+      if (propertyOptions.length > 0) {
+        const dataGroup = document.createElement("optgroup");
+        dataGroup.label = "Data Properties";
+        propertyOptions.forEach((prop) => {
+          const opt = document.createElement("option");
+          opt.value = prop;
+          opt.textContent = prop;
+          dataGroup.appendChild(opt);
+        });
+        dropdown.appendChild(dataGroup);
+      }
+      if (metricOptions.length > 0) {
+        const metricGroup = document.createElement("optgroup");
+        metricGroup.label = "Network Metrics";
+        metricOptions.forEach((metric) => {
+          const opt = document.createElement("option");
+          opt.value = `${this.metricValuePrefix}${metric.id}`;
+          opt.textContent = `${metric.label} (${metric.valueLabel})${metric.cached ? "" : " (calculate)"}`;
+          metricGroup.appendChild(opt);
+        });
+        dropdown.appendChild(metricGroup);
+      }
+      dropdown.onchange = async () => this.selectProperty(dropdown.value);
+    }
+    async selectProperty(property) {
+      if (!property) return;
+      const selectedElements = this.elementType === "nodes" ? this.cache.selectedNodes : this.cache.selectedEdges;
+      const elementRef = this.elementType === "nodes" ? this.cache.nodeRef : this.cache.edgeRef;
+      let metricSource = this.getMetricSource(property);
+      if (property.startsWith(this.metricValuePrefix) && !metricSource) {
+        const metricId = property.slice(this.metricValuePrefix.length);
+        metricSource = await this.cache.metrics.ensureMetricValues(metricId);
+      }
+      if (property.startsWith(this.metricValuePrefix) && !metricSource) {
+        this.cache.ui.warning("Metric values not available yet. Calculate the metric first.");
+        return;
+      }
+      this.activeMetricSource = metricSource;
+      const values = [];
+      let elementsWithProperty = 0;
+      if (metricSource) {
+        Array.from(selectedElements).forEach((id) => {
+          const value = metricSource.values.get(id);
+          if (value !== void 0 && !isNaN(value)) {
+            values.push(value);
+            elementsWithProperty += 1;
+          }
+        });
+      } else {
+        Array.from(selectedElements).forEach((id) => {
+          const value = elementRef.get(id)?.featureValues.get(property);
+          if (value !== void 0 && !isNaN(value)) {
+            values.push(value);
+            elementsWithProperty += 1;
+          }
+        });
+      }
+      if (values.length === 0) {
+        this.cache.ui.warning("No numeric values found for selected property");
+        return;
+      }
+      this.minValue = Math.min(...values);
+      this.maxValue = Math.max(...values);
+      const totalElements = selectedElements.length;
+      const elementTypeLabel = this.elementType === "nodes" ? "nodes" : "edges";
+      const propertyDisplayName = metricSource ? `${metricSource.label} (${metricSource.valueLabel})` : property.includes("::") ? property.split("::").pop() : property;
+      this.dom.summaryInfo.innerHTML = `
       <div style="font-size: 14px; margin-bottom: 8px;">
-        Scaling <strong>${this.propertyName||"property"}</strong> for <strong>${i}</strong> of <strong>${n}</strong> affected ${o}
+        Scaling <strong>${this.propertyName || "property"}</strong> for <strong>${elementsWithProperty}</strong> of <strong>${totalElements}</strong> affected ${elementTypeLabel}
       </div>
       <div style="font-size: 13px; color: #333;">
-        <strong>${c}</strong> min: ${this.minValue.toFixed(2)} &nbsp;&nbsp;&nbsp;&nbsp; <strong>${c}</strong> max: ${this.maxValue.toFixed(2)}
+        <strong>${propertyDisplayName}</strong> min: ${this.minValue.toFixed(2)} &nbsp;&nbsp;&nbsp;&nbsp; <strong>${propertyDisplayName}</strong> max: ${this.maxValue.toFixed(2)}
       </div>
-    `,this.dom.outputLabel&&(this.dom.outputLabel.innerHTML=`Set <strong>${this.propertyName||"output"}</strong> range to:`),this.dom.rangeConfig.style.display="block",this.dom.applyButton.classList.remove("disabled")}apply(){let t=this.element.querySelector(".picker-dropdown").value;if(!t){this.cancel();return}let s=this.elementType==="nodes"?this.cache.selectedNodes:this.cache.selectedEdges,a=this.elementType==="nodes"?this.cache.nodeRef:this.cache.edgeRef,i=new Map;Array.from(s).forEach(n=>{let c=a.get(n)?.featureValues.get(t);if(c!==void 0&&!isNaN(c)){let r=(c-this.minValue)/(this.maxValue-this.minValue),d=this.minOutput+r*(this.maxOutput-this.minOutput);i.set(n,d)}}),this.resolvePromise(i),this.close()}cancel(){this.resolvePromise(null),this.close()}close(){this.element?.remove(),this.element=null}};function ae(l,e,t){if(typeof l!="object"||l===null)return l;for(let s in l){let a=l[s];a==="set_numeric_scale"?t.has(e)?l[s]=t.get(e):delete l[s]:typeof a=="object"&&ae(a,e,t)}return l}var{Graph:_e,NodeEvent:Ke,EdgeEvent:Xe,GraphEvent:be,CanvasEvent:Qe,CommonEvent:je,WindowEvent:Ze,Layout:Je,BaseLayout:et,ExtensionCategory:tt,register:st}=G6,ie=class{constructor(e){this.cache=e,this.BEHAVIOURS={DRAG_ELEMENT:{type:"drag-element",cursor:{default:"default",grab:"default",grabbing:"default"},shadow:!0,shadowFill:"#C33D35",shadowFillOpacity:.5,shadowStroke:"#C33D35",shadowStrokeOpacity:1},DRAG_CANVAS:{type:"drag-canvas",key:"drag-canvas",animation:!1},ZOOM_CANVAS:{type:"zoom-canvas",key:"zoom-canvas",animation:!1},HOVER_ACTIVATE:{type:"hover-activate",enable:t=>t.targetType==="node"||t.targetType==="edge",degree:1,state:"highlight",inactiveState:"dim"},LASSO_SELECT:{type:"lasso-select",key:"lasso-select",trigger:["drag"],style:{fill:"#C33D35",fillOpacity:.3,stroke:"#C33D35"},enable:t=>{if(this.cache.ui.debug("LASSO CANVAS CLICK"),!this.cache.CFG.APPLY_BUBBLE_SET_HOTFIX)return!0;if(this.cache.graph.getNodeData().filter(a=>a.states?.includes("selected")).length!==0){this.cache.ui.debug("PREVENTING LASSO DESELECT EVENT BY REMOVING CANVAS CLICK EVENT");let a=this.cache.graph.getEvents()["canvas:click"];return this.cache.graph.off("canvas:click"),setTimeout(()=>{this.cache.ui.debug("RESTORING CANVAS CLICK EVENT"),this.cache.graph.on("canvas:click",a)},1e3),!1}return!0}},CLICK_SELECT:{type:"click-select",key:"click-select",multiple:!0,trigger:["shift"]}}}*traverseD4Data(e){if(e.D4Data)for(let t in e.D4Data)for(let s in e.D4Data[t])for(let a in e.D4Data[t][s])yield[t,s,a,e.D4Data[t][s][a]]}async decideToRenderOrDraw(e=!1){await this.cache.ui.showLoading("Loading","Deciding to render or draw .."),await new Promise(t=>requestAnimationFrame(t)),this.cache.EVENT_LOCKS.QUERY_SELECTION_EVENT&&this.cache.qm.storeQuery(),await this.preRenderEvent(),await this.cache.metrics.updateMetricUI();try{return this.cache.bubbleSetChanged||this.cache.styleChanged||this.cache.layoutChanged||e?(this.cache.styleChanged&&(await this.cache.ui.showLoading("Loading","Updating graph .."),await new Promise(t=>requestAnimationFrame(t)),await this.cache.graph.updateData(this.createSimplifiedDataForGraphObject()),this.cache.styleChanged=!1,this.cache.labelStyleChanged=!1),await this.cache.ui.showLoading("Loading","Rendering graph .."),await new Promise(t=>requestAnimationFrame(t)),await this.cache.graph.render()):(await this.cache.ui.showLoading("Loading","Redrawing graph .."),await new Promise(t=>requestAnimationFrame(t)),await this.cache.graph.draw())}catch(t){return this.cache.ui.error(t),!1}finally{await this.cache.ui.hideLoading(),await new Promise(t=>requestAnimationFrame(t))}}async createGraphInstance(){if(this.cache.graph===null){let e=[this.BEHAVIOURS.DRAG_CANVAS,this.BEHAVIOURS.ZOOM_CANVAS,this.BEHAVIOURS.DRAG_ELEMENT];this.cache.CFG.DISABLE_HOVER_EFFECT||e.push(this.BEHAVIOURS.HOVER_ACTIVATE);let t=[{key:"tooltip",type:"tooltip",trigger:"click",enterable:!0,getContent:(a,i)=>this.cache.toolTips.get(i[0].id)},{key:"minimap",type:"minimap",position:"bottom-left"},...[...this.cache.bs.traverseBubbleSets()].map(a=>({key:`bubbleSetPlugin-${a}`,type:"bubble-sets",members:[],avoidMembers:[this.cache.CFG.INVISIBLE_DUMMY_NODE.id],...this.cache.data.layouts[this.cache.data.selectedLayout].bubbleSetStyle[a],strokeOpacity:0,fillOpacity:0,label:!1}))];this.cache.graph=new _e({container:"innerGraphContainer",autoFit:!1,animation:!1,autoResize:!0,padding:10,data:this.createSimplifiedDataForGraphObject(),node:{state:{highlight:{fill:"#C33D35",halo:!0,lineWidth:0},dim:{fill:"#E4E3EA"}}},edge:{state:{highlight:{stroke:"#C33D35"},selected:{stroke:"#C33D35"}}},behaviors:e,plugins:t}),this.cache.graph.on("node:dragend",async()=>{this.cache.EVENT_LOCKS.DRAG_END_RUNNING||(this.cache.ui.debug("DRAG END"),this.cache.EVENT_LOCKS.DRAG_END_RUNNING=!0,await this.cache.lm.persistNodePositions(),this.cache.EVENT_LOCKS.DRAG_END_RUNNING=!1)}),this.cache.graph.on("beforelayout",async()=>{this.cache.ui.debug("BEFORE LAYOUT")}),this.cache.graph.on("afterlayout",async()=>{if(this.cache.EVENT_LOCKS.AFTER_LAYOUT_RUNNING)return;this.cache.ui.debug("AFTER LAYOUT"),this.cache.EVENT_LOCKS.AFTER_LAYOUT_RUNNING=!0;let a=this.cache.data.layouts[this.cache.data.selectedLayout];a.positions.size>0?(this.cache.graph.updateNodeData(Array.from(a.positions,([i,n])=>({id:i,style:n.style}))),await this.cache.graph.draw()):a.layoutType&&(await this.cache.lm.persistNodePositions(),delete a.layoutType,this.cache.ui.debug("Initial layout positions persisted")),this.cache.EVENT_LOCKS.AFTER_LAYOUT_RUNNING=!1}),this.cache.graph.on("canvas:click",async a=>{this.cache.ui.debug("CANVAS CLICK")}),this.cache.graph.on("node:click",async a=>{this.cache.ui.debug("NODE CLICK")}),this.cache.graph.on("edge:click",async a=>{this.cache.ui.debug("EDGE CLICK")}),this.cache.graph.on(be.BEFORE_DRAW,async a=>{this.cache.EVENT_LOCKS.BEFORE_DRAW_RUNNING||(this.cache.EVENT_LOCKS.BEFORE_DRAW_RUNNING=!0,this.cache.ui.debug("BEFORE DRAW"),this.cache.EVENT_LOCKS.IS_DESELECTING&&(this.cache.ui.debug("BEFORE DRAW DESELECTION EVENT"),this.cache.EVENT_LOCKS.IS_DESELECTING=!1),this.cache.EVENT_LOCKS.BEFORE_DRAW_RUNNING=!1)}),this.cache.graph.on(be.AFTER_DRAW,async a=>{this.cache.EVENT_LOCKS.AFTER_DRAW_RUNNING||(this.cache.EVENT_LOCKS.AFTER_DRAW_RUNNING=!0,this.cache.ui.debug("AFTER DRAW"),await this.cache.sm.updateSelectedNodesAndEdges(),await this.cache.bs.redrawBubbleSets(),this.cache.EVENT_LOCKS.AFTER_DRAW_RUNNING=!1,await this.cache.ui.hideLoading())}),this.cache.graph.on(be.AFTER_RENDER,async()=>{if(this.cache.ui.debug("AFTER RENDER"),this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED){if(this.cache.EVENT_LOCKS.AFTER_RENDER_RUNNING)return;this.cache.EVENT_LOCKS.AFTER_RENDER_RUNNING=!0,await this.cache.sm.updateSelectedNodesAndEdges(),await this.cache.bs.redrawBubbleSets(),this.cache.EVENT_LOCKS.AFTER_RENDER_RUNNING=!1,await this.cache.ui.hideLoading()}else await this.initialAfterRenderEvent()});let s=this.cache.data.layouts[this.cache.data.selectedLayout];if(s.positions.size===0&&s.layoutType){let a=this.cache.DEFAULTS.LAYOUT_INTERNALS[s.layoutType]||{};await this.cache.graph.setLayout({type:s.layoutType,...a})}}}async initialAfterRenderEvent(){if(!this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING)try{this.cache.ui.debug("ONCE AFTER RENDER"),await this.cache.ui.showLoading("Post-processing","Post-processing .."),await new Promise(e=>requestAnimationFrame(e)),this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING=!0,await this.cache.ui.showLoading("Post-processing","Registering event listeners .."),await new Promise(e=>requestAnimationFrame(e)),this.registerHotkeyEvents(),this.registerGlobalEventListeners(),await this.registerPluginStates(),await this.cache.ui.showLoading("Post-processing","Pre-render event .."),await new Promise(e=>requestAnimationFrame(e)),await this.preRenderEvent(),await this.cache.ui.showLoading("Post-processing","Updating metrics UI .."),await new Promise(e=>requestAnimationFrame(e)),await this.cache.metrics.updateMetricUI(),await this.cache.ui.showLoading("Post-processing","Finalizing rendering .."),await new Promise(e=>requestAnimationFrame(e)),this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE&&(this.cache.nodePositionsFromExcelImport.size!==0&&this.cache.ui.info(`Created view "${this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME}". Applying ${this.cache.DEFAULTS.LAYOUT} layout to nodes without coordinates ..`),await this.cache.graph.setLayout({type:this.cache.DEFAULTS.LAYOUT,...this.cache.DEFAULTS.LAYOUT_INTERNALS[this.cache.DEFAULTS.LAYOUT]})),this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED=!0,await this.cache.graph.render(),this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE&&(this.cache.ui.debug("Initially persisting custom layout .."),await this.cache.lm.persistNodePositions(),this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE=!1)}catch(e){this.cache.ui.error(`Error in initial AFTER_RENDER: ${e}`),this.cache.ui.error("Graph setup failed. Please check your input data."),await this.cache.ui.hideLoading()}finally{this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING=!1}}async toggleCleanUpDanglingElements(e){e.classList.contains("red")?(e.classList.remove("red"),e.classList.add("green","highlight"),e.title="Show all nodes and edges, irrespectively of their connectedness.",e.textContent="\u{1F441}",await this.hideDanglingElements()):(e.classList.remove("green","highlight"),e.classList.add("red"),e.title="Hide all nodes and edges that are not connected to any other node or edge.",e.textContent="\u{1F6AB}",await this.showDanglingElements())}nodeHasAVisibleEdge(e){for(let t of this.cache.nodeIDToEdgeIDs.get(e)||[])if(this.cache.edgeIDsToBeShown.has(t)&&!this.cache.hiddenDanglingEdgeIDs.has(t))return!0;return!1}edgeIsConnectedToTwoVisibleNodes(e){for(let t of this.cache.edgeIDToNodeIDs.get(e)||[])if(!this.cache.nodeIDsToBeShown.has(t)||this.cache.hiddenDanglingNodeIDs.has(t))return!1;return!0}async hideDanglingElements(){let e;do{e=!1;for(let t of this.cache.nodeIDsToBeShown)!this.nodeHasAVisibleEdge(t)&&!this.cache.hiddenDanglingNodeIDs.has(t)&&(this.cache.hiddenDanglingNodeIDs.add(t),e=!0);for(let t of this.cache.edgeIDsToBeShown)!this.edgeIsConnectedToTwoVisibleNodes(t)&&!this.cache.hiddenDanglingEdgeIDs.has(t)&&(this.cache.hiddenDanglingEdgeIDs.add(t),e=!0)}while(e);await this.cache.bs.updateBubbleSetIfChanged(),await this.cache.fm.handleFilterEvent("Hiding Elements","Hiding nodes and edges that are not connected to any other node or edge.")}async showDanglingElements(){this.cache.hiddenDanglingNodeIDs.clear(),this.cache.hiddenDanglingEdgeIDs.clear(),await this.cache.bs.updateBubbleSetIfChanged(),await this.cache.fm.handleFilterEvent("Showing Elements","Showing all previously hidden nodes and edges that are not connected to any other node or edge.")}async focusNodes(e=void 0){e||(e=this.cache.selectedNodes),await this.focusElements(e)}async focusEdges(e=void 0){e||(e=this.cache.selectedEdges),await this.focusElements(e)}async focusElements(e,t){await this.cache.graph.getZoom()<2&&await this.cache.graph.zoomTo(2),await this.cache.graph.focusElement([...e]);let a=t?this.cache.nodeRef:this.cache.edgeRef;await this.cache.sm.selectElements(e,a,"highlight"),setTimeout(async()=>{await this.cache.sm.selectElements([],a,"highlight")},2500)}async updateEdges(e={},t=[]){let s=null;if(t.includes("set_continuous_color_scale")&&(s=await this.cache.picker.pickColors("edges"),!s)){this.cache.ui.info("Aborted color picker");return}let a=null;if(t.includes("set_numeric_scale")){let i=this.cache.numericPicker.currentProperty||null;if(a=await this.cache.numericPicker.pickNumericScale("edges",i),!a){this.cache.ui.info("Aborted numeric scale picker");return}}for(let i of this.cache.selectedEdges){let n=this.cache.edgeRef.get(i);for(let r of t)r==="label_set_to_id"&&(n.style.label=!0,n.style.labelText=n.id),r==="label_set_to_label"&&(n.style.label=!0,n.style.labelText=n.label);let o=structuredClone(e);s&&te(o,i,s),a&&ae(o,i,a),_.deepMerge(n,o),this.cache.edgeRef.set(i,n),this.cache.data.layouts[this.cache.data.selectedLayout].edgeStyles.set(i,{type:n.type,style:structuredClone(n.style)})}await this.cache.style.handleStyleChangeLoadingEvent("Style","Updating Edge Styles")}async updateNodes(e={},t=[]){let s=null;if(t.includes("set_continuous_color_scale")&&(s=await this.cache.picker.pickColors("nodes"),!s)){this.cache.ui.info("Aborted color picker");return}let a=null;if(t.includes("set_numeric_scale")){let o=this.cache.numericPicker.currentProperty||null;if(a=await this.cache.numericPicker.pickNumericScale("nodes",o),!a){this.cache.ui.info("Aborted numeric scale picker");return}}let i=e.style?.badges,n=e.style?.badgePalette;t.includes("badge_add")&&(delete e.style?.badges,delete e.style?.badgePalette);for(let o of this.cache.selectedNodes){let c=this.cache.nodeRef.get(o);for(let h of t)h==="badge_clear"&&(c.style.badge=!1,c.style.badges=[],c.style.badgePalette=[]),h==="badge_add"&&(c.style.badge=!0,c.style.badges=c.style.badges||[],c.style.badgePalette=c.style.badgePalette||[],i&&(c.style.badges=[...c.style.badges,...Array.isArray(i)?i:[i]]),n&&(c.style.badgePalette=[...c.style.badgePalette,...Array.isArray(n)?n:[n]])),h==="label_set_to_id"&&(c.style.label=!0,c.style.labelText=c.id),h==="label_set_to_label"&&(c.style.label=!0,c.style.labelText=c.label);let r=structuredClone(e);s&&te(r,o,s),a&&ae(r,o,a),_.deepMerge(c,r),this.cache.nodeRef.set(o,c),this.cache.data.layouts[this.cache.data.selectedLayout].nodeStyles.set(o,{type:c.type,style:structuredClone(c.style)})}await this.cache.style.handleStyleChangeLoadingEvent("Style","Updating Node Styles")}getTargetNodes(e){return e?this.cache.propToNodeIDs.has(e)?[...this.cache.propToNodeIDs.get(e)].filter(t=>this.cache.nodeIDsToBeShown.has(t)):[]:this.cache.selectedNodes}getTargetEdges(e){return e?this.cache.propToEdgeIDs.has(e)?[...this.cache.propToEdgeIDs.get(e)].filter(t=>this.cache.edgeIDsToBeShown.has(t)):[]:this.cache.selectedEdges}createSimplifiedDataForGraphObject(){let e=(n,o)=>Object.keys(n).filter(c=>!o.includes(c)).reduce((c,r)=>(c[r]=n[r],c),{}),t=new Map;if(this.cache.graph)try{let n=this.cache.graph.getNodeData();for(let o of n)t.set(o.id,o)}catch{}let s=this.cache.data.nodes.map(n=>{let o=e(n,["D4Data","features","featureValues","featureWithinThreshold","originalStyle","originalType"]),c=t.get(n.id);c&&c.states&&(o.states=c.states);let r=n.style?.visibility,d=this.cache.data.layouts[this.cache.data.selectedLayout].positions.get(n.id),m=this.cache.data.layouts[this.cache.data.selectedLayout].nodeStyles.get(n.id);return m?(Object.assign(o,this.cache.style.getNodeStyleOrDefaults(n)),m.type!==void 0&&(o.type=m.type),m.style&&(o.style=structuredClone(m.style))):Object.assign(o,this.cache.style.getNodeStyleOrDefaults(n)),r&&(o.style.visibility=r),d&&d.style&&(o.style.x=d.style.x,o.style.y=d.style.y),o}),a=new Map;if(this.cache.graph)try{let n=this.cache.graph.getEdgeData();for(let o of n)a.set(o.id,o)}catch{}let i=this.cache.data.edges.map(n=>{let o=e(n,["D4Data","features","featureValues","featureWithinThreshold","originalStyle","originalType"]),c=a.get(n.id);c&&c.states&&(o.states=c.states);let r=n.style?.visibility,h=this.cache.data.layouts[this.cache.data.selectedLayout].edgeStyles.get(n.id);return h?(Object.assign(o,this.cache.style.getEdgeStyleOrDefaults(n)),h.type!==void 0&&(o.type=h.type),h.style&&(o.style=structuredClone(h.style))):Object.assign(o,this.cache.style.getEdgeStyleOrDefaults(n)),r&&(o.style.visibility=r),o});return{nodes:[...s,this.cache.CFG.INVISIBLE_DUMMY_NODE],edges:i,combos:this.cache.data.combos||[]}}async preRenderEvent(){if(this.cache.styleChanged)return;!this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT&&!this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY&&this.cache.qm.resetQuery(),this.cache.nodeIDsToBeShown=new Set,this.cache.propIDsToNodeIDsToBeShown=new Map,this.cache.edgeIDsToBeShown=new Set,this.cache.propIDsToEdgeIDsToBeShown=new Map,this.cache.remainingEdgeRelatedNodes=new Set,this.cache.fm.resetFeatureIsWithinThresholdMaps(),this.cache.bubbleSetChanged=!1,this.cache.qm.decodeQueryAndBuildAST();for(let i of this.cache.nodeRef.values())this.cache.query.ast.testNode(i)&&(this.cache.nodeIDsToBeShown.add(i.id),i.featureIsWithinThreshold.forEach((n,o)=>{n===!0&&(this.cache.propIDsToNodeIDsToBeShown.has(o)||this.cache.propIDsToNodeIDsToBeShown.set(o,new Set),this.cache.propIDsToNodeIDsToBeShown.get(o).add(i.id))}));for(let i of this.cache.edgeRef.values())this.cache.nodeIDsToBeShown.has(i.source)&&this.cache.nodeIDsToBeShown.has(i.target)&&this.cache.query.ast.testEdge(i)&&(this.cache.edgeIDsToBeShown.add(i.id),i.featureIsWithinThreshold.forEach((o,c)=>{o===!0&&(this.cache.propIDsToEdgeIDsToBeShown.has(c)||this.cache.propIDsToEdgeIDsToBeShown.set(c,new Set),this.cache.propIDsToEdgeIDsToBeShown.get(c).add(i.id))}));let e=[...this.cache.nodeRef.keys()].filter(i=>!this.cache.nodeIDsToBeShown.has(i)),t=[...this.cache.edgeRef.keys()].filter(i=>!this.cache.edgeIDsToBeShown.has(i)),s=[...this.cache.nodeIDsToBeShown,...this.cache.edgeIDsToBeShown],a=[...e,...t,...this.cache.hiddenDanglingNodeIDs,...this.cache.hiddenDanglingEdgeIDs];await this.cache.fm.updateElementVisibility(s,a),await this.cache.bs.updateBubbleSetIfChanged()}resetEventLocks(){this.cache.EVENT_LOCKS.BEFORE_DRAW_RUNNING=!1,this.cache.EVENT_LOCKS.AFTER_DRAW_RUNNING=!1,this.cache.EVENT_LOCKS.DRAG_END_RUNNING=!1,this.cache.EVENT_LOCKS.BEFORE_RENDER_RUNNING=!1,this.cache.EVENT_LOCKS.AFTER_RENDER_RUNNING=!1,this.cache.EVENT_LOCKS.BEFORE_LAYOUT_RUNNING=!1,this.cache.EVENT_LOCKS.AFTER_LAYOUT_RUNNING=!1,this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING=!1,this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED=!1,this.cache.EVENT_LOCKS.IS_DESELECTING=!1,this.cache.EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING=!1,this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE=!1}async destroyGraphAndRollBackUI(){await this.cache.graph?.destroy(),this.cache.graph=null;let e=document.getElementById("sidebarStatusContainer");e.innerHTML="",e.style.height="0"}registerHotkeyEvents(){this.cache.EVENT_LOCKS.HOTKEY_EVENTS_REGISTERED||(document.addEventListener("keydown",async e=>{let t=document.activeElement;if(!(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.tagName==="SELECT"||t.isContentEditable))switch(e.key){case"p":await this.cache.io.exportPNG();break;case"s":await this.cache.io.exportGraphAsJSON();break;case"f":await this.cache.graph.fitView();break;case"e":await this.cache.ui.toggleEditMode();break;case"d":await this.cache.ui.toggleDataEditor();break;case"q":this.cache.ui.toggleQueryEditor();break;case"m":this.cache.metrics.toggleUI();break;default:break}}),this.cache.EVENT_LOCKS.HOTKEY_EVENTS_REGISTERED=!0)}registerGlobalEventListeners(){this.cache.EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED||(["input","keydown","keyup","mousedown","mouseup","focus","blur","scroll","selectionchange"].forEach(e=>this.cache.query.text.addEventListener(e,()=>this.cache.qm.moveCaret())),this.cache.ui.makeBottomBarResizable(),this.cache.EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED=!0)}async registerPluginStates(){this.cache.ui.debug("Registering bubble set plugin instances ..");for(let e of this.cache.bs.traverseBubbleSets())this.cache.INSTANCES.BUBBLE_GROUPS[e]=await this.cache.graph.getPluginInstance(`bubbleSetPlugin-${e}`)}};var ne=class{constructor(e){this.cache=e,this.redrawBubbleSets=Fe(async()=>{if(this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED&&!this.cache.EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING){this.cache.EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING=!0;try{for(let t of this.traverseBubbleSets()){let s=this.cache.lastBubbleSetMembers.get(t);s?.size>0&&(this.cache.ui.debug(`Redrawing bubble set ${t} with ${s.size} members ..`),await this.updateBubbleSet(t,[]),await this.updateBubbleSet(t,Array.from(s)))}}finally{this.cache.EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING=!1}}},50)}*traverseBubbleSets(){for(let e of Object.keys(this.cache.DEFAULTS.BUBBLE_GROUP_STYLE))yield e}async updateBubbleSetStyle(e,t){let a=e.split("Bubble Set ")[1].split(" "),i=a[0],n=a.slice(1).join(" "),o=this.cache.data.layouts[this.cache.data.selectedLayout].bubbleSetStyle[i];switch(n){case"Fill Color":o.fill=t,o.labelBackgroundFill=t;break;case"Fill Opacity":o.fillOpacity=t;break;case"Stroke Color":o.stroke=t;break;case"Stroke Opacity":o.strokeOpacity=t;break;case"Label":o.label=t;break;case"Label Text":o.labelText=t;break;case"Label Background Color":o.labelBackgroundFill=t;break;case"Label Background":o.labelBackground=t,t?o.labelFill="#FFFFFF":o.labelFill="#000000";break;default:break}await this.cache.INSTANCES.BUBBLE_GROUPS[i].update(o),await this.cache.gcm.decideToRenderOrDraw(!0)}refreshBubbleStyleElements(){for(let e of this.traverseBubbleSets()){let t=this.cache.data.layouts[this.cache.data.selectedLayout],s=t.bubbleSetStyle[e],a=new Set,i=t[`${e}Props`]||new Set;for(let E of i){let C=this.cache.propIDsToNodeIDsToBeShown.get(E)||[];for(let w of C)w!==this.cache.CFG.INVISIBLE_DUMMY_NODE.id&&a.add(w)}let n=t[`${e}ManualMembers`]||new Set;for(let E of n)E!==this.cache.CFG.INVISIBLE_DUMMY_NODE.id&&this.cache.nodeRef.has(E)&&a.add(E);let o=a.size>0,c=s.label,r=document.getElementById(`bubbleSetStyleCard${e}`);o?r.classList.remove("disabled"):r.classList.add("disabled");let d=document.querySelector(`input[placeholder*="${e} label text"]`);d&&s.labelText!==void 0&&(d.value=s.labelText);let h=document.querySelector(`input[data-property="Bubble Set ${e} Fill Color"]`);h&&s.fill&&(h.value=s.fill);let m=document.querySelector(`input[data-property="Bubble Set ${e} Stroke Color"]`);m&&s.stroke&&(m.value=s.stroke);for(let E of r.querySelectorAll(".bubbleSetOptionalLabelConfig"))c?E.classList.remove("disabled"):E.classList.add("disabled");let f=s.fill||this.cache.DEFAULTS.BUBBLE_GROUP_STYLE[e].fill;document.documentElement.style.setProperty(`--${e}-color`,f)}}async updateBubbleSetIfChanged(){for(let e of this.traverseBubbleSets()){let t=this.cache.data.layouts[this.cache.data.selectedLayout][`${e}Props`],s=this.cache.lastBubbleSetMembers.get(e),a=new Set;for(let n of t){let o=this.cache.propIDsToNodeIDsToBeShown.get(n)||[];for(let c of o)c!==this.cache.CFG.INVISIBLE_DUMMY_NODE.id&&!this.cache.hiddenDanglingNodeIDs.has(c)&&a.add(c)}let i=this.cache.data.layouts[this.cache.data.selectedLayout][`${e}ManualMembers`];if(i&&i.size>0)for(let n of i)n!==this.cache.CFG.INVISIBLE_DUMMY_NODE.id&&this.cache.nodeRef.has(n)&&!this.cache.hiddenDanglingNodeIDs.has(n)&&a.add(n);_.setsAreEqual(s,a)||(await this.updateBubbleSet(e,a),this.cache.lastBubbleSetMembers.set(e,a),this.cache.bubbleSetChanged=!0)}}async updateBubbleSet(e,t){let s=t instanceof Set?new Set([...t].filter(c=>c!==this.cache.CFG.INVISIBLE_DUMMY_NODE.id)):[...t].filter(c=>c!==this.cache.CFG.INVISIBLE_DUMMY_NODE.id),a=!s||(s instanceof Set?s.size===0:s.length===0),i=s instanceof Set?[...s]:s,n=a?[]:this.getAvoidMembers(s);if(_.arraysAreEqual(i,[...this.cache.INSTANCES.BUBBLE_GROUPS[e].members.keys()])){this.cache.ui.debug("BUBBLE GROUPS IN SYNC - SKIPPING UPDATE");return}let o=this.cache.data.layouts[this.cache.data.selectedLayout].bubbleSetStyle[e];await this.cache.INSTANCES.BUBBLE_GROUPS[e].update({members:a?[]:i,avoidMembers:n,fillOpacity:a?0:o.fillOpacity,strokeOpacity:a?0:o.strokeOpacity,label:a?!1:o.label,labelText:o.labelText,fill:o.fill,stroke:o.stroke,labelBackgroundFill:o.labelBackgroundFill,labelFill:o.labelFill,labelBackground:o.labelBackground}),await this.cache.INSTANCES.BUBBLE_GROUPS[e].drawBubbleSets()}getAvoidMembers(e){if(this.cache.CFG.APPLY_BUBBLE_SET_HOTFIX&&this.cache.CFG.AVOID_MEMBERS_IN_BUBBLE_GROUPS)return[];let t=e instanceof Set?s=>e.has(s):s=>e.includes(s);return[...this.cache.nodeRef.keys()].filter(s=>!t(s))}async clearBubbleSetInstanceMembers(){for(let e of this.traverseBubbleSets())await this.cache.INSTANCES.BUBBLE_GROUPS[e].update({members:[],fillOpacity:0,strokeOpacity:0,label:!1}),await this.cache.INSTANCES.BUBBLE_GROUPS[e].drawBubbleSets()}async toggleSelectedNodesInManualGroup(e){this.cache.data.layouts[this.cache.data.selectedLayout][`${e}ManualMembers`]||(this.cache.data.layouts[this.cache.data.selectedLayout][`${e}ManualMembers`]=new Set);let t=this.cache.data.layouts[this.cache.data.selectedLayout][`${e}ManualMembers`],s=[...this.cache.selectedNodes].filter(i=>i!==this.cache.CFG.INVISIBLE_DUMMY_NODE.id);if(s.length===0){this.cache.ui.warning("No nodes selected");return}s.every(i=>t.has(i))?(s.forEach(i=>t.delete(i)),this.cache.ui.info(`Removed ${s.length} node(s) from manual ${e}`)):(s.forEach(i=>t.add(i)),this.cache.ui.info(`Added ${s.length} node(s) to manual ${e}`)),this.updateManualGroupButtonState(),this.updateManualGroupStatus(),this.refreshBubbleStyleElements(),this.cache.bubbleSetChanged=!0,await this.updateBubbleSetIfChanged(),await this.cache.graph.draw(),await this.redrawBubbleSets()}updateManualGroupButtonState(){let e=document.getElementById("manualBubbleGroupButton");if(!e)return;let t=new Set(this.cache.selectedNodes);for(let[s,a]of Object.entries(this.cache.DEFAULTS.BUBBLE_GROUP_QUADRANT_POSITIONS)){let i=this.cache.data.layouts[this.cache.data.selectedLayout][`${s}ManualMembers`]||new Set,n=e.querySelector(`.quadrant.${a}.manual`);n&&(t.size>0&&[...t].some(c=>i.has(c))?n.classList.add("active"):n.classList.remove("active"))}}updateManualGroupStatus(){let e=document.getElementById("manualBubbleGroupStatus"),t=document.getElementById("clearManualGroupsBtn"),s=document.getElementById("manualGroupSeparator");if(!e)return;let a=[];for(let[i,n]of Object.entries(this.cache.DEFAULTS.BUBBLE_GROUP_QUADRANT_POSITIONS)){let c=[...this.cache.data.layouts[this.cache.data.selectedLayout][`${i}ManualMembers`]||new Set].filter(r=>r!==this.cache.CFG.INVISIBLE_DUMMY_NODE.id&&this.cache.nodeRef.has(r)&&this.cache.propIDsToNodeIDsToBeShown.size===0||[...this.cache.propIDsToNodeIDsToBeShown.values()].some(d=>d.has(r)));if(c.length>0){let r=this.cache.data.layouts[this.cache.data.selectedLayout].bubbleSetStyle[i].fill;a.push(`<span style="color: ${r}; font-weight: bold;">\u25CF${c.length}</span>`)}}a.length>0?(e.innerHTML=a.join(" "),e.style.display="inline",t&&(t.style.display="inline"),s&&(s.style.display="inline-block")):(e.innerHTML="",e.style.display="none",t&&(t.style.display="none"),s&&(s.style.display="none"))}cleanupManualGroupMembers(){for(let e of Object.keys(this.cache.DEFAULTS.BUBBLE_GROUP_STYLE)){let t=this.cache.data.layouts[this.cache.data.selectedLayout][`${e}ManualMembers`];if(t&&t.size>0){let s=[];for(let a of t)(a===this.cache.CFG.INVISIBLE_DUMMY_NODE.id||!this.cache.nodeRef.has(a))&&s.push(a);s.forEach(a=>t.delete(a))}}this.updateManualGroupStatus()}async clearAllManualGroups(){for(let e of Object.keys(this.cache.DEFAULTS.BUBBLE_GROUP_STYLE)){let t=this.cache.data.layouts[this.cache.data.selectedLayout][`${e}ManualMembers`];t&&t.clear()}this.updateManualGroupButtonState(),this.updateManualGroupStatus(),this.cache.bubbleSetChanged=!0,await this.updateBubbleSetIfChanged(),await this.cache.graph.draw(),await this.redrawBubbleSets(),this.cache.ui.info("Cleared all manual bubble groups")}},Fe=(l,e)=>{let t;return function(...a){let i=()=>{clearTimeout(t),l(...a)};clearTimeout(t),t=setTimeout(i,e)}};var oe=class{constructor(e){this.cache=e}async resetFilters(e,t=void 0){let s=e+(t?`::${t}`:""),a=Array.from(this.cache.propIDs).filter(i=>i.startsWith(s));for(let i of a){this.cache.fm.checkCheckbox(i,!0);let n=this.cache.propIDToInvertibleRangeSliders.get(i),o=this.cache.propIDToDropdownChecklists.get(i);n&&await n.reset(),o&&await o.selectAllCategories(!0)}await this.handleFilterEvent("Filtering",`Resetting filters for ${s} ..`)}async handleFilterEvent(e,t,s=null,a=!0){a&&this.cache.qm.resetQuery(),!(s!==null&&!this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(s).active)&&(await this.cache.ui.showLoading(e,t),await new Promise(i=>requestAnimationFrame(i)),this.cache.bs.cleanupManualGroupMembers(),await this.cache.gcm.decideToRenderOrDraw())}resetFeatureIsWithinThresholdMaps(){for(let e of this.cache.data.nodes)e.featureIsWithinThreshold.forEach((t,s)=>{e.featureIsWithinThreshold.set(s,null)});for(let e of this.cache.data.edges)e.featureIsWithinThreshold.forEach((t,s)=>{e.featureIsWithinThreshold.set(s,null)})}getPropertiesNotWithinThresholds(e=null,t=null){let s=[],a=e!==null,i=a?this.cache.nodeRef.get(e):this.cache.edgeRef.get(t),n=new Set([...a?this.cache.nodeExclusiveProps:this.cache.edgeExclusiveProps,...this.cache.mixedProps]);for(let[o,c]of i.featureIsWithinThreshold.entries())n.has(o)&&c===!1&&s.push(o);for(let o of this.cache.activeProps)n.has(o)&&(i.featureIsWithinThreshold.has(o)||s.push(o));return s}removeFromPropIDsToNodeIDsToBeShown(e){for(let t of this.cache.propIDsToNodeIDsToBeShown.keys())this.cache.propIDsToNodeIDsToBeShown.get(t).delete(e)}removeFromPropIDsToEdgeIDsToBeShown(e){for(let t of this.cache.propIDsToEdgeIDsToBeShown.keys())this.cache.propIDsToEdgeIDsToBeShown.get(t).delete(e)}async updateElementVisibility(e,t){this.cache.visibleElementsChanged=!1;let{nodes:s,edges:a}=await this.cache.graph.getData(),{visible:i,hidden:n}=[...s,...a].reduce((r,d)=>(r[d.style.visibility==="visible"?"visible":"hidden"].push(d.id),r),{visible:[],hidden:[]}),o=e.filter(r=>n.includes(r)),c=t.filter(r=>i.includes(r));o.length>0&&(await this.cache.graph.showElement(o),this.cache.visibleElementsChanged=!0),c.length>0&&(await this.cache.graph.hideElement(c),this.cache.visibleElementsChanged=!0)}};var Y=class l{constructor(e,t={}){this.options={width:"300px",height:"auto",position:"center",lineHeight:"normal",closeOnClickOutside:!0,onClose:null,showFullscreenButton:!0,...t},this.popup=null,this.overlay=null,this.closeBtn=null,this.fullscreenBtn=null,this.isFullscreen=!1,this.originalStyles=null,this.init(e)}static async prompt(e){return new Promise(t=>{let s=document.createElement("input");s.type="text",s.className="p-prompt";let a=document.createElement("div");a.innerHTML=`<div>${e}</div>`,a.appendChild(s);let i=document.createElement("button");i.textContent="OK",i.className="p-button",a.appendChild(i);let n=!1,o=()=>{n=!0;let r=s.value.trim();c.close(),t(r)},c=new l(a,{width:"300px",showFullscreenButton:!1,closeOnClickOutside:!1,onClose:()=>{n||t(null)}});i.addEventListener("click",o),s.addEventListener("keypress",r=>{r.key==="Enter"&&o()}),setTimeout(()=>s.focus(),0)})}static async confirm(e){return new Promise(t=>{let s=document.createElement("div");s.innerHTML=`<div>${e}</div>`;let a=document.createElement("button");a.textContent="OK",a.className="p-button ml-1";let i=document.createElement("button");i.textContent="Cancel",i.className="p-button",s.appendChild(a),s.appendChild(i);let n=!1,o=new l(s,{width:"300px",showFullscreenButton:!1,closeOnClickOutside:!1,onClose:()=>{n||t(null)}});a.addEventListener("click",()=>{n=!0,o.close(),t(!0)}),i.addEventListener("click",()=>{n=!0,o.close(),t(!1)}),setTimeout(()=>a.focus(),0)})}static async layoutCreationDialog(e){return new Promise(t=>{let s=document.createElement("div");s.style.padding="10px";let a=document.createElement("h3");a.textContent="Create New View Preset",a.style.marginTop="0",a.style.textAlign="center",s.appendChild(a);let i=document.createElement("input");i.type="text",i.className="p-prompt",i.placeholder="Enter view preset name...",i.style.width="100%",i.style.marginBottom="20px",i.style.padding="8px",s.appendChild(i);let n=document.createElement("div"),o=document.createElement("div");o.style.marginBottom="10px";let c=document.createElement("input");c.type="radio",c.name="layout-mode",c.value="clone",c.checked=!0,c.id="mode-clone";let r=document.createElement("label");r.htmlFor="mode-clone",r.textContent=" Clone Current View",r.style.fontWeight="bold";let d=document.createElement("p");d.textContent="Copies all settings: positions, filters, query, and bubble groups",d.style.fontSize="12px",d.style.color="#666",d.style.marginLeft="20px",d.style.marginTop="5px",d.style.marginBottom="0",o.appendChild(c),o.appendChild(r),o.appendChild(d),n.appendChild(o);let h=document.createElement("div");h.style.marginBottom="10px";let m=document.createElement("input");m.type="radio",m.name="layout-mode",m.value="template",m.id="mode-template";let f=document.createElement("label");f.htmlFor="mode-template",f.textContent=" Create from Template",f.style.fontWeight="bold";let E=document.createElement("select");E.id="template-type-select",E.className="p-prompt",E.style.width="150px",E.style.marginLeft="10px",E.style.display="none";for(let[B,P]of Object.entries(e)){let M=document.createElement("option");M.value=B,M.textContent=B.charAt(0).toUpperCase()+B.slice(1),E.appendChild(M)}let C=document.createElement("p");C.textContent="Starts fresh with selected layout algorithm and default filters",C.style.fontSize="12px",C.style.color="#666",C.style.marginLeft="20px",C.style.marginTop="5px",C.style.marginBottom="10px",h.appendChild(m),h.appendChild(f),h.appendChild(E),h.appendChild(C),n.appendChild(h),s.appendChild(n);let w=()=>{E.style.display=m.checked?"inline-block":"none"};c.addEventListener("change",w),m.addEventListener("change",w);let D=document.createElement("div");D.style.display="flex",D.style.justifyContent="flex-end",D.style.gap="10px",D.style.marginTop="25px";let L=document.createElement("button");L.textContent="Cancel",L.className="p-button",L.style.backgroundColor="#878996",L.style.color="white";let v=document.createElement("button");v.textContent="Create",v.className="p-button",v.style.backgroundColor="#015C0C",v.style.color="white",D.appendChild(L),D.appendChild(v),s.appendChild(D);let F=!1,A=new l(s,{width:"400px",showFullscreenButton:!1,closeOnClickOutside:!1,onClose:()=>{F||t(null)}}),x=()=>{let B=i.value.trim();if(!B){alert("Please enter a name for the layout");return}F=!0,A.close();let P=c.checked?"clone":"template",M={name:B,mode:P,templateType:P==="template"?E.value:null};t(M)};v.addEventListener("click",x),L.addEventListener("click",()=>{F=!0,A.close(),t(null)}),i.addEventListener("keypress",B=>{B.key==="Enter"&&x()}),setTimeout(()=>i.focus(),0)})}init(e){this.createPopup(e),this.setupCloseHandlers(),this.options.showFullscreenButton&&this.setupFullscreenButton(),this.show()}createPopup(e){this.popup=document.createElement("div"),this.popup.className="p-custom";let t=document.createElement("div");t.className="p-header",this.options.showFullscreenButton&&(this.fullscreenBtn=document.createElement("button"),this.fullscreenBtn.className="p-icon",this.fullscreenBtn.innerHTML="\u26F6",this.fullscreenBtn.title="Toggle fullscreen",t.appendChild(this.fullscreenBtn)),this.closeBtn=document.createElement("button"),this.closeBtn.className="p-icon",this.closeBtn.innerHTML="\xD7",this.closeBtn.title="Close popup",t.appendChild(this.closeBtn);let s=document.createElement("div");s.className="popup-content",s.style.marginTop="20px",typeof e=="string"?s.innerHTML=e:s.appendChild(e),this.popup.appendChild(t),this.popup.appendChild(s),this.overlay=document.createElement("div"),this.overlay.className="p-overlay",document.body.appendChild(this.overlay),document.body.appendChild(this.popup),this.popup.style.width=this.options.width,this.options.height!=="auto"&&(this.popup.style.height=this.options.height),this.options.lineHeight!=="normal"&&(this.popup.style.lineHeight=this.options.lineHeight),this.setPosition(),this.storeOriginalStyles()}storeOriginalStyles(){this.originalStyles={width:this.popup.style.width,height:this.popup.style.height,top:this.popup.style.top,left:this.popup.style.left,transform:this.popup.style.transform,borderRadius:this.popup.style.borderRadius,margin:this.popup.style.margin,position:this.popup.style.position}}setupFullscreenButton(){this.fullscreenBtn.addEventListener("click",()=>this.toggleFullscreen())}toggleFullscreen(){this.isFullscreen=!this.isFullscreen,this.isFullscreen?(this.popup.style.width="100%",this.popup.style.height="100%",this.popup.style.top="0",this.popup.style.left="0",this.popup.style.transform="none",this.popup.style.position="fixed",this.fullscreenBtn.innerHTML="\u29C9",this.fullscreenBtn.title="Exit fullscreen"):(Object.assign(this.popup.style,this.originalStyles),this.fullscreenBtn.innerHTML="\u26F6",this.fullscreenBtn.title="Fullscreen")}setPosition(){this.isFullscreen||(this.options.position==="center"?(this.popup.style.top="50%",this.popup.style.left="50%",this.popup.style.transform="translate(-50%, -50%)"):(this.popup.style.top=`${this.options.position.y}px`,this.popup.style.left=`${this.options.position.x}px`,this.popup.style.transform="none"))}setupCloseHandlers(){this.closeBtn.addEventListener("click",()=>this.close()),this.options.closeOnClickOutside&&this.overlay.addEventListener("click",()=>this.close())}show(){this.popup.style.display="block",this.overlay.style.display="block"}close(){this.options.onClose&&this.options.onClose(),this.popup.remove(),this.overlay.remove()}};var le=class{constructor(e){this.cache=e}async handleLayoutChangeLoadingEvent(e,t){await this.cache.ui.showLoading(e,t),this.cache.layoutChanged=!0,await this.cache.gcm.decideToRenderOrDraw(),this.cache.ui.debug(`Graph updated after layout event with message ${e} ${t}`)}async changeLayout(){this.cache.data.selectedLayout=document.getElementById("selectView").value,await this.cache.ui.showLoading("Switching View",this.cache.data.selectedLayout),await new Promise(t=>requestAnimationFrame(t));let e=this.cache.data.layouts[this.cache.data.selectedLayout];await this.applyLayoutStyles(e),this.cache.ui.buildFilterUI(),this.cache.qm.updateQueryTextArea(),e.query?this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY=!0:this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY=!1,this.cache.ui.updateFilterLockState(),this.cache.ui.clearActivePropsCacheOnLayoutChange(),await this.cache.metrics.updateMetricUI(),this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED=!1,await this.cache.gcm.decideToRenderOrDraw(!0),this.cache.bubbleSetChanged=!0,await this.cache.bs.updateBubbleSetIfChanged(),this.cache.bs.updateManualGroupStatus(),this.cache.bs.updateManualGroupButtonState(),this.cache.bs.refreshBubbleStyleElements(),this.cache.ui.info(`Switched to view: ${this.cache.data.selectedLayout}`)}async applyLayoutStyles(e){let t=[];for(let[a,i]of this.cache.nodeRef.entries()){let n,o=i.type;if(e.nodeStyles&&e.nodeStyles.has(a)){let r=e.nodeStyles.get(a);r.style?n=structuredClone(r.style):n=structuredClone(r),r.type!==void 0&&(o=r.type)}else n=structuredClone(i.originalStyle),o=i.originalType||i.type;let c=e.positions.get(a);c&&c.style&&(n.x=c.style.x,n.y=c.style.y),t.push({id:a,type:o,style:n}),i.type=o,i.style=n,this.cache.nodeRef.set(a,i)}t.length>0&&this.cache.graph.updateNodeData(t);let s=[];for(let[a,i]of this.cache.edgeRef.entries()){let n,o=i.type;if(e.edgeStyles&&e.edgeStyles.has(a)){let c=e.edgeStyles.get(a);c.style?n=structuredClone(c.style):n=structuredClone(c),c.type!==void 0&&(o=c.type)}else n=structuredClone(i.originalStyle),o=i.originalType||i.type;s.push({id:a,type:o,style:n}),i.type=o,i.style=n,this.cache.edgeRef.set(a,i)}s.length>0&&this.cache.graph.updateEdgeData(s)}async addLayout(){let e=await Y.layoutCreationDialog(this.cache.DEFAULTS.LAYOUT_INTERNALS);if(!e){this.cache.ui.info("Creating view canceled");return}if(Object.keys(this.cache.data.layouts).includes(e.name)){this.cache.ui.error(`View with name "${e.name}" already exists.`);return}let s=this.cache.data.layouts[this.cache.data.selectedLayout];if(e.mode==="clone"){let a=new Map;for(let[n,o]of this.cache.nodeRef.entries())a.set(n,{type:o.type,style:structuredClone(o.style)});let i=new Map;for(let[n,o]of this.cache.edgeRef.entries())i.set(n,{type:o.type,style:structuredClone(o.style)});this.cache.data.layouts[e.name]={internals:null,positions:structuredClone(s.positions),filters:structuredClone(s.filters),isCustom:!0,nodeStyles:a,edgeStyles:i,bubbleSetStyle:structuredClone(s.bubbleSetStyle)},s.query&&(this.cache.data.layouts[e.name].query=s.query);for(let n of this.cache.bs.traverseBubbleSets())this.cache.data.layouts[e.name][`${n}Props`]=structuredClone(s[`${n}Props`]),this.cache.data.layouts[e.name][`${n}ManualMembers`]=structuredClone(s[`${n}ManualMembers`]||new Set);this.cache.ui.info(`Cloned view: ${e.name}`),this.cache.uiComponents.buildDropdownOptions(),document.getElementById("selectView").value=e.name,await this.cache.lm.changeLayout()}else{this.cache.ui.info(`Creating template view: ${e.name} (${e.templateType})`),this.cache.data.layouts[e.name]={internals:null,positions:new Map,filters:structuredClone(this.cache.data.filterDefaults),isCustom:!0,query:void 0,nodeStyles:new Map,edgeStyles:new Map,bubbleSetStyle:structuredClone(this.cache.DEFAULTS.BUBBLE_GROUP_STYLE)};for(let a of this.cache.bs.traverseBubbleSets())this.cache.data.layouts[e.name][`${a}Props`]=new Set,this.cache.data.layouts[e.name][`${a}ManualMembers`]=new Set;this.cache.uiComponents.buildDropdownOptions(),document.getElementById("selectView").value=e.name,this.cache.data.selectedLayout=e.name,await this.cache.ui.showLoading("Creating View",`Applying ${e.templateType} layout`),this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY=!1,await this.cache.sm.toggleSelectionForAllNodes(!1),await this.cache.sm.toggleSelectionForAllEdges(!1),this.cache.ui.buildFilterUI(),this.cache.qm.updateQueryTextArea(),this.cache.ui.updateFilterLockState(),this.cache.ui.clearActivePropsCacheOnLayoutChange(),await this.cache.bs.clearBubbleSetInstanceMembers(),this.cache.lastBubbleSetMembers.clear();for(let a of this.cache.bs.traverseBubbleSets())this.cache.lastBubbleSetMembers.set(a,new Set);await this.cache.gcm.preRenderEvent(),await this.cache.graph.setLayout({type:e.templateType,...this.cache.DEFAULTS.LAYOUT_INTERNALS[e.templateType]}),await this.cache.graph.layout(),await this.cache.lm.persistNodePositions(),this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED=!1,await this.cache.gcm.decideToRenderOrDraw(!0),this.cache.bubbleSetChanged=!0,await this.cache.bs.updateBubbleSetIfChanged(),await this.cache.metrics.updateMetricUI(),this.cache.bs.updateManualGroupStatus(),this.cache.bs.updateManualGroupButtonState(),this.cache.bs.refreshBubbleStyleElements(),await this.cache.ui.hideLoading(),this.cache.ui.info(`Created template view: ${e.name} (${e.templateType})`)}}async removeSelectedLayout(){if(this.cache.data.selectedLayout==="Default"){this.cache.ui.error("Cannot delete the Default layout.");return}if(!await Y.confirm(`Are you sure you want to delete view "${this.cache.data.selectedLayout}"?`))return!1;delete this.cache.data.layouts[this.cache.data.selectedLayout],this.cache.uiComponents.buildDropdownOptions(),document.getElementById("selectView").value="Default",await this.changeLayout()}async getPos(){let e=await this.cache.graph.getZoom(),t=await this.cache.graph.getPosition();console.log(`Zoom: ${e}`),console.log(`Position: ${t}`)}async layoutSelectedNodes(e){let t=this.cache;if(t.selectedNodes.length===0)return;async function s(B){for(let P of await t.sm.getSelectedNodes()){let M=P.style.x,G=P.style.y;P.style.x=h+(M-h)*B,P.style.y=m+(G-m)*B}}async function a(B){let P=t.selectedNodes.length,M=2*Math.PI/P,G=0;for(let V of await t.sm.getSelectedNodes()){let U=G*M;V.style.x=h+B*Math.cos(U),V.style.y=m+B*Math.sin(U),G++}}async function i(B){let p=await t.sm.getSelectedNodes();for(let b of p)b.style.x=Math.random()*1e3-500,b.style.y=Math.random()*1e3-500;let y=2;for(let b=0;b<B;b++){for(let S=0;S<p.length;S++)for(let N=S+1;N<p.length;N++){let T=p[N].style.x-p[S].style.x,I=p[N].style.y-p[S].style.y,R=Math.sqrt(T*T+I*I)+.01,k=2e4/(R*R),O=k*(T/R),q=k*(I/R);p[S].style.x-=O*y,p[S].style.y-=q*y,p[N].style.x+=O*y,p[N].style.y+=q*y}for(let S of await t.graph.getEdgeData()){let{source:N,target:T}=S;if(t.selectedNodes.includes(N)&&t.selectedNodes.includes(T)){let I=p.find(k=>k.id===N),R=p.find(k=>k.id===T);if(I&&R){let k=R.style.x-I.style.x,O=R.style.y-I.style.y,q=Math.sqrt(k*k+O*O)+.01,H=(q-300)*.005,W=H*(k/q),Te=H*(O/q);I.style.x+=W*y,I.style.y+=Te*y,R.style.x-=W*y,R.style.y-=Te*y}}}for(let S of p)S.style.x+=-S.style.x*1e-5*y,S.style.y+=-S.style.y*1e-5*y;for(let S of p){let N=Math.sqrt(S.style.x*S.style.x+S.style.y*S.style.y);if(N>50){let T=50/N;S.style.x*=T,S.style.y*=T}}y*=.98}}async function n(){let B=await t.sm.getSelectedNodes();if(B.length===0)return;let P=B.length,M=Math.ceil(Math.sqrt(P)),G=100,V=Math.ceil(P/M),U=(M-1)*G,g=(V-1)*G,u=0;for(let p=0;p<V;p++)for(let y=0;y<M&&!(u>=P);y++){let b=B[u];b.style.x=h-U/2+y*G,b.style.y=m-g/2+p*G,u++}}async function o(){let B=await t.sm.getSelectedNodes();if(B.length<2)return;let P=D,M=L,G=v,V=F,U=Math.random()*2*Math.PI,[g,u]=c(B,2);g.style.x=P+G/2*Math.cos(U)-V/2*Math.sin(U),g.style.y=M+G/2*Math.sin(U)+V/2*Math.cos(U),u.style.x=P-G/2*Math.cos(U)+V/2*Math.sin(U),u.style.y=M-G/2*Math.sin(U)-V/2*Math.cos(U);for(let p of B){if(p===g||p===u)continue;let y=Math.random()-.5,b=Math.random()-.5,S=y*G,N=b*V;p.style.x=P+S*Math.cos(U)-N*Math.sin(U),p.style.y=M+S*Math.sin(U)+N*Math.cos(U)}}function c(B,P){let M=[...B];for(let G=M.length-1;G>0;G--){let V=Math.floor(Math.random()*(G+1));[M[G],M[V]]=[M[V],M[G]]}return M.slice(0,P)}let r=await t.sm.getSelectedNodes();if(r.length==0)return;let d=r.map(B=>({x:B.style.x,y:B.style.y})),h=d.reduce((B,P)=>B+P.x,0)/d.length,m=d.reduce((B,P)=>B+P.y,0)/d.length,f=Math.min(...d.map(B=>B.x)),E=Math.max(...d.map(B=>B.x)),C=Math.min(...d.map(B=>B.y)),w=Math.max(...d.map(B=>B.y)),D=(f+E)/2,L=(C+w)/2,v=E-f,F=w-C,A={shrink:"Shrink selected nodes toward their center",expand:"Expand selected nodes outward from their center",circle:"Arrange selected nodes evenly in a circular layout",force:"Apply a force-directed layout to selected nodes",grid:"Align selected nodes in a uniform grid layout",random:"Distribute selected nodes randomly while preserving the original layout bounds"};await{shrink:()=>s(.5),expand:()=>s(2),circle:()=>a(100),force:()=>i(150),grid:()=>n(),random:()=>o()}[e](),await this.persistNodePositions(),await this.handleLayoutChangeLoadingEvent(e,A[e])}async getPositions(){let e=[];for(let t of await this.cache.graph.getNodeData())e.push({id:t.id,style:{x:t.style.x,y:t.style.y}});return e}async debugPositions(){for(let e of await this.getPositions())this.cache.ui.debug(`${e.id} | ${e.style.x} | ${e.style.y}`)}async persistNodePositions(){this.cache.ui.debug("PERSISTING NODE POSITIONS ..");for(let e of await this.cache.graph.getNodeData())this.cache.data.layouts[this.cache.data.selectedLayout].positions.set(e.id,{style:{x:e.style.x,y:e.style.y}})}createDefaultLayout(e,t=!1){let s={layoutType:e,internals:null,positions:new Map,filters:structuredClone(this.cache.data.filterDefaults),isCustom:!0,query:void 0,nodeStyles:new Map,edgeStyles:new Map,bubbleSetStyle:structuredClone(this.cache.DEFAULTS.BUBBLE_GROUP_STYLE)};if(t){for(let[a,i]of this.cache.nodePositionsFromExcelImport)s.positions.set(a,{style:{x:i.x,y:i.y}});s.layoutType=this.cache.DEFAULTS.LAYOUT}for(let a of this.cache.bs.traverseBubbleSets())s[`${a}Props`]=new Set;return s}async nodePositionsAreInSync(){for(let e of await this.cache.graph.getNodeData()){let t=this.cache.data.layouts[this.cache.data.selectedLayout].positions?.get(e.id);if(t&&(e.style.x!==t.style.x||e.style.y!==t.style.y))return!1}return!0}};var re=class{constructor(e){this.cache=e}async selectNodes(e){await this.selectElements(e,this.cache.nodeRef)}async selectEdges(e){await this.selectElements(e,this.cache.edgeRef)}async selectElements(e,t,s="selected"){let a={},i=new Set(e);for(let n of t.values()){let o=n.id,c=await this.cache.graph.getElementState(o),r=i.has(o);r&&!c.includes(s)&&c.push(s),!r&&c.includes(s)&&c.splice(c.indexOf(s),1),a[o]=c}await this.cache.graph.setElementState(a)}async updateSelectedState(e,t){await this.cache.ui.showLoading(t?"Selecting":"Deselecting",`Modifying selection of ${e.length} elements`),await new Promise(a=>requestAnimationFrame(a));let s=[];for(let a of e){let i=this.cache.graph.getElementData(a.id);this.updateElementSelectedState(i,t),s.push(i)}await this.cache.graph.updateData(s),await this.cache.graph.render(),await this.cache.graph.draw(),this.cache.bs.updateManualGroupButtonState(),await this.cache.ui.hideLoading(),await new Promise(a=>requestAnimationFrame(a))}async getSelectedNodes(){return await this.cache.graph.getNodeData().filter(e=>e.states?.includes("selected"))}updateElementSelectedState(e,t){e.states||(e.states=[]),t&&!e.states.includes("selected")&&e.states.push("selected"),!t&&e.states.includes("selected")&&e.states.splice(e.states.indexOf("selected"),1)}async toggleSelectionForAllNodes(e){let t=await this.cache.graph.getNodeData();await this.updateSelectedState(t,e)}async toggleSelectionForAllEdges(e){let t=await this.cache.graph.getEdgeData();await this.updateSelectedState(t,e)}async syncSelectionCacheAndElementStates(){let e=this.cache.selectionMemory[this.cache.selectedMemoryIndex];this.cache.selectedNodes=e.nodes,this.cache.selectedEdges=e.edges;for(let t of this.cache.graph.getNodeData())this.updateElementSelectedState(t,e.nodes.includes(t.id));for(let t of this.cache.graph.getEdgeData())this.updateElementSelectedState(t,e.edges.includes(t.id));await this.cache.graph.render(),this.cache.bs.updateManualGroupButtonState()}undoSelection(){this.cache.selectedMemoryIndex>0?(this.cache.selectedMemoryIndex--,this.syncSelectionCacheAndElementStates()):this.cache.ui.warning("Cannot undo!")}redoSelection(){this.cache.selectionMemory.length>this.cache.selectedMemoryIndex+1?(this.cache.selectedMemoryIndex++,this.syncSelectionCacheAndElementStates()):this.cache.ui.warning("Cannot redo!")}async addNodeOrEdgeIDsToSelectionWrapper(e,t){let s=t?!document.getElementById("selectByNodeIDsSwitch").checked:!document.getElementById("selectByEdgeIDsSwitch").checked,a=e?e.split(","):[];await this.addNodeOrEdgeIDsToSelection(a,t,s)}async addNodeOrEdgeLabelsToSelectionWrapper(e,t){let a=(e?e.split(","):[]).flatMap(n=>{let o=t?this.cache.nodeLabelToNodeIDs.get(n):this.cache.edgeLabelToEdgeIDs.get(n);return o?Array.from(o):[]}),i=t?!document.getElementById("selectByNodeLabelsSwitch").checked:!document.getElementById("selectByEdgeLabelsSwitch").checked;await this.addNodeOrEdgeIDsToSelection(a,t,i)}async addNodeOrEdgeIDsToSelection(e,t,s){let a=t?"Node":"Edge",i=t?this.cache.nodeIDsToBeShown:this.cache.edgeIDsToBeShown,n=t?this.cache.nodeRef.keys().toArray():this.cache.edgeRef.keys().toArray(),o=t?this.cache.selectedNodes:this.cache.selectedEdges,c=t?this.cache.nodeRef:this.cache.edgeRef;for(let r of e){if(!n.includes(r)){this.cache.ui.error(`${a} with ID: '${r}' does not exist!`);continue}if(!i.has(r)){this.cache.ui.warning(`Cannot update selection of ${a} with ID: '${r}' as it is not visible.`);continue}let d=[];(!o.includes(r)||!s)&&d.push(c.get(r)),d.length>0&&await this.updateSelectedState(d,s)}}async toggleSelectionByNeighbors(e){let t=[],s=[],a=[],i=[],n=c=>{let r=0;for(let d of this.cache.nodeIDToEdgeIDs.get(c)||[]){let h=this.cache.edgeRef.get(d);if(!h)continue;let m=h.source===c?h.target:h.source;if(this.cache.selectedNodes.includes(m)&&(r++,r>1))return!1}return r<=1},o=async()=>{t.length>0&&await this.updateSelectedState(t,!0),s.length>0&&await this.updateSelectedState(s,!1),a.length>0&&await this.updateSelectedState(a,!0),i.length>0&&await this.updateSelectedState(i,!1)};switch(e){case"expand-edges":for(let c of this.cache.selectedNodes)for(let r of this.cache.nodeIDToEdgeIDs.get(c)||[])t.push(this.cache.edgeRef.get(r));break;case"reduce-edges":for(let c of this.cache.selectedEdges){let r=this.cache.edgeRef.get(c);this.cache.selectedNodes.includes(r.source)&&this.cache.selectedNodes.includes(r.target)?t.push(r):s.push(r)}break;case"expand-neighbors":for(let c of this.cache.selectedNodes)for(let r of this.cache.nodeIDToEdgeIDs.get(c)||[]){let d=this.cache.edgeRef.get(r);t.push(d),a.push(this.cache.nodeRef.get(d.source)),a.push(this.cache.nodeRef.get(d.target))}break;case"reduce-neighbors":for(let c of this.cache.selectedNodes.filter(n)){i.push(this.cache.nodeRef.get(c));for(let r of this.cache.nodeIDToEdgeIDs.get(c)||[])s.push(this.cache.edgeRef.get(r))}break;default:break}await o()}updateSelectionCache(){let{selectedNodes:e,selectedEdges:t,selectionMemory:s,selectedMemoryIndex:a}=cache;s.length===0&&(s.push({nodes:[],edges:[]}),this.cache.selectedMemoryIndex=0);let i=s[a],n=!_.arraysAreEqual(i.nodes,e),o=!_.arraysAreEqual(i.edges,t);(n||o)&&(a<s.length-1&&s.splice(a+1),s.length===this.cache.CFG.MAX_SELECTION_MEMORY&&(s.shift(),this.cache.selectedMemoryIndex=s.length-1),s.push({nodes:[...e],edges:[...t]}),this.cache.selectedMemoryIndex=s.length-1)}updateEnabledStateUndoRedoSelectionButtons(){let{selectionMemory:e,selectedMemoryIndex:t}=this.cache,s=t>0,a=t<e.length-1;this.cache.ui.toggleDisabledElements(["undoSelectionBtn"],s),this.cache.ui.toggleDisabledElements(["redoSelectionBtn"],a)}async updateSelectedNodesAndEdges(){this.cache.selectedNodes=await this.cache.graph.getNodeData().filter(o=>o.states?.includes("selected")&&this.cache.nodeIDsToBeShown.has(o.id)).map(o=>o.id),this.cache.selectedEdges=await this.cache.graph.getEdgeData().filter(o=>o.states?.includes("selected")&&this.cache.edgeIDsToBeShown.has(o.id)).map(o=>o.id);let e=this.cache.selectedNodes?.length||0,t=this.cache.selectedEdges?.length||0;document.getElementById("selectedNodes").textContent=`${e}`,document.getElementById("selectedEdges").textContent=`${t}`;let s=e>0,a=t>0,i=s||a,n=e>1;i||this.cache.selectionMemory.length>1?document.getElementById("selectedElementsContainer").classList.remove("hidden"):document.getElementById("selectedElementsContainer").classList.add("hidden"),this.cache.ui.toggleStyleElementsThatRequireAtLeastOneSelectedNode(s),this.cache.ui.toggleStyleElementsThatRequireAtLeastOneSelectedEdge(a),this.cache.ui.toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(i),this.cache.ui.toggleStyleElementsThatRequireMoreThanOneSelectedNode(n),this.updateSelectionCache(),this.updateEnabledStateUndoRedoSelectionButtons(),typeof this.cache.dataTable<"u"&&this.cache.dataTable.fileData&&(this.cache.dataTable.currentTab==="selectedNodes"||this.cache.dataTable.currentTab==="selectedEdges"||this.cache.dataTable.currentTab==="selectedElements")&&this.cache.dataTable.refreshCurrentTab()}};var ce=class{constructor(e){this.cache=e}async resetStyleForSelectedElements(){for(let e of this.cache.nodeRef.values())this.cache.selectedNodes.includes(e.id)&&(e.originalType!==void 0&&(e.type=e.originalType),e.originalStyle!==void 0&&(e.style=structuredClone(e.originalStyle)));for(let e of this.cache.edgeRef.values())this.cache.selectedEdges.includes(e.id)&&(e.originalType!==void 0&&(e.type=e.originalType),e.originalStyle!==void 0&&(e.style=structuredClone(e.originalStyle)));await this.handleStyleChangeLoadingEvent("Style","Resetting Styles")}async handleStyleChangeLoadingEvent(e,t){await this.cache.ui.showLoading(e,t),await new Promise(s=>requestAnimationFrame(s)),this.cache.styleChanged=!0,await this.cache.gcm.decideToRenderOrDraw(),this.cache.ui.debug(`Graph updated after style event with message ${e} ${t}`)}getNodeStyleOrDefaults(e){let t=e.style??{},s=this.cache.DEFAULTS.NODE,a={type:e.type??s.TYPE,style:{size:t.size??s.SIZE,fill:t.fill??s.FILL_COLOR,stroke:t.stroke??s.STROKE_COLOR,lineWidth:t.lineWidth??s.LINE_WIDTH,badge:t.badge??!1,badges:t.badges??[],badgePalette:t.badgePalette??[],badgeFontSize:t.badgeFontSize??s.BADGE.FONT_SIZE}};if(!this.cache.CFG.HIDE_LABELS||t.label){let i=this.cache.DEFAULTS.NODE.LABEL;Object.assign(a.style,{label:!0,labelText:t.labelText,labelBackgroundFill:t.labelBackgroundFill??i.BACKGROUND_COLOR,labelBackground:t.labelBackground??i.BACKGROUND,labelBackgroundRadius:t.labelBackgroundRadius??i.BACKGROUND_RADIUS,labelCursor:t.labelCursor??i.CURSOR,labelFill:t.labelFill??i.FOREGROUND_COLOR,labelFontSize:t.labelFontSize??i.FONT_SIZE,labelLeading:t.labelLeading??i.LINE_SPACING,labelMaxLines:t.labelMaxLines??i.MAX_LINES,labelMaxWidth:t.labelMaxWidth??i.MAX_WIDTH,labelOffsetX:t.labelOffsetX??i.OFFSET_X,labelOffsetY:t.labelOffsetY??i.OFFSET_Y,labelPadding:t.labelPadding??i.PADDING,labelPlacement:t.labelPlacement??i.PLACEMENT,labelTextAlign:t.labelTextAlign??i.TEXT_ALIGN,labelWordWrap:t.labelWordWrap??i.WORD_WRAP,labelZIndex:t.labelZIndex??i.Z_INDEX})}return a}getEdgeStyleOrDefaults(e){let t=e.style??{},s=this.cache.DEFAULTS.EDGE,a={type:e.type??s.TYPE,style:{startArrow:t.startArrow??s.ARROWS.START,startArrowSize:t.startArrowSize??s.ARROWS.START_SIZE,startArrowType:t.startArrowType??s.ARROWS.START_TYPE,endArrow:t.endArrow??s.ARROWS.END,endArrowSize:t.endArrowSize??s.ARROWS.END_SIZE,endArrowType:t.endArrowType??s.ARROWS.END_TYPE,lineWidth:t.lineWidth??s.LINE_WIDTH,lineDash:t.lineDash??s.LINE_DASH,stroke:t.stroke??s.COLOR,halo:t.halo??s.HALO.ENABLED,haloStroke:t.haloStroke??s.HALO.COLOR,haloLineWidth:t.haloLineWidth??s.HALO.WIDTH}};if(!this.cache.CFG.HIDE_LABELS||t.label){let i=this.cache.DEFAULTS.EDGE.LABEL;Object.assign(a.style,{label:!0,labelAutoRotate:t.labelAutoRotate??i.AUTO_ROTATE,labelBackground:t.labelBackground??i.BACKGROUND,labelBackgroundFill:t.labelBackgroundFill??i.BACKGROUND_COLOR,labelBackgroundCursor:t.labelBackgroundCursor??i.BACKGROUND_CURSOR,labelBackgroundFillOpacity:t.labelBackgroundFillOpacity??i.BACKGROUND_FILL_OPACITY,labelBackgroundRadius:t.labelBackgroundRadius??i.BACKGROUND_RADIUS,labelBackgroundStrokeOpacity:t.labelBackgroundStrokeOpacity??i.BACKGROUND_STROKE_OPACITY,labelCursor:t.labelCursor??i.CURSOR,labelFill:t.labelFill??i.FOREGROUND_COLOR,labelFillOpacity:t.labelFillOpacity??i.FILL_OPACITY,labelFontSize:t.labelFontSize??i.FONT_SIZE,labelFontWeight:t.labelFontWeight??i.FONT_WEIGHT,labelMaxLines:t.labelMaxLines??i.MAX_LINES,labelMaxWidth:t.labelMaxWidth??i.MAX_WIDTH,labelOffsetX:t.labelOffsetX??i.OFFSET_X,labelOffsetY:t.labelOffsetY??i.OFFSET_Y,labelOpacity:t.labelOpacity??i.OPACITY,labelPlacement:t.labelPlacement??i.PLACEMENT,labelPadding:t.labelPadding??i.PADDING,labelText:t.labelText??i.TEXT,labelTextAlign:t.labelTextAlign??i.TEXT_ALIGN,labelTextBaseLine:t.labelTextBaseLine??i.TEXT_BASE_LINE,labelTextOverflow:t.labelTextOverflow??i.TEXT_OVERFLOW,labelVisibility:t.labelVisibility??i.VISIBILITY,labelWordWrap:t.labelWordWrap??i.WORD_WRAP})}return a}};var Be,de=class{constructor(e,t="dataTableContainer"){this.containerId=t,this.tableData=[],this.headers=[],this.currentEditingCell=null,this.onChangeCallback=null,this.sortState={},this.originalOrder=[],this.headerIndexMap=new Map,this.currentTab="selectedNodes",this.fileData=null,this.tableDataBackup=[],this.pendingChanges=new Map,this.onPendingChangesCallback=null,this.cache=e}init(){let e=document.getElementById(this.containerId);if(!e){this.cache.ui.error(`Container with ID '${this.containerId}' not found`);return}e.innerHTML=`
+    `;
+      if (this.dom.outputLabel) {
+        this.dom.outputLabel.innerHTML = `Set <strong>${this.propertyName || "output"}</strong> range to:`;
+      }
+      this.dom.rangeConfig.style.display = "block";
+      this.dom.applyButton.classList.remove("disabled");
+    }
+    apply() {
+      const dropdown = this.element.querySelector(".picker-dropdown");
+      const property = dropdown.value;
+      if (!property) {
+        this.cancel();
+        return;
+      }
+      const selectedElements = this.elementType === "nodes" ? this.cache.selectedNodes : this.cache.selectedEdges;
+      const elementRef = this.elementType === "nodes" ? this.cache.nodeRef : this.cache.edgeRef;
+      const metricSource = this.getMetricSource(property);
+      const scaleMap = /* @__PURE__ */ new Map();
+      Array.from(selectedElements).forEach((elementId) => {
+        const element = elementRef.get(elementId);
+        const value = metricSource ? metricSource.values.get(elementId) : element?.featureValues.get(property);
+        if (value !== void 0 && !isNaN(value)) {
+          const normalizedValue = (value - this.minValue) / (this.maxValue - this.minValue);
+          const scaledValue = this.minOutput + normalizedValue * (this.maxOutput - this.minOutput);
+          scaleMap.set(elementId, scaledValue);
+        }
+      });
+      this.resolvePromise(scaleMap);
+      this.close();
+    }
+    cancel() {
+      this.resolvePromise(null);
+      this.close();
+    }
+    close() {
+      this.element?.remove();
+      this.element = null;
+    }
+    getMetricSource(property) {
+      if (!property || !property.startsWith(this.metricValuePrefix)) return null;
+      const metricId = property.slice(this.metricValuePrefix.length);
+      return this.cache.metrics.getMetricScaleValues(metricId);
+    }
+  };
+  function replaceNumericScale(obj, elemID, scaleMap) {
+    if (typeof obj !== "object" || obj === null) {
+      return obj;
+    }
+    for (let key in obj) {
+      const value = obj[key];
+      if (value === "set_numeric_scale") {
+        if (scaleMap.has(elemID)) {
+          obj[key] = scaleMap.get(elemID);
+        } else {
+          delete obj[key];
+        }
+      } else if (typeof value === "object") {
+        replaceNumericScale(value, elemID, scaleMap);
+      }
+    }
+    return obj;
+  }
+
+  // src/graph/core.js
+  var {
+    Graph,
+    NodeEvent,
+    EdgeEvent,
+    GraphEvent,
+    CanvasEvent,
+    CommonEvent,
+    WindowEvent,
+    Layout,
+    BaseLayout,
+    ExtensionCategory,
+    register
+  } = G6;
+  var GraphCoreManager = class {
+    constructor(cache3) {
+      this.cache = cache3;
+      this.BEHAVIOURS = {
+        DRAG_ELEMENT: {
+          type: "drag-element",
+          cursor: { default: "default", grab: "default", grabbing: "default" },
+          shadow: true,
+          shadowFill: "#C33D35",
+          shadowFillOpacity: 0.5,
+          shadowStroke: "#C33D35",
+          shadowStrokeOpacity: 1
+        },
+        DRAG_CANVAS: {
+          type: "drag-canvas",
+          key: "drag-canvas",
+          animation: false
+        },
+        ZOOM_CANVAS: {
+          type: "zoom-canvas",
+          key: "zoom-canvas",
+          animation: false
+        },
+        HOVER_ACTIVATE: {
+          type: "hover-activate",
+          enable: (event) => {
+            return event.targetType === "node" || event.targetType === "edge";
+          },
+          degree: 1,
+          state: "highlight",
+          inactiveState: "dim"
+        },
+        LASSO_SELECT: {
+          type: "lasso-select",
+          key: "lasso-select",
+          trigger: ["drag"],
+          style: {
+            fill: "#C33D35",
+            fillOpacity: 0.3,
+            stroke: "#C33D35"
+          },
+          enable: (event) => {
+            this.cache.ui.debug("LASSO CANVAS CLICK");
+            if (!this.cache.CFG.APPLY_BUBBLE_SET_HOTFIX) return true;
+            const selected = this.cache.graph.getNodeData().filter((n) => n.states?.includes("selected"));
+            if (selected.length !== 0) {
+              this.cache.ui.debug("PREVENTING LASSO DESELECT EVENT BY REMOVING CANVAS CLICK EVENT");
+              const eventHandler = this.cache.graph.getEvents()["canvas:click"];
+              this.cache.graph.off("canvas:click");
+              setTimeout(() => {
+                this.cache.ui.debug("RESTORING CANVAS CLICK EVENT");
+                this.cache.graph.on("canvas:click", eventHandler);
+              }, 1e3);
+              return false;
+            }
+            return true;
+          }
+        },
+        CLICK_SELECT: {
+          type: "click-select",
+          key: "click-select",
+          multiple: true,
+          trigger: ["shift"]
+        }
+      };
+    }
+    *traverseD4Data(nodeOrEdge) {
+      if (!nodeOrEdge.D4Data) return;
+      for (let section in nodeOrEdge.D4Data) {
+        for (let subsection in nodeOrEdge.D4Data[section]) {
+          for (let prop in nodeOrEdge.D4Data[section][subsection]) {
+            yield [section, subsection, prop, nodeOrEdge.D4Data[section][subsection][prop]];
+          }
+        }
+      }
+    }
+    async decideToRenderOrDraw(forceRender = false) {
+      await this.cache.ui.showLoading("Loading", "Deciding to render or draw ..");
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      if (this.cache.EVENT_LOCKS.QUERY_SELECTION_EVENT) {
+        this.cache.qm.storeQuery();
+      }
+      await this.preRenderEvent();
+      await this.cache.metrics.updateMetricUI();
+      try {
+        if (this.cache.bubbleSetChanged || this.cache.styleChanged || this.cache.layoutChanged || forceRender) {
+          if (this.cache.styleChanged) {
+            await this.cache.ui.showLoading("Loading", "Updating graph ..");
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+            await this.cache.graph.updateData(this.createSimplifiedDataForGraphObject());
+            this.cache.styleChanged = false;
+            this.cache.labelStyleChanged = false;
+          }
+          await this.cache.ui.showLoading("Loading", "Rendering graph ..");
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+          return await this.cache.graph.render();
+        } else {
+          await this.cache.ui.showLoading("Loading", "Redrawing graph ..");
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+          return await this.cache.graph.draw();
+        }
+        if (this.cache.EVENT_LOCKS.QUERY_SELECTION_EVENT) {
+          this.cache.qm.storeQuery();
+          this.cache.EVENT_LOCKS.QUERY_SELECTION_EVENT = false;
+        }
+      } catch (errorMsg) {
+        this.cache.ui.error(errorMsg);
+        return false;
+      } finally {
+        await this.cache.ui.hideLoading();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+      }
+    }
+    async createGraphInstance() {
+      if (this.cache.graph === null) {
+        const behaviors = [
+          this.BEHAVIOURS.DRAG_CANVAS,
+          this.BEHAVIOURS.ZOOM_CANVAS,
+          this.BEHAVIOURS.DRAG_ELEMENT
+        ];
+        if (!this.cache.CFG.DISABLE_HOVER_EFFECT) {
+          behaviors.push(this.BEHAVIOURS.HOVER_ACTIVATE);
+        }
+        const plugins = [
+          {
+            key: "tooltip",
+            type: "tooltip",
+            trigger: "click",
+            enterable: true,
+            getContent: (e, items) => this.cache.toolTips.get(items[0].id)
+          },
+          {
+            key: "minimap",
+            type: "minimap",
+            position: "bottom-left"
+          },
+          ...[...this.cache.bs.traverseBubbleSets()].map((group) => ({
+            key: `bubbleSetPlugin-${group}`,
+            type: "bubble-sets",
+            members: [],
+            avoidMembers: [this.cache.CFG.INVISIBLE_DUMMY_NODE.id],
+            // avoidMembers: [...this.cache.nodeRef.keys()],
+            ...this.cache.data.layouts[this.cache.data.selectedLayout].bubbleSetStyle[group],
+            strokeOpacity: 0,
+            // hide bubble groups initially (1 node persists due to bug)
+            fillOpacity: 0,
+            label: false
+          }))
+        ];
+        this.cache.graph = new Graph({
+          container: "innerGraphContainer",
+          autoFit: false,
+          /* 'view' */
+          animation: false,
+          autoResize: true,
+          padding: 10,
+          data: this.createSimplifiedDataForGraphObject(),
+          node: { state: { selected: { stroke: "#C33D35", lineWidth: 2, halo: true, haloStroke: "#C33D35" }, highlight: { fill: "#C33D35", halo: true, lineWidth: 0 }, dim: { fill: "#E4E3EA" } } },
+          edge: { state: { highlight: { stroke: "#C33D35" }, selected: { halo: true, haloStroke: "#C33D35", haloLineWidth: 6 } } },
+          behaviors,
+          plugins
+        });
+        this.cache.graph.on("node:dragend", async () => {
+          if (this.cache.EVENT_LOCKS.DRAG_END_RUNNING) return;
+          this.cache.ui.debug("DRAG END");
+          this.cache.EVENT_LOCKS.DRAG_END_RUNNING = true;
+          await this.cache.lm.persistNodePositions();
+          this.cache.EVENT_LOCKS.DRAG_END_RUNNING = false;
+        });
+        this.cache.graph.on("beforelayout", async () => {
+          this.cache.ui.debug("BEFORE LAYOUT");
+        });
+        this.cache.graph.on("afterlayout", async () => {
+          if (this.cache.EVENT_LOCKS.AFTER_LAYOUT_RUNNING) return;
+          this.cache.ui.debug("AFTER LAYOUT");
+          this.cache.EVENT_LOCKS.AFTER_LAYOUT_RUNNING = true;
+          const layout2 = this.cache.data.layouts[this.cache.data.selectedLayout];
+          if (layout2.positions.size > 0) {
+            this.cache.graph.updateNodeData(Array.from(layout2.positions, ([id, pos]) => ({
+              id,
+              style: pos.style
+            })));
+            await this.cache.graph.draw();
+          } else if (layout2.layoutType) {
+            await this.cache.lm.persistNodePositions();
+            delete layout2.layoutType;
+            this.cache.ui.debug("Initial layout positions persisted");
+          }
+          this.cache.EVENT_LOCKS.AFTER_LAYOUT_RUNNING = false;
+        });
+        this.cache.graph.on("canvas:click", async (event) => {
+          this.cache.ui.debug("CANVAS CLICK");
+        });
+        this.cache.graph.on("node:click", async (event) => {
+          this.cache.ui.debug("NODE CLICK");
+        });
+        this.cache.graph.on("edge:click", async (event) => {
+          this.cache.ui.debug("EDGE CLICK");
+        });
+        this.cache.graph.on(GraphEvent.BEFORE_DRAW, async (event) => {
+          if (this.cache.EVENT_LOCKS.BEFORE_DRAW_RUNNING) return;
+          this.cache.EVENT_LOCKS.BEFORE_DRAW_RUNNING = true;
+          this.cache.ui.debug("BEFORE DRAW");
+          if (this.cache.EVENT_LOCKS.IS_DESELECTING) {
+            this.cache.ui.debug("BEFORE DRAW DESELECTION EVENT");
+            this.cache.EVENT_LOCKS.IS_DESELECTING = false;
+          }
+          this.cache.EVENT_LOCKS.BEFORE_DRAW_RUNNING = false;
+        });
+        this.cache.graph.on(GraphEvent.AFTER_DRAW, async (event) => {
+          if (this.cache.EVENT_LOCKS.AFTER_DRAW_RUNNING) return;
+          this.cache.EVENT_LOCKS.AFTER_DRAW_RUNNING = true;
+          this.cache.ui.debug("AFTER DRAW");
+          await this.cache.sm.updateSelectedNodesAndEdges();
+          await this.cache.bs.redrawBubbleSets();
+          this.cache.EVENT_LOCKS.AFTER_DRAW_RUNNING = false;
+          await this.cache.ui.hideLoading();
+        });
+        this.cache.graph.on(GraphEvent.AFTER_RENDER, async () => {
+          this.cache.ui.debug("AFTER RENDER");
+          if (this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED) {
+            if (this.cache.EVENT_LOCKS.AFTER_RENDER_RUNNING) return;
+            this.cache.EVENT_LOCKS.AFTER_RENDER_RUNNING = true;
+            await this.cache.sm.updateSelectedNodesAndEdges();
+            await this.cache.bs.redrawBubbleSets();
+            this.cache.EVENT_LOCKS.AFTER_RENDER_RUNNING = false;
+            await this.cache.ui.hideLoading();
+          } else {
+            await this.initialAfterRenderEvent();
+          }
+        });
+        let layout = this.cache.data.layouts[this.cache.data.selectedLayout];
+        if (layout.positions.size === 0 && layout.layoutType) {
+          const internals = this.cache.DEFAULTS.LAYOUT_INTERNALS[layout.layoutType] || {};
+          await this.cache.graph.setLayout({ type: layout.layoutType, ...internals });
+        }
+      }
+    }
+    async initialAfterRenderEvent() {
+      if (this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING) return;
+      try {
+        this.cache.ui.debug("ONCE AFTER RENDER");
+        await this.cache.ui.showLoading("Post-processing", "Post-processing ..");
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING = true;
+        await this.cache.ui.showLoading("Post-processing", "Registering event listeners ..");
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        this.registerHotkeyEvents();
+        this.registerGlobalEventListeners();
+        await this.registerPluginStates();
+        await this.cache.ui.showLoading("Post-processing", "Pre-render event ..");
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        await this.preRenderEvent();
+        await this.cache.ui.showLoading("Post-processing", "Updating metrics UI ..");
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        await this.cache.metrics.updateMetricUI();
+        await this.cache.ui.showLoading("Post-processing", "Finalizing rendering ..");
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        if (this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE) {
+          if (this.cache.nodePositionsFromExcelImport.size !== 0) {
+            this.cache.ui.info(`Created view "${this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME}". Applying ${this.cache.DEFAULTS.LAYOUT} layout to nodes without coordinates ..`);
+          }
+          await this.cache.graph.setLayout({ type: this.cache.DEFAULTS.LAYOUT, ...this.cache.DEFAULTS.LAYOUT_INTERNALS[this.cache.DEFAULTS.LAYOUT] });
+        }
+        this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED = true;
+        await this.cache.graph.render();
+        if (this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE) {
+          this.cache.ui.debug("Initially persisting custom layout ..");
+          await this.cache.lm.persistNodePositions();
+          this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = false;
+        }
+        await this.applyHideDisconnectedState();
+      } catch (errorMsg) {
+        this.cache.ui.error(`Error in initial AFTER_RENDER: ${errorMsg}`);
+        this.cache.ui.error("Graph setup failed. Please check your input data.");
+        await this.cache.ui.hideLoading();
+      } finally {
+        this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING = false;
+      }
+    }
+    async toggleCleanUpDanglingElements(btn) {
+      const shouldEnable = btn.classList.contains("red");
+      const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+      if (shouldEnable) {
+        btn.classList.remove("red");
+        btn.classList.add("green", "highlight");
+        btn.title = "Show all nodes and edges, irrespectively of their connectedness.";
+        btn.textContent = "\u{1F441}";
+        currentLayout.hideDisconnectedNodes = true;
+        await this.hideDanglingElements();
+      } else {
+        btn.classList.remove("green", "highlight");
+        btn.classList.add("red");
+        btn.title = "Hide all nodes and edges that are not connected to any other node or edge.";
+        btn.textContent = "\u{1F6AB}";
+        currentLayout.hideDisconnectedNodes = false;
+        await this.showDanglingElements();
+      }
+    }
+    nodeHasAVisibleEdge(nodeID) {
+      for (const edgeID of this.cache.nodeIDToEdgeIDs.get(nodeID) || []) {
+        if (this.cache.edgeIDsToBeShown.has(edgeID) && !this.cache.hiddenDanglingEdgeIDs.has(edgeID)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    edgeIsConnectedToTwoVisibleNodes(edgeID) {
+      for (const nodeID of this.cache.edgeIDToNodeIDs.get(edgeID) || []) {
+        if (!this.cache.nodeIDsToBeShown.has(nodeID) || this.cache.hiddenDanglingNodeIDs.has(nodeID)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    async hideDanglingElements() {
+      let changes;
+      do {
+        changes = false;
+        for (let nodeID of this.cache.nodeIDsToBeShown) {
+          if (!this.nodeHasAVisibleEdge(nodeID) && !this.cache.hiddenDanglingNodeIDs.has(nodeID)) {
+            this.cache.hiddenDanglingNodeIDs.add(nodeID);
+            changes = true;
+          }
+        }
+        for (let edgeID of this.cache.edgeIDsToBeShown) {
+          if (!this.edgeIsConnectedToTwoVisibleNodes(edgeID) && !this.cache.hiddenDanglingEdgeIDs.has(edgeID)) {
+            this.cache.hiddenDanglingEdgeIDs.add(edgeID);
+            changes = true;
+          }
+        }
+      } while (changes);
+      await this.cache.bs.updateBubbleSetIfChanged();
+      await this.cache.fm.handleFilterEvent(
+        "Hiding Elements",
+        "Hiding nodes and edges that are not connected to any other node or edge.",
+        null,
+        false
+      );
+    }
+    async showDanglingElements() {
+      this.cache.hiddenDanglingNodeIDs.clear();
+      this.cache.hiddenDanglingEdgeIDs.clear();
+      await this.cache.bs.updateBubbleSetIfChanged();
+      await this.cache.fm.handleFilterEvent(
+        "Showing Elements",
+        "Showing all previously hidden nodes and edges that are not connected to any other node or edge.",
+        null,
+        false
+      );
+    }
+    updateHideDisconnectedButtonState() {
+      const btn = document.getElementById("hideDisconnectedBtn");
+      if (!btn) return;
+      const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+      if (currentLayout && currentLayout.hideDisconnectedNodes) {
+        btn.classList.remove("red");
+        btn.classList.add("green", "highlight");
+        btn.title = "Show all nodes and edges, irrespectively of their connectedness.";
+        btn.textContent = "\u{1F441}";
+      } else {
+        btn.classList.remove("green", "highlight");
+        btn.classList.add("red");
+        btn.title = "Hide all nodes and edges that are not connected to any other node or edge.";
+        btn.textContent = "\u{1F6AB}";
+      }
+    }
+    async applyHideDisconnectedState() {
+      const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+      this.cache.hiddenDanglingNodeIDs.clear();
+      this.cache.hiddenDanglingEdgeIDs.clear();
+      this.updateHideDisconnectedButtonState();
+      if (currentLayout && currentLayout.hideDisconnectedNodes) {
+        await this.hideDanglingElements();
+      }
+    }
+    async focusNodes(nodeIDs = void 0) {
+      if (!nodeIDs) {
+        nodeIDs = this.cache.selectedNodes;
+      }
+      await this.focusElements(nodeIDs);
+    }
+    async focusEdges(edgeIDs = void 0) {
+      if (!edgeIDs) {
+        edgeIDs = this.cache.selectedEdges;
+      }
+      await this.focusElements(edgeIDs);
+    }
+    async focusElements(elementIDs, isNode) {
+      const zoom = await this.cache.graph.getZoom();
+      if (zoom < 2) {
+        await this.cache.graph.zoomTo(2);
+      }
+      await this.cache.graph.focusElement([...elementIDs]);
+      const targetMap = isNode ? this.cache.nodeRef : this.cache.edgeRef;
+      await this.cache.sm.selectElements(elementIDs, targetMap, "highlight");
+      setTimeout(async () => {
+        await this.cache.sm.selectElements([], targetMap, "highlight");
+      }, 2500);
+    }
+    async updateEdges(overrides = {}, commands = []) {
+      let colorMap = null;
+      if (commands.includes("set_continuous_color_scale")) {
+        colorMap = await this.cache.picker.pickColors("edges");
+        if (!colorMap) {
+          this.cache.ui.info("Aborted color picker");
+          return;
+        }
+      }
+      let numericScaleMap = null;
+      if (commands.includes("set_numeric_scale")) {
+        const propertyName = this.cache.numericPicker.currentProperty || null;
+        numericScaleMap = await this.cache.numericPicker.pickNumericScale("edges", propertyName);
+        if (!numericScaleMap) {
+          this.cache.ui.info("Aborted numeric scale picker");
+          return;
+        }
+      }
+      for (const edgeID of this.cache.selectedEdges) {
+        const edge = this.cache.edgeRef.get(edgeID);
+        for (const command of commands) {
+          if (command === "label_set_to_id") {
+            edge.style.label = true;
+            edge.style.labelText = edge.id;
+          }
+          if (command === "label_set_to_label") {
+            edge.style.label = true;
+            edge.style.labelText = edge.label;
+          }
+        }
+        const overridesCopy = structuredClone(overrides);
+        if (colorMap) {
+          replaceColorScale(overridesCopy, edgeID, colorMap);
+        }
+        if (numericScaleMap) {
+          replaceNumericScale(overridesCopy, edgeID, numericScaleMap);
+        }
+        StaticUtilities.deepMerge(edge, overridesCopy);
+        this.cache.edgeRef.set(edgeID, edge);
+        const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+        currentLayout.edgeStyles.set(edgeID, {
+          type: edge.type,
+          style: structuredClone(edge.style)
+        });
+      }
+      await this.cache.style.handleStyleChangeLoadingEvent("Style", "Updating Edge Styles");
+    }
+    async updateNodes(overrides = {}, commands = []) {
+      let colorMap = null;
+      if (commands.includes("set_continuous_color_scale")) {
+        colorMap = await this.cache.picker.pickColors("nodes");
+        if (!colorMap) {
+          this.cache.ui.info("Aborted color picker");
+          return;
+        }
+      }
+      let numericScaleMap = null;
+      if (commands.includes("set_numeric_scale")) {
+        const propertyName = this.cache.numericPicker.currentProperty || null;
+        numericScaleMap = await this.cache.numericPicker.pickNumericScale("nodes", propertyName);
+        if (!numericScaleMap) {
+          this.cache.ui.info("Aborted numeric scale picker");
+          return;
+        }
+      }
+      const badgesToAdd = overrides.style?.badges;
+      const badgePaletteToAdd = overrides.style?.badgePalette;
+      if (commands.includes("badge_add")) {
+        delete overrides.style?.badges;
+        delete overrides.style?.badgePalette;
+      }
+      for (const nodeID of this.cache.selectedNodes) {
+        const node = this.cache.nodeRef.get(nodeID);
+        for (const command of commands) {
+          if (command === "badge_clear") {
+            node.style.badge = false;
+            node.style.badges = [];
+            node.style.badgePalette = [];
+          }
+          if (command === "badge_add") {
+            node.style.badge = true;
+            node.style.badges = node.style.badges || [];
+            node.style.badgePalette = node.style.badgePalette || [];
+            if (badgesToAdd) {
+              node.style.badges = [
+                ...node.style.badges,
+                ...Array.isArray(badgesToAdd) ? badgesToAdd : [badgesToAdd]
+              ];
+            }
+            if (badgePaletteToAdd) {
+              node.style.badgePalette = [
+                ...node.style.badgePalette,
+                ...Array.isArray(badgePaletteToAdd) ? badgePaletteToAdd : [badgePaletteToAdd]
+              ];
+            }
+          }
+          if (command === "label_set_to_id") {
+            node.style.label = true;
+            node.style.labelText = node.id;
+          }
+          if (command === "label_set_to_label") {
+            node.style.label = true;
+            node.style.labelText = node.label;
+          }
+        }
+        const overridesCopy = structuredClone(overrides);
+        if (colorMap) {
+          replaceColorScale(overridesCopy, nodeID, colorMap);
+        }
+        if (numericScaleMap) {
+          replaceNumericScale(overridesCopy, nodeID, numericScaleMap);
+        }
+        StaticUtilities.deepMerge(node, overridesCopy);
+        this.cache.nodeRef.set(nodeID, node);
+        const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+        currentLayout.nodeStyles.set(nodeID, {
+          type: node.type,
+          style: structuredClone(node.style)
+        });
+      }
+      await this.cache.style.handleStyleChangeLoadingEvent("Style", `Updating Node Styles`);
+    }
+    getTargetNodes(propID) {
+      if (!propID) return this.cache.selectedNodes;
+      if (!this.cache.propToNodeIDs.has(propID)) {
+        return [];
+      }
+      return [...this.cache.propToNodeIDs.get(propID)].filter(
+        (nodeID) => this.cache.nodeIDsToBeShown.has(nodeID)
+      );
+    }
+    getTargetEdges(propID) {
+      if (!propID) return this.cache.selectedEdges;
+      if (!this.cache.propToEdgeIDs.has(propID)) {
+        return [];
+      }
+      return [...this.cache.propToEdgeIDs.get(propID)].filter(
+        (edgeID) => this.cache.edgeIDsToBeShown.has(edgeID)
+      );
+    }
+    createSimplifiedDataForGraphObject() {
+      const filterObject = (obj, excludedKeys) => {
+        return Object.keys(obj).filter((key) => !excludedKeys.includes(key)).reduce((newObj, key) => {
+          newObj[key] = obj[key];
+          return newObj;
+        }, {});
+      };
+      let graphNodesMap = /* @__PURE__ */ new Map();
+      if (this.cache.graph) {
+        try {
+          const graphNodes = this.cache.graph.getNodeData();
+          for (const gNode of graphNodes) {
+            graphNodesMap.set(gNode.id, gNode);
+          }
+        } catch (e) {
+        }
+      }
+      const filteredNodes = this.cache.data.nodes.map((node) => {
+        const filteredNode = filterObject(node, [
+          "D4Data",
+          "features",
+          "featureValues",
+          "featureWithinThreshold",
+          "originalStyle",
+          "originalType"
+        ]);
+        const currentGraphNode = graphNodesMap.get(node.id);
+        if (currentGraphNode && currentGraphNode.states) {
+          filteredNode.states = currentGraphNode.states;
+        }
+        const savedVisibility = currentGraphNode?.style?.visibility || node.style?.visibility;
+        const position = this.cache.data.layouts[this.cache.data.selectedLayout].positions.get(node.id);
+        const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+        const layoutData = currentLayout.nodeStyles.get(node.id);
+        if (layoutData) {
+          Object.assign(filteredNode, this.cache.style.getNodeStyleOrDefaults(node));
+          if (layoutData.type !== void 0) {
+            filteredNode.type = layoutData.type;
+          }
+          if (layoutData.style) {
+            filteredNode.style = structuredClone(layoutData.style);
+          }
+        } else {
+          Object.assign(filteredNode, this.cache.style.getNodeStyleOrDefaults(node));
+        }
+        if (savedVisibility) {
+          filteredNode.style.visibility = savedVisibility;
+        }
+        if (position && position.style) {
+          filteredNode.style.x = position.style.x;
+          filteredNode.style.y = position.style.y;
+        }
+        return filteredNode;
+      });
+      let graphEdgesMap = /* @__PURE__ */ new Map();
+      if (this.cache.graph) {
+        try {
+          const graphEdges = this.cache.graph.getEdgeData();
+          for (const gEdge of graphEdges) {
+            graphEdgesMap.set(gEdge.id, gEdge);
+          }
+        } catch (e) {
+        }
+      }
+      const filteredEdges = this.cache.data.edges.map((edge) => {
+        const filteredEdge = filterObject(edge, [
+          "D4Data",
+          "features",
+          "featureValues",
+          "featureWithinThreshold",
+          "originalStyle",
+          "originalType"
+        ]);
+        const currentGraphEdge = graphEdgesMap.get(edge.id);
+        if (currentGraphEdge && currentGraphEdge.states) {
+          filteredEdge.states = currentGraphEdge.states;
+        }
+        const savedVisibility = currentGraphEdge?.style?.visibility || edge.style?.visibility;
+        const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+        const layoutData = currentLayout.edgeStyles.get(edge.id);
+        if (layoutData) {
+          Object.assign(filteredEdge, this.cache.style.getEdgeStyleOrDefaults(edge));
+          if (layoutData.type !== void 0) {
+            filteredEdge.type = layoutData.type;
+          }
+          if (layoutData.style) {
+            filteredEdge.style = structuredClone(layoutData.style);
+          }
+        } else {
+          Object.assign(filteredEdge, this.cache.style.getEdgeStyleOrDefaults(edge));
+        }
+        if (savedVisibility) {
+          filteredEdge.style.visibility = savedVisibility;
+        }
+        return filteredEdge;
+      });
+      return {
+        nodes: [...filteredNodes, this.cache.CFG.INVISIBLE_DUMMY_NODE],
+        edges: filteredEdges,
+        combos: this.cache.data.combos || []
+      };
+    }
+    async preRenderEvent() {
+      if (this.cache.styleChanged) return;
+      if (!this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT && !this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) {
+        this.cache.qm.resetQuery();
+      }
+      this.cache.nodeIDsToBeShown = /* @__PURE__ */ new Set();
+      this.cache.propIDsToNodeIDsToBeShown = /* @__PURE__ */ new Map();
+      this.cache.edgeIDsToBeShown = /* @__PURE__ */ new Set();
+      this.cache.propIDsToEdgeIDsToBeShown = /* @__PURE__ */ new Map();
+      this.cache.remainingEdgeRelatedNodes = /* @__PURE__ */ new Set();
+      this.cache.fm.resetFeatureIsWithinThresholdMaps();
+      this.cache.bubbleSetChanged = false;
+      this.cache.qm.decodeQueryAndBuildAST();
+      for (const node of this.cache.nodeRef.values()) {
+        if (this.cache.query.ast.testNode(node)) {
+          this.cache.nodeIDsToBeShown.add(node.id);
+          node.featureIsWithinThreshold.forEach((v, k) => {
+            if (v === true) {
+              if (!this.cache.propIDsToNodeIDsToBeShown.has(k)) {
+                this.cache.propIDsToNodeIDsToBeShown.set(k, /* @__PURE__ */ new Set());
+              }
+              this.cache.propIDsToNodeIDsToBeShown.get(k).add(node.id);
+            }
+          });
+        }
+      }
+      for (const edge of this.cache.edgeRef.values()) {
+        const endsOk = this.cache.nodeIDsToBeShown.has(edge.source) && this.cache.nodeIDsToBeShown.has(edge.target);
+        if (endsOk && this.cache.query.ast.testEdge(edge)) {
+          this.cache.edgeIDsToBeShown.add(edge.id);
+          edge.featureIsWithinThreshold.forEach((v, k) => {
+            if (v === true) {
+              if (!this.cache.propIDsToEdgeIDsToBeShown.has(k)) {
+                this.cache.propIDsToEdgeIDsToBeShown.set(k, /* @__PURE__ */ new Set());
+              }
+              this.cache.propIDsToEdgeIDsToBeShown.get(k).add(edge.id);
+            }
+          });
+        }
+      }
+      const nodeIDsToBeHidden = [...this.cache.nodeRef.keys()].filter((nodeID) => !this.cache.nodeIDsToBeShown.has(nodeID));
+      const edgeIDsToBeHidden = [...this.cache.edgeRef.keys()].filter((edgeID) => !this.cache.edgeIDsToBeShown.has(edgeID));
+      const idsToShow = [
+        ...this.cache.nodeIDsToBeShown,
+        ...this.cache.edgeIDsToBeShown
+      ];
+      const idsToHide = [
+        ...nodeIDsToBeHidden,
+        ...edgeIDsToBeHidden,
+        ...this.cache.hiddenDanglingNodeIDs,
+        ...this.cache.hiddenDanglingEdgeIDs
+      ];
+      await this.cache.fm.updateElementVisibility(idsToShow, idsToHide);
+      await this.cache.bs.updateBubbleSetIfChanged();
+    }
+    resetEventLocks() {
+      this.cache.EVENT_LOCKS.BEFORE_DRAW_RUNNING = false;
+      this.cache.EVENT_LOCKS.AFTER_DRAW_RUNNING = false;
+      this.cache.EVENT_LOCKS.DRAG_END_RUNNING = false;
+      this.cache.EVENT_LOCKS.BEFORE_RENDER_RUNNING = false;
+      this.cache.EVENT_LOCKS.AFTER_RENDER_RUNNING = false;
+      this.cache.EVENT_LOCKS.BEFORE_LAYOUT_RUNNING = false;
+      this.cache.EVENT_LOCKS.AFTER_LAYOUT_RUNNING = false;
+      this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING = false;
+      this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED = false;
+      this.cache.EVENT_LOCKS.IS_DESELECTING = false;
+      this.cache.EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING = false;
+      this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = false;
+    }
+    async destroyGraphAndRollBackUI() {
+      await this.cache.graph?.destroy();
+      this.cache.graph = null;
+      const status = document.getElementById("sidebarStatusContainer");
+      status.innerHTML = "";
+      status.style.height = "0";
+    }
+    registerHotkeyEvents() {
+      if (this.cache.EVENT_LOCKS.HOTKEY_EVENTS_REGISTERED) return;
+      document.addEventListener("keydown", async (event) => {
+        const activeElement = document.activeElement;
+        if (activeElement.tagName === "INPUT" || activeElement.tagName === "TEXTAREA" || activeElement.tagName === "SELECT" || activeElement.isContentEditable) {
+          return;
+        }
+        switch (event.key) {
+          case "p":
+            await this.cache.io.exportPNG();
+            break;
+          case "s":
+            await this.cache.io.exportGraphAsJSON();
+            break;
+          case "f":
+            await this.cache.graph.fitView();
+            break;
+          case "e":
+            await this.cache.ui.toggleEditMode();
+            break;
+          case "d":
+            await this.cache.ui.toggleDataEditor();
+            break;
+          case "q":
+            this.cache.ui.toggleQueryEditor();
+            break;
+          case "m":
+            this.cache.metrics.toggleUI();
+            break;
+          case "y":
+            this.cache.ui.toggleStylingPanel();
+            break;
+          case "l":
+            await this.cache.ui.toggleLassoSelection();
+            break;
+          default:
+            break;
+        }
+      });
+      this.cache.EVENT_LOCKS.HOTKEY_EVENTS_REGISTERED = true;
+    }
+    registerGlobalEventListeners() {
+      if (this.cache.EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED) return;
+      ["input", "keydown", "keyup", "mousedown", "mouseup", "focus", "blur", "scroll"].forEach(
+        (evt) => this.cache.query.text.addEventListener(evt, () => this.cache.qm.moveCaret())
+      );
+      document.addEventListener("selectionchange", () => {
+        const sel = window.getSelection();
+        if (sel.rangeCount && this.cache.query.text.contains(sel.getRangeAt(0).startContainer)) {
+          this.cache.qm.moveCaret();
+        }
+      });
+      this.cache.ui.makeBottomBarResizable();
+      this.registerTooltipWheelHandler();
+      this.registerTooltipExpandToggle();
+      this.cache.EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED = true;
+    }
+    registerTooltipExpandToggle() {
+      window.toggleTooltipExpand = function(button) {
+        const tooltip = button.closest(".tooltip");
+        if (!tooltip) return;
+        const isExpanded = tooltip.classList.contains("expanded");
+        if (isExpanded) {
+          tooltip.classList.remove("expanded");
+          button.textContent = "\u2922";
+          button.title = "Expand to full size";
+        } else {
+          tooltip.classList.add("expanded");
+          button.textContent = "\u2921";
+          button.title = "Return to default size";
+        }
+      };
+    }
+    registerTooltipWheelHandler() {
+      const graphContainer = document.getElementById("innerGraphContainer");
+      if (!graphContainer) return;
+      graphContainer.addEventListener("wheel", (event) => {
+        const target = event.target;
+        const tooltip = target.closest(".tooltip");
+        if (tooltip) {
+          event.stopPropagation();
+        }
+      }, { passive: false, capture: true });
+      this.makeTooltipDraggable(graphContainer);
+    }
+    makeTooltipDraggable(graphContainer) {
+      let isDragging = false;
+      let currentTooltip = null;
+      let offsetX = 0;
+      let offsetY = 0;
+      graphContainer.addEventListener("mousedown", (e) => {
+        if (e.target.closest(".tooltip-expand-btn")) return;
+        const header = e.target.closest(".tooltip-header");
+        if (!header) return;
+        const tooltip = header.closest(".tooltip");
+        if (!tooltip) return;
+        isDragging = true;
+        currentTooltip = tooltip;
+        const rect = tooltip.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+        header.style.cursor = "grabbing";
+        e.preventDefault();
+        e.stopPropagation();
+      });
+      document.addEventListener("mousemove", (e) => {
+        if (!isDragging || !currentTooltip) return;
+        const newLeft = e.clientX - offsetX;
+        const newTop = e.clientY - offsetY;
+        currentTooltip.style.left = `${newLeft}px`;
+        currentTooltip.style.top = `${newTop}px`;
+        currentTooltip.style.position = "fixed";
+        e.preventDefault();
+      });
+      document.addEventListener("mouseup", () => {
+        if (isDragging && currentTooltip) {
+          const header = currentTooltip.querySelector(".tooltip-header");
+          if (header) {
+            header.style.cursor = "move";
+          }
+        }
+        isDragging = false;
+        currentTooltip = null;
+      });
+    }
+    async registerPluginStates() {
+      this.cache.ui.debug("Registering bubble set plugin instances ..");
+      for (const group of this.cache.bs.traverseBubbleSets()) {
+        this.cache.INSTANCES.BUBBLE_GROUPS[group] = await this.cache.graph.getPluginInstance(`bubbleSetPlugin-${group}`);
+      }
+    }
+  };
+
+  // src/graph/bubble_sets.js
+  var GraphBubbleSetManager = class {
+    constructor(cache3) {
+      this.cache = cache3;
+      this.redrawBubbleSets = debounce(async () => {
+        if (!this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED) return;
+        if (this.cache.EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING) return;
+        this.cache.EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING = true;
+        try {
+          for (const group of this.traverseBubbleSets()) {
+            const cachedMembers = this.cache.lastBubbleSetMembers.get(group);
+            if (cachedMembers?.size > 0) {
+              this.cache.ui.debug(`Redrawing bubble set ${group} with ${cachedMembers.size} members ..`);
+              await this.updateBubbleSet(group, []);
+              await this.updateBubbleSet(group, Array.from(cachedMembers));
+            }
+          }
+        } finally {
+          this.cache.EVENT_LOCKS.BUBBLE_GROUP_REDRAW_RUNNING = false;
+        }
+      }, 50);
+    }
+    *traverseBubbleSets() {
+      for (let group of Object.keys(this.cache.DEFAULTS.BUBBLE_GROUP_STYLE)) {
+        yield group;
+      }
+    }
+    async updateBubbleSetStyle(property, value) {
+      const remainder = property.split("Bubble Set ")[1];
+      const parts = remainder.split(" ");
+      const group = parts[0];
+      const propertyLabel = parts.slice(1).join(" ");
+      const bStyle = this.cache.data.layouts[this.cache.data.selectedLayout].bubbleSetStyle[group];
+      switch (propertyLabel) {
+        case "Fill Color":
+          bStyle.fill = value;
+          bStyle.labelBackgroundFill = value;
+          break;
+        case "Fill Opacity":
+          bStyle.fillOpacity = value;
+          break;
+        case "Stroke Color":
+          bStyle.stroke = value;
+          break;
+        case "Stroke Opacity":
+          bStyle.strokeOpacity = value;
+          break;
+        case "Label":
+          bStyle.label = value;
+          break;
+        case "Label Text":
+          bStyle.labelText = value;
+          break;
+        case "Label Background Color":
+          bStyle.labelBackgroundFill = value;
+          break;
+        case "Label Background":
+          bStyle.labelBackground = value;
+          if (!value) {
+            bStyle.labelFill = "#000000";
+          } else {
+            bStyle.labelFill = "#FFFFFF";
+          }
+          break;
+        default:
+          break;
+      }
+      await this.cache.INSTANCES.BUBBLE_GROUPS[group].update(bStyle);
+      await this.cache.gcm.decideToRenderOrDraw(true);
+    }
+    refreshBubbleStyleElements() {
+      for (const group of this.traverseBubbleSets()) {
+        const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+        const bubbleStyle = currentLayout.bubbleSetStyle[group];
+        let actualMembers = /* @__PURE__ */ new Set();
+        const propsInGroup = currentLayout[`${group}Props`] || /* @__PURE__ */ new Set();
+        for (let prop of propsInGroup) {
+          let nodeIDsToBeGrouped = this.cache.propIDsToNodeIDsToBeShown.get(prop) || [];
+          for (let nodeID of nodeIDsToBeGrouped) {
+            if (nodeID !== this.cache.CFG.INVISIBLE_DUMMY_NODE.id) {
+              actualMembers.add(nodeID);
+            }
+          }
+        }
+        const manualMembers = currentLayout[`${group}ManualMembers`] || /* @__PURE__ */ new Set();
+        for (let nodeID of manualMembers) {
+          if (nodeID !== this.cache.CFG.INVISIBLE_DUMMY_NODE.id && this.cache.nodeRef.has(nodeID)) {
+            actualMembers.add(nodeID);
+          }
+        }
+        const hasActiveMembers = actualMembers.size > 0;
+        const labelConfigShouldBeEnabled = bubbleStyle.label;
+        const card = document.getElementById(`bubbleSetStyleCard${group}`);
+        hasActiveMembers ? card.classList.remove("disabled") : card.classList.add("disabled");
+        const labelInput = document.querySelector(`input[placeholder*="${group} label text"]`);
+        if (labelInput && bubbleStyle.labelText !== void 0) {
+          labelInput.value = bubbleStyle.labelText;
+        }
+        const fillColorInput = document.querySelector(`input[data-property="Bubble Set ${group} Fill Color"]`);
+        if (fillColorInput && bubbleStyle.fill) {
+          fillColorInput.value = bubbleStyle.fill;
+        }
+        const strokeColorInput = document.querySelector(`input[data-property="Bubble Set ${group} Stroke Color"]`);
+        if (strokeColorInput && bubbleStyle.stroke) {
+          strokeColorInput.value = bubbleStyle.stroke;
+        }
+        for (const elem of card.querySelectorAll(".bubbleSetOptionalLabelConfig")) {
+          labelConfigShouldBeEnabled ? elem.classList.remove("disabled") : elem.classList.add("disabled");
+        }
+        const fillColor = bubbleStyle.fill || this.cache.DEFAULTS.BUBBLE_GROUP_STYLE[group].fill;
+        document.documentElement.style.setProperty(`--${group}-color`, fillColor);
+      }
+    }
+    async updateBubbleSetIfChanged() {
+      for (let group of this.traverseBubbleSets()) {
+        let propsInGroup = this.cache.data.layouts[this.cache.data.selectedLayout][`${group}Props`];
+        let lastSetMembers = this.cache.lastBubbleSetMembers.get(group);
+        let newSetMembers = /* @__PURE__ */ new Set();
+        for (let prop of propsInGroup) {
+          let nodeIDsToBeGrouped = this.cache.propIDsToNodeIDsToBeShown.get(prop) || [];
+          for (let nodeID of nodeIDsToBeGrouped) {
+            if (nodeID !== this.cache.CFG.INVISIBLE_DUMMY_NODE.id && !this.cache.hiddenDanglingNodeIDs.has(nodeID)) {
+              newSetMembers.add(nodeID);
+            }
+          }
+        }
+        const manualMembers = this.cache.data.layouts[this.cache.data.selectedLayout][`${group}ManualMembers`];
+        if (manualMembers && manualMembers.size > 0) {
+          for (let nodeID of manualMembers) {
+            if (nodeID !== this.cache.CFG.INVISIBLE_DUMMY_NODE.id && this.cache.nodeRef.has(nodeID) && !this.cache.hiddenDanglingNodeIDs.has(nodeID)) {
+              newSetMembers.add(nodeID);
+            }
+          }
+        }
+        if (!StaticUtilities.setsAreEqual(lastSetMembers, newSetMembers)) {
+          await this.updateBubbleSet(group, newSetMembers);
+          this.cache.lastBubbleSetMembers.set(group, newSetMembers);
+          this.cache.bubbleSetChanged = true;
+        }
+      }
+    }
+    async updateBubbleSet(group, members) {
+      const filteredMembers = members instanceof Set ? new Set([...members].filter((id) => id !== this.cache.CFG.INVISIBLE_DUMMY_NODE.id)) : [...members].filter((id) => id !== this.cache.CFG.INVISIBLE_DUMMY_NODE.id);
+      let empty = !filteredMembers || (filteredMembers instanceof Set ? filteredMembers.size === 0 : filteredMembers.length === 0);
+      const membersAsArray = filteredMembers instanceof Set ? [...filteredMembers] : filteredMembers;
+      const avoidMembers = empty ? [] : this.getAvoidMembers(filteredMembers);
+      if (StaticUtilities.arraysAreEqual(membersAsArray, [...this.cache.INSTANCES.BUBBLE_GROUPS[group].members.keys()])) {
+        this.cache.ui.debug("BUBBLE GROUPS IN SYNC - SKIPPING UPDATE");
+        return;
+      }
+      const bubbleStyle = this.cache.data.layouts[this.cache.data.selectedLayout].bubbleSetStyle[group];
+      await this.cache.INSTANCES.BUBBLE_GROUPS[group].update({
+        members: empty ? [] : membersAsArray,
+        avoidMembers,
+        fillOpacity: empty ? 0 : bubbleStyle.fillOpacity,
+        strokeOpacity: empty ? 0 : bubbleStyle.strokeOpacity,
+        label: empty ? false : bubbleStyle.label,
+        // Apply all style properties including label text
+        labelText: bubbleStyle.labelText,
+        fill: bubbleStyle.fill,
+        stroke: bubbleStyle.stroke,
+        labelBackgroundFill: bubbleStyle.labelBackgroundFill,
+        labelFill: bubbleStyle.labelFill,
+        labelBackground: bubbleStyle.labelBackground
+      });
+      await this.cache.INSTANCES.BUBBLE_GROUPS[group].drawBubbleSets();
+    }
+    getAvoidMembers(members) {
+      if (this.cache.CFG.APPLY_BUBBLE_SET_HOTFIX && this.cache.CFG.AVOID_MEMBERS_IN_BUBBLE_GROUPS) return [];
+      const checkMembership = members instanceof Set ? (nodeID) => members.has(nodeID) : (nodeID) => members.includes(nodeID);
+      return [...this.cache.nodeRef.keys()].filter((nodeID) => !checkMembership(nodeID));
+    }
+    async clearBubbleSetInstanceMembers() {
+      for (const group of this.traverseBubbleSets()) {
+        await this.cache.INSTANCES.BUBBLE_GROUPS[group].update({
+          members: [],
+          fillOpacity: 0,
+          strokeOpacity: 0,
+          label: false
+        });
+        await this.cache.INSTANCES.BUBBLE_GROUPS[group].drawBubbleSets();
+      }
+    }
+    async toggleSelectedNodesInManualGroup(group) {
+      if (!this.cache.data.layouts[this.cache.data.selectedLayout][`${group}ManualMembers`]) {
+        this.cache.data.layouts[this.cache.data.selectedLayout][`${group}ManualMembers`] = /* @__PURE__ */ new Set();
+      }
+      const manualMembers = this.cache.data.layouts[this.cache.data.selectedLayout][`${group}ManualMembers`];
+      const selectedNodeIds = [...this.cache.selectedNodes].filter(
+        (nodeId) => nodeId !== this.cache.CFG.INVISIBLE_DUMMY_NODE.id
+      );
+      if (selectedNodeIds.length === 0) {
+        this.cache.ui.warning("No nodes selected");
+        return;
+      }
+      const allInGroup = selectedNodeIds.every((nodeId) => manualMembers.has(nodeId));
+      if (allInGroup) {
+        selectedNodeIds.forEach((nodeId) => manualMembers.delete(nodeId));
+        this.cache.ui.info(`Removed ${selectedNodeIds.length} node(s) from manual ${group}`);
+      } else {
+        selectedNodeIds.forEach((nodeId) => manualMembers.add(nodeId));
+        this.cache.ui.info(`Added ${selectedNodeIds.length} node(s) to manual ${group}`);
+      }
+      this.updateManualGroupButtonState();
+      this.updateManualGroupStatus();
+      this.refreshBubbleStyleElements();
+      this.cache.bubbleSetChanged = true;
+      await this.updateBubbleSetIfChanged();
+      await this.cache.graph.draw();
+      await this.redrawBubbleSets();
+    }
+    updateManualGroupButtonState() {
+      const button = document.getElementById("manualBubbleGroupButton");
+      if (!button) return;
+      const selectedNodeIds = new Set(this.cache.selectedNodes);
+      for (let [group, quadrantPosition] of Object.entries(this.cache.DEFAULTS.BUBBLE_GROUP_QUADRANT_POSITIONS)) {
+        const manualMembers = this.cache.data.layouts[this.cache.data.selectedLayout][`${group}ManualMembers`] || /* @__PURE__ */ new Set();
+        const quadrant = button.querySelector(`.quadrant.${quadrantPosition}.manual`);
+        if (quadrant) {
+          const hasAnyMember = selectedNodeIds.size > 0 && [...selectedNodeIds].some((nodeId) => manualMembers.has(nodeId));
+          if (hasAnyMember) {
+            quadrant.classList.add("active");
+          } else {
+            quadrant.classList.remove("active");
+          }
+        }
+      }
+    }
+    updateManualGroupStatus() {
+      const statusSpan = document.getElementById("manualBubbleGroupStatus");
+      const clearButton = document.getElementById("clearManualGroupsBtn");
+      const separator = document.getElementById("manualGroupSeparator");
+      if (!statusSpan) return;
+      const activeGroups = [];
+      for (let [group, quadrantPosition] of Object.entries(this.cache.DEFAULTS.BUBBLE_GROUP_QUADRANT_POSITIONS)) {
+        const manualMembers = this.cache.data.layouts[this.cache.data.selectedLayout][`${group}ManualMembers`] || /* @__PURE__ */ new Set();
+        const visibleMembers = [...manualMembers].filter(
+          (nodeId) => nodeId !== this.cache.CFG.INVISIBLE_DUMMY_NODE.id && this.cache.nodeRef.has(nodeId) && this.cache.propIDsToNodeIDsToBeShown.size === 0 || [...this.cache.propIDsToNodeIDsToBeShown.values()].some((set) => set.has(nodeId))
+        );
+        if (visibleMembers.length > 0) {
+          const color = this.cache.data.layouts[this.cache.data.selectedLayout].bubbleSetStyle[group].fill;
+          activeGroups.push(`<span style="color: ${color}; font-weight: bold;">\u25CF${visibleMembers.length}</span>`);
+        }
+      }
+      if (activeGroups.length > 0) {
+        statusSpan.innerHTML = activeGroups.join(" ");
+        statusSpan.style.display = "inline";
+        if (clearButton) clearButton.style.display = "inline";
+        if (separator) separator.style.display = "inline-block";
+      } else {
+        statusSpan.innerHTML = "";
+        statusSpan.style.display = "none";
+        if (clearButton) clearButton.style.display = "none";
+        if (separator) separator.style.display = "none";
+      }
+    }
+    cleanupManualGroupMembers() {
+      for (let group of Object.keys(this.cache.DEFAULTS.BUBBLE_GROUP_STYLE)) {
+        const manualMembers = this.cache.data.layouts[this.cache.data.selectedLayout][`${group}ManualMembers`];
+        if (manualMembers && manualMembers.size > 0) {
+          const toRemove = [];
+          for (let nodeId of manualMembers) {
+            if (nodeId === this.cache.CFG.INVISIBLE_DUMMY_NODE.id || !this.cache.nodeRef.has(nodeId)) {
+              toRemove.push(nodeId);
+            }
+          }
+          toRemove.forEach((nodeId) => manualMembers.delete(nodeId));
+        }
+      }
+      this.updateManualGroupStatus();
+    }
+    async clearAllManualGroups() {
+      for (let group of Object.keys(this.cache.DEFAULTS.BUBBLE_GROUP_STYLE)) {
+        const manualMembers = this.cache.data.layouts[this.cache.data.selectedLayout][`${group}ManualMembers`];
+        if (manualMembers) {
+          manualMembers.clear();
+        }
+      }
+      this.updateManualGroupButtonState();
+      this.updateManualGroupStatus();
+      this.cache.bubbleSetChanged = true;
+      await this.updateBubbleSetIfChanged();
+      await this.cache.graph.draw();
+      await this.redrawBubbleSets();
+      this.cache.ui.info("Cleared all manual bubble groups");
+    }
+  };
+  var debounce = (func, wait) => {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  };
+
+  // src/graph/filter.js
+  var GraphFilterManager = class {
+    constructor(cache3) {
+      this.cache = cache3;
+    }
+    async resetFilters(section, subSection = void 0) {
+      const idPrefix = section + (subSection ? `::${subSection}` : "");
+      const affectedPropIDs = Array.from(this.cache.propIDs).filter((id) => id.startsWith(idPrefix));
+      for (const propID of affectedPropIDs) {
+        this.cache.ui.checkCheckbox(propID, true);
+        const slider = this.cache.propIDToInvertibleRangeSliders.get(propID);
+        const dropdown = this.cache.propIDToDropdownChecklists.get(propID);
+        if (slider) await slider.reset();
+        if (dropdown) await dropdown.selectAllCategories(true);
+      }
+      await this.handleFilterEvent("Filtering", `Resetting filters for ${idPrefix} ..`);
+    }
+    async handleFilterEvent(header, text, propID = null, shouldResetQuery = true) {
+      if (shouldResetQuery) {
+        this.cache.qm.resetQuery();
+      }
+      if (propID !== null && !this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(propID).active) {
+        return;
+      }
+      await this.cache.ui.showLoading(header, text);
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      this.cache.bs.cleanupManualGroupMembers();
+      if (!shouldResetQuery) {
+        this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT = true;
+      }
+      try {
+        await this.cache.gcm.decideToRenderOrDraw();
+      } finally {
+        if (!shouldResetQuery) {
+          this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT = false;
+        }
+      }
+    }
+    resetFeatureIsWithinThresholdMaps() {
+      for (let node of this.cache.data.nodes) {
+        node.featureIsWithinThreshold.forEach((value, key) => {
+          node.featureIsWithinThreshold.set(key, null);
+        });
+      }
+      for (let edge of this.cache.data.edges) {
+        edge.featureIsWithinThreshold.forEach((value, key) => {
+          edge.featureIsWithinThreshold.set(key, null);
+        });
+      }
+    }
+    getPropertiesNotWithinThresholds(nodeID = null, edgeID = null) {
+      const keysWithFalse = [];
+      const isNode = nodeID !== null;
+      const element = isNode ? this.cache.nodeRef.get(nodeID) : this.cache.edgeRef.get(edgeID);
+      const availableProps = /* @__PURE__ */ new Set([
+        ...isNode ? this.cache.nodeExclusiveProps : this.cache.edgeExclusiveProps,
+        ...this.cache.mixedProps
+      ]);
+      for (const [key, value] of element.featureIsWithinThreshold.entries()) {
+        if (!availableProps.has(key)) continue;
+        if (value === false) {
+          keysWithFalse.push(key);
+        }
+      }
+      for (let propID of this.cache.activeProps) {
+        if (!availableProps.has(propID)) continue;
+        if (!element.featureIsWithinThreshold.has(propID)) {
+          keysWithFalse.push(propID);
+        }
+      }
+      return keysWithFalse;
+    }
+    removeFromPropIDsToNodeIDsToBeShown(nodeID) {
+      for (let propID of this.cache.propIDsToNodeIDsToBeShown.keys()) {
+        this.cache.propIDsToNodeIDsToBeShown.get(propID).delete(nodeID);
+      }
+    }
+    removeFromPropIDsToEdgeIDsToBeShown(edgeID) {
+      for (let propID of this.cache.propIDsToEdgeIDsToBeShown.keys()) {
+        this.cache.propIDsToEdgeIDsToBeShown.get(propID).delete(edgeID);
+      }
+    }
+    async updateElementVisibility(idsToShow, idsToHide) {
+      this.cache.visibleElementsChanged = false;
+      const { nodes, edges } = await this.cache.graph.getData();
+      const { visible, hidden } = [...nodes, ...edges].reduce((acc, item) => {
+        acc[item.style.visibility === "visible" ? "visible" : "hidden"].push(item.id);
+        return acc;
+      }, { visible: [], hidden: [] });
+      const showElementsDiff = idsToShow.filter((id) => hidden.includes(id));
+      const hideElementsDiff = idsToHide.filter((id) => visible.includes(id));
+      if (showElementsDiff.length > 0) {
+        await this.cache.graph.showElement(showElementsDiff);
+        this.cache.visibleElementsChanged = true;
+      }
+      if (hideElementsDiff.length > 0) {
+        await this.cache.graph.hideElement(hideElementsDiff);
+        this.cache.visibleElementsChanged = true;
+      }
+      if (this.cache.visibleElementsChanged) {
+        this.cache.metrics.invalidateMetricValues();
+      }
+    }
+  };
+
+  // src/utilities/popup.js
+  var Popup = class _Popup {
+    /**
+     * // Simple text popup
+     * const popup1 = new Popup("Hello, I'm a simple popup!");
+     *
+     * // Popup with HTML content
+     * const popup2 = new Popup(`
+     *     <h2>Welcome!</h2>
+     *     <p>This is a popup with <strong>HTML</strong> content.</p>
+     *     <button onclick="ui.error('Button clicked!')">Click me</button>
+     * `);
+     *
+     * // Popup with custom options
+     * const popup3 = new Popup("Custom positioned popup!", {
+     *     width: '400px',
+     *     position: { x: 100, y: 100 },
+     *     closeOnClickOutside: false,
+     *     onClose: () => ui.debug('Popup closed!')
+     * });
+     */
+    constructor(content, options = {}) {
+      this.options = {
+        width: "300px",
+        height: "auto",
+        position: "center",
+        lineHeight: "normal",
+        closeOnClickOutside: true,
+        onClose: null,
+        showFullscreenButton: true,
+        ...options
+      };
+      this.popup = null;
+      this.overlay = null;
+      this.closeBtn = null;
+      this.fullscreenBtn = null;
+      this.isFullscreen = false;
+      this.originalStyles = null;
+      this.init(content);
+    }
+    static async prompt(message) {
+      return new Promise((resolve) => {
+        const inputField = document.createElement("input");
+        inputField.type = "text";
+        inputField.className = "p-prompt";
+        const content = document.createElement("div");
+        content.innerHTML = `<div>${message}</div>`;
+        content.appendChild(inputField);
+        const confirmBtn = document.createElement("button");
+        confirmBtn.textContent = "OK";
+        confirmBtn.className = "p-button";
+        content.appendChild(confirmBtn);
+        let isConfirmed = false;
+        const handleConfirm = () => {
+          isConfirmed = true;
+          const value = inputField.value.trim();
+          popup.close();
+          resolve(value);
+        };
+        const popup = new _Popup(content, {
+          width: "300px",
+          showFullscreenButton: false,
+          closeOnClickOutside: false,
+          onClose: () => {
+            if (!isConfirmed) {
+              resolve(null);
+            }
+          }
+        });
+        confirmBtn.addEventListener("click", handleConfirm);
+        inputField.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") {
+            handleConfirm();
+          }
+        });
+        setTimeout(() => inputField.focus(), 0);
+      });
+    }
+    static async confirm(message) {
+      return new Promise((resolve) => {
+        const content = document.createElement("div");
+        content.innerHTML = `<div>${message}</div>`;
+        const confirmBtn = document.createElement("button");
+        confirmBtn.textContent = "OK";
+        confirmBtn.className = "p-button ml-1";
+        const cancelBtn = document.createElement("button");
+        cancelBtn.textContent = "Cancel";
+        cancelBtn.className = "p-button";
+        content.appendChild(confirmBtn);
+        content.appendChild(cancelBtn);
+        let isResolved = false;
+        const popup = new _Popup(content, {
+          width: "300px",
+          showFullscreenButton: false,
+          closeOnClickOutside: false,
+          onClose: () => {
+            if (!isResolved) {
+              resolve(null);
+            }
+          }
+        });
+        confirmBtn.addEventListener("click", () => {
+          isResolved = true;
+          popup.close();
+          resolve(true);
+        });
+        cancelBtn.addEventListener("click", () => {
+          isResolved = true;
+          popup.close();
+          resolve(false);
+        });
+        setTimeout(() => confirmBtn.focus(), 0);
+      });
+    }
+    static async layoutCreationDialog(layoutInternals) {
+      return new Promise((resolve) => {
+        const container = document.createElement("div");
+        container.style.padding = "10px";
+        const title = document.createElement("h3");
+        title.textContent = "Create New Workspace";
+        title.style.marginTop = "0";
+        title.style.textAlign = "center";
+        container.appendChild(title);
+        const nameInput = document.createElement("input");
+        nameInput.type = "text";
+        nameInput.className = "p-prompt";
+        nameInput.placeholder = "Enter workspace name...";
+        nameInput.style.width = "100%";
+        nameInput.style.marginBottom = "20px";
+        nameInput.style.padding = "8px";
+        container.appendChild(nameInput);
+        const modeContainer = document.createElement("div");
+        const cloneDiv = document.createElement("div");
+        cloneDiv.style.marginBottom = "10px";
+        const cloneRadio = document.createElement("input");
+        cloneRadio.type = "radio";
+        cloneRadio.name = "layout-mode";
+        cloneRadio.value = "clone";
+        cloneRadio.checked = true;
+        cloneRadio.id = "mode-clone";
+        const cloneLabel = document.createElement("label");
+        cloneLabel.htmlFor = "mode-clone";
+        cloneLabel.textContent = " Clone Current Workspace";
+        cloneLabel.style.fontWeight = "bold";
+        const cloneDesc = document.createElement("p");
+        cloneDesc.textContent = "Copies all settings: positions, filters, query, and bubble groups";
+        cloneDesc.style.fontSize = "12px";
+        cloneDesc.style.color = "#666";
+        cloneDesc.style.marginLeft = "20px";
+        cloneDesc.style.marginTop = "5px";
+        cloneDesc.style.marginBottom = "0";
+        cloneDiv.appendChild(cloneRadio);
+        cloneDiv.appendChild(cloneLabel);
+        cloneDiv.appendChild(cloneDesc);
+        modeContainer.appendChild(cloneDiv);
+        const templateDiv = document.createElement("div");
+        templateDiv.style.marginBottom = "10px";
+        const templateRadio = document.createElement("input");
+        templateRadio.type = "radio";
+        templateRadio.name = "layout-mode";
+        templateRadio.value = "template";
+        templateRadio.id = "mode-template";
+        const templateLabel = document.createElement("label");
+        templateLabel.htmlFor = "mode-template";
+        templateLabel.textContent = " Create from Template";
+        templateLabel.style.fontWeight = "bold";
+        const dropdown = document.createElement("select");
+        dropdown.id = "template-type-select";
+        dropdown.className = "p-prompt";
+        dropdown.style.width = "150px";
+        dropdown.style.marginLeft = "10px";
+        dropdown.style.display = "none";
+        for (const [key, value] of Object.entries(layoutInternals)) {
+          const option = document.createElement("option");
+          option.value = key;
+          option.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+          dropdown.appendChild(option);
+        }
+        const templateDesc = document.createElement("p");
+        templateDesc.textContent = "Starts fresh with selected layout algorithm and default filters";
+        templateDesc.style.fontSize = "12px";
+        templateDesc.style.color = "#666";
+        templateDesc.style.marginLeft = "20px";
+        templateDesc.style.marginTop = "5px";
+        templateDesc.style.marginBottom = "10px";
+        templateDiv.appendChild(templateRadio);
+        templateDiv.appendChild(templateLabel);
+        templateDiv.appendChild(dropdown);
+        templateDiv.appendChild(templateDesc);
+        modeContainer.appendChild(templateDiv);
+        container.appendChild(modeContainer);
+        const updateDropdownVisibility = () => {
+          dropdown.style.display = templateRadio.checked ? "inline-block" : "none";
+        };
+        cloneRadio.addEventListener("change", updateDropdownVisibility);
+        templateRadio.addEventListener("change", updateDropdownVisibility);
+        const buttonContainer = document.createElement("div");
+        buttonContainer.style.display = "flex";
+        buttonContainer.style.justifyContent = "flex-end";
+        buttonContainer.style.gap = "10px";
+        buttonContainer.style.marginTop = "25px";
+        const cancelBtn = document.createElement("button");
+        cancelBtn.textContent = "Cancel";
+        cancelBtn.className = "p-button";
+        cancelBtn.style.backgroundColor = "#878996";
+        cancelBtn.style.color = "white";
+        const createBtn = document.createElement("button");
+        createBtn.textContent = "Create";
+        createBtn.className = "p-button";
+        createBtn.style.backgroundColor = "#015C0C";
+        createBtn.style.color = "white";
+        buttonContainer.appendChild(cancelBtn);
+        buttonContainer.appendChild(createBtn);
+        container.appendChild(buttonContainer);
+        let isResolved = false;
+        const popup = new _Popup(container, {
+          width: "400px",
+          showFullscreenButton: false,
+          closeOnClickOutside: false,
+          onClose: () => {
+            if (!isResolved) {
+              resolve(null);
+            }
+          }
+        });
+        const handleCreate = () => {
+          const name = nameInput.value.trim();
+          if (!name) {
+            alert("Please enter a name for the layout");
+            return;
+          }
+          isResolved = true;
+          popup.close();
+          const mode = cloneRadio.checked ? "clone" : "template";
+          const result = {
+            name,
+            mode,
+            templateType: mode === "template" ? dropdown.value : null
+          };
+          resolve(result);
+        };
+        createBtn.addEventListener("click", handleCreate);
+        cancelBtn.addEventListener("click", () => {
+          isResolved = true;
+          popup.close();
+          resolve(null);
+        });
+        nameInput.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") {
+            handleCreate();
+          }
+        });
+        setTimeout(() => nameInput.focus(), 0);
+      });
+    }
+    init(content) {
+      this.createPopup(content);
+      this.setupCloseHandlers();
+      if (this.options.showFullscreenButton) {
+        this.setupFullscreenButton();
+      }
+      this.show();
+    }
+    createPopup(content) {
+      this.popup = document.createElement("div");
+      this.popup.className = "p-custom";
+      const headerDiv = document.createElement("div");
+      headerDiv.className = "p-header";
+      if (this.options.showFullscreenButton) {
+        this.fullscreenBtn = document.createElement("button");
+        this.fullscreenBtn.className = "p-icon";
+        this.fullscreenBtn.innerHTML = "\u26F6";
+        this.fullscreenBtn.title = "Toggle fullscreen";
+        headerDiv.appendChild(this.fullscreenBtn);
+      }
+      this.closeBtn = document.createElement("button");
+      this.closeBtn.className = "p-icon";
+      this.closeBtn.innerHTML = "\xD7";
+      this.closeBtn.title = "Close popup";
+      headerDiv.appendChild(this.closeBtn);
+      const popupContent = document.createElement("div");
+      popupContent.className = "popup-content";
+      popupContent.style.marginTop = "20px";
+      if (typeof content === "string") {
+        popupContent.innerHTML = content;
+      } else {
+        popupContent.appendChild(content);
+      }
+      this.popup.appendChild(headerDiv);
+      this.popup.appendChild(popupContent);
+      this.overlay = document.createElement("div");
+      this.overlay.className = "p-overlay";
+      document.body.appendChild(this.overlay);
+      document.body.appendChild(this.popup);
+      this.popup.style.width = this.options.width;
+      if (this.options.height !== "auto") {
+        this.popup.style.height = this.options.height;
+      }
+      if (this.options.lineHeight !== "normal") {
+        this.popup.style.lineHeight = this.options.lineHeight;
+      }
+      this.setPosition();
+      this.storeOriginalStyles();
+    }
+    storeOriginalStyles() {
+      this.originalStyles = {
+        width: this.popup.style.width,
+        height: this.popup.style.height,
+        top: this.popup.style.top,
+        left: this.popup.style.left,
+        transform: this.popup.style.transform,
+        borderRadius: this.popup.style.borderRadius,
+        margin: this.popup.style.margin,
+        position: this.popup.style.position
+      };
+    }
+    setupFullscreenButton() {
+      this.fullscreenBtn.addEventListener("click", () => this.toggleFullscreen());
+    }
+    toggleFullscreen() {
+      this.isFullscreen = !this.isFullscreen;
+      if (this.isFullscreen) {
+        this.popup.style.width = "100%";
+        this.popup.style.height = "100%";
+        this.popup.style.top = "0";
+        this.popup.style.left = "0";
+        this.popup.style.transform = "none";
+        this.popup.style.position = "fixed";
+        this.fullscreenBtn.innerHTML = "\u29C9";
+        this.fullscreenBtn.title = "Exit fullscreen";
+      } else {
+        Object.assign(this.popup.style, this.originalStyles);
+        this.fullscreenBtn.innerHTML = "\u26F6";
+        this.fullscreenBtn.title = "Fullscreen";
+      }
+    }
+    setPosition() {
+      if (!this.isFullscreen) {
+        if (this.options.position === "center") {
+          this.popup.style.top = "50%";
+          this.popup.style.left = "50%";
+          this.popup.style.transform = "translate(-50%, -50%)";
+        } else {
+          this.popup.style.top = `${this.options.position.y}px`;
+          this.popup.style.left = `${this.options.position.x}px`;
+          this.popup.style.transform = "none";
+        }
+      }
+    }
+    setupCloseHandlers() {
+      this.closeBtn.addEventListener("click", () => this.close());
+      if (this.options.closeOnClickOutside) {
+        this.overlay.addEventListener("click", () => this.close());
+      }
+    }
+    show() {
+      this.popup.style.display = "block";
+      this.overlay.style.display = "block";
+    }
+    close() {
+      if (this.options.onClose) {
+        this.options.onClose();
+      }
+      this.popup.remove();
+      this.overlay.remove();
+    }
+  };
+
+  // src/graph/layout.js
+  var GraphLayoutManager = class {
+    constructor(cache3) {
+      this.cache = cache3;
+    }
+    async handleLayoutChangeLoadingEvent(header, text) {
+      await this.cache.ui.showLoading(header, text);
+      this.cache.layoutChanged = true;
+      await this.cache.gcm.decideToRenderOrDraw();
+      this.cache.ui.debug(`Graph updated after layout event with message ${header} ${text}`);
+    }
+    async changeLayout() {
+      this.cache.data.selectedLayout = document.getElementById("selectView").value;
+      await this.cache.ui.showLoading("Switching Workspace", this.cache.data.selectedLayout);
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+      await this.applyLayoutStyles(currentLayout);
+      this.cache.ui.buildFilterUI();
+      this.cache.qm.updateQueryTextArea();
+      if (currentLayout["query"]) {
+        this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = true;
+      } else {
+        this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = false;
+      }
+      this.cache.ui.updateFilterLockState();
+      this.cache.ui.clearActivePropsCacheOnLayoutChange();
+      await this.cache.metrics.updateMetricUI();
+      this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED = false;
+      await this.cache.gcm.decideToRenderOrDraw(true);
+      await this.cache.gcm.applyHideDisconnectedState();
+      this.cache.bubbleSetChanged = true;
+      await this.cache.bs.updateBubbleSetIfChanged();
+      this.cache.bs.updateManualGroupStatus();
+      this.cache.bs.updateManualGroupButtonState();
+      this.cache.bs.refreshBubbleStyleElements();
+      this.cache.ui.info(`Switched to workspace: ${this.cache.data.selectedLayout}`);
+    }
+    async applyLayoutStyles(layout) {
+      const nodeUpdates = [];
+      for (const [nodeID, node] of this.cache.nodeRef.entries()) {
+        let newStyle;
+        let newType = node.type;
+        if (layout.nodeStyles && layout.nodeStyles.has(nodeID)) {
+          const layoutData = layout.nodeStyles.get(nodeID);
+          if (layoutData.style) {
+            newStyle = structuredClone(layoutData.style);
+          } else {
+            newStyle = structuredClone(layoutData);
+          }
+          if (layoutData.type !== void 0) {
+            newType = layoutData.type;
+          }
+        } else {
+          newStyle = structuredClone(node.originalStyle);
+          newType = node.originalType || node.type;
+        }
+        const position = layout.positions.get(nodeID);
+        if (position && position.style) {
+          newStyle.x = position.style.x;
+          newStyle.y = position.style.y;
+        }
+        nodeUpdates.push({ id: nodeID, type: newType, style: newStyle });
+        node.type = newType;
+        node.style = newStyle;
+        this.cache.nodeRef.set(nodeID, node);
+      }
+      if (nodeUpdates.length > 0) {
+        this.cache.graph.updateNodeData(nodeUpdates);
+      }
+      const edgeUpdates = [];
+      for (const [edgeID, edge] of this.cache.edgeRef.entries()) {
+        let newStyle;
+        let newType = edge.type;
+        if (layout.edgeStyles && layout.edgeStyles.has(edgeID)) {
+          const layoutData = layout.edgeStyles.get(edgeID);
+          if (layoutData.style) {
+            newStyle = structuredClone(layoutData.style);
+          } else {
+            newStyle = structuredClone(layoutData);
+          }
+          if (layoutData.type !== void 0) {
+            newType = layoutData.type;
+          }
+        } else {
+          newStyle = structuredClone(edge.originalStyle);
+          newType = edge.originalType || edge.type;
+        }
+        edgeUpdates.push({ id: edgeID, type: newType, style: newStyle });
+        edge.type = newType;
+        edge.style = newStyle;
+        this.cache.edgeRef.set(edgeID, edge);
+      }
+      if (edgeUpdates.length > 0) {
+        this.cache.graph.updateEdgeData(edgeUpdates);
+      }
+    }
+    async addLayout() {
+      const result = await Popup.layoutCreationDialog(this.cache.DEFAULTS.LAYOUT_INTERNALS);
+      if (!result) {
+        this.cache.ui.info("Creating workspace canceled");
+        return;
+      }
+      let existing = Object.keys(this.cache.data.layouts);
+      if (existing.includes(result.name)) {
+        this.cache.ui.error(`Workspace with name "${result.name}" already exists.`);
+        return;
+      }
+      const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+      if (result.mode === "clone") {
+        const nodeStyles = /* @__PURE__ */ new Map();
+        for (const [nodeID, node] of this.cache.nodeRef.entries()) {
+          nodeStyles.set(nodeID, {
+            type: node.type,
+            style: structuredClone(node.style)
+          });
+        }
+        const edgeStyles = /* @__PURE__ */ new Map();
+        for (const [edgeID, edge] of this.cache.edgeRef.entries()) {
+          edgeStyles.set(edgeID, {
+            type: edge.type,
+            style: structuredClone(edge.style)
+          });
+        }
+        this.cache.data.layouts[result.name] = {
+          internals: null,
+          positions: structuredClone(currentLayout.positions),
+          filters: structuredClone(currentLayout.filters),
+          isCustom: true,
+          hideDisconnectedNodes: currentLayout.hideDisconnectedNodes || false,
+          // Capture complete current visual state
+          nodeStyles,
+          edgeStyles,
+          bubbleSetStyle: structuredClone(currentLayout.bubbleSetStyle)
+        };
+        if (currentLayout["query"]) {
+          this.cache.data.layouts[result.name]["query"] = currentLayout["query"];
+        }
+        for (let group of this.cache.bs.traverseBubbleSets()) {
+          this.cache.data.layouts[result.name][`${group}Props`] = structuredClone(currentLayout[`${group}Props`]);
+          this.cache.data.layouts[result.name][`${group}ManualMembers`] = structuredClone(currentLayout[`${group}ManualMembers`] || /* @__PURE__ */ new Set());
+        }
+        this.cache.ui.info(`Cloned view: ${result.name}`);
+        this.cache.uiComponents.buildDropdownOptions();
+        document.getElementById("selectView").value = result.name;
+        await this.cache.lm.changeLayout();
+      } else {
+        this.cache.data.layouts[result.name] = {
+          internals: null,
+          positions: /* @__PURE__ */ new Map(),
+          // Will be filled after layout
+          filters: structuredClone(this.cache.data.filterDefaults),
+          // Reset to defaults
+          isCustom: true,
+          // All layouts are custom (position-based)
+          query: void 0,
+          // No query
+          hideDisconnectedNodes: false,
+          // Start with default styles
+          nodeStyles: /* @__PURE__ */ new Map(),
+          edgeStyles: /* @__PURE__ */ new Map(),
+          bubbleSetStyle: structuredClone(this.cache.DEFAULTS.BUBBLE_GROUP_STYLE)
+        };
+        for (let group of this.cache.bs.traverseBubbleSets()) {
+          this.cache.data.layouts[result.name][`${group}Props`] = /* @__PURE__ */ new Set();
+          this.cache.data.layouts[result.name][`${group}ManualMembers`] = /* @__PURE__ */ new Set();
+        }
+        this.cache.uiComponents.buildDropdownOptions();
+        document.getElementById("selectView").value = result.name;
+        this.cache.data.selectedLayout = result.name;
+        await this.cache.ui.showLoading("Creating Workspace", `Applying ${result.templateType} layout`);
+        this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = false;
+        await this.cache.sm.toggleSelectionForAllNodes(false);
+        await this.cache.sm.toggleSelectionForAllEdges(false);
+        this.cache.ui.buildFilterUI();
+        this.cache.qm.updateQueryTextArea();
+        this.cache.ui.updateFilterLockState();
+        this.cache.ui.clearActivePropsCacheOnLayoutChange();
+        await this.cache.bs.clearBubbleSetInstanceMembers();
+        this.cache.lastBubbleSetMembers.clear();
+        for (let group of this.cache.bs.traverseBubbleSets()) {
+          this.cache.lastBubbleSetMembers.set(group, /* @__PURE__ */ new Set());
+        }
+        await this.cache.gcm.preRenderEvent();
+        await this.cache.graph.setLayout({ type: result.templateType, ...this.cache.DEFAULTS.LAYOUT_INTERNALS[result.templateType] });
+        await this.cache.graph.layout();
+        await this.cache.lm.persistNodePositions();
+        this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED = false;
+        await this.cache.gcm.decideToRenderOrDraw(true);
+        await this.cache.gcm.applyHideDisconnectedState();
+        this.cache.bubbleSetChanged = true;
+        await this.cache.bs.updateBubbleSetIfChanged();
+        await this.cache.metrics.updateMetricUI();
+        this.cache.bs.updateManualGroupStatus();
+        this.cache.bs.updateManualGroupButtonState();
+        this.cache.bs.refreshBubbleStyleElements();
+        await this.cache.ui.hideLoading();
+        this.cache.ui.info(`Created Workspace: ${result.name} (${result.templateType})`);
+      }
+    }
+    async removeSelectedLayout() {
+      if (this.cache.data.selectedLayout === "Default") {
+        this.cache.ui.error("Cannot delete the Default workspace.");
+        return;
+      }
+      const confirmed = await Popup.confirm(`Are you sure you want to delete view "${this.cache.data.selectedLayout}"?`);
+      if (!confirmed) return false;
+      delete this.cache.data.layouts[this.cache.data.selectedLayout];
+      this.cache.uiComponents.buildDropdownOptions();
+      document.getElementById("selectView").value = "Default";
+      await this.changeLayout();
+    }
+    async getPos() {
+      const zoom = await this.cache.graph.getZoom();
+      const pos = await this.cache.graph.getPosition();
+      console.log(`Zoom: ${zoom}`);
+      console.log(`Position: ${pos}`);
+    }
+    async layoutSelectedNodes(action) {
+      const cache3 = this.cache;
+      if (cache3.selectedNodes.length === 0) return;
+      async function groupOrSpreadSelectedNodes(scale) {
+        for (const node of await cache3.sm.getSelectedNodes()) {
+          const oldX = node.style.x;
+          const oldY = node.style.y;
+          node.style.x = origAvgX + (oldX - origAvgX) * scale;
+          node.style.y = origAvgY + (oldY - origAvgY) * scale;
+        }
+      }
+      async function arrangeNodesInCircle(radius) {
+        const numNodes = cache3.selectedNodes.length;
+        let angleStep = 2 * Math.PI / numNodes;
+        let i = 0;
+        for (const node of await cache3.sm.getSelectedNodes()) {
+          const angle = i * angleStep;
+          node.style.x = origAvgX + radius * Math.cos(angle);
+          node.style.y = origAvgY + radius * Math.sin(angle);
+          i++;
+        }
+      }
+      async function applyForceLayout(iterations) {
+        const INITIAL_TEMPERATURE = 2;
+        const COOLING_FACTOR = 0.98;
+        const GRAVITY_STRENGTH = 1e-5;
+        const MAX_DISPLACEMENT = 50;
+        const REPULSION = 2e4;
+        const SPRING_LENGTH = 300;
+        const SPRING_STRENGTH = 5e-3;
+        const nodes = await cache3.sm.getSelectedNodes();
+        for (const node of nodes) {
+          node.style.x = Math.random() * 1e3 - 500;
+          node.style.y = Math.random() * 1e3 - 500;
+        }
+        let temperature = INITIAL_TEMPERATURE;
+        for (let i = 0; i < iterations; i++) {
+          for (let a = 0; a < nodes.length; a++) {
+            for (let b = a + 1; b < nodes.length; b++) {
+              const dx = nodes[b].style.x - nodes[a].style.x;
+              const dy = nodes[b].style.y - nodes[a].style.y;
+              const dist = Math.sqrt(dx * dx + dy * dy) + 0.01;
+              const force = REPULSION / (dist * dist);
+              const fx = force * (dx / dist);
+              const fy = force * (dy / dist);
+              nodes[a].style.x -= fx * temperature;
+              nodes[a].style.y -= fy * temperature;
+              nodes[b].style.x += fx * temperature;
+              nodes[b].style.y += fy * temperature;
+            }
+          }
+          for (const edge of await cache3.graph.getEdgeData()) {
+            const { source, target } = edge;
+            if (cache3.selectedNodes.includes(source) && cache3.selectedNodes.includes(target)) {
+              const nodeA = nodes.find((n) => n.id === source);
+              const nodeB = nodes.find((n) => n.id === target);
+              if (nodeA && nodeB) {
+                const dx = nodeB.style.x - nodeA.style.x;
+                const dy = nodeB.style.y - nodeA.style.y;
+                const dist = Math.sqrt(dx * dx + dy * dy) + 0.01;
+                const force = (dist - SPRING_LENGTH) * SPRING_STRENGTH;
+                const fx = force * (dx / dist);
+                const fy = force * (dy / dist);
+                nodeA.style.x += fx * temperature;
+                nodeA.style.y += fy * temperature;
+                nodeB.style.x -= fx * temperature;
+                nodeB.style.y -= fy * temperature;
+              }
+            }
+          }
+          for (const node of nodes) {
+            node.style.x += -node.style.x * GRAVITY_STRENGTH * temperature;
+            node.style.y += -node.style.y * GRAVITY_STRENGTH * temperature;
+          }
+          for (const node of nodes) {
+            const dist = Math.sqrt(node.style.x * node.style.x + node.style.y * node.style.y);
+            if (dist > MAX_DISPLACEMENT) {
+              const ratio = MAX_DISPLACEMENT / dist;
+              node.style.x *= ratio;
+              node.style.y *= ratio;
+            }
+          }
+          temperature *= COOLING_FACTOR;
+        }
+      }
+      async function applyGridLayout() {
+        const nodes = await cache3.sm.getSelectedNodes();
+        if (nodes.length === 0) return;
+        const count = nodes.length;
+        const columns = Math.ceil(Math.sqrt(count));
+        const spacing = 100;
+        const rows = Math.ceil(count / columns);
+        const totalWidth = (columns - 1) * spacing;
+        const totalHeight = (rows - 1) * spacing;
+        let idx = 0;
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < columns; col++) {
+            if (idx >= count) break;
+            const node = nodes[idx];
+            node.style.x = origAvgX - totalWidth / 2 + col * spacing;
+            node.style.y = origAvgY - totalHeight / 2 + row * spacing;
+            idx++;
+          }
+        }
+      }
+      async function applyRandomLayout() {
+        const nodes = await cache3.sm.getSelectedNodes();
+        if (nodes.length < 2) return;
+        const centerX = origCenterX;
+        const centerY = origCenterY;
+        const width = origWidth;
+        const height = origHeight;
+        const angle = Math.random() * 2 * Math.PI;
+        const [anchor1, anchor2] = getRandomElements(nodes, 2);
+        anchor1.style.x = centerX + width / 2 * Math.cos(angle) - height / 2 * Math.sin(angle);
+        anchor1.style.y = centerY + width / 2 * Math.sin(angle) + height / 2 * Math.cos(angle);
+        anchor2.style.x = centerX - width / 2 * Math.cos(angle) + height / 2 * Math.sin(angle);
+        anchor2.style.y = centerY - width / 2 * Math.sin(angle) - height / 2 * Math.cos(angle);
+        for (const node of nodes) {
+          if (node === anchor1 || node === anchor2) continue;
+          const u = Math.random() - 0.5;
+          const v = Math.random() - 0.5;
+          const dx = u * width;
+          const dy = v * height;
+          node.style.x = centerX + dx * Math.cos(angle) - dy * Math.sin(angle);
+          node.style.y = centerY + dx * Math.sin(angle) + dy * Math.cos(angle);
+        }
+      }
+      function getRandomElements(array, n) {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled.slice(0, n);
+      }
+      const sel = await cache3.sm.getSelectedNodes();
+      if (sel.length == 0) return;
+      const coords = sel.map((n) => ({ x: n.style.x, y: n.style.y }));
+      const origAvgX = coords.reduce((sum, pos) => sum + pos.x, 0) / coords.length;
+      const origAvgY = coords.reduce((sum, pos) => sum + pos.y, 0) / coords.length;
+      const origMinX = Math.min(...coords.map((pos) => pos.x));
+      const origMaxX = Math.max(...coords.map((pos) => pos.x));
+      const origMinY = Math.min(...coords.map((pos) => pos.y));
+      const origMaxY = Math.max(...coords.map((pos) => pos.y));
+      const origCenterX = (origMinX + origMaxX) / 2;
+      const origCenterY = (origMinY + origMaxY) / 2;
+      const origWidth = origMaxX - origMinX;
+      const origHeight = origMaxY - origMinY;
+      const eventLabels = {
+        "shrink": "Shrink selected nodes toward their center",
+        "expand": "Expand selected nodes outward from their center",
+        "circle": "Arrange selected nodes evenly in a circular layout",
+        "force": "Apply a force-directed layout to selected nodes",
+        "grid": "Align selected nodes in a uniform grid layout",
+        "random": "Distribute selected nodes randomly while preserving the original layout bounds"
+      };
+      const layoutActions = {
+        "shrink": () => groupOrSpreadSelectedNodes(0.5),
+        "expand": () => groupOrSpreadSelectedNodes(2),
+        "circle": () => arrangeNodesInCircle(100),
+        "force": () => applyForceLayout(150),
+        "grid": () => applyGridLayout(),
+        "random": () => applyRandomLayout()
+      };
+      await layoutActions[action]();
+      await this.persistNodePositions();
+      await this.handleLayoutChangeLoadingEvent(action, eventLabels[action]);
+    }
+    async getPositions() {
+      const posCopy = [];
+      for (const node of await this.cache.graph.getNodeData()) {
+        posCopy.push({
+          id: node.id,
+          style: {
+            x: node.style.x,
+            y: node.style.y
+          }
+        });
+      }
+      return posCopy;
+    }
+    async debugPositions() {
+      for (const node of await this.getPositions()) {
+        this.cache.ui.debug(`${node.id} | ${node.style.x} | ${node.style.y}`);
+      }
+    }
+    async persistNodePositions() {
+      this.cache.ui.debug("PERSISTING NODE POSITIONS ..");
+      for (const node of await this.cache.graph.getNodeData()) {
+        this.cache.data.layouts[this.cache.data.selectedLayout].positions.set(node.id, { style: { x: node.style.x, y: node.style.y } });
+      }
+    }
+    createDefaultLayout(key, overridePositionsFromExcel = false) {
+      const defLayout = {
+        layoutType: key,
+        // Store layout algorithm type for initial render only
+        internals: null,
+        positions: /* @__PURE__ */ new Map(),
+        filters: structuredClone(this.cache.data.filterDefaults),
+        isCustom: true,
+        // All layouts are position-based
+        query: void 0,
+        hideDisconnectedNodes: false,
+        // Per-view styles
+        nodeStyles: /* @__PURE__ */ new Map(),
+        edgeStyles: /* @__PURE__ */ new Map(),
+        bubbleSetStyle: structuredClone(this.cache.DEFAULTS.BUBBLE_GROUP_STYLE)
+      };
+      if (overridePositionsFromExcel) {
+        for (const [nodeID, positions] of this.cache.nodePositionsFromExcelImport) {
+          defLayout.positions.set(nodeID, { style: { x: positions.x, y: positions.y } });
+        }
+        defLayout.layoutType = this.cache.DEFAULTS.LAYOUT;
+      }
+      for (let group of this.cache.bs.traverseBubbleSets()) {
+        defLayout[`${group}Props`] = /* @__PURE__ */ new Set();
+      }
+      return defLayout;
+    }
+    async nodePositionsAreInSync() {
+      for (const node of await this.cache.graph.getNodeData()) {
+        const existing = this.cache.data.layouts[this.cache.data.selectedLayout].positions?.get(node.id);
+        if (!existing) continue;
+        if (node.style.x !== existing.style.x || node.style.y !== existing.style.y) {
+          return false;
+        }
+      }
+      return true;
+    }
+  };
+
+  // src/graph/selection.js
+  var GraphSelectionManager = class {
+    constructor(cache3) {
+      this.cache = cache3;
+    }
+    async selectNodes(nodeIDs) {
+      await this.selectElements(nodeIDs, this.cache.nodeRef);
+    }
+    async selectEdges(edgeIDs) {
+      await this.selectElements(edgeIDs, this.cache.edgeRef);
+    }
+    /**
+     * Selects given element IDs while deselecting all others
+     */
+    async selectElements(elementIDs, refMap, stateOverride = "selected") {
+      const visibility = {};
+      const elementIDsAsSet = new Set(elementIDs);
+      for (const elem of refMap.values()) {
+        const nodeOrEdgeID = elem.id;
+        const state = await this.cache.graph.getElementState(nodeOrEdgeID);
+        const shouldSelect = elementIDsAsSet.has(nodeOrEdgeID);
+        if (shouldSelect && !state.includes(stateOverride)) state.push(stateOverride);
+        if (!shouldSelect && state.includes(stateOverride)) state.splice(state.indexOf(stateOverride), 1);
+        visibility[nodeOrEdgeID] = state;
+      }
+      await this.cache.graph.setElementState(visibility);
+    }
+    async updateSelectedState(elemData, enable) {
+      await this.cache.ui.showLoading(enable ? "Selecting" : "Deselecting", `Modifying selection of ${elemData.length} elements`);
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      const stateMap = {};
+      for (const item of elemData) {
+        const states = await this.cache.graph.getElementState(item.id);
+        if (enable && !states.includes("selected")) states.push("selected");
+        if (!enable && states.includes("selected")) states.splice(states.indexOf("selected"), 1);
+        stateMap[item.id] = states;
+      }
+      await this.cache.graph.setElementState(stateMap);
+      this.cache.bs.updateManualGroupButtonState();
+      await this.cache.ui.hideLoading();
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    }
+    async getSelectedNodes() {
+      return await this.cache.graph.getNodeData().filter((n) => n.states?.includes("selected"));
+    }
+    updateElementSelectedState(element, shouldSelect) {
+      if (!element.states) {
+        element.states = [];
+      }
+      if (shouldSelect && !element.states.includes("selected")) {
+        element.states.push("selected");
+      }
+      if (!shouldSelect && element.states.includes("selected")) {
+        element.states.splice(element.states.indexOf("selected"), 1);
+      }
+    }
+    async toggleSelectionForAllNodes(enable) {
+      const nodes = await this.cache.graph.getNodeData();
+      await this.updateSelectedState(nodes, enable);
+    }
+    async toggleSelectionForAllEdges(enable) {
+      const edges = await this.cache.graph.getEdgeData();
+      await this.updateSelectedState(edges, enable);
+    }
+    async syncSelectionCacheAndElementStates() {
+      const snapshot = this.cache.selectionMemory[this.cache.selectedMemoryIndex];
+      this.cache.selectedNodes = snapshot.nodes;
+      this.cache.selectedEdges = snapshot.edges;
+      const stateMap = {};
+      for (const node of this.cache.graph.getNodeData()) {
+        const states = await this.cache.graph.getElementState(node.id);
+        const shouldSelect = snapshot.nodes.includes(node.id);
+        if (shouldSelect && !states.includes("selected")) states.push("selected");
+        if (!shouldSelect && states.includes("selected")) states.splice(states.indexOf("selected"), 1);
+        stateMap[node.id] = states;
+      }
+      for (const edge of this.cache.graph.getEdgeData()) {
+        const states = await this.cache.graph.getElementState(edge.id);
+        const shouldSelect = snapshot.edges.includes(edge.id);
+        if (shouldSelect && !states.includes("selected")) states.push("selected");
+        if (!shouldSelect && states.includes("selected")) states.splice(states.indexOf("selected"), 1);
+        stateMap[edge.id] = states;
+      }
+      await this.cache.graph.setElementState(stateMap);
+      this.cache.bs.updateManualGroupButtonState();
+    }
+    undoSelection() {
+      if (this.cache.selectedMemoryIndex > 0) {
+        this.cache.selectedMemoryIndex--;
+        this.syncSelectionCacheAndElementStates();
+      } else {
+        this.cache.ui.warning("Cannot undo!");
+      }
+    }
+    redoSelection() {
+      if (this.cache.selectionMemory.length > this.cache.selectedMemoryIndex + 1) {
+        this.cache.selectedMemoryIndex++;
+        this.syncSelectionCacheAndElementStates();
+      } else {
+        this.cache.ui.warning("Cannot redo!");
+      }
+    }
+    async addNodeOrEdgeIDsToSelectionWrapper(elementIDs, isNode) {
+      const shouldAdd = isNode ? !document.getElementById("selectByNodeIDsSwitch").checked : !document.getElementById("selectByEdgeIDsSwitch").checked;
+      const elementIDsAsArray = elementIDs ? elementIDs.split(",") : [];
+      await this.addNodeOrEdgeIDsToSelection(elementIDsAsArray, isNode, shouldAdd);
+    }
+    async addNodeOrEdgeLabelsToSelectionWrapper(elementLabels, isNode) {
+      const elementLabelsAsArray = elementLabels ? elementLabels.split(",") : [];
+      const elementIDs = elementLabelsAsArray.flatMap((label) => {
+        const set = isNode ? this.cache.nodeLabelToNodeIDs.get(label) : this.cache.edgeLabelToEdgeIDs.get(label);
+        return set ? Array.from(set) : [];
+      });
+      const shouldAdd = isNode ? !document.getElementById("selectByNodeLabelsSwitch").checked : !document.getElementById("selectByEdgeLabelsSwitch").checked;
+      await this.addNodeOrEdgeIDsToSelection(elementIDs, isNode, shouldAdd);
+    }
+    async addNodeOrEdgeIDsToSelection(elementIDs, isNode, shouldAdd) {
+      const elemDescription = isNode ? "Node" : "Edge";
+      const visibleElements = isNode ? this.cache.nodeIDsToBeShown : this.cache.edgeIDsToBeShown;
+      const existingElements = isNode ? this.cache.nodeRef.keys().toArray() : this.cache.edgeRef.keys().toArray();
+      const selectedElements = isNode ? this.cache.selectedNodes : this.cache.selectedEdges;
+      const ref = isNode ? this.cache.nodeRef : this.cache.edgeRef;
+      for (const elemID of elementIDs) {
+        if (!existingElements.includes(elemID)) {
+          this.cache.ui.error(`${elemDescription} with ID: '${elemID}' does not exist!`);
+          continue;
+        }
+        if (!visibleElements.has(elemID)) {
+          this.cache.ui.warning(`Cannot update selection of ${elemDescription} with ID: '${elemID}' as it is not visible.`);
+          continue;
+        }
+        const elementsToUpdate = [];
+        if (!selectedElements.includes(elemID) || !shouldAdd) {
+          elementsToUpdate.push(ref.get(elemID));
+        }
+        if (elementsToUpdate.length > 0) {
+          await this.updateSelectedState(elementsToUpdate, shouldAdd);
+        }
+      }
+    }
+    async toggleSelectionByNeighbors(mode) {
+      const edgesToShow = [];
+      const edgesToHide = [];
+      const nodesToShow = [];
+      const nodesToHide = [];
+      const isOuterNodeInSelection = (nodeID) => {
+        let neighborsInSelection = 0;
+        for (const edgeID of this.cache.nodeIDToEdgeIDs.get(nodeID) || []) {
+          const edge = this.cache.edgeRef.get(edgeID);
+          if (!edge) continue;
+          const neighbor = edge.source === nodeID ? edge.target : edge.source;
+          if (this.cache.selectedNodes.includes(neighbor)) {
+            neighborsInSelection++;
+            if (neighborsInSelection > 1) {
+              return false;
+            }
+          }
+        }
+        return neighborsInSelection <= 1;
+      };
+      const update = async () => {
+        if (edgesToShow.length > 0) await this.updateSelectedState(edgesToShow, true);
+        if (edgesToHide.length > 0) await this.updateSelectedState(edgesToHide, false);
+        if (nodesToShow.length > 0) await this.updateSelectedState(nodesToShow, true);
+        if (nodesToHide.length > 0) await this.updateSelectedState(nodesToHide, false);
+      };
+      switch (mode) {
+        case "expand-edges":
+          for (let nodeID of this.cache.selectedNodes) {
+            for (let edgeID of this.cache.nodeIDToEdgeIDs.get(nodeID) || []) {
+              edgesToShow.push(this.cache.edgeRef.get(edgeID));
+            }
+          }
+          break;
+        case "reduce-edges":
+          for (let edgeID of this.cache.selectedEdges) {
+            const edge = this.cache.edgeRef.get(edgeID);
+            const connectingNodesAreSelected = this.cache.selectedNodes.includes(edge.source) && this.cache.selectedNodes.includes(edge.target);
+            connectingNodesAreSelected ? edgesToShow.push(edge) : edgesToHide.push(edge);
+          }
+          break;
+        case "expand-neighbors":
+          for (let nodeID of this.cache.selectedNodes) {
+            for (let edgeID of this.cache.nodeIDToEdgeIDs.get(nodeID) || []) {
+              const edge = this.cache.edgeRef.get(edgeID);
+              edgesToShow.push(edge);
+              nodesToShow.push(this.cache.nodeRef.get(edge.source));
+              nodesToShow.push(this.cache.nodeRef.get(edge.target));
+            }
+          }
+          break;
+        case "reduce-neighbors":
+          for (const nodeID of this.cache.selectedNodes.filter(isOuterNodeInSelection)) {
+            nodesToHide.push(this.cache.nodeRef.get(nodeID));
+            for (const edgeID of this.cache.nodeIDToEdgeIDs.get(nodeID) || []) {
+              edgesToHide.push(this.cache.edgeRef.get(edgeID));
+            }
+          }
+          break;
+        default:
+          break;
+      }
+      await update();
+    }
+    updateSelectionCache() {
+      const { selectedNodes, selectedEdges, selectionMemory, selectedMemoryIndex } = cache;
+      if (selectionMemory.length === 0) {
+        selectionMemory.push({ nodes: [], edges: [] });
+        this.cache.selectedMemoryIndex = 0;
+      }
+      const currentSnapshot = selectionMemory[selectedMemoryIndex];
+      const nodesChanged = !StaticUtilities.arraysAreEqual(currentSnapshot.nodes, selectedNodes);
+      const edgesChanged = !StaticUtilities.arraysAreEqual(currentSnapshot.edges, selectedEdges);
+      if (nodesChanged || edgesChanged) {
+        if (selectedMemoryIndex < selectionMemory.length - 1) {
+          selectionMemory.splice(selectedMemoryIndex + 1);
+        }
+        if (selectionMemory.length === this.cache.CFG.MAX_SELECTION_MEMORY) {
+          selectionMemory.shift();
+          this.cache.selectedMemoryIndex = selectionMemory.length - 1;
+        }
+        selectionMemory.push({
+          nodes: [...selectedNodes],
+          edges: [...selectedEdges]
+        });
+        this.cache.selectedMemoryIndex = selectionMemory.length - 1;
+      }
+    }
+    updateEnabledStateUndoRedoSelectionButtons() {
+      const { selectionMemory, selectedMemoryIndex } = this.cache;
+      const canUndo = selectedMemoryIndex > 0;
+      const canRedo = selectedMemoryIndex < selectionMemory.length - 1;
+      this.cache.ui.toggleDisabledElements(["undoSelectionBtn"], canUndo);
+      this.cache.ui.toggleDisabledElements(["redoSelectionBtn"], canRedo);
+    }
+    async updateSelectedNodesAndEdges() {
+      this.cache.selectedNodes = await this.cache.graph.getNodeData().filter((n) => n.states?.includes("selected") && this.cache.nodeIDsToBeShown.has(n.id)).map((n) => n.id);
+      this.cache.selectedEdges = await this.cache.graph.getEdgeData().filter((e) => e.states?.includes("selected") && this.cache.edgeIDsToBeShown.has(e.id)).map((e) => e.id);
+      const selectedNodesCount = this.cache.selectedNodes?.length || 0;
+      const selectedEdgesCount = this.cache.selectedEdges?.length || 0;
+      document.getElementById("selectedNodes").textContent = `${selectedNodesCount}`;
+      document.getElementById("selectedEdges").textContent = `${selectedEdgesCount}`;
+      const atLeastOneNodeSelected = selectedNodesCount > 0;
+      const atLeastOneEdgeSelected = selectedEdgesCount > 0;
+      const atLeastOneNodeOrEdgeSelected = atLeastOneNodeSelected || atLeastOneEdgeSelected;
+      const moreThanOneNodeSelected = selectedNodesCount > 1;
+      this.cache.ui.toggleStyleElementsThatRequireAtLeastOneSelectedNode(atLeastOneNodeSelected);
+      this.cache.ui.toggleStyleElementsThatRequireAtLeastOneSelectedEdge(atLeastOneEdgeSelected);
+      this.cache.ui.toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(atLeastOneNodeOrEdgeSelected);
+      this.cache.ui.toggleStyleElementsThatRequireMoreThanOneSelectedNode(moreThanOneNodeSelected);
+      this.updateSelectionCache();
+      this.updateEnabledStateUndoRedoSelectionButtons();
+      if (typeof this.cache.dataTable !== "undefined" && this.cache.dataTable.fileData) {
+        if (this.cache.dataTable.currentTab === "selectedNodes" || this.cache.dataTable.currentTab === "selectedEdges" || this.cache.dataTable.currentTab === "selectedElements") {
+          this.cache.dataTable.refreshCurrentTab();
+        }
+      }
+    }
+  };
+
+  // src/graph/style.js
+  var GraphStyleManager = class {
+    constructor(cache3) {
+      this.cache = cache3;
+    }
+    async resetStyleForSelectedElements() {
+      const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+      if (!currentLayout) return;
+      for (const nodeId of this.cache.selectedNodes) {
+        if (currentLayout.nodeStyles.has(nodeId)) {
+          currentLayout.nodeStyles.delete(nodeId);
+        }
+        if (this.cache.CFG.RESET_SELECTION_BUTTON_RESETS_POSITIONS && currentLayout.positions.has(nodeId)) {
+          currentLayout.positions.delete(nodeId);
+        }
+      }
+      for (const edgeId of this.cache.selectedEdges) {
+        if (currentLayout.edgeStyles.has(edgeId)) {
+          currentLayout.edgeStyles.delete(edgeId);
+        }
+      }
+      await this.cache.lm.changeLayout();
+    }
+    async handleStyleChangeLoadingEvent(header, text) {
+      await this.cache.ui.showLoading(header, text);
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      this.cache.styleChanged = true;
+      await this.cache.gcm.decideToRenderOrDraw();
+      this.cache.ui.debug(`Graph updated after style event with message ${header} ${text}`);
+    }
+    getNodeStyleOrDefaults(node) {
+      const src = node.style ?? {};
+      const d = this.cache.DEFAULTS.NODE;
+      const defaultNode = {
+        type: node.type ?? d.TYPE,
+        style: {
+          size: src.size ?? d.SIZE,
+          fill: src.fill ?? d.FILL_COLOR,
+          stroke: src.stroke ?? d.STROKE_COLOR,
+          lineWidth: src.lineWidth ?? d.LINE_WIDTH,
+          badge: src.badge ?? false,
+          badges: src.badges ?? [],
+          badgePalette: src.badgePalette ?? [],
+          badgeFontSize: src.badgeFontSize ?? d.BADGE.FONT_SIZE
+        }
+      };
+      if (!this.cache.CFG.HIDE_LABELS || src.label) {
+        const l = this.cache.DEFAULTS.NODE.LABEL;
+        Object.assign(defaultNode.style, {
+          label: true,
+          labelText: src.labelText,
+          labelBackgroundFill: src.labelBackgroundFill ?? l.BACKGROUND_COLOR,
+          labelBackground: src.labelBackground ?? l.BACKGROUND,
+          labelBackgroundRadius: src.labelBackgroundRadius ?? l.BACKGROUND_RADIUS,
+          labelCursor: src.labelCursor ?? l.CURSOR,
+          labelFill: src.labelFill ?? l.FOREGROUND_COLOR,
+          labelFontSize: src.labelFontSize ?? l.FONT_SIZE,
+          labelLeading: src.labelLeading ?? l.LINE_SPACING,
+          labelMaxLines: src.labelMaxLines ?? l.MAX_LINES,
+          labelMaxWidth: src.labelMaxWidth ?? l.MAX_WIDTH,
+          labelOffsetX: src.labelOffsetX ?? l.OFFSET_X,
+          labelOffsetY: src.labelOffsetY ?? l.OFFSET_Y,
+          labelPadding: src.labelPadding ?? l.PADDING,
+          labelPlacement: src.labelPlacement ?? l.PLACEMENT,
+          labelTextAlign: src.labelTextAlign ?? l.TEXT_ALIGN,
+          labelWordWrap: src.labelWordWrap ?? l.WORD_WRAP,
+          labelZIndex: src.labelZIndex ?? l.Z_INDEX
+        });
+      }
+      return defaultNode;
+    }
+    getEdgeStyleOrDefaults(edge) {
+      const src = edge.style ?? {};
+      const d = this.cache.DEFAULTS.EDGE;
+      const defaultEdge = {
+        type: edge.type ?? d.TYPE,
+        style: {
+          startArrow: src.startArrow ?? d.ARROWS.START,
+          startArrowSize: src.startArrowSize ?? d.ARROWS.START_SIZE,
+          startArrowType: src.startArrowType ?? d.ARROWS.START_TYPE,
+          endArrow: src.endArrow ?? d.ARROWS.END,
+          endArrowSize: src.endArrowSize ?? d.ARROWS.END_SIZE,
+          endArrowType: src.endArrowType ?? d.ARROWS.END_TYPE,
+          lineWidth: src.lineWidth ?? d.LINE_WIDTH,
+          lineDash: src.lineDash ?? d.LINE_DASH,
+          stroke: src.stroke ?? d.COLOR,
+          halo: src.halo ?? d.HALO.ENABLED,
+          haloStroke: src.haloStroke ?? d.HALO.COLOR,
+          haloLineWidth: src.haloLineWidth ?? d.HALO.WIDTH
+        }
+      };
+      if (!this.cache.CFG.HIDE_LABELS || src.label) {
+        const l = this.cache.DEFAULTS.EDGE.LABEL;
+        Object.assign(defaultEdge.style, {
+          label: true,
+          labelAutoRotate: src.labelAutoRotate ?? l.AUTO_ROTATE,
+          labelBackground: src.labelBackground ?? l.BACKGROUND,
+          labelBackgroundFill: src.labelBackgroundFill ?? l.BACKGROUND_COLOR,
+          labelBackgroundCursor: src.labelBackgroundCursor ?? l.BACKGROUND_CURSOR,
+          labelBackgroundFillOpacity: src.labelBackgroundFillOpacity ?? l.BACKGROUND_FILL_OPACITY,
+          labelBackgroundRadius: src.labelBackgroundRadius ?? l.BACKGROUND_RADIUS,
+          labelBackgroundStrokeOpacity: src.labelBackgroundStrokeOpacity ?? l.BACKGROUND_STROKE_OPACITY,
+          labelCursor: src.labelCursor ?? l.CURSOR,
+          labelFill: src.labelFill ?? l.FOREGROUND_COLOR,
+          labelFillOpacity: src.labelFillOpacity ?? l.FILL_OPACITY,
+          labelFontSize: src.labelFontSize ?? l.FONT_SIZE,
+          labelFontWeight: src.labelFontWeight ?? l.FONT_WEIGHT,
+          labelMaxLines: src.labelMaxLines ?? l.MAX_LINES,
+          labelMaxWidth: src.labelMaxWidth ?? l.MAX_WIDTH,
+          labelOffsetX: src.labelOffsetX ?? l.OFFSET_X,
+          labelOffsetY: src.labelOffsetY ?? l.OFFSET_Y,
+          labelOpacity: src.labelOpacity ?? l.OPACITY,
+          labelPlacement: src.labelPlacement ?? l.PLACEMENT,
+          labelPadding: src.labelPadding ?? l.PADDING,
+          labelText: src.labelText ?? l.TEXT,
+          labelTextAlign: src.labelTextAlign ?? l.TEXT_ALIGN,
+          labelTextBaseLine: src.labelTextBaseLine ?? l.TEXT_BASE_LINE,
+          labelTextOverflow: src.labelTextOverflow ?? l.TEXT_OVERFLOW,
+          labelVisibility: src.labelVisibility ?? l.VISIBILITY,
+          labelWordWrap: src.labelWordWrap ?? l.WORD_WRAP
+        });
+      }
+      return defaultEdge;
+    }
+  };
+
+  // src/utilities/data_editor.js
+  var DataTable = class {
+    constructor(cache3, containerId = "dataTableContainer") {
+      this.containerId = containerId;
+      this.tableData = [];
+      this.headers = [];
+      this.currentEditingCell = null;
+      this.onChangeCallback = null;
+      this.sortState = {};
+      this.originalOrder = [];
+      this.headerIndexMap = /* @__PURE__ */ new Map();
+      this.currentTab = "selectedNodes";
+      this.fileData = null;
+      this.tableDataBackup = [];
+      this.pendingChanges = /* @__PURE__ */ new Map();
+      this.onPendingChangesCallback = null;
+      this.cache = cache3;
+    }
+    init() {
+      const container = document.getElementById(this.containerId);
+      if (!container) {
+        this.cache.ui.error(`Container with ID '${this.containerId}' not found`);
+        return;
+      }
+      container.innerHTML = `
       <div class="data-table-warning-banner">
-        <span><strong>\u26A0\uFE0F</strong> Data modifications affect all views globally</span>
+        <span><strong>\u26A0\uFE0F</strong> Data modifications affect all workspaces globally</span>
         <button class="data-table-warning-close" title="Dismiss warning">\xD7</button>
       </div>
       <div class="data-table-tabs">
@@ -34,15 +3708,987 @@
           <tbody id="dataTableBody"></tbody>
         </table>
       </div>
-    `,this.tabsContainer=e.querySelector(".data-table-tabs"),this.table=e.querySelector("#dataTable"),this.tableHead=e.querySelector("#dataTableHead"),this.tableBody=e.querySelector("#dataTableBody"),this.warningBanner=e.querySelector(".data-table-warning-banner"),this.tabsContainer.addEventListener("click",this.handleTabClick.bind(this)),this.tableBody.addEventListener("click",this.handleTableClick.bind(this)),this.tableBody.addEventListener("focus",this.handleTableFocus.bind(this),!0),this.tableBody.addEventListener("blur",this.handleTableBlur.bind(this),!0),this.tableBody.addEventListener("keydown",this.handleTableKeydown.bind(this)),this.tableBody.addEventListener("input",this.handleTableInput.bind(this)),this.tableHead.addEventListener("click",this.handleHeaderTableClick.bind(this));let t=e.querySelector(".data-table-warning-close");t&&t.addEventListener("click",()=>{this.warningBanner&&(this.warningBanner.style.display="none")})}async handleTabClick(e){if(e.target.classList.contains("data-table-tab")){let t=e.target.dataset.tab;await this.switchTab(t)}}async switchTab(e){await this.cache.ui.showLoading("Data Editor",`Loading ${e} this.cache.data...`),this.currentTab=e,this.tabsContainer.querySelectorAll(".data-table-tab").forEach(t=>{t.classList.remove("active"),t.dataset.tab===e&&t.classList.add("active")}),this.sortState={},this.loadTabData(),await this.cache.ui.hideLoading()}loadTabData(){if(!this.fileData){this.cache.ui.error("No fileData available");return}this.headers=["Del","Row #","Type","ID","Label","Description"];let e=this.fileData.nodeDataHeaders.map(d=>`${this.cache.CFG.EXCEL_NODE_HEADER}::${d.subGroup}::${d.key}`),t=this.fileData.edgeDataHeaders.map(d=>`${this.cache.CFG.EXCEL_EDGE_HEADER}::${d.subGroup}::${d.key}`),s=[...new Set(e)],a=[...new Set(t)],i=["selectedNodes","allNodes"],n=["selectedEdges","allEdges"],o=["selectedElements","entireGraph"];i.includes(this.currentTab)?this.headers.push(...s):n.includes(this.currentTab)?this.headers.push(...a):o.includes(this.currentTab)&&(this.headers.push(...s),this.headers.push(...a)),this.headerIndexMap.clear(),this.headers.forEach((d,h)=>{this.headerIndexMap.set(d,h)});let c=new Set;this.pendingChanges.forEach((d,h)=>{c.add(h)});let r=this.tableData.filter(d=>c.has(d[3]));switch(this.tableData=[],this.currentTab){case"selectedNodes":this.loadSelectedNodes();break;case"selectedEdges":this.loadSelectedEdges();break;case"selectedElements":this.loadSelectedElements();break;case"allNodes":this.loadAllNodes();break;case"allEdges":this.loadAllEdges();break;case"entireGraph":this.loadEntireGraph();break}this.tableData.push(...r),this.tableData.forEach((d,h)=>{d[1]=h+1}),this.tableDataBackup=this.tableData.map(d=>[...d]),this.originalOrder=this.tableData.map((d,h)=>h),this.render()}loadSelectedNodes(){if(!this.fileData.nodes||!this.cache.selectedNodes)return;let e=new Set(this.cache.selectedNodes),t=this.fileData.nodes.filter(s=>e.has(s.id));this.addNodesToTable(t)}loadSelectedEdges(){if(!this.fileData.edges||!this.cache.selectedEdges)return;let e=new Set(this.cache.selectedEdges),t=this.fileData.edges.filter(s=>e.has(s.id));this.addEdgesToTable(t)}loadSelectedElements(){if(!(!this.cache.selectedNodes&&!this.cache.selectedEdges)){if(this.fileData.nodes&&this.cache.selectedNodes){let e=new Set(this.cache.selectedNodes),t=this.fileData.nodes.filter(s=>e.has(s.id));this.addNodesToTable(t)}if(this.fileData.edges&&this.cache.selectedEdges){let e=new Set(this.cache.selectedEdges),t=this.fileData.edges.filter(s=>e.has(s.id));this.addEdgesToTable(t)}}}loadAllNodes(){this.fileData.nodes&&this.addNodesToTable(this.fileData.nodes)}loadAllEdges(){this.fileData.edges&&this.addEdgesToTable(this.fileData.edges)}loadEntireGraph(){this.fileData.nodes&&this.addNodesToTable(this.fileData.nodes),this.fileData.edges&&this.addEdgesToTable(this.fileData.edges)}addNodesToTable(e){e.forEach(t=>{let s=new Array(this.headers.length).fill("");s[0]="",s[1]=this.tableData.length+1,s[2]="Node",s[3]=t.id,s[4]=t.label||"",s[5]=t.description||"";for(let[a,i,n,o]of this.cache.gcm.traverseD4Data(t)){let c=`${a}::${i}::${n}`,r=this.headerIndexMap.get(c);r!==void 0&&(s[r]=o)}this.tableData.push(s)})}addEdgesToTable(e){e.forEach(t=>{let s=new Array(this.headers.length).fill("");s[0]="",s[1]=this.tableData.length+1,s[2]="Edge",s[3]=t.id,s[4]=t.label||"",s[5]=t.description||"";for(let[a,i,n,o]of this.cache.gcm.traverseD4Data(t)){let c=`${a}::${i}::${n}`,r=this.headerIndexMap.get(c);r!==void 0&&(s[r]=o)}this.tableData.push(s)})}handleTableClick(e){if(e.target.classList.contains("data-table-delete-row-btn")){let t=parseInt(e.target.closest("td").dataset.row);this.handleDeleteRow(t)}}async handleHeaderTableClick(e){await this.cache.ui.showLoading("Data Editor","Sorting ..");let t=e.target.closest(".data-table-sortable-header");if(t){let s=parseInt(t.dataset.column);this.handleHeaderClick(s)}await this.cache.ui.hideLoading()}handleTableFocus(e){if(e.target.contentEditable==="true"){let t=parseInt(e.target.dataset.row),s=parseInt(e.target.dataset.col);this.handleCellFocus(e,t,s)}}handleTableBlur(e){if(e.target.contentEditable==="true"){let t=parseInt(e.target.dataset.row),s=parseInt(e.target.dataset.col);this.handleCellBlur(e,t,s)}}handleTableKeydown(e){if(e.target.contentEditable==="true"){let t=parseInt(e.target.dataset.row),s=parseInt(e.target.dataset.col);this.handleCellKeydown(e,t,s)}}handleTableInput(e){if(e.target.contentEditable==="true"){let t=parseInt(e.target.dataset.row),s=parseInt(e.target.dataset.col);this.handleCellInput(e,t,s)}}populateFromFileData(e){if(!e){this.cache.ui.error("No fileData provided");return}this.fileData=structuredClone(e),this.loadTabData()}async refreshCurrentTab(){this.loadTabData()}reset(){this.tableData=this.tableDataBackup.map(e=>[...e]),this.sortState={},this.originalOrder=this.tableData.map((e,t)=>t),this.render()}formatHeaderForDisplay(e){if(!e.includes("::"))return e;let t=e.split("::");if(t.length!==3)return e;let[s,a,i]=t,n=i.length,o="data-table-header-property";return n>20?o+=" size-xs":n>18?o+=" size-s":n>16?o+=" size-m":n>14&&(o+=" size-l"),`<span class="data-table-header-group-badge">${a}</span><br><span class="${o}">${i}</span>`}render(){if(!this.tableHead||!this.tableBody){this.cache.ui.error("Table elements not found");return}let e=document.createDocumentFragment(),t=document.createDocumentFragment();if(this.tableData.length===0){this.tableHead.innerHTML="",this.tableBody.innerHTML='<tr><td colspan="100%">No data available</td></tr>',this.updateExportButtonState();return}let s=document.createElement("tr");this.headers.forEach((a,i)=>{let n=document.createElement("th");if(i===0)n.classList.add("data-table-delete-row-column");else{let o=this.formatHeaderForDisplay(a);n.innerHTML=`
-        <div class="data-table-sortable-header" data-column="${i}">
-          <span class="data-table-header-text">${o}</span>
-          <span class="data-table-sort-indicator">${this.getSortIndicator(i)}</span>
+    `;
+      this.tabsContainer = container.querySelector(".data-table-tabs");
+      this.table = container.querySelector("#dataTable");
+      this.tableHead = container.querySelector("#dataTableHead");
+      this.tableBody = container.querySelector("#dataTableBody");
+      this.warningBanner = container.querySelector(".data-table-warning-banner");
+      this.tabsContainer.addEventListener("click", this.handleTabClick.bind(this));
+      this.tableBody.addEventListener("click", this.handleTableClick.bind(this));
+      this.tableBody.addEventListener("focus", this.handleTableFocus.bind(this), true);
+      this.tableBody.addEventListener("blur", this.handleTableBlur.bind(this), true);
+      this.tableBody.addEventListener("keydown", this.handleTableKeydown.bind(this));
+      this.tableBody.addEventListener("input", this.handleTableInput.bind(this));
+      this.tableHead.addEventListener("click", this.handleHeaderTableClick.bind(this));
+      const closeBtn = container.querySelector(".data-table-warning-close");
+      if (closeBtn) {
+        closeBtn.addEventListener("click", () => {
+          if (this.warningBanner) {
+            this.warningBanner.style.display = "none";
+            localStorage.setItem("dataEditorWarningDismissed", "true");
+          }
+        });
+      }
+      if (localStorage.getItem("dataEditorWarningDismissed") === "true") {
+        this.warningBanner.style.display = "none";
+      }
+    }
+    async handleTabClick(event) {
+      if (event.target.classList.contains("data-table-tab")) {
+        const tab = event.target.dataset.tab;
+        await this.switchTab(tab);
+      }
+    }
+    async switchTab(tab) {
+      await this.cache.ui.showLoading("Data Editor", `Loading ${tab} this.cache.data...`);
+      this.currentTab = tab;
+      this.tabsContainer.querySelectorAll(".data-table-tab").forEach((btn) => {
+        btn.classList.remove("active");
+        if (btn.dataset.tab === tab) {
+          btn.classList.add("active");
+        }
+      });
+      this.sortState = {};
+      this.loadTabData();
+      await this.cache.ui.hideLoading();
+    }
+    loadTabData() {
+      if (!this.fileData) {
+        this.cache.ui.error("No fileData available");
+        return;
+      }
+      this.headers = ["Del", "Row #", "Type", "ID", "Label", "Description"];
+      const nodeHeaders = this.fileData.nodeDataHeaders.map((o) => `${this.cache.CFG.EXCEL_NODE_HEADER}::${o.subGroup}::${o.key}`);
+      const edgeHeaders = this.fileData.edgeDataHeaders.map((o) => `${this.cache.CFG.EXCEL_EDGE_HEADER}::${o.subGroup}::${o.key}`);
+      const uniqueNodeHeaders = [...new Set(nodeHeaders)];
+      const uniqueEdgeHeaders = [...new Set(edgeHeaders)];
+      const nodeOnlyTabs = ["selectedNodes", "allNodes"];
+      const edgeOnlyTabs = ["selectedEdges", "allEdges"];
+      const allPropertyTabs = ["selectedElements", "entireGraph"];
+      if (nodeOnlyTabs.includes(this.currentTab)) {
+        this.headers.push(...uniqueNodeHeaders);
+      } else if (edgeOnlyTabs.includes(this.currentTab)) {
+        this.headers.push(...uniqueEdgeHeaders);
+      } else if (allPropertyTabs.includes(this.currentTab)) {
+        this.headers.push(...uniqueNodeHeaders);
+        this.headers.push(...uniqueEdgeHeaders);
+      }
+      this.headerIndexMap.clear();
+      this.headers.forEach((header, index) => {
+        this.headerIndexMap.set(header, index);
+      });
+      const pendingRowIds = /* @__PURE__ */ new Set();
+      this.pendingChanges.forEach((change, id) => {
+        pendingRowIds.add(id);
+      });
+      const preservedRows = this.tableData.filter((row) => pendingRowIds.has(row[3]));
+      this.tableData = [];
+      switch (this.currentTab) {
+        case "selectedNodes":
+          this.loadSelectedNodes();
+          break;
+        case "selectedEdges":
+          this.loadSelectedEdges();
+          break;
+        case "selectedElements":
+          this.loadSelectedElements();
+          break;
+        case "allNodes":
+          this.loadAllNodes();
+          break;
+        case "allEdges":
+          this.loadAllEdges();
+          break;
+        case "entireGraph":
+          this.loadEntireGraph();
+          break;
+      }
+      preservedRows.forEach((row) => {
+        while (row.length < this.headers.length) {
+          row.push("");
+        }
+      });
+      this.tableData.push(...preservedRows);
+      this.tableData.forEach((row, index) => {
+        row[1] = index + 1;
+      });
+      this.tableDataBackup = this.tableData.map((row) => [...row]);
+      this.originalOrder = this.tableData.map((_, index) => index);
+      this.render();
+    }
+    loadSelectedNodes() {
+      if (!this.fileData.nodes || !this.cache.selectedNodes) return;
+      const selectedNodeSet = new Set(this.cache.selectedNodes);
+      const selectedNodes = this.fileData.nodes.filter((node) => selectedNodeSet.has(node.id));
+      this.addNodesToTable(selectedNodes);
+    }
+    loadSelectedEdges() {
+      if (!this.fileData.edges || !this.cache.selectedEdges) return;
+      const selectedEdgeSet = new Set(this.cache.selectedEdges);
+      const selectedEdges = this.fileData.edges.filter((edge) => selectedEdgeSet.has(edge.id));
+      this.addEdgesToTable(selectedEdges);
+    }
+    loadSelectedElements() {
+      if (!this.cache.selectedNodes && !this.cache.selectedEdges) return;
+      if (this.fileData.nodes && this.cache.selectedNodes) {
+        const selectedNodeSet = new Set(this.cache.selectedNodes);
+        const selectedNodes = this.fileData.nodes.filter((node) => selectedNodeSet.has(node.id));
+        this.addNodesToTable(selectedNodes);
+      }
+      if (this.fileData.edges && this.cache.selectedEdges) {
+        const selectedEdgeSet = new Set(this.cache.selectedEdges);
+        const selectedEdges = this.fileData.edges.filter((edge) => selectedEdgeSet.has(edge.id));
+        this.addEdgesToTable(selectedEdges);
+      }
+    }
+    loadAllNodes() {
+      if (!this.fileData.nodes) return;
+      this.addNodesToTable(this.fileData.nodes);
+    }
+    loadAllEdges() {
+      if (!this.fileData.edges) return;
+      this.addEdgesToTable(this.fileData.edges);
+    }
+    loadEntireGraph() {
+      if (this.fileData.nodes) {
+        this.addNodesToTable(this.fileData.nodes);
+      }
+      if (this.fileData.edges) {
+        this.addEdgesToTable(this.fileData.edges);
+      }
+    }
+    addNodesToTable(nodes) {
+      nodes.forEach((node) => {
+        const row = new Array(this.headers.length).fill("");
+        row[0] = "";
+        row[1] = this.tableData.length + 1;
+        row[2] = "Node";
+        row[3] = node.id;
+        row[4] = node.label || "";
+        row[5] = node.description || "";
+        for (let [section, subSection, prop, data] of this.cache.gcm.traverseD4Data(node)) {
+          const headerKey = `${section}::${subSection}::${prop}`;
+          const headerIdx = this.headerIndexMap.get(headerKey);
+          if (headerIdx !== void 0) {
+            row[headerIdx] = data;
+          }
+        }
+        this.tableData.push(row);
+      });
+    }
+    addEdgesToTable(edges) {
+      edges.forEach((edge) => {
+        const row = new Array(this.headers.length).fill("");
+        row[0] = "";
+        row[1] = this.tableData.length + 1;
+        row[2] = "Edge";
+        row[3] = edge.id;
+        row[4] = edge.label || "";
+        row[5] = edge.description || "";
+        for (let [section, subSection, prop, data] of this.cache.gcm.traverseD4Data(edge)) {
+          const headerKey = `${section}::${subSection}::${prop}`;
+          const headerIdx = this.headerIndexMap.get(headerKey);
+          if (headerIdx !== void 0) {
+            row[headerIdx] = data;
+          }
+        }
+        this.tableData.push(row);
+      });
+    }
+    handleTableClick(event) {
+      if (event.target.classList.contains("data-table-delete-row-btn")) {
+        const rowIndex = parseInt(event.target.closest("td").dataset.row);
+        this.handleDeleteRow(rowIndex);
+      }
+    }
+    async handleHeaderTableClick(event) {
+      await this.cache.ui.showLoading("Data Editor", "Sorting ..");
+      const headerDiv = event.target.closest(".data-table-sortable-header");
+      if (headerDiv) {
+        const columnIndex = parseInt(headerDiv.dataset.column);
+        this.handleHeaderClick(columnIndex);
+      }
+      await this.cache.ui.hideLoading();
+    }
+    handleTableFocus(event) {
+      if (event.target.contentEditable === "true") {
+        const rowIndex = parseInt(event.target.dataset.row);
+        const colIndex = parseInt(event.target.dataset.col);
+        this.handleCellFocus(event, rowIndex, colIndex);
+      }
+    }
+    handleTableBlur(event) {
+      if (event.target.contentEditable === "true") {
+        const rowIndex = parseInt(event.target.dataset.row);
+        const colIndex = parseInt(event.target.dataset.col);
+        this.handleCellBlur(event, rowIndex, colIndex);
+      }
+    }
+    handleTableKeydown(event) {
+      if (event.target.contentEditable === "true") {
+        const rowIndex = parseInt(event.target.dataset.row);
+        const colIndex = parseInt(event.target.dataset.col);
+        this.handleCellKeydown(event, rowIndex, colIndex);
+      }
+    }
+    handleTableInput(event) {
+      if (event.target.contentEditable === "true") {
+        const rowIndex = parseInt(event.target.dataset.row);
+        const colIndex = parseInt(event.target.dataset.col);
+        this.handleCellInput(event, rowIndex, colIndex);
+      }
+    }
+    populateFromFileData(fileData) {
+      if (!fileData) {
+        this.cache.ui.error("No fileData provided");
+        return;
+      }
+      this.fileData = structuredClone(fileData);
+      this.loadTabData();
+    }
+    async refreshCurrentTab() {
+      this.loadTabData();
+    }
+    reset() {
+      this.tableData = this.tableDataBackup.map((row) => [...row]);
+      this.sortState = {};
+      this.originalOrder = this.tableData.map((_, index) => index);
+      this.render();
+    }
+    formatHeaderForDisplay(header) {
+      if (!header.includes("::")) {
+        return header;
+      }
+      const parts = header.split("::");
+      if (parts.length !== 3) {
+        return header;
+      }
+      const [typePrefix, group, property] = parts;
+      const len = property.length;
+      let sizeClass = "data-table-header-property";
+      if (len > 20) {
+        sizeClass += " size-xs";
+      } else if (len > 18) {
+        sizeClass += " size-s";
+      } else if (len > 16) {
+        sizeClass += " size-m";
+      } else if (len > 14) {
+        sizeClass += " size-l";
+      }
+      return `<span class="data-table-header-group-badge">${group}</span><br><span class="${sizeClass}">${property}</span>`;
+    }
+    render() {
+      if (!this.tableHead || !this.tableBody) {
+        this.cache.ui.error("Table elements not found");
+        return;
+      }
+      const headerFragment = document.createDocumentFragment();
+      const bodyFragment = document.createDocumentFragment();
+      if (this.tableData.length === 0) {
+        this.tableHead.innerHTML = "";
+        this.tableBody.innerHTML = '<tr><td colspan="100%">No data available</td></tr>';
+        this.updateExportButtonState();
+        return;
+      }
+      const headerRow = document.createElement("tr");
+      this.headers.forEach((header, index) => {
+        const th = document.createElement("th");
+        if (index === 0) {
+          th.classList.add("data-table-delete-row-column");
+        } else {
+          const formattedHeader = this.formatHeaderForDisplay(header);
+          th.innerHTML = `
+        <div class="data-table-sortable-header" data-column="${index}">
+          <span class="data-table-header-text">${formattedHeader}</span>
+          <span class="data-table-sort-indicator">${this.getSortIndicator(index)}</span>
         </div>
-      `}s.appendChild(n)}),e.appendChild(s),this.tableData.forEach((a,i)=>{let n=document.createElement("tr"),o=a[2]==="Node";a.forEach((c,r)=>{let d=document.createElement("td");if(d.dataset.row=i,d.dataset.col=r,r===0)d.innerHTML=`<button class="data-table-delete-row-btn" title="Delete row ${i+1} (${a[2]} ${a[3]})">\xD7</button>`,d.classList.add("data-table-delete-row-column");else{d.textContent=c??"";let h=r<=3,m=r===4||r===5,f=o&&this.headers[r].startsWith(this.cache.CFG.EXCEL_EDGE_HEADER)||!o&&this.headers[r].startsWith(this.cache.CFG.EXCEL_NODE_HEADER);(!h||m)&&!f?d.contentEditable=!0:d.classList.add("readonly")}n.appendChild(d)}),t.appendChild(n)}),this.tableHead.innerHTML="",this.tableBody.innerHTML="",this.tableHead.appendChild(e),this.tableBody.appendChild(t),this.updateExportButtonState()}updateExportButtonState(){let e=document.getElementById("exportDataTableBtn");e&&(this.tableData.length===0?(e.classList.add("disabled"),e.disabled=!0):(e.classList.remove("disabled"),e.disabled=!1))}handleDeleteRow(e){if(e>=0&&e<this.tableData.length){let t=this.tableData[e][3],s=this.tableData[e][2];this.pendingChanges.set(t,{type:s,action:"delete"}),this.tableData.splice(e,1),this.originalOrder.splice(e,1),this.originalOrder=this.originalOrder.map(a=>a>e?a-1:a),this.render(),this.onChangeCallback&&this.onChangeCallback(-1,-1,"row_deleted")}}handleHeaderClick(e){let t=this.sortState[e];this.sortState={},t?t==="asc"?this.sortState[e]="desc":this.sortState[e]=null:this.sortState[e]="asc",this.sortColumn(e,this.sortState[e])}sortColumn(e,t){if(!t){let a=this.originalOrder.map(i=>this.tableDataBackup[i]);this.tableData=a.map(i=>[...i]),this.render();return}let s=this.tableData.map((a,i)=>i);s.sort((a,i)=>{let n=this.tableData[a][e]||"",o=this.tableData[i][e]||"",c=parseFloat(n),r=parseFloat(o);return!isNaN(c)&&!isNaN(r)?t==="asc"?c-r:r-c:(n=String(n).toLowerCase(),o=String(o).toLowerCase(),t==="asc"?n.localeCompare(o):o.localeCompare(n))}),this.tableData=s.map(a=>this.tableData[a]),this.render()}getSortIndicator(e){let t=this.sortState[e];return t==="asc"?"\u25B2":t==="desc"?"\u25BC":"\u21C5"}handleCellFocus(e,t,s){let a=e.target;this.currentEditingCell={cell:a,rowIndex:t,colIndex:s},a.classList.add("editing");let i=document.createRange();i.selectNodeContents(a);let n=window.getSelection();n.removeAllRanges(),n.addRange(i)}handleCellBlur(e,t,s){let a=e.target;a.classList.remove("editing"),this.tableData[t][s]=a.textContent;let i=this.tableData[t][3],n=this.tableData[t][2];this.trackChange(i,n),this.onChangeCallback&&this.onChangeCallback(t,s,a.textContent),this.notifyPendingChanges(),this.currentEditingCell=null}notifyPendingChanges(){if(this.onPendingChangesCallback){let e=this.pendingChanges.size>0,t=this.hasChangesFromOriginal();this.onPendingChangesCallback({hasPendingChanges:e,hasChangesFromOriginal:t})}}hasChangesFromOriginal(){if(this.tableData.length!==this.tableDataBackup.length)return!0;for(let e=0;e<this.tableData.length;e++){let t=this.tableData[e],s=this.tableDataBackup[e];if(!t||!s)return!0;for(let a=0;a<t.length;a++)if(t[a]!==s[a])return!0}return!1}onPendingChangesUpdated(e){this.onPendingChangesCallback=e}handleCellKeydown(e,t,s){switch(e.key){case"Enter":e.preventDefault(),this.moveToCell(t+1,s);break;case"Tab":e.preventDefault(),e.shiftKey?this.moveToCell(t,s-1):this.moveToCell(t,s+1);break;case"Escape":e.target.blur();break}}handleCellInput(e,t,s){this.tableData[t][s]=e.target.textContent}moveToCell(e,t){if(t>=this.headers.length?(t=2,e++):t<2&&(t=this.headers.length-1,e--),e<0||e>=this.tableData.length)return;let s=this.tableBody.querySelector(`td[data-row="${e}"][data-col="${t}"]`);s&&s.contentEditable==="true"&&s.focus()}onChange(e){this.onChangeCallback=e}getData(){return{headers:[...this.headers],data:this.tableData.map(e=>[...e])}}async addNode(){if(typeof Be>"u")return;let e=await Y.prompt("Enter Node ID: ");if(!e){this.cache.ui.info("Adding node canceled");return}if(this.cache.nodeRef.has(e)||this.tableData.some(t=>t[2]==="Node"&&t[3]===e)){this.cache.ui.error(`Node "${e}" already exists`);return}this.addRow("Node",e)}async addEdge(){if(typeof Be>"u")return;let e=await Y.prompt("Enter Edge ID: ");if(!e){this.cache.ui.info("Adding edge canceled");return}if(this.cache.edgeRef.has(e)||this.tableData.some(n=>n[2]==="Edge"&&n[3]===e)){this.cache.ui.error(`Edge "${e}" already exists`);return}if(!e.includes("::")){this.cache.ui.error("Edge ID must contain a double colon (::) to indicate the source and target nodes");return}let[t,s]=e.split("::"),a=this.cache.nodeRef.has(t)||this.tableData.some(n=>n[2]==="Node"&&n[3]===t),i=this.cache.nodeRef.has(s)||this.tableData.some(n=>n[2]==="Node"&&n[3]===s);if(!a){this.cache.ui.error(`Source node "${t}" does not exist. Please create the node first.`);return}if(!i){this.cache.ui.error(`Target node "${s}" does not exist. Please create the node first.`);return}this.addRow("Edge",e)}addRow(e="Node",t=""){let s=new Array(this.headers.length).fill("");s[0]="",s[1]=this.tableData.length>0?Math.max(...this.tableData.map(a=>a[1]))+1:1,s[2]=e,s[3]=t,s[4]="",s[5]="",this.tableData.push(s),this.originalOrder.push(this.originalOrder.length),this.trackChange(t,e),this.notifyPendingChanges(),this.render()}trackChange(e,t){let s=this.tableData.find(a=>a[3]===e&&a[2]===t);s&&this.pendingChanges.set(e,{type:t,rowData:[...s]})}removeRow(e){e>=0&&e<this.tableData.length&&(this.tableData.splice(e,1),this.originalOrder.splice(e,1),this.originalOrder=this.originalOrder.map(t=>t>e?t-1:t),this.render())}clear(){this.tableData=[],this.headers=[],this.sortState={},this.originalOrder=[],this.headerIndexMap.clear(),this.render()}async update(){await this.cache.ui.showLoading("Updating Data","Updating Data from Data Table ..");try{let e=this.getUpdatedFileData();if(!e||!e.nodes&&!e.edges){this.cache.ui.error("No data to update with.");return}let t=this.validateNewElements();if(t.length>0){await this.cache.ui.hideLoading(),this.cache.ui.error(`Cannot apply changes:
-`+t.join(`
-`)+`
-Please add at least one property to each new element.`);return}this.pendingChanges.clear(),await this.cache.graph?.destroy(),this.cache.graph=null;let s=document.getElementById("sidebarStatusContainer");s.innerHTML="",s.style.height="0",await this.cache.gcm.destroyGraphAndRollBackUI(),this.cache.gcm.resetEventLocks(),this.cache.io.preProcessData(e),this.cache.buildDataTable(e),this.cache.ui.buildUI(),await this.cache.gcm.createGraphInstance(),await this.cache.graph.render(),console.log("DATA TABLE UPDATE DONE!")}catch(e){this.cache.ui.error(`Error updating graph: ${e}`)}finally{await this.cache.ui.hideLoading()}}validateNewElements(){let e=[];return this.pendingChanges.forEach((t,s)=>{if(t.action==="delete")return;let a=t.rowData;if(!a)return;let i=a[2],n=a[3];if(!(i==="Node"?!this.fileData.nodes?.some(r=>r.id===n):!this.fileData.edges?.some(r=>r.id===n)))return;let c=!1;for(let r=6;r<a.length;r++){let d=a[r];if(d!=null&&String(d).trim()!==""){c=!0;break}}c||e.push(`\u2022 ${i} "${n}" requires at least one property value`)}),e}getUpdatedFileData(){let e={nodes:[],edges:[],nodeDataHeaders:[...this.fileData.nodeDataHeaders],edgeDataHeaders:[...this.fileData.edgeDataHeaders],layouts:this.cache.data.layouts,selectedLayout:this.cache.data.selectedLayout,filterDefaults:this.cache.data.filterDefaults},t=new Set(["D4Data","id","label","source","style","target","description","type"]),s=new Set,a=new Set;this.pendingChanges.forEach((r,d)=>{r.action==="delete"&&(a.add(d),s.add(d))});let i=r=>{let d=r[2]==="Node",h=r[3];if(s.has(h))return;s.add(h);let m=r[4]||void 0,f=r[5]||void 0,E=d?this.cache.nodeRef.get(h)||this.createNode(h):this.cache.edgeRef.get(h)||this.createEdge(h),C={};for(let w of t)E.hasOwnProperty(w)&&(C[w]=E[w]);m&&(C.label=m),f&&(C.description=f),d&&m&&(C.style.label=!0,C.style.labelText=m),C.D4Data={};for(let w=6;w<r.length;w++){let D=r[w];if(D!=null&&String(D).trim()!==""){let L=this.headers[w],[v,F,A]=_.decodePropHashId(L);C.D4Data[v]||(C.D4Data[v]={}),C.D4Data[v][F]||(C.D4Data[v][F]={}),C.D4Data[v][F][A]=isNaN(D)?D:Number(D)}}d?e.nodes.push(C):e.edges.push(C)},n=[],o=[];this.pendingChanges.forEach((r,d)=>{r.action!=="delete"&&r.rowData&&(r.type==="Node"?n.push(r.rowData):r.type==="Edge"&&o.push(r.rowData))}),n.forEach(r=>i(r)),o.forEach(r=>i(r)),this.fileData.nodes&&this.fileData.nodes.forEach(r=>{!s.has(r.id)&&!a.has(r.id)&&(e.nodes.push(structuredClone(r)),s.add(r.id))}),this.fileData.edges&&this.fileData.edges.forEach(r=>{!s.has(r.id)&&!a.has(r.id)&&(e.edges.push(structuredClone(r)),s.add(r.id))});let c=new Set(e.nodes.map(r=>r.id));return e.edges=e.edges.filter(r=>c.has(r.source)?c.has(r.target)?!0:(console.warn(`Edge ${r.id} references non-existent target node: ${r.target}`),!1):(console.warn(`Edge ${r.id} references non-existent source node: ${r.source}`),!1)),e}createNode(e){return{id:e,...this.cache.style.getNodeStyleOrDefaults(e)}}createEdge(e){let[t,s]=e.split("::");return{id:e,source:t,target:s,...this.cache.style.getEdgeStyleOrDefaults(e)}}async exportToExcel(){await this.cache.ui.showLoading("Data Editor","Exporting Table to Excel ..");try{let e=new ExcelJS.Workbook,t=[],s=[];switch(this.currentTab){case"selectedNodes":t=this.getNodesFromTableData();break;case"selectedEdges":s=this.getEdgesFromTableData();break;case"selectedElements":t=this.getNodesFromTableData(),s=this.getEdgesFromTableData();break;case"allNodes":t=this.getNodesFromTableData();break;case"allEdges":s=this.getEdgesFromTableData();break;case"entireGraph":t=this.getNodesFromTableData(),s=this.getEdgesFromTableData();break}if(t.length>0){let c=e.addWorksheet("nodes"),r=[...j.map(d=>d.column),...this.cache.nodeExclusiveProps];c.addRow(r);for(let d of t){let h=[];for(let m of j){let f=m.get?m.get(d):"";h.push(f)}for(let m of this.cache.nodeExclusiveProps){let[f,E,C]=_.decodePropHashId(m),w=d.D4Data&&d.D4Data[f]&&d.D4Data[f][E]?d.D4Data[f][E][C]:"";h.push(w)}c.addRow(h)}}if(s.length>0){let c=e.addWorksheet("edges"),r=[...Z.map(d=>d.column),...this.cache.edgeExclusiveProps];c.addRow(r);for(let d of s){let h=[];for(let m of Z){let f=m.get?m.get(d):"";h.push(f)}for(let m of this.cache.edgeExclusiveProps){let[f,E,C]=_.decodePropHashId(m),w=d.D4Data&&d.D4Data[f]&&d.D4Data[f][E]?d.D4Data[f][E][C]:"";h.push(w)}c.addRow(h)}}let a=await e.xlsx.writeBuffer(),i=new Blob([a],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}),n=window.URL.createObjectURL(i),o=document.createElement("a");o.href=n,o.download=`graph_data_export_${this.currentTab}_${new Date().toISOString().slice(0,19).replace(/:/g,"-")}.xlsx`,document.body.appendChild(o),o.click(),document.body.removeChild(o),window.URL.revokeObjectURL(n),this.cache.ui.info("Excel file exported successfully!")}catch(e){this.cache.ui.error("Failed to export Excel file: "+e.message)}finally{await this.cache.ui.hideLoading()}}getNodesFromTableData(){let e=[];for(let t of this.tableData)if(t[2]==="Node"){let s=t[3],a=this.cache.nodeRef.get(s);a&&e.push(a)}return e}getEdgesFromTableData(){let e=[];for(let t of this.tableData)if(t[2]==="Edge"){let s=t[3],a=this.cache.edgeRef.get(s);a&&e.push(a)}return e}help(){this.cache.popup=new Y(`<h2>Data Editor</h2>
+      `;
+        }
+        headerRow.appendChild(th);
+      });
+      headerFragment.appendChild(headerRow);
+      this.tableData.forEach((rowData, rowIndex) => {
+        const tr = document.createElement("tr");
+        const isNodeRow = rowData[2] === "Node";
+        rowData.forEach((cellData, colIndex) => {
+          const td = document.createElement("td");
+          td.dataset.row = rowIndex;
+          td.dataset.col = colIndex;
+          if (colIndex === 0) {
+            td.innerHTML = `<button class="data-table-delete-row-btn" title="Delete row ${rowIndex + 1} (${rowData[2]} ${rowData[3]})">\xD7</button>`;
+            td.classList.add("data-table-delete-row-column");
+          } else {
+            td.textContent = cellData !== null && cellData !== void 0 ? cellData : "";
+            const isBasicColumn = colIndex <= 3;
+            const isReservedColumn = colIndex === 4 || colIndex === 5;
+            const isMismatchedColumn = isNodeRow && this.headers[colIndex].startsWith(this.cache.CFG.EXCEL_EDGE_HEADER) || !isNodeRow && this.headers[colIndex].startsWith(this.cache.CFG.EXCEL_NODE_HEADER);
+            const shouldBeEditable = (!isBasicColumn || isReservedColumn) && !isMismatchedColumn;
+            if (shouldBeEditable) {
+              td.contentEditable = true;
+            } else {
+              td.classList.add("readonly");
+            }
+          }
+          tr.appendChild(td);
+        });
+        bodyFragment.appendChild(tr);
+      });
+      this.tableHead.innerHTML = "";
+      this.tableBody.innerHTML = "";
+      this.tableHead.appendChild(headerFragment);
+      this.tableBody.appendChild(bodyFragment);
+      this.updateExportButtonState();
+    }
+    updateExportButtonState() {
+      const exportBtn = document.getElementById("exportDataTableBtn");
+      if (exportBtn) {
+        if (this.tableData.length === 0) {
+          exportBtn.classList.add("disabled");
+          exportBtn.disabled = true;
+        } else {
+          exportBtn.classList.remove("disabled");
+          exportBtn.disabled = false;
+        }
+      }
+    }
+    handleDeleteRow(rowIndex) {
+      if (rowIndex >= 0 && rowIndex < this.tableData.length) {
+        const id = this.tableData[rowIndex][3];
+        const type = this.tableData[rowIndex][2];
+        this.pendingChanges.set(id, { type, action: "delete" });
+        this.tableData.splice(rowIndex, 1);
+        this.originalOrder.splice(rowIndex, 1);
+        this.originalOrder = this.originalOrder.map((idx) => idx > rowIndex ? idx - 1 : idx);
+        this.render();
+        if (this.onChangeCallback) {
+          this.onChangeCallback(-1, -1, "row_deleted");
+        }
+      }
+    }
+    handleHeaderClick(columnIndex) {
+      const currentSort = this.sortState[columnIndex];
+      this.sortState = {};
+      if (!currentSort) {
+        this.sortState[columnIndex] = "asc";
+      } else if (currentSort === "asc") {
+        this.sortState[columnIndex] = "desc";
+      } else {
+        this.sortState[columnIndex] = null;
+      }
+      this.sortColumn(columnIndex, this.sortState[columnIndex]);
+    }
+    sortColumn(columnIndex, direction) {
+      if (!direction) {
+        const originalData = this.originalOrder.map((idx) => this.tableDataBackup[idx]);
+        this.tableData = originalData.map((row) => [...row]);
+        this.render();
+        return;
+      }
+      const sortIndices = this.tableData.map((_, index) => index);
+      sortIndices.sort((aIdx, bIdx) => {
+        let aVal = this.tableData[aIdx][columnIndex] || "";
+        let bVal = this.tableData[bIdx][columnIndex] || "";
+        const aNum = parseFloat(aVal);
+        const bNum = parseFloat(bVal);
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return direction === "asc" ? aNum - bNum : bNum - aNum;
+        } else {
+          aVal = String(aVal).toLowerCase();
+          bVal = String(bVal).toLowerCase();
+          return direction === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        }
+      });
+      this.tableData = sortIndices.map((idx) => this.tableData[idx]);
+      this.render();
+    }
+    getSortIndicator(columnIndex) {
+      const sortState = this.sortState[columnIndex];
+      if (sortState === "asc") return "\u25B2";
+      if (sortState === "desc") return "\u25BC";
+      return "\u21C5";
+    }
+    handleCellFocus(event, rowIndex, colIndex) {
+      const cell = event.target;
+      this.currentEditingCell = { cell, rowIndex, colIndex };
+      cell.classList.add("editing");
+      const range = document.createRange();
+      range.selectNodeContents(cell);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+    handleCellBlur(event, rowIndex, colIndex) {
+      const cell = event.target;
+      cell.classList.remove("editing");
+      this.tableData[rowIndex][colIndex] = cell.textContent;
+      const id = this.tableData[rowIndex][3];
+      const type = this.tableData[rowIndex][2];
+      this.trackChange(id, type);
+      if (this.onChangeCallback) {
+        this.onChangeCallback(rowIndex, colIndex, cell.textContent);
+      }
+      this.notifyPendingChanges();
+      this.currentEditingCell = null;
+    }
+    notifyPendingChanges() {
+      if (this.onPendingChangesCallback) {
+        const hasPendingChanges = this.pendingChanges.size > 0;
+        const hasChangesFromOriginal = this.hasChangesFromOriginal();
+        this.onPendingChangesCallback({
+          hasPendingChanges,
+          hasChangesFromOriginal
+        });
+      }
+    }
+    hasChangesFromOriginal() {
+      if (this.tableData.length !== this.tableDataBackup.length) {
+        return true;
+      }
+      for (let i = 0; i < this.tableData.length; i++) {
+        const currentRow = this.tableData[i];
+        const originalRow = this.tableDataBackup[i];
+        if (!currentRow || !originalRow) {
+          return true;
+        }
+        for (let j = 0; j < currentRow.length; j++) {
+          if (currentRow[j] !== originalRow[j]) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+    onPendingChangesUpdated(callback) {
+      this.onPendingChangesCallback = callback;
+    }
+    handleCellKeydown(event, rowIndex, colIndex) {
+      switch (event.key) {
+        case "Enter":
+          event.preventDefault();
+          this.moveToCell(rowIndex + 1, colIndex);
+          break;
+        case "Tab":
+          event.preventDefault();
+          if (event.shiftKey) {
+            this.moveToCell(rowIndex, colIndex - 1);
+          } else {
+            this.moveToCell(rowIndex, colIndex + 1);
+          }
+          break;
+        case "Escape":
+          event.target.blur();
+          break;
+      }
+    }
+    handleCellInput(event, rowIndex, colIndex) {
+      this.tableData[rowIndex][colIndex] = event.target.textContent;
+    }
+    moveToCell(rowIndex, colIndex) {
+      if (colIndex >= this.headers.length) {
+        colIndex = 2;
+        rowIndex++;
+      } else if (colIndex < 2) {
+        colIndex = this.headers.length - 1;
+        rowIndex--;
+      }
+      if (rowIndex < 0 || rowIndex >= this.tableData.length) {
+        return;
+      }
+      const targetCell = this.tableBody.querySelector(`td[data-row="${rowIndex}"][data-col="${colIndex}"]`);
+      if (targetCell && targetCell.contentEditable === "true") {
+        targetCell.focus();
+      }
+    }
+    onChange(callback) {
+      this.onChangeCallback = callback;
+    }
+    getData() {
+      return {
+        headers: [...this.headers],
+        data: this.tableData.map((row) => [...row])
+      };
+    }
+    async addNode() {
+      if (!this.cache || !this.tableData) return;
+      let nodeID = await Popup.prompt("Enter Node ID: ");
+      if (!nodeID) {
+        this.cache.ui.info("Adding node canceled");
+        return;
+      }
+      nodeID = nodeID.trim();
+      if (!nodeID) {
+        this.cache.ui.error("Node ID cannot be empty");
+        return;
+      }
+      if (this.cache.nodeRef.has(nodeID) || this.tableData.some((row) => row[2] === "Node" && row[3] === nodeID)) {
+        this.cache.ui.error(`Node "${nodeID}" already exists`);
+        return;
+      }
+      this.addRow("Node", nodeID);
+      this.cache.ui.success(`Node "${nodeID}" added. Click Apply to save changes.`);
+    }
+    async addEdge() {
+      if (!this.cache || !this.tableData) return;
+      let edgeID = await Popup.prompt("Enter Edge ID (format: sourceID::targetID): ");
+      if (!edgeID) {
+        this.cache.ui.info("Adding edge canceled");
+        return;
+      }
+      edgeID = edgeID.trim();
+      if (!edgeID) {
+        this.cache.ui.error("Edge ID cannot be empty");
+        return;
+      }
+      if (this.cache.edgeRef.has(edgeID) || this.tableData.some((row) => row[2] === "Edge" && row[3] === edgeID)) {
+        this.cache.ui.error(`Edge "${edgeID}" already exists`);
+        return;
+      }
+      if (!edgeID.includes("::")) {
+        this.cache.ui.error(`Edge ID must contain a double colon (::) to separate source and target nodes (e.g., "NodeA::NodeB")`);
+        return;
+      }
+      const parts = edgeID.split("::");
+      if (parts.length !== 2 || !parts[0].trim() || !parts[1].trim()) {
+        this.cache.ui.error(`Invalid Edge ID format. Use: "sourceID::targetID"`);
+        return;
+      }
+      const [source, target] = parts.map((p) => p.trim());
+      const sourceExists = this.cache.nodeRef.has(source) || this.tableData.some((row) => row[2] === "Node" && row[3] === source);
+      const targetExists = this.cache.nodeRef.has(target) || this.tableData.some((row) => row[2] === "Node" && row[3] === target);
+      if (!sourceExists) {
+        this.cache.ui.error(`Source node "${source}" does not exist. Please create the node first.`);
+        return;
+      }
+      if (!targetExists) {
+        this.cache.ui.error(`Target node "${target}" does not exist. Please create the node first.`);
+        return;
+      }
+      this.addRow("Edge", edgeID);
+      this.cache.ui.success(`Edge "${edgeID}" added. Click Apply to save changes.`);
+    }
+    async addColumn() {
+      if (!this.cache || !this.tableData) return;
+      const formHtml = `
+      <h2>Add Property Column</h2>
+      <div style="display: flex; flex-direction: column; gap: 15px; margin: 20px 0;">
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Property Type:</label>
+          <div style="display: flex; gap: 20px;">
+            <label style="cursor: pointer;">
+              <input type="radio" name="propertyType" value="node" checked style="margin-right: 5px;">
+              Node Property
+            </label>
+            <label style="cursor: pointer;">
+              <input type="radio" name="propertyType" value="edge" style="margin-right: 5px;">
+              Edge Property
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Property Name:</label>
+          <input type="text" id="propertyNameInput" placeholder="e.g., Temperature, Weight"
+                 style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Group Name:</label>
+          <input type="text" id="groupNameInput" placeholder="e.g., Physics, Metadata"
+                 style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+        <button onclick="window.addColumnCancel()" class="pink">Cancel</button>
+        <button onclick="window.addColumnConfirm()" class="blue">Add Column</button>
+      </div>
+    `;
+      return new Promise((resolve) => {
+        this.cache.popup = new Popup(formHtml);
+        window.addColumnConfirm = () => {
+          const propertyTypeInput = document.querySelector('input[name="propertyType"]:checked');
+          const propertyNameInput = document.getElementById("propertyNameInput");
+          const groupNameInput = document.getElementById("groupNameInput");
+          if (!propertyTypeInput || !propertyNameInput || !groupNameInput) {
+            this.cache.popup.close();
+            resolve(null);
+            return;
+          }
+          const result = {
+            isNodeProperty: propertyTypeInput.value === "node",
+            propertyName: propertyNameInput.value.trim(),
+            groupName: groupNameInput.value.trim()
+          };
+          this.cache.popup.close();
+          resolve(result);
+        };
+        window.addColumnCancel = () => {
+          this.cache.popup.close();
+          resolve(null);
+        };
+      }).then((result) => {
+        delete window.addColumnConfirm;
+        delete window.addColumnCancel;
+        if (!result) {
+          this.cache.ui.info("Adding column canceled");
+          return;
+        }
+        const { isNodeProperty, propertyName, groupName } = result;
+        if (!propertyName) {
+          this.cache.ui.error("Property name cannot be empty");
+          return;
+        }
+        if (!groupName) {
+          this.cache.ui.error("Group name cannot be empty");
+          return;
+        }
+        const exists = (isNodeProperty ? this.fileData.nodeDataHeaders : this.fileData.edgeDataHeaders).some((h) => h.subGroup === groupName && h.key === propertyName);
+        if (exists) {
+          this.cache.ui.error(`Column "${propertyName}" in group "${groupName}" already exists for ${isNodeProperty ? "nodes" : "edges"}`);
+          return;
+        }
+        if (isNodeProperty) {
+          this.fileData.nodeDataHeaders.push({ subGroup: groupName, key: propertyName });
+        } else {
+          this.fileData.edgeDataHeaders.push({ subGroup: groupName, key: propertyName });
+        }
+        this.loadTabData();
+        this.cache.ui.success(`Column "${propertyName}" (${groupName}) added for ${isNodeProperty ? "nodes" : "edges"}. Click Apply to save changes.`);
+      });
+    }
+    addRow(type = "Node", id = "") {
+      const newRow = new Array(this.headers.length).fill("");
+      newRow[0] = "";
+      newRow[1] = this.tableData.length > 0 ? Math.max(...this.tableData.map((row) => row[1])) + 1 : 1;
+      newRow[2] = type;
+      newRow[3] = id;
+      newRow[4] = "";
+      newRow[5] = "";
+      this.tableData.push(newRow);
+      this.originalOrder.push(this.originalOrder.length);
+      this.trackChange(id, type);
+      this.notifyPendingChanges();
+      this.render();
+    }
+    trackChange(id, type) {
+      const rowData = this.tableData.find((row) => row[3] === id && row[2] === type);
+      if (rowData) {
+        this.pendingChanges.set(id, { type, rowData: [...rowData] });
+      }
+    }
+    removeRow(index) {
+      if (index >= 0 && index < this.tableData.length) {
+        this.tableData.splice(index, 1);
+        this.originalOrder.splice(index, 1);
+        this.originalOrder = this.originalOrder.map((idx) => idx > index ? idx - 1 : idx);
+        this.render();
+      }
+    }
+    clear() {
+      this.tableData = [];
+      this.headers = [];
+      this.sortState = {};
+      this.originalOrder = [];
+      this.headerIndexMap.clear();
+      this.render();
+    }
+    async update() {
+      await this.cache.ui.showLoading("Updating Data", "Updating Data from Data Table ..");
+      try {
+        const updatedFileData = this.getUpdatedFileData();
+        if (!updatedFileData || !updatedFileData.nodes && !updatedFileData.edges) {
+          this.cache.ui.error("No data to update with.");
+          return;
+        }
+        const validationErrors = this.validateNewElements();
+        if (validationErrors.length > 0) {
+          await this.cache.ui.hideLoading();
+          this.cache.ui.error("Cannot apply changes:\n" + validationErrors.join("\n") + "\nPlease add at least one property to each new element.");
+          return;
+        }
+        this.pendingChanges.clear();
+        await this.cache.graph?.destroy();
+        this.cache.graph = null;
+        const status = document.getElementById("sidebarStatusContainer");
+        status.innerHTML = "";
+        status.style.height = "0";
+        await this.cache.gcm.destroyGraphAndRollBackUI();
+        this.cache.gcm.resetEventLocks();
+        const lassoWrapper = document.getElementById("lassoWrapper");
+        if (lassoWrapper) {
+          lassoWrapper.classList.remove("active");
+        }
+        this.cache.io.preProcessData(updatedFileData);
+        const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+        if (currentLayout && currentLayout.query) {
+          delete currentLayout.query;
+          this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = false;
+        }
+        this.cache.buildDataTable(updatedFileData);
+        this.cache.ui.buildUI();
+        await this.cache.gcm.createGraphInstance();
+        await this.cache.graph.render();
+        this.cache.ui.refreshUI();
+        this.fileData = updatedFileData;
+        this.loadTabData();
+        console.log("DATA TABLE UPDATE DONE!");
+      } catch (err) {
+        this.cache.ui.error(`Error updating graph: ${err}`);
+      } finally {
+        await this.cache.ui.hideLoading();
+      }
+    }
+    validateNewElements() {
+      const errors = [];
+      this.pendingChanges.forEach((change, id) => {
+        if (change.action === "delete") return;
+        const row = change.rowData;
+        if (!row) return;
+        const type = row[2];
+        const elementId = row[3];
+        const isNew = type === "Node" ? !this.fileData.nodes?.some((n) => n.id === elementId) : !this.fileData.edges?.some((e) => e.id === elementId);
+        if (!isNew) return;
+        let hasProperty = false;
+        for (let i = 6; i < row.length; i++) {
+          const value = row[i];
+          if (value !== null && value !== void 0 && String(value).trim() !== "") {
+            hasProperty = true;
+            break;
+          }
+        }
+        if (!hasProperty) {
+          errors.push(`\u2022 ${type} "${elementId}" requires at least one property value`);
+        }
+      });
+      return errors;
+    }
+    getUpdatedFileData() {
+      const result = {
+        nodes: [],
+        edges: [],
+        nodeDataHeaders: [...this.fileData.nodeDataHeaders],
+        edgeDataHeaders: [...this.fileData.edgeDataHeaders],
+        // Preserve existing layouts and selected layout to maintain per-view configurations
+        layouts: this.cache.data.layouts,
+        selectedLayout: this.cache.data.selectedLayout
+        // filterDefaults will be rebuilt by preProcessData() from the headers
+      };
+      const allowedKeys = /* @__PURE__ */ new Set(["D4Data", "id", "label", "source", "style", "target", "description", "type"]);
+      const processedIds = /* @__PURE__ */ new Set();
+      const deletedIds = /* @__PURE__ */ new Set();
+      this.pendingChanges.forEach((change, id) => {
+        if (change.action === "delete") {
+          deletedIds.add(id);
+          processedIds.add(id);
+        }
+      });
+      const processRow = (row) => {
+        const isNode = row[2] === "Node";
+        const id = row[3];
+        if (processedIds.has(id)) return;
+        processedIds.add(id);
+        const label = row[4] || void 0;
+        const description = row[5] || void 0;
+        const elem = isNode ? this.cache.nodeRef.get(id) || this.createNode(id) : this.cache.edgeRef.get(id) || this.createEdge(id);
+        const cleanElem = {};
+        for (const key of allowedKeys) {
+          if (elem.hasOwnProperty(key)) {
+            cleanElem[key] = elem[key];
+          }
+        }
+        if (label) cleanElem.label = label;
+        if (description) cleanElem.description = description;
+        if (isNode && label) {
+          cleanElem.style.label = true;
+          cleanElem.style.labelText = label;
+        }
+        cleanElem.D4Data = {};
+        for (let i = 6; i < row.length; i++) {
+          const value = row[i];
+          if (value !== null && value !== void 0 && String(value).trim() !== "") {
+            const headerName = this.headers[i];
+            const [group, subGroup, prop] = StaticUtilities.decodePropHashId(headerName);
+            if (!cleanElem.D4Data[group]) {
+              cleanElem.D4Data[group] = {};
+            }
+            if (!cleanElem.D4Data[group][subGroup]) {
+              cleanElem.D4Data[group][subGroup] = {};
+            }
+            cleanElem.D4Data[group][subGroup][prop] = isNaN(value) ? value : Number(value);
+          }
+        }
+        isNode ? result.nodes.push(cleanElem) : result.edges.push(cleanElem);
+      };
+      const pendingNodes = [];
+      const pendingEdges = [];
+      this.pendingChanges.forEach((change, id) => {
+        if (change.action !== "delete" && change.rowData) {
+          if (change.type === "Node") {
+            pendingNodes.push(change.rowData);
+          } else if (change.type === "Edge") {
+            pendingEdges.push(change.rowData);
+          }
+        }
+      });
+      pendingNodes.forEach((rowData) => processRow(rowData));
+      pendingEdges.forEach((rowData) => processRow(rowData));
+      if (this.fileData.nodes) {
+        this.fileData.nodes.forEach((node) => {
+          if (!processedIds.has(node.id) && !deletedIds.has(node.id)) {
+            result.nodes.push(structuredClone(node));
+            processedIds.add(node.id);
+          }
+        });
+      }
+      if (this.fileData.edges) {
+        this.fileData.edges.forEach((edge) => {
+          if (!processedIds.has(edge.id) && !deletedIds.has(edge.id)) {
+            result.edges.push(structuredClone(edge));
+            processedIds.add(edge.id);
+          }
+        });
+      }
+      const nodeIds = new Set(result.nodes.map((n) => n.id));
+      result.edges = result.edges.filter((edge) => {
+        if (!nodeIds.has(edge.source)) {
+          console.warn(`Edge ${edge.id} references non-existent source node: ${edge.source}`);
+          return false;
+        }
+        if (!nodeIds.has(edge.target)) {
+          console.warn(`Edge ${edge.id} references non-existent target node: ${edge.target}`);
+          return false;
+        }
+        return true;
+      });
+      return result;
+    }
+    createNode(id) {
+      return {
+        id,
+        ...this.cache.style.getNodeStyleOrDefaults(id)
+      };
+    }
+    createEdge(id) {
+      const [source, target] = id.split("::");
+      return {
+        id,
+        source,
+        target,
+        ...this.cache.style.getEdgeStyleOrDefaults(id)
+      };
+    }
+    async exportToExcel() {
+      await this.cache.ui.showLoading("Data Editor", "Exporting Table to Excel ..");
+      try {
+        const workbook = new ExcelJS.Workbook();
+        let nodesToExport = [];
+        let edgesToExport = [];
+        switch (this.currentTab) {
+          case "selectedNodes":
+            nodesToExport = this.getNodesFromTableData();
+            break;
+          case "selectedEdges":
+            edgesToExport = this.getEdgesFromTableData();
+            break;
+          case "selectedElements":
+            nodesToExport = this.getNodesFromTableData();
+            edgesToExport = this.getEdgesFromTableData();
+            break;
+          case "allNodes":
+            nodesToExport = this.getNodesFromTableData();
+            break;
+          case "allEdges":
+            edgesToExport = this.getEdgesFromTableData();
+            break;
+          case "entireGraph":
+            nodesToExport = this.getNodesFromTableData();
+            edgesToExport = this.getEdgesFromTableData();
+            break;
+        }
+        if (nodesToExport.length > 0) {
+          const nodesSheet = workbook.addWorksheet("nodes");
+          const nodesHeader = [...EXCEL_NODE_PROPERTIES.map((p) => p.column), ...this.cache.nodeExclusiveProps];
+          nodesSheet.addRow(nodesHeader);
+          for (const node of nodesToExport) {
+            const row = [];
+            for (const prop of EXCEL_NODE_PROPERTIES) {
+              const value = prop.get ? prop.get(node) : "";
+              row.push(value);
+            }
+            for (const customProp of this.cache.nodeExclusiveProps) {
+              const [group, subGroup, prop] = StaticUtilities.decodePropHashId(customProp);
+              const value = node.D4Data && node.D4Data[group] && node.D4Data[group][subGroup] ? node.D4Data[group][subGroup][prop] : "";
+              row.push(value);
+            }
+            nodesSheet.addRow(row);
+          }
+        }
+        if (edgesToExport.length > 0) {
+          const edgesSheet = workbook.addWorksheet("edges");
+          const edgesHeader = [...EXCEL_EDGE_PROPERTIES.map((p) => p.column), ...this.cache.edgeExclusiveProps];
+          edgesSheet.addRow(edgesHeader);
+          for (const edge of edgesToExport) {
+            const row = [];
+            for (const prop of EXCEL_EDGE_PROPERTIES) {
+              const value = prop.get ? prop.get(edge) : "";
+              row.push(value);
+            }
+            for (const customProp of this.cache.edgeExclusiveProps) {
+              const [group, subGroup, prop] = StaticUtilities.decodePropHashId(customProp);
+              const value = edge.D4Data && edge.D4Data[group] && edge.D4Data[group][subGroup] ? edge.D4Data[group][subGroup][prop] : "";
+              row.push(value);
+            }
+            edgesSheet.addRow(row);
+          }
+        }
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `graph_data_export_${this.currentTab}_${(/* @__PURE__ */ new Date()).toISOString().slice(0, 19).replace(/:/g, "-")}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        this.cache.ui.info("Excel file exported successfully!");
+      } catch (error) {
+        this.cache.ui.error("Failed to export Excel file: " + error.message);
+      } finally {
+        await this.cache.ui.hideLoading();
+      }
+    }
+    getNodesFromTableData() {
+      const nodes = [];
+      for (const row of this.tableData) {
+        if (row[2] === "Node") {
+          const nodeId = row[3];
+          const node = this.cache.nodeRef.get(nodeId);
+          if (node) {
+            nodes.push(node);
+          }
+        }
+      }
+      return nodes;
+    }
+    getEdgesFromTableData() {
+      const edges = [];
+      for (const row of this.tableData) {
+        if (row[2] === "Edge") {
+          const edgeId = row[3];
+          const edge = this.cache.edgeRef.get(edgeId);
+          if (edge) {
+            edges.push(edge);
+          }
+        }
+      }
+      return edges;
+    }
+    help() {
+      this.cache.popup = new Popup(`<h2>Data Editor</h2>
 <p>Explore and directly modify graph data through an interactive spreadsheet interface.</p>
 
 <div class="alert-warning">
@@ -50,16 +4696,18 @@ Please add at least one property to each new element.`);return}this.pendingChang
 </div>
 
 <div class="alert-info">
-  <strong>\u{1F4A1} Tip:</strong> All changes are staged until you click <span class="tooltip-dummy-buttons">\u2714 Apply</span>
+  <strong>\u{1F4A1} Tip:</strong> All changes are staged until you click <span class="tooltip-dummy-buttons blue">\u2714 Apply</span>
 </div>
 
 <h3>Available Actions</h3>
+<p><strong>Header buttons:</strong></p>
 <ul>
-  <li><span class="tooltip-dummy-buttons">\u2714 Apply</span> \u2014 Apply the changes to the graph</li>
+  <li><span class="tooltip-dummy-buttons blue">\u2714 Apply</span> \u2014 Apply the changes to the graph</li>
   <li><span class="tooltip-dummy-buttons pink">\u27F3 Reset</span> \u2014 Discard all changes and restore original data</li>
   <li><span class="tooltip-dummy-buttons blue"><strong>+</strong>&nbsp;Node</span> \u2014 Create a new node in the graph</li>
   <li><span class="tooltip-dummy-buttons blue"><strong>+</strong>&nbsp;Edge</span> \u2014 Create a new edge between existing nodes</li>
-  <li><span class="tooltip-dummy-buttons green">\u2913 Export</span> \u2014 Save current view as an Excel file (disabled when no data is shown)</li>
+  <li><span class="tooltip-dummy-buttons blue"><strong>+</strong>&nbsp;Column</span> \u2014 Add a new property column to the table</li>
+  <li><span class="tooltip-dummy-buttons green">\u2913 Export</span> \u2014 Save current view as an Excel file</li>
 </ul>
 
 <h3>Working with the Editor</h3>
@@ -76,10 +4724,1546 @@ Please add at least one property to each new element.`);return}this.pendingChang
   </li>
   <li><strong>Tabs:</strong> Switch between different views (selected elements vs. all existing data)</li>
 </ul>
-`,{width:"50vw",height:"60vh",lineHeight:"1.5em"})}};function ve(l){this.dataTable.onPendingChangesUpdated(({hasPendingChanges:s,hasChangesFromOriginal:a})=>{let i=document.getElementById("updateDataTableBtn"),n=document.getElementById("resetDataTableBtn");i&&(i.disabled=!s),n&&(n.disabled=!a)}),this.dataTable.populateFromFileData(l);let e=document.getElementById("updateDataTableBtn"),t=document.getElementById("resetDataTableBtn");e&&(e.disabled=!0),t&&(t.disabled=!0)}var Ce={s:{readme:{d:[[0,0,"Color Codes Explained"],[0,1,"Description"],[1,0,"Required"],[1,1,"Strictly required property"],[2,0,"Optional"],[2,1,"Optional property; Column name can not be re-used for user-defined data"],[3,0,"User Data [group]"],[3,1,'Add custom properties in new columns. Use [brackets] for grouping (e.g., "Temperature [Celsius] [Physics]"). The last [bracket] becomes the group name.'],[5,0,"Data Types Explained"],[5,1,"Description"],[6,0,"text"],[6,1,"any text"],[7,0,"number"],[7,1,"whole decimal numbers or floating point numbers"],[8,0,"boolean"],[8,1,"true or TRUE or 1, false or FALSE or 0"],[9,0,"RGBA"],[9,1,"RGBA hex color code (e.g. #C33D3580 for 50% opacity) (last 2 digits are optional)"],[10,0,"value 1 | value 2"],[10,1,"List of categorical values of which one must be matched (excluding optional information in brackets)"],[11,0,"any"],[11,1,"Categorical view when text is given, slider-based view when numerical input is given"],[13,0,"Node Properties Explained"],[13,1,"Description"],[13,2,"Default Value"],[13,3,"Type"],[14,0,"ID"],[14,1,"Unique identifier for a node"],[14,2,"-"],[14,3,"text (unique)"],[15,0,"Label"],[15,1,"Label of the node; if no Label is given, the ID is displayed per default"],[15,2,"-"],[15,3,"text"],[16,0,"Description"],[16,1,"Description of the node, displayed in the tooltip text"],[16,2,"-"],[16,3,"text"],[17,0,"Shape"],[17,1,"The shape of the node"],[17,2,"hexagon"],[17,3,"circle (\u25CF) | diamond (\u25C6) | hexagon (\u2B22) | rect (\u25A0) | triangle (\u25B2) | star (\u2605)"],[18,0,"Size"],[18,1,"The size of the node"],[18,2,"20"],[18,3,"number"],[19,0,"Fill Color"],[19,1,"The fill color of the node in RGBA format (e.g. #FF000080 for a red node with 50% opacity)"],[19,2,"#C33D35"],[19,3,"rgba"],[20,0,"Border Size"],[20,1,"The stroke width"],[20,2,"1"],[20,3,"number"],[21,0,"Border Color"],[21,1,"The stroke color of the node in RGBA format"],[21,2,"-"],[21,3,"rgba"],[22,0,"Label Font Size"],[22,1,"Label font size"],[22,2,"12"],[22,3,"number"],[23,0,"Label Placement"],[23,1,"Label position relative to the main shape of the node"],[23,2,"bottom"],[23,3,"left | right | top | bottom | left-top | left-bottom | right-top | right-bottom | top-left | top-right | bottom-left | bottom-right | center"],[24,0,"Label Color"],[24,1,"The color of the nodes label"],[24,2,"-"],[24,3,"rgba"],[25,0,"Label Background Color"],[25,1,"Label background fill color"],[25,2,"-"],[25,3,"rgba"],[26,0,"X Coordinate"],[26,1,"The x coordinate of the node"],[26,2,"-"],[26,3,"number"],[27,0,"Y Coordinate"],[27,1,"The y coordinate of the node"],[27,2,"-"],[27,3,"number"],[28,0,"property A [group A]"],[28,1,"User-defined custom node properties"],[28,2,"-"],[28,3,"any"],[30,0,"Edge Properties Explained"],[30,1,"Description"],[30,2,"Default Value"],[30,3,"Type"],[31,0,"Source ID"],[31,1,"The ID of the source node"],[31,2,"-"],[31,3,"text"],[32,0,"Target ID"],[32,1,"The ID of the target node"],[32,2,"-"],[32,3,"text"],[33,0,"Label"],[33,1,"Label of the edge; if no Label is given, the edge is only visible as line without any text"],[33,2,"-"],[33,3,"text"],[34,0,"Description"],[34,1,"Description of the edge, displayed in the tooltip text"],[34,2,"-"],[34,3,"text"],[35,0,"Type"],[35,1,"The edge type"],[35,2,"line"],[35,3,"line | cubic | quadratic | polyline"],[36,0,"Line Width"],[36,1,"The border width of the edge"],[36,2,"0.75"],[36,3,"number"],[37,0,"Line Dash"],[37,1,"The dash offset of the edge line"],[37,2,"0"],[37,3,"number"],[38,0,"Color"],[38,1,"The stroke color of the edge in RGBA format"],[38,2,"#403C5390"],[38,3,"rgba"],[39,0,"Label Font Size"],[39,1,"The font size of the edges label"],[39,2,"center"],[39,3,"number"],[40,0,"Label Placement"],[40,1,"The position of the label relative to the edge"],[40,2,"#000000"],[40,3,"start | center | end"],[41,0,"Label Auto Rotate"],[41,1,"Whether to automatically rotate the label to match the edge\u2019s direction"],[41,2,"1"],[41,3,"boolean"],[42,0,"Label Offset X"],[42,1,"The offset of the label on the X-Axis"],[42,2,"0"],[42,3,"number"],[43,0,"Label Offset Y"],[43,1,"The offset of the label on the Y-Axis"],[43,2,"0"],[43,3,"number"],[44,0,"Label Color"],[44,1,"The color of the edges label text"],[44,2,"-"],[44,3,"rgba"],[45,0,"Label Background Color"],[45,1,"The color for the edge label\u2019s background"],[45,2,"#E4E3EA"],[45,3,"rgba"],[46,0,"Start Arrow"],[46,1,"Whether to display the start arrow on the edge"],[46,2,{formula:"FALSE()"}],[46,3,"boolean"],[47,0,"Start Arrow Size"],[47,1,"The size of the start arrow"],[47,2,"8"],[47,3,"number"],[48,0,"Start Arrow Type"],[48,1,"The type of the start arrow"],[48,2,"triangle"],[48,3,"triangle | circle | diamond | vee | rect | triangleRect | simple"],[49,0,"End Arrow"],[49,1,"Whether to display the end arrow on the edge"],[49,2,{formula:"FALSE()"}],[49,3,"boolean"],[50,0,"End Arrow Size"],[50,1,"The size of the end arrow"],[50,2,"8"],[50,3,"number"],[51,0,"End Arrow Type"],[51,1,"The type of the end arrow"],[51,2,"triangle"],[51,3,"triangle | circle | diamond | vee | rect | triangleRect | simple"]],st:{A1:0,B1:0,C1:1,D1:2,A2:3,B2:2,C2:1,D2:2,A3:4,B3:2,C3:1,D3:2,A4:5,B4:2,C4:1,D4:2,A5:2,B5:2,C5:1,D5:2,A6:0,B6:0,C6:6,D6:7,A7:8,B7:2,C7:1,D7:2,A8:8,B8:2,C8:1,D8:2,A9:8,B9:2,C9:1,D9:2,A10:8,B10:2,C10:1,D10:2,A11:9,B11:2,C11:1,D11:2,A12:8,B12:2,C12:1,D12:2,A13:2,B13:2,C13:1,D13:2,A14:10,B14:10,C14:11,D14:10,A15:3,B15:2,C15:1,D15:2,A16:4,B16:2,C16:1,D16:2,A17:4,B17:2,C17:1,D17:2,A18:4,B18:2,C18:1,D18:12,A19:4,B19:2,C19:1,D19:2,A20:4,B20:2,C20:1,D20:2,A21:4,B21:2,C21:1,D21:2,A22:4,B22:2,C22:1,D22:2,A23:4,B23:2,C23:1,D23:2,A24:4,B24:2,C24:1,D24:12,A25:4,B25:2,C25:1,D25:2,A26:4,B26:2,C26:1,D26:2,A27:4,B27:2,C27:1,D27:2,A28:4,B28:2,C28:1,D28:2,A29:5,B29:2,C29:1,D29:2,A30:2,B30:2,C30:1,D30:2,A31:10,B31:10,C31:11,D31:10,A32:3,B32:2,C32:1,D32:2,A33:3,B33:2,C33:1,D33:2,A34:4,B34:2,C34:1,D34:2,A35:4,B35:2,C35:1,D35:2,A36:4,B36:2,C36:1,D36:12,A37:4,B37:2,C37:1,D37:2,A38:4,B38:2,C38:1,D38:2,A39:4,B39:2,C39:1,D39:2,A40:4,B40:2,C40:1,D40:2,A41:4,B41:2,C41:1,D41:12,A42:4,B42:2,C42:13,D42:2,A43:4,B43:2,C43:1,D43:2,A44:4,B44:2,C44:1,D44:2,A45:4,B45:2,C45:1,D45:2,A46:4,B46:2,C46:13,D46:2,A47:4,B47:2,C47:13,D47:2,A48:4,B48:2,C48:1,D48:2,A49:4,B49:2,C49:13,D49:12,A50:4,B50:2,C50:13,D50:2,A51:4,B51:2,C51:1,D51:14,A52:4,B52:2,C52:13,D52:12},dim:[52,4]},nodes:{d:[[0,0,"ID"],[0,1,"Label"],[0,2,"Description"],[0,3,"Shape"],[0,4,"Size"],[0,5,"Fill Color"],[0,6,"Border Color"],[0,7,"Feature X [group A]"],[0,8,"Feature Y [nm] [group A]"],[0,9,"Feature Z [group B]"],[1,0,"A"],[1,1,"Node 1"],[1,2,"The first node"],[1,3,"circle"],[1,4,"60"],[1,5,"#403C53"],[1,6,"#C33D35"],[1,7,"1"],[1,8,"foo"],[1,9,"1"],[2,0,"B"],[2,1,"Node 2"],[2,2,"The second node"],[2,7,"0.5"],[2,8,"foo"],[2,9,"2"],[3,0,"C"],[3,1,"Node 3"],[3,2,"The third node"],[3,7,"1.1"],[3,8,"foo"],[3,9,"1"],[4,0,"D"],[4,1,"Node 4"],[4,2,"The fourth node"],[4,7,"1.3"],[4,8,"bar"],[4,9,"0"],[5,0,"E"],[5,7,"0"],[5,8,"bar"],[5,9,"-1"],[6,0,"F"],[6,1,"Lonely Node"],[6,7,"-1"]],st:{A1:3,B1:4,C1:4,D1:4,E1:4,F1:4,G1:4,H1:5,I1:5,J1:5,A2:15,B2:16,C2:16,D2:16,E2:16,F2:16,G2:16,H2:17,I2:17,J2:17,A3:15,B3:16,C3:16,D3:16,E3:16,F3:16,G3:16,H3:17,I3:17,J3:17,A4:15,B4:16,C4:16,D4:16,E4:16,F4:16,G4:16,H4:17,I4:17,J4:17,A5:15,B5:16,C5:16,D5:16,E5:16,F5:16,G5:16,H5:17,I5:17,J5:17,A6:15,B6:16,C6:16,D6:16,E6:16,F6:16,G6:16,H6:17,I6:17,J6:17,A7:15,B7:16,C7:16,D7:16,E7:16,F7:16,G7:16,H7:17,I7:17,J7:17},dim:[7,10]},edges:{d:[[0,0,"Source ID"],[0,1,"Target ID"],[0,2,"Color"],[0,3,"Line Width"],[0,4,"Label"],[0,5,"Feature EX [group X]"],[0,6,"Feature EY [group X]"],[0,7,"Feature EZ [group Y]"],[1,0,"A"],[1,1,"B"],[1,2,"#FF0000"],[1,3,"0.75"],[1,4,"foo"],[1,5,"1"],[1,6,"Dummy Category 1"],[1,7,"1"],[2,0,"A"],[2,1,"C"],[2,5,"0.5"],[2,6,"Dummy Category 2"],[2,7,"2"],[3,0,"C"],[3,1,"D"],[3,5,"1.1"],[3,6,"Dummy Category 3"],[3,7,"1"],[4,0,"D"],[4,1,"E"],[4,5,"1.3"],[4,6,"Dummy Category 4"],[4,7,"0"]],st:{A1:3,B1:3,C1:4,D1:4,E1:4,F1:5,G1:5,H1:5,A2:15,B2:15,C2:16,D2:16,E2:16,F2:17,G2:17,H2:17,A3:15,B3:15,C3:16,D3:16,E3:16,F3:17,G3:17,H3:17,A4:15,B4:15,C4:16,D4:16,E4:16,F4:17,G4:17,H4:17,A5:15,B5:15,C5:16,D5:16,E5:16,F5:17,G5:17,H5:17},dim:[5,8]}},st:{0:{f:{b:1,sz:12,n:"Arial"},fill:{fg:"E4E3EA",bg:"FEFFE1"},b:{t:["thin","000000"],b:["thin","000000"],l:["thin","000000"],r:["thin","000000"]},a:{h:"general",v:"bottom"},nf:"General"},1:{f:{sz:10,n:"Arial"},fill:{p:"none"},a:{h:"left",v:"bottom"},nf:"General"},2:{f:{sz:10,n:"Arial"},fill:{p:"none"},a:{h:"general",v:"bottom"},nf:"General"},3:{f:{b:1,sz:10,n:"Arial"},fill:{fg:"FF9A9A",bg:"FF8080"},b:{t:["thin","000000"],b:["thin","000000"],l:["thin","000000"],r:["thin","000000"]},a:{h:"general",v:"bottom"},nf:"General"},4:{f:{b:1,sz:10,n:"Arial"},fill:{fg:"FEFFE1",bg:"FFFFFF"},b:{t:["thin","000000"],b:["thin","000000"],l:["thin","000000"],r:["thin","000000"]},a:{h:"general",v:"bottom"},nf:"General"},5:{f:{b:1,sz:10,n:"Arial"},fill:{fg:"81D41A",bg:"969696"},b:{t:["thin","000000"],b:["thin","000000"],l:["thin","000000"],r:["thin","000000"]},a:{h:"general",v:"bottom"},nf:"General"},6:{f:{b:1,sz:12,n:"Arial"},fill:{p:"none"},a:{h:"left",v:"bottom"},nf:"General"},7:{f:{b:1,sz:12,n:"Arial"},fill:{p:"none"},a:{h:"general",v:"bottom"},nf:"General"},8:{f:{b:1,sz:10,n:"Arial"},fill:{fg:"E4E3EA",bg:"FEFFE1"},b:{t:["thin","000000"],b:["thin","000000"],l:["thin","000000"],r:["thin","000000"]},a:{h:"general",v:"bottom"},nf:"General"},9:{f:{b:1,i:1,sz:10,n:"Arial"},fill:{fg:"E4E3EA",bg:"FEFFE1"},b:{t:["thin","000000"],b:["thin","000000"],l:["thin","000000"],r:["thin","000000"]},a:{h:"general",v:"bottom"},nf:"General"},10:{f:{b:1,sz:12,n:"Arial"},fill:{fg:"E4E3EA",bg:"FEFFE1"},b:{t:["thin","000000"],b:["thin","000000"]},a:{h:"general",v:"bottom"},nf:"General"},11:{f:{b:1,sz:12,n:"Arial"},fill:{fg:"E4E3EA",bg:"FEFFE1"},b:{t:["thin","000000"],b:["thin","000000"]},a:{h:"left",v:"bottom"},nf:"General"},12:{f:{i:1,sz:10,n:"Arial"},fill:{p:"none"},a:{h:"general",v:"bottom"},nf:"General"},13:{f:{sz:10,n:"Arial"},fill:{p:"none"},a:{h:"left",v:"bottom"},nf:'"TRUE";"TRUE";"FALSE"'},14:{f:{u:1,sz:10,n:"Arial"},fill:{p:"none"},a:{h:"general",v:"bottom"},nf:"General"},15:{f:{sz:10,n:"Arial"},fill:{fg:"FF9A9A",bg:"FF8080"},b:{t:["thin","000000"],b:["thin","000000"],l:["thin","000000"],r:["thin","000000"]},a:{h:"general",v:"bottom"},nf:"General"},16:{f:{sz:10,n:"Arial"},fill:{fg:"FEFFE1",bg:"FFFFFF"},b:{t:["thin","000000"],b:["thin","000000"],l:["thin","000000"],r:["thin","000000"]},a:{h:"general",v:"bottom"},nf:"General"},17:{f:{sz:10,n:"Arial"},fill:{fg:"81D41A",bg:"969696"},b:{t:["thin","000000"],b:["thin","000000"],l:["thin","000000"],r:["thin","000000"]},a:{h:"general",v:"bottom"},nf:"General"}},sc:18},j=[{column:"ID",type:"str",required:!0,get:l=>l.id},{column:"Label",type:"str",apply:(l,e)=>{l.label=e,l.style.label=!1,l.style.labelText=e,l.style.labelFontSize=z.NODE.FONT_SIZE,l.style.labelFill=z.NODE.FOREGROUND_COLOR,l.style.labelBackground=z.NODE.BACKGROUND,l.style.labelBackgroundFill=z.NODE.BACKGROUND_COLOR,l.style.labelPlacement=z.NODE.PLACEMENT},get:l=>l.label},{column:"Description",type:"str",apply:(l,e)=>{l.description=e},get:l=>l.description},{column:"Shape",type:"oneOf:circle|diamond|hexagon|rect|triangle|star",apply:(l,e)=>{l.type=e},get:l=>l.type},{column:"Size",type:"num",apply:(l,e)=>{l.style.size=e},get:l=>l.style.size},{column:"Fill Color",type:"rgba",apply:(l,e)=>{l.style.fill=e},get:l=>l.style.fill},{column:"Border Size",type:"num",apply:(l,e)=>{l.style.lineWidth=e},get:l=>l.style.lineWidth},{column:"Border Color",type:"rgba",apply:(l,e)=>{l.style.stroke=e},get:l=>l.style.stroke},{column:"Label Font Size",type:"num",apply:(l,e)=>{l.style.labelFontSize=e},get:l=>l.style.labelFontSize},{column:"Label Placement",type:"oneOf:left|right|top|bottom|left-top|left-bottom|right-top|right-bottom|top-left|top-right|bottom-left|bottom-right|center",apply:(l,e)=>{l.style.labelPlacement=e},get:l=>l.style.labelPlacement},{column:"Label Color",type:"rgba",apply:(l,e)=>{l.style.labelFill=e},get:l=>l.style.labelFill},{column:"Label Background Color",type:"rgba",apply:(l,e)=>{l.style.labelBackground=!0,l.style.labelBackgroundFill=e},get:l=>l.style.labelBackgroundFill},{column:"X Coordinate",type:"num",apply:(l,e)=>{l.style.x=e},get:l=>l.style.x},{column:"Y Coordinate",type:"num",apply:(l,e)=>{l.style.y=e},get:l=>l.style.y}],Z=[{column:"Source ID",type:"str",required:!0,get:l=>l.source},{column:"Target ID",type:"str",required:!0,get:l=>l.target},{column:"Label",type:"str",apply:(l,e)=>{l.label=e,l.style.label=!1,l.style.labelText=e,l.style.labelFontSize=z.EDGE.LABEL.FONT_SIZE,l.style.labelFill=z.EDGE.LABEL.FOREGROUND_COLOR,l.style.labelPlacement=z.EDGE.LABEL.PLACEMENT,l.style.labelAutoRotate=z.EDGE.LABEL.AUTO_ROTATE,l.style.labelBackground=z.EDGE.LABEL.BACKGROUND,l.style.labelBackgroundFill=z.EDGE.LABEL.BACKGROUND_COLOR},get:l=>l.label},{column:"Description",type:"str",apply:(l,e)=>{l.description=e},get:l=>l.description},{column:"Type",type:"oneOf:line|cubic|quadratic|polyline",apply:(l,e)=>{l.type=e},get:l=>l.type},{column:"Line Width",type:"num",apply:(l,e)=>{l.style.lineWidth=e},get:l=>l.style.lineWidth},{column:"Line Dash",type:"num",apply:(l,e)=>{l.style.lineDash=e},get:l=>l.style.lineDash},{column:"Color",type:"rgba",apply:(l,e)=>{l.style.stroke=e},get:l=>l.style.stroke},{column:"Label Font Size",type:"num",apply:(l,e)=>{l.style.labelFontSize=e},get:l=>l.style.labelFontSize},{column:"Label Placement",type:"oneOf:start|center|end",apply:(l,e)=>{l.style.labelPlacement=e},get:l=>l.style.labelPlacement},{column:"Label Auto Rotate",type:"bool",apply:(l,e)=>{l.style.labelAutoRotate=e},get:l=>l.style.labelAutoRotate},{column:"Label Offset X",type:"num",apply:(l,e)=>{l.style.labelOffsetX=e},get:l=>l.style.labelOffsetX},{column:"Label Offset Y",type:"num",apply:(l,e)=>{l.style.labelOffsetY=e},get:l=>l.style.labelOffsetY},{column:"Label Color",type:"rgba",apply:(l,e)=>{l.style.labelFill=e},get:l=>l.style.labelFill},{column:"Label Background Color",type:"rgba",apply:(l,e)=>{l.style.labelBackground=!0,l.style.labelBackgroundFill=e},get:l=>l.style.labelBackgroundFill},{column:"Start Arrow",type:"bool",apply:(l,e)=>{l.startArrow=e},get:l=>l.startArrow},{column:"Start Arrow Size",type:"num",apply:(l,e)=>{l.startArrowSize=e},get:l=>l.startArrowSize},{column:"Start Arrow Type",type:"oneOf:triangle|circle|diamond|vee|rect|triangleRect|simple",apply:(l,e)=>{l.startArrowType=e},get:l=>l.startArrowType},{column:"End Arrow",type:"bool",apply:(l,e)=>{l.endArrow=e},get:l=>l.endArrow},{column:"End Arrow Size",type:"num",apply:(l,e)=>{l.endArrowSize=e},get:l=>l.endArrowSize},{column:"End Arrow Type",type:"oneOf:triangle|circle|diamond|vee|rect|triangleRect|simple",apply:(l,e)=>{l.endArrowType=e},get:l=>l.endArrowType},{column:"Halo Color",type:"rgba",apply:(l,e)=>{l.style.halo=!0,l.style.haloStroke=e},get:l=>l.style.haloStroke},{column:"Halo Width",type:"num",apply:(l,e)=>{l.style.haloLineWidth=e},get:l=>l.style.haloLineWidth}],Se=class{constructor(e){this.compressed=e}createWorkbook(e){let t=new e.Workbook;return Object.entries(this.compressed.s).forEach(([s,a])=>{let i=t.addWorksheet(s);a.d.forEach(([n,o,c])=>{let r=i.getCell(n+1,o+1);r.value=c}),a.st&&Object.entries(a.st).forEach(([n,o])=>{let c=i.getCell(n),r=this.compressed.st[o];if(r.f&&(c.font={bold:r.f.b,italic:r.f.i,underline:r.f.u,strike:r.f.s,size:r.f.sz||11,name:r.f.n||"Calibri",color:r.f.c&&{argb:"FF"+r.f.c}}),r.fill&&(c.fill={type:"pattern",pattern:r.fill.p||"solid",fgColor:r.fill.fg&&{argb:"FF"+r.fill.fg},bgColor:r.fill.bg&&{argb:"FF"+r.fill.bg}}),r.b){let d={},h=["top","bottom","left","right"];["t","b","l","r"].forEach((f,E)=>{r.b[f]&&(d[h[E]]={style:r.b[f][0],color:{argb:"FF"+r.b[f][1]}})}),c.border=d}r.a&&(c.alignment={horizontal:r.a.h,vertical:r.a.v,wrapText:r.a.w}),r.nf&&(c.numFmt=r.nf)})}),t}},he=class{constructor(e){this.cache=e}parseJSON(e){return new Promise(t=>{let s=new FileReader;s.onload=()=>{try{let a=JSON.parse(s.result);!a.edges||!a.nodes?(this.cache.ui.error("File does not contain edges or nodes."),t(null)):(this.restoreSetsFromJSON(a),t(a))}catch(a){this.cache.ui.error(`Failed to parse file as JSON: ${a}`),t(null)}},s.onerror=()=>{this.cache.ui.error(`Failed to load file: ${s.error}`),t(null)},s.readAsText(e)})}restoreSetsFromJSON(e){if(e.nodeDataHeaders){let t=new Set;e.nodeDataHeaders=e.nodeDataHeaders.filter(s=>{let a=`${s.subGroup}::${s.key}`;return t.has(a)?!1:(t.add(a),!0)})}if(e.edgeDataHeaders){let t=new Set;e.edgeDataHeaders=e.edgeDataHeaders.filter(s=>{let a=`${s.subGroup}::${s.key}`;return t.has(a)?!1:(t.add(a),!0)})}if(e.layouts)for(let t in e.layouts){let s=e.layouts[t];for(let a in s)a.endsWith("ManualMembers")&&Array.isArray(s[a])&&(s[a]=new Set(s[a])),a.endsWith("Props")&&Array.isArray(s[a])&&(s[a]=new Set(s[a]));if(s.filters&&typeof s.filters=="object"){let a=new Map(Object.entries(s.filters));for(let[i,n]of a.entries()){n.categories&&Array.isArray(n.categories)&&(n.categories=new Set(n.categories));for(let o in n)o.endsWith("Members")&&Array.isArray(n[o])&&(n[o]=new Set(n[o])),o.endsWith("IDs")&&Array.isArray(n[o])&&(n[o]=new Set(n[o])),o.endsWith("MembersHidden")&&Array.isArray(n[o])&&(n[o]=new Set(n[o])),o.endsWith("IDsHidden")&&Array.isArray(n[o])&&(n[o]=new Set(n[o]))}s.filters=a}s.positions&&typeof s.positions=="object"&&(s.positions=new Map(Object.entries(s.positions))),s.nodeStyles&&typeof s.nodeStyles=="object"&&(s.nodeStyles=new Map(Object.entries(s.nodeStyles))),s.edgeStyles&&typeof s.edgeStyles=="object"&&(s.edgeStyles=new Map(Object.entries(s.edgeStyles)))}if(e.filterDefaults&&typeof e.filterDefaults=="object"){let t=new Map(Object.entries(e.filterDefaults));for(let[s,a]of t.entries())a.categories&&Array.isArray(a.categories)&&(a.categories=new Set(a.categories));e.filterDefaults=t}}async parseExcelToJson(e){let t=new ExcelJS.Workbook;await t.xlsx.load(e);let s=t.getWorksheet("nodes"),a=t.getWorksheet("edges");if(!s||!a){this.cache.ui.error('The Excel file must contain a "nodes" and "edges" sheet.');return}let i=(g,u)=>{let p=u.toString().toLowerCase().trim(),y=g[Object.keys(g).find(b=>b.toLowerCase()===p)];return y!=null&&y.toString().trim()!==""?y:null},n=(g,u,p)=>{for(let y of g)if(!u.includes(y)){let b=u.filter(S=>S.toLowerCase().trim()===y)[0];this.cache.ui.error(`The "${p}" sheet must contain an "${b}" column.`);return}},o=(g,u)=>{if(!g||g.length===0)return;let p=g[0],y={};Object.keys(p).forEach(b=>{b.startsWith("__EMPTY")||(b.includes("(")||b.includes(")"))&&(y[b]=b.replace(/\(/g,"[").replace(/\)/g,"]"))}),g.forEach(b=>{Object.entries(y).forEach(([S,N])=>{b.hasOwnProperty(S)&&(b[N]=b[S],delete b[S])})}),Object.entries(y).forEach(([b,S])=>{this.cache.ui.warning(`Column "${b}" in "${u}" sheet was renamed to "${S}" for proper group parsing.`)})},c=(g,u)=>{let p=u==="edges"?Z:j,y=p.filter(O=>O.required).map(O=>O.column),b=p.filter(O=>!O.required).map(O=>O.column),S=Object.keys(g[0]).filter(O=>!O.startsWith("__EMPTY")&&O!=="__rowNum__"),N=O=>g.every(q=>{let H=q[O];return H===null||H.toString().trim()===""}),T=S.filter(O=>y.includes(O)&&N(O)),I=S.filter(O=>b.includes(O)&&N(O)),R=S.filter(O=>!y.includes(O)&&!b.includes(O)&&N(O));T.forEach(O=>{this.cache.ui.error(`Required column "${O}" in "${u}" sheet is empty.`)}),I.forEach(O=>{this.cache.ui.info(`Optional column "${O}" in "${u}" sheet is empty.`)}),R.forEach(O=>{this.cache.ui.warning(`User defined column "${O}" in "${u}" sheet is empty.`)});let k=[...T,...I,...R];g.forEach(O=>{k.forEach(q=>delete O[q])})},r=g=>{if(!g)return[];let u=[],p=[];return g.getRow(1).eachCell((b,S)=>{p[S]=b.value}),g.eachRow((b,S)=>{if(S===1)return;let N={__rowNum__:S-2};b.eachCell((I,R)=>{let k=p[R];k&&(N[k]=I.value)}),Object.values(N).some(I=>I!=null&&I!=="")&&u.push(N)}),{headers:p,jsonData:u}},d=g=>{let u=this.cache.CFG.EXCEL_UNCATEGORIZED_SUBHEADER,p,y=g.match(/\[.*?\]/g);if(y&&y.length>=2){let b=y[y.length-1];u=b.substring(1,b.length-1).trim();let S=g.lastIndexOf(y[y.length-1]);p=g.substring(0,S).trim()}else if(y&&y.length===1){let b=y[0];u=b.substring(1,b.length-1).trim(),p=g.substring(0,g.indexOf("[")).trim()}else p=g.trim();return{subGroup:u,key:p}},h=r(s),m=r(a),f=h.jsonData,E=m.jsonData;if(f.length===0){this.cache.ui.error('The "nodes" sheet is empty or invalid.');return}if(E.length===0){this.cache.ui.error('The "edges" sheet is empty or invalid.');return}o(f,"nodes"),o(E,"edges"),c(f,"nodes"),c(E,"edges");let C=h.headers.map(g=>g.toLowerCase().trim()),w=j.filter(g=>g.required).map(g=>g.column.toLowerCase().trim());n(w,C,"nodes");let D=m.headers.map(g=>g.toLowerCase().trim()),L=Z.filter(g=>g.required).map(g=>g.column.toLowerCase().trim());n(L,D,"edges");let v=new Set(j.map(g=>g.column.toLowerCase().trim())),F=h.headers.filter(g=>!v.has(g.toLowerCase().trim())&&!g.startsWith("__EMPTY")&&g!=="__rowNum__").map(g=>d(g)),A=new Set(Z.map(g=>g.column.toLowerCase().trim())),x=m.headers.filter(g=>!A.has(g.toLowerCase().trim())&&!g.startsWith("__EMPTY")&&g!=="__rowNum__").map(g=>d(g)),B=(g,u,p,y)=>{g.style={},p.forEach(({column:b,type:S,required:N,apply:T})=>{if(N)return;let I=u.__rowNum__+1;if(!S){this.cache.ui.warning(`Unsure how to validate ${y} property ${b} in row ${I}. 
-        Missing definition in EXCEL_NODE_PROPERTIES or EXCEL_EDGE_PROPERTIES?`);return}let R=i(u,b);if(R){let k=!1,O=null;switch(S.startsWith("oneOf:")&&(O=S.split(":")[1].split("|"),S="list"),S){case"str":k=!0;break;case"num":k=_.isNumber(R);break;case"bool":k=_.isBoolean(R);break;case"rgba":k=_.isHexColor(R);break;case"list":k=_.isInList(R,O);break;default:break}k?T(g,R):this.cache.ui.error(`${y} property '${b}' in row ${I} has an invalid value '${R}' and will be ignored (value must be of type '${S}').`)}})},P=(g,u)=>{let p=g[u];return p==null||p.toString().trim()===""?null:{value:p,...d(u)}},M=(g,u,p,y,b)=>{g.D4Data={[y]:{}};let S=0,N=p.map(T=>T.column.toLowerCase().trim());for(let T in u){if(T==="__rowNum__"||N.includes(T.toLowerCase()))continue;let I=P(u,T);I&&(g.D4Data[y].hasOwnProperty(I.subGroup)||(g.D4Data[y][I.subGroup]={}),g.D4Data[y][I.subGroup][I.key]=I.value,S++)}S===0&&(this.cache.ui.warning(`${b} in row ${u.__rowNum__} (${g.id}) has no properties. 
-      Added property 'exists' to enable display.`),g.D4Data[y][this.cache.CFG.EXCEL_UNCATEGORIZED_SUBHEADER]={exists:!0})},G=new Set,V=f.map(g=>{let u={},p=g.__rowNum__+1,y="Node",b=i(g,"ID");return b?G.has(b)?(this.cache.ui.warning(`Node in row ${p} (ID ${b}) already exists and will be skipped.`),null):(u.id=b,G.add(b),B(u,g,j,y),M(u,g,j,this.cache.CFG.EXCEL_NODE_HEADER,y),u):(this.cache.ui.warning(`Node in row ${p} does not contain an ID and will be skipped.`),null)}).filter(g=>g!==null),U=E.map(g=>{let u={},p=g.__rowNum__+1,y="Edge",b=i(g,"Source ID");if(!b)return this.cache.ui.warning(`Edge in row ${p} does not contain a Source ID and will be skipped.`),null;if(!G.has(b))return this.cache.ui.warning(`Edge in row ${p} has an invalid/missing Source ID (${b}) and will be skipped.`),null;let S=i(g,"Target ID");return S?G.has(S)?(u.id=`${b}::${S}`,u.source=b,u.target=S,B(u,g,Z,y),M(u,g,Z,this.cache.CFG.EXCEL_EDGE_HEADER,y),u):(this.cache.ui.warning(`Edge in row ${p} has an invalid/missing Target ID (${S}) and will be skipped.`),null):(this.cache.ui.warning(`Edge in row ${p} does not contain a Target ID and will be skipped.`),null)}).filter(g=>g!==null);return{nodes:V,edges:U,nodeDataHeaders:F,edgeDataHeaders:x}}async downloadExcelTemplate(){let s=await new Se(Ce).createWorkbook(ExcelJS).xlsx.writeBuffer(),a=new Blob([s],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}),i=document.createElement("a");i.href=URL.createObjectURL(a),i.download="simple-template.xlsx",document.body.appendChild(i),i.click(),i.remove(),URL.revokeObjectURL(i.href)}preProcessData(e){this.cache.reset(),this.cache.CFG.HIDE_LABELS=e.nodes.length>this.cache.CFG.MAX_NODES_BEFORE_HIDING_LABELS,this.cache.CFG.DISABLE_HOVER_EFFECT=e.nodes.length>this.cache.CFG.MAX_NODES_BEFORE_DISABLING_HOVER_EFFECT,this.cache.CFG.AVOID_MEMBERS_IN_BUBBLE_GROUPS=e.nodes.length>this.cache.CFG.MAX_NODES_BEFORE_DISABLING_AVOID_MEMBERS_IN_BUBBLE_GROUPS,this.cache.nodePositionsFromExcelImport=new Map,this.populateCacheHeaders(e),this.cache.data.nodes=e.nodes.map(s=>{let a=new Set,i=new Map,n=new Map;for(let[d,h,m,f]of this.cache.gcm.traverseD4Data(s)){let E=_.generatePropHashId(d,h,m);if(a.add(E),isNaN(f)){let C=String(f).includes("|")?String(f).split("|").map(w=>w.trim()).filter(w=>w!==""):[f];i.has(E)||i.set(E,new Set),C.forEach(w=>{i.get(E).add(w),this.populateFilterPropsLowsAndHighs(E,w)})}else i.set(E,f),this.populateFilterPropsLowsAndHighs(E,f);n.set(E,null)}s.style?.x&&s.style?.y&&this.cache.nodePositionsFromExcelImport.set(s.id,{x:s.style.x,y:s.style.y});let o=s.style?.visibility,c=this.cache.style.getNodeStyleOrDefaults(s),r={...s,...c,originalType:c.type,originalStyle:structuredClone(c.style),features:a,featureValues:i,featureIsWithinThreshold:n};return o&&(r.style.visibility=o),r}),this.cache.data.edges=e.edges.map(s=>{let a=new Set,i=new Map,n=new Map;for(let[d,h,m,f]of this.cache.gcm.traverseD4Data(s)){let E=_.generatePropHashId(d,h,m);if(a.add(E),isNaN(f)){let C=String(f).includes("|")?String(f).split("|").map(w=>w.trim()).filter(w=>w!==""):[f];i.has(E)||i.set(E,new Set),C.forEach(w=>{i.get(E).add(w),this.populateFilterPropsLowsAndHighs(E,w)})}else i.set(E,f),this.populateFilterPropsLowsAndHighs(E,f);n.set(E,null)}let o=s.style?.visibility,c=this.cache.style.getEdgeStyleOrDefaults(s),r={...s,...c,originalType:c.type,originalStyle:structuredClone(c.style),features:a,featureValues:i,featureIsWithinThreshold:n};return o&&(r.style.visibility=o),r});let t=this.cache.nodePositionsFromExcelImport.size>0;this.cache.data.selectedLayout=e.selectedLayout||(t?this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME:"Default"),e.layouts?(this.cache.data.layouts=this.cache.io.parseLayouts(e.layouts),e.selectedLayout===this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME&&(this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE=!0)):(this.cache.data.layouts={Default:this.cache.lm.createDefaultLayout(this.cache.DEFAULTS.LAYOUT,!1)},t&&(this.cache.data.layouts[this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME]=this.cache.lm.createDefaultLayout(this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME,!0),this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE=!0)),this.cache.data.stash={},this.cache.initialize(),this.cache.ui.debug("Done pre-processing data")}getDefaultFilterObject(){let e={active:!0,lowerThreshold:1/0,upperThreshold:-1/0,isInverted:!1,isCategory:!1,categories:new Set};for(let t of this.cache.bs.traverseBubbleSets())e[`${t}Members`]=new Set,e[`${t}MembersHidden`]=new Set,e[`${t}IDs`]=new Set,e[`${t}IDsHidden`]=new Set;return e}populateFilterPropsLowsAndHighs(e,t){if(this.cache.data.filterDefaults.get(e)||this.cache.data.filterDefaults.set(e,this.getDefaultFilterObject()),t!==""){if(isNaN(t)){if(this.cache.data.filterDefaults.get(e).lowerThreshold!==1/0){let[s,a,i]=_.decodePropHashId(e);this.cache.ui.warning(`Property ${i} (section ${s} sub-section ${a} contains both numeric and 
-        categorical values. To proceed, please use a single data type. Property has been excluded.`),this.cache.data.filterDefaults.delete(e);return}this.cache.data.filterDefaults.get(e).isCategory=!0,this.cache.data.filterDefaults.get(e).categories.add(t);return}this.cache.data.filterDefaults.get(e).lowerThreshold=Math.min(t,this.cache.data.filterDefaults.get(e).lowerThreshold),this.cache.data.filterDefaults.get(e).upperThreshold=Math.max(t,this.cache.data.filterDefaults.get(e).upperThreshold)}}populateCacheHeaders(e){if(e.nodeDataHeaders)for(let t of e.nodeDataHeaders){let s=_.generatePropHashId(this.cache.CFG.EXCEL_NODE_HEADER,t.subGroup,t.key);this.cache.data.filterDefaults.set(s,this.getDefaultFilterObject())}if(e.edgeDataHeaders)for(let t of e.edgeDataHeaders){let s=_.generatePropHashId(this.cache.CFG.EXCEL_EDGE_HEADER,t.subGroup,t.key);this.cache.data.filterDefaults.set(s,this.getDefaultFilterObject())}}async exportGraphAsJSON(){if(this.cache.data===null)return this.cache.ui.error("No graph data to save."),!1;function e(i,n){return n instanceof Map?Object.fromEntries(n):n instanceof Set?[...n]:n}await this.cache.ui.showLoading("Exporting graph .."),await new Promise(i=>requestAnimationFrame(i)),this.cache.data.nodeDataHeaders=[],this.cache.data.edgeDataHeaders=[];for(let i of this.cache.data.filterDefaults.keys()){let[n,o,c]=_.decodePropHashId(i),r=n===this.cache.CFG.EXCEL_NODE_HEADER?this.cache.data.nodeDataHeaders:this.cache.data.edgeDataHeaders,d={subGroup:o,key:c};r.some(m=>m.subGroup===d.subGroup&&m.key===d.key)||r.push(d)}if(this.cache.graph){let{nodes:i,edges:n}=await this.cache.graph.getData();for(let o of this.cache.data.nodes){let r=i.find(h=>h.id===o.id)?.style?.visibility||"visible",d=this.cache.nodeRef.get(o.id);d&&d.originalStyle?(o.style=structuredClone(d.originalStyle),o.style.visibility=r,o.type=d.originalType):o.style={visibility:r}}for(let o of this.cache.data.edges){let r=n.find(h=>h.id===o.id)?.style?.visibility||"visible",d=this.cache.edgeRef.get(o.id);d&&d.originalStyle?(o.style=structuredClone(d.originalStyle),o.style.visibility=r,o.type=d.originalType):o.style={visibility:r}}}let t=new Blob([JSON.stringify(this.cache.data,e)],{type:"application/json"}),s=URL.createObjectURL(t),a=document.createElement("a");a.href=s,a.download="graph-export.json",a.click(),URL.revokeObjectURL(s),await this.cache.ui.hideLoading(),await new Promise(i=>requestAnimationFrame(i))}parseGroups(e){let t={categories:new Set(e?.categories||[])};for(let s of this.cache.bs.traverseBubbleSets())t[`${s}Members`]=new Set(e[`${s}Members`]||[]),t[`${s}IDs`]=new Set(e[`${s}IDs`]||[]),t[`${s}MembersHidden`]=new Set(e[`${s}MembersHidden`]||[]),t[`${s}IDsHidden`]=new Set(e[`${s}IDsHidden`]||[]);return t}parseLayouts(e){let t={};return Object.entries(e).forEach(([s,a])=>{t[s]={internals:a.internals||null,positions:a.positions instanceof Map?a.positions:new Map(Object.entries(a.positions||{})),filters:this.parseFiltersAsMap(a.filters),isCustom:a.isCustom||!1,query:a.query||void 0,nodeStyles:a.nodeStyles instanceof Map?a.nodeStyles:new Map(Object.entries(a.nodeStyles||{})),edgeStyles:a.edgeStyles instanceof Map?a.edgeStyles:new Map(Object.entries(a.edgeStyles||{})),bubbleSetStyle:a.bubbleSetStyle||structuredClone(this.cache.DEFAULTS.BUBBLE_GROUP_STYLE)};for(let i of this.cache.bs.traverseBubbleSets())t[s][`${i}Props`]=new Set(a[`${i}Props`]||[]),t[s][`${i}ManualMembers`]=a[`${i}ManualMembers`]instanceof Set?a[`${i}ManualMembers`]:new Set(a[`${i}ManualMembers`]||[])}),t}parseFiltersAsMap(e){return e instanceof Map?structuredClone(e):new Map(Object.entries(e||{}).map(([t,s])=>[t,{...s,...this.parseGroups(s)}]))}loadFile(e){let t=e.target.files[0];if(!t)return this.cache.ui.error("No file selected."),Promise.resolve(null);let s=t.name.split(".").pop().toLowerCase();try{switch(s){case"json":return this.parseJSON(t);case"xls":case"xlsx":case"ods":return t.arrayBuffer().then(a=>this.parseExcelToJson(a)).catch(a=>(this.cache.ui.error(`Error reading Excel file: ${a}`),null));default:this.cache.ui.error(`Unsupported file type: ${s}`)}}catch(a){this.cache.ui.error(`Failed to load file: ${a}`)}e.target.value=""}async loadFileWrapper(e){let t=e.target.files[0];t&&(await this.cache.ui.showLoading("Loading",`Loading ${t.name} (${t.type} with ${_.humanFileSize(t.size)})`),await new Promise(s=>requestAnimationFrame(s)),this.cache.graph&&(await this.cache.gcm.destroyGraphAndRollBackUI(),await this.cache.gcm.resetEventLocks()),this.cache.io.loadFile(e).then(async s=>{if(!s){this.cache.ui.error("File data is empty."),await this.cache.ui.hideLoading(),await new Promise(i=>requestAnimationFrame(i));return}this.cache.io.preProcessData(s),this.cache.buildDataTable(s),this.cache.initialize({nodeDataHeaders:s.nodeDataHeaders,edgeDataHeaders:s.edgeDataHeaders}),this.cache.ui.buildUI();let a=this.cache.data.layouts[this.cache.data.selectedLayout].query;if(a&&(this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY=!0,this.cache.qm.updateQueryTextArea(),this.cache.qm.updateUIFromQueryInstructions()),await this.cache.gcm.createGraphInstance(),!this.cache.graph){this.cache.ui.error("Graph not initialized, aborting."),await this.cache.ui.hideLoading(),await new Promise(i=>requestAnimationFrame(i));return}await this.cache.graph.render(),await this.cache.graph.fitView(),this.cache.ui.debug("Initial graph rendered."),a&&this.cache.ui.updateFilterLockState()}).catch(async s=>{this.cache.ui.error(`Error loading graph: ${s}`),await this.cache.ui.hideLoading(),await new Promise(a=>requestAnimationFrame(a))}).finally(async()=>{await this.cache.ui.hideLoading(),await new Promise(s=>requestAnimationFrame(s))}))}async exportPNG(){try{await this.cache.ui.showLoading("Loading","Generating picture data"),await new Promise(s=>requestAnimationFrame(s));let e=await this.cache.graph.toDataURL({type:"image/png",mode:"viewport"}),t=document.createElement("a");t.href=e,t.download="graph-export.png",document.body.appendChild(t),t.click(),document.body.removeChild(t),await this.cache.ui.hideLoading(),await new Promise(s=>requestAnimationFrame(s))}catch(e){await this.cache.ui.hideLoading(),await new Promise(t=>requestAnimationFrame(t)),this.cache.ui.error(e)}}};var $=5,ke={centrality:{id:"centrality",label:"Degree Centrality",calculate:async l=>await Me(l)},betweenness:{id:"betweenness",label:"Betweenness Centrality",calculate:async l=>await Pe(l)},closeness:{id:"closeness",label:"Closeness Centrality",calculate:async l=>await Ge(l)},eigenvector:{id:"eigenvector",label:"Eigenvector Centrality",calculate:async l=>await Ue(l)},pagerank:{id:"pagerank",label:"PageRank",calculate:async l=>await $e(l)}},ue=class{constructor(e){this.selected="centrality",this.multiselect=null,this.table=null,this.m=ke,this.collapsed=!1,this.cache=e,this.selectBtns={"Add to Selection":async()=>this.updateSelectedNodes(!0),"Remove from Selection":async()=>this.updateSelectedNodes(!1)}}toggleUI(){let e=document.getElementById("networkMetricsContainer"),t=e.classList.toggle("open"),s=e.scrollHeight+"px";e.style.maxHeight=s;let a=document.getElementById("metricsToggleBtn");requestAnimationFrame(()=>{e.style.maxHeight=t?s:"0"}),t?(e.addEventListener("transitionend",()=>e.style.maxHeight="none",{once:!0}),a.classList.add("highlight")):a.classList.remove("highlight"),this.collapsed=!t}async updateMetricUI(){if(!this.cache.visibleElementsChanged)return;let e=this.m[this.selected].label;await this.cache.ui.showLoading("Calculating",`Network Metric: ${e}`),await new Promise(a=>requestAnimationFrame(a)),this.resetNodeToolTipMetricTexts();let t=await this.m[this.selected]?.calculate(this.cache),s=Array.from(this.multiselect.selectedOptions,a=>a.value);this.multiselect.innerHTML="";for(let a of t.scores){let i=document.createElement("option");i.value=a.id,i.textContent=`${a.id} | ${a.text}`,i.selected=s.includes(a.id),this.updateNodeToolTipMetricText(a.id,e,a.text),this.multiselect.appendChild(i)}this.table.innerHTML="",Object.entries(t.graphLevelMetrics).forEach(([a,i])=>{let n=document.createElement("tr"),o=document.createElement("td");o.textContent=a;let c=document.createElement("td");c.textContent=`${i}`,n.append(o,c),this.table.appendChild(n)}),document.getElementById("metricInfoBtn").onclick=()=>{this.cache.popup=new Y(t.popupContent)},await this.cache.ui.hideLoading(),await new Promise(a=>requestAnimationFrame(a))}resetNodeToolTipMetricTexts(){for(let e of this.cache.toolTips.keys())this.updateNodeToolTipMetricText(e,void 0,void 0,!0)}updateNodeToolTipMetricText(e=void 0,t=void 0,s=void 0,a=!1){let i=this.cache.toolTips.get(e);if(!i)return;let n=document.createElement("div");n.innerHTML=i;let o=n.querySelector(".tooltip-metric-wrapper");if(!o)return;let c=o.querySelector(".tooltip-metric-content");if(!c)return;let r=o.querySelector(".tooltip-metric-header");r&&(a?(o.classList.remove("visible"),c.textContent="",r.textContent=""):(o.classList.add("visible"),c.textContent=s,r.textContent=t),this.cache.toolTips.set(e,n.innerHTML))}buildMetricUI(){let e=document.createElement("div");e.className="nw-root",e.id="networkMetricsContainer";let t=document.createElement("div");t.className="nw-div";let s=document.createElement("h3");s.textContent="Network Metrics",t.appendChild(s);let a=document.createElement("div");a.className="nw-metric-select-container";let i=document.createElement("select");i.className="nw-metric-select",Object.values(this.m).forEach(r=>{let d=document.createElement("option");d.value=r.id,d.textContent=r.label,d.selected=r.id===this.selected,i.appendChild(d)}),i.addEventListener("change",async r=>{try{this.selected=r.target.value,await this.updateMetricUI()}catch(d){this.cache.ui.error(`Failed to update metrics: ${d.message}`)}}),a.appendChild(i);let n=document.createElement("button");n.className="info-btn",n.textContent="\u{1F6C8}",n.id="metricInfoBtn",a.appendChild(n),t.append(a),this.multiselect=document.createElement("select"),this.multiselect.className="nw-node-multiselect",this.multiselect.multiple=!0,this.multiselect.id="metricsMultiselect",t.appendChild(this.multiselect);let o=document.createElement("div");Object.entries(this.selectBtns).forEach(([r,d])=>{let h=document.createElement("button");h.textContent=r,h.className="nw-button",h.onclick=d,o.appendChild(h)}),t.appendChild(o),t.appendChild(document.createElement("hr"));let c=document.createElement("p");return c.className="nw-subheader",c.textContent="Graph Level Metrics",t.appendChild(c),this.table=document.createElement("table"),this.table.className="nw-graph-metrics-table",t.appendChild(this.table),t.appendChild(document.createElement("hr")),e.appendChild(t),e}async updateSelectedNodes(e){let t=Array.from(this.multiselect.selectedOptions,s=>s.value);if(t.length){let s=await this.cache.graph.getNodeData(t);await this.cache.sm.updateSelectedState(s,e),e?this.cache.selectedNodes=[...new Set([...this.cache.selectedNodes,...t])]:this.cache.selectedNodes=this.cache.selectedNodes.filter(a=>!t.includes(a))}}};async function Me(l){let{nodeIDsToBeShown:e,edgeIDsToBeShown:t,edgeRef:s}=l,a=e.size;if(a===0)return{scores:[],graphLevelMetrics:{}};let i=new Map;for(let f of e)i.set(f,0);for(let f of t){let{source:E,target:C}=s.get(f);i.has(E)&&i.set(E,i.get(E)+1),i.has(C)&&i.set(C,i.get(C)+1)}let n=[],o=0,c=1/0,r=-1/0;for(let[f,E]of i){let C=E/(a-1);n.push({id:f,degree:E,centrality:C}),o+=C,C<c&&(c=C),C>r&&(r=C)}n.sort((f,E)=>E.centrality-f.centrality);let d=n[Math.floor(a/2)].centrality,h=o/a,m=a>2?n.reduce((f,E)=>f+(r-E.centrality),0)/((a-1)*(a-2)):0;return{scores:n.map(f=>({id:f.id,text:`Degree ${f.degree} | Centrality ${f.centrality.toFixed($)} (${Math.round(f.centrality/r*100)} %)`})),graphLevelMetrics:{"Maximum Degree Centrality":r*(a-1),"Minimum Degree Centrality":c*(a-1),"Average Degree Centrality":+(h*(a-1)).toFixed($),"Median Degree":+(d*(a-1)).toFixed($),"Graph Density":+(o/a).toFixed($),Centralization:+m.toFixed($)},popupContent:`<div>
+`, { width: "50vw", height: "60vh", lineHeight: "1.5em" });
+    }
+  };
+  function buildDataTable(fileData) {
+    this.dataTable.onPendingChangesUpdated(({ hasPendingChanges, hasChangesFromOriginal }) => {
+      const applyBtn2 = document.getElementById("updateDataTableBtn");
+      const resetBtn2 = document.getElementById("resetDataTableBtn");
+      if (applyBtn2) {
+        applyBtn2.disabled = !hasPendingChanges;
+      }
+      if (resetBtn2) {
+        resetBtn2.disabled = !hasChangesFromOriginal;
+      }
+    });
+    this.dataTable.populateFromFileData(fileData);
+    const applyBtn = document.getElementById("updateDataTableBtn");
+    const resetBtn = document.getElementById("resetDataTableBtn");
+    if (applyBtn) applyBtn.disabled = true;
+    if (resetBtn) resetBtn.disabled = true;
+  }
+
+  // src/managers/io.js
+  var excelData = { "s": { "readme": { "d": [[0, 0, "Color Codes Explained"], [0, 1, "Description"], [1, 0, "Required"], [1, 1, "Strictly required property"], [2, 0, "Optional"], [2, 1, "Optional property; Column name can not be re-used for user-defined data"], [3, 0, "User Data [group]"], [3, 1, 'Add custom properties in new columns. Use [brackets] for grouping (e.g., "Temperature [Celsius] [Physics]"). The last [bracket] becomes the group name.'], [5, 0, "Data Types Explained"], [5, 1, "Description"], [6, 0, "text"], [6, 1, "any text"], [7, 0, "number"], [7, 1, "whole decimal numbers or floating point numbers"], [8, 0, "boolean"], [8, 1, "true or TRUE or 1, false or FALSE or 0"], [9, 0, "RGBA"], [9, 1, "RGBA hex color code (e.g. #C33D3580 for 50% opacity) (last 2 digits are optional)"], [10, 0, "value 1 | value 2"], [10, 1, "List of categorical values of which one must be matched (excluding optional information in brackets)"], [11, 0, "any"], [11, 1, "Categorical view when text is given, slider-based view when numerical input is given"], [13, 0, "Node Properties Explained"], [13, 1, "Description"], [13, 2, "Default Value"], [13, 3, "Type"], [14, 0, "ID"], [14, 1, "Unique identifier for a node"], [14, 2, "-"], [14, 3, "text (unique)"], [15, 0, "Label"], [15, 1, "Label of the node; if no Label is given, the ID is displayed per default"], [15, 2, "-"], [15, 3, "text"], [16, 0, "Description"], [16, 1, "Description of the node, displayed in the tooltip text"], [16, 2, "-"], [16, 3, "text"], [17, 0, "Shape"], [17, 1, "The shape of the node"], [17, 2, "hexagon"], [17, 3, "circle (\u25CF) | diamond (\u25C6) | hexagon (\u2B22) | rect (\u25A0) | triangle (\u25B2) | star (\u2605)"], [18, 0, "Size"], [18, 1, "The size of the node"], [18, 2, "20"], [18, 3, "number"], [19, 0, "Fill Color"], [19, 1, "The fill color of the node in RGBA format (e.g. #FF000080 for a red node with 50% opacity)"], [19, 2, "#C33D35"], [19, 3, "rgba"], [20, 0, "Border Size"], [20, 1, "The stroke width"], [20, 2, "1"], [20, 3, "number"], [21, 0, "Border Color"], [21, 1, "The stroke color of the node in RGBA format"], [21, 2, "-"], [21, 3, "rgba"], [22, 0, "Label Font Size"], [22, 1, "Label font size"], [22, 2, "12"], [22, 3, "number"], [23, 0, "Label Placement"], [23, 1, "Label position relative to the main shape of the node"], [23, 2, "bottom"], [23, 3, "left | right | top | bottom | left-top | left-bottom | right-top | right-bottom | top-left | top-right | bottom-left | bottom-right | center"], [24, 0, "Label Color"], [24, 1, "The color of the nodes label"], [24, 2, "-"], [24, 3, "rgba"], [25, 0, "Label Background Color"], [25, 1, "Label background fill color"], [25, 2, "-"], [25, 3, "rgba"], [26, 0, "X Coordinate"], [26, 1, "The x coordinate of the node"], [26, 2, "-"], [26, 3, "number"], [27, 0, "Y Coordinate"], [27, 1, "The y coordinate of the node"], [27, 2, "-"], [27, 3, "number"], [28, 0, "property A [group A]"], [28, 1, "User-defined custom node properties"], [28, 2, "-"], [28, 3, "any"], [30, 0, "Edge Properties Explained"], [30, 1, "Description"], [30, 2, "Default Value"], [30, 3, "Type"], [31, 0, "Source ID"], [31, 1, "The ID of the source node"], [31, 2, "-"], [31, 3, "text"], [32, 0, "Target ID"], [32, 1, "The ID of the target node"], [32, 2, "-"], [32, 3, "text"], [33, 0, "Label"], [33, 1, "Label of the edge; if no Label is given, the edge is only visible as line without any text"], [33, 2, "-"], [33, 3, "text"], [34, 0, "Description"], [34, 1, "Description of the edge, displayed in the tooltip text"], [34, 2, "-"], [34, 3, "text"], [35, 0, "Type"], [35, 1, "The edge type"], [35, 2, "line"], [35, 3, "line | cubic | quadratic | polyline"], [36, 0, "Line Width"], [36, 1, "The border width of the edge"], [36, 2, "0.75"], [36, 3, "number"], [37, 0, "Line Dash"], [37, 1, "The dash offset of the edge line"], [37, 2, "0"], [37, 3, "number"], [38, 0, "Color"], [38, 1, "The stroke color of the edge in RGBA format"], [38, 2, "#403C5390"], [38, 3, "rgba"], [39, 0, "Label Font Size"], [39, 1, "The font size of the edges label"], [39, 2, "center"], [39, 3, "number"], [40, 0, "Label Placement"], [40, 1, "The position of the label relative to the edge"], [40, 2, "#000000"], [40, 3, "start | center | end"], [41, 0, "Label Auto Rotate"], [41, 1, "Whether to automatically rotate the label to match the edge\u2019s direction"], [41, 2, "1"], [41, 3, "boolean"], [42, 0, "Label Offset X"], [42, 1, "The offset of the label on the X-Axis"], [42, 2, "0"], [42, 3, "number"], [43, 0, "Label Offset Y"], [43, 1, "The offset of the label on the Y-Axis"], [43, 2, "0"], [43, 3, "number"], [44, 0, "Label Color"], [44, 1, "The color of the edges label text"], [44, 2, "-"], [44, 3, "rgba"], [45, 0, "Label Background Color"], [45, 1, "The color for the edge label\u2019s background"], [45, 2, "#E4E3EA"], [45, 3, "rgba"], [46, 0, "Start Arrow"], [46, 1, "Whether to display the start arrow on the edge"], [46, 2, { "formula": "FALSE()" }], [46, 3, "boolean"], [47, 0, "Start Arrow Size"], [47, 1, "The size of the start arrow"], [47, 2, "8"], [47, 3, "number"], [48, 0, "Start Arrow Type"], [48, 1, "The type of the start arrow"], [48, 2, "triangle"], [48, 3, "triangle | circle | diamond | vee | rect | triangleRect | simple"], [49, 0, "End Arrow"], [49, 1, "Whether to display the end arrow on the edge"], [49, 2, { "formula": "FALSE()" }], [49, 3, "boolean"], [50, 0, "End Arrow Size"], [50, 1, "The size of the end arrow"], [50, 2, "8"], [50, 3, "number"], [51, 0, "End Arrow Type"], [51, 1, "The type of the end arrow"], [51, 2, "triangle"], [51, 3, "triangle | circle | diamond | vee | rect | triangleRect | simple"]], "st": { "A1": 0, "B1": 0, "C1": 1, "D1": 2, "A2": 3, "B2": 2, "C2": 1, "D2": 2, "A3": 4, "B3": 2, "C3": 1, "D3": 2, "A4": 5, "B4": 2, "C4": 1, "D4": 2, "A5": 2, "B5": 2, "C5": 1, "D5": 2, "A6": 0, "B6": 0, "C6": 6, "D6": 7, "A7": 8, "B7": 2, "C7": 1, "D7": 2, "A8": 8, "B8": 2, "C8": 1, "D8": 2, "A9": 8, "B9": 2, "C9": 1, "D9": 2, "A10": 8, "B10": 2, "C10": 1, "D10": 2, "A11": 9, "B11": 2, "C11": 1, "D11": 2, "A12": 8, "B12": 2, "C12": 1, "D12": 2, "A13": 2, "B13": 2, "C13": 1, "D13": 2, "A14": 10, "B14": 10, "C14": 11, "D14": 10, "A15": 3, "B15": 2, "C15": 1, "D15": 2, "A16": 4, "B16": 2, "C16": 1, "D16": 2, "A17": 4, "B17": 2, "C17": 1, "D17": 2, "A18": 4, "B18": 2, "C18": 1, "D18": 12, "A19": 4, "B19": 2, "C19": 1, "D19": 2, "A20": 4, "B20": 2, "C20": 1, "D20": 2, "A21": 4, "B21": 2, "C21": 1, "D21": 2, "A22": 4, "B22": 2, "C22": 1, "D22": 2, "A23": 4, "B23": 2, "C23": 1, "D23": 2, "A24": 4, "B24": 2, "C24": 1, "D24": 12, "A25": 4, "B25": 2, "C25": 1, "D25": 2, "A26": 4, "B26": 2, "C26": 1, "D26": 2, "A27": 4, "B27": 2, "C27": 1, "D27": 2, "A28": 4, "B28": 2, "C28": 1, "D28": 2, "A29": 5, "B29": 2, "C29": 1, "D29": 2, "A30": 2, "B30": 2, "C30": 1, "D30": 2, "A31": 10, "B31": 10, "C31": 11, "D31": 10, "A32": 3, "B32": 2, "C32": 1, "D32": 2, "A33": 3, "B33": 2, "C33": 1, "D33": 2, "A34": 4, "B34": 2, "C34": 1, "D34": 2, "A35": 4, "B35": 2, "C35": 1, "D35": 2, "A36": 4, "B36": 2, "C36": 1, "D36": 12, "A37": 4, "B37": 2, "C37": 1, "D37": 2, "A38": 4, "B38": 2, "C38": 1, "D38": 2, "A39": 4, "B39": 2, "C39": 1, "D39": 2, "A40": 4, "B40": 2, "C40": 1, "D40": 2, "A41": 4, "B41": 2, "C41": 1, "D41": 12, "A42": 4, "B42": 2, "C42": 13, "D42": 2, "A43": 4, "B43": 2, "C43": 1, "D43": 2, "A44": 4, "B44": 2, "C44": 1, "D44": 2, "A45": 4, "B45": 2, "C45": 1, "D45": 2, "A46": 4, "B46": 2, "C46": 13, "D46": 2, "A47": 4, "B47": 2, "C47": 13, "D47": 2, "A48": 4, "B48": 2, "C48": 1, "D48": 2, "A49": 4, "B49": 2, "C49": 13, "D49": 12, "A50": 4, "B50": 2, "C50": 13, "D50": 2, "A51": 4, "B51": 2, "C51": 1, "D51": 14, "A52": 4, "B52": 2, "C52": 13, "D52": 12 }, "dim": [52, 4] }, "nodes": { "d": [[0, 0, "ID"], [0, 1, "Label"], [0, 2, "Description"], [0, 3, "Shape"], [0, 4, "Size"], [0, 5, "Fill Color"], [0, 6, "Border Color"], [0, 7, "Feature X [group A]"], [0, 8, "Feature Y [nm] [group A]"], [0, 9, "Feature Z [group B]"], [1, 0, "A"], [1, 1, "Node 1"], [1, 2, "The first node"], [1, 3, "circle"], [1, 4, "60"], [1, 5, "#403C53"], [1, 6, "#C33D35"], [1, 7, "1"], [1, 8, "foo"], [1, 9, "1"], [2, 0, "B"], [2, 1, "Node 2"], [2, 2, "The second node"], [2, 7, "0.5"], [2, 8, "foo"], [2, 9, "2"], [3, 0, "C"], [3, 1, "Node 3"], [3, 2, "The third node"], [3, 7, "1.1"], [3, 8, "foo"], [3, 9, "1"], [4, 0, "D"], [4, 1, "Node 4"], [4, 2, "The fourth node"], [4, 7, "1.3"], [4, 8, "bar"], [4, 9, "0"], [5, 0, "E"], [5, 7, "0"], [5, 8, "bar"], [5, 9, "-1"], [6, 0, "F"], [6, 1, "Lonely Node"], [6, 7, "-1"]], "st": { "A1": 3, "B1": 4, "C1": 4, "D1": 4, "E1": 4, "F1": 4, "G1": 4, "H1": 5, "I1": 5, "J1": 5, "A2": 15, "B2": 16, "C2": 16, "D2": 16, "E2": 16, "F2": 16, "G2": 16, "H2": 17, "I2": 17, "J2": 17, "A3": 15, "B3": 16, "C3": 16, "D3": 16, "E3": 16, "F3": 16, "G3": 16, "H3": 17, "I3": 17, "J3": 17, "A4": 15, "B4": 16, "C4": 16, "D4": 16, "E4": 16, "F4": 16, "G4": 16, "H4": 17, "I4": 17, "J4": 17, "A5": 15, "B5": 16, "C5": 16, "D5": 16, "E5": 16, "F5": 16, "G5": 16, "H5": 17, "I5": 17, "J5": 17, "A6": 15, "B6": 16, "C6": 16, "D6": 16, "E6": 16, "F6": 16, "G6": 16, "H6": 17, "I6": 17, "J6": 17, "A7": 15, "B7": 16, "C7": 16, "D7": 16, "E7": 16, "F7": 16, "G7": 16, "H7": 17, "I7": 17, "J7": 17 }, "dim": [7, 10] }, "edges": { "d": [[0, 0, "Source ID"], [0, 1, "Target ID"], [0, 2, "Color"], [0, 3, "Line Width"], [0, 4, "Label"], [0, 5, "Feature EX [group X]"], [0, 6, "Feature EY [group X]"], [0, 7, "Feature EZ [group Y]"], [1, 0, "A"], [1, 1, "B"], [1, 2, "#FF0000"], [1, 3, "0.75"], [1, 4, "foo"], [1, 5, "1"], [1, 6, "Dummy Category 1"], [1, 7, "1"], [2, 0, "A"], [2, 1, "C"], [2, 5, "0.5"], [2, 6, "Dummy Category 2"], [2, 7, "2"], [3, 0, "C"], [3, 1, "D"], [3, 5, "1.1"], [3, 6, "Dummy Category 3"], [3, 7, "1"], [4, 0, "D"], [4, 1, "E"], [4, 5, "1.3"], [4, 6, "Dummy Category 4"], [4, 7, "0"]], "st": { "A1": 3, "B1": 3, "C1": 4, "D1": 4, "E1": 4, "F1": 5, "G1": 5, "H1": 5, "A2": 15, "B2": 15, "C2": 16, "D2": 16, "E2": 16, "F2": 17, "G2": 17, "H2": 17, "A3": 15, "B3": 15, "C3": 16, "D3": 16, "E3": 16, "F3": 17, "G3": 17, "H3": 17, "A4": 15, "B4": 15, "C4": 16, "D4": 16, "E4": 16, "F4": 17, "G4": 17, "H4": 17, "A5": 15, "B5": 15, "C5": 16, "D5": 16, "E5": 16, "F5": 17, "G5": 17, "H5": 17 }, "dim": [5, 8] } }, "st": { "0": { "f": { "b": 1, "sz": 12, "n": "Arial" }, "fill": { "fg": "E4E3EA", "bg": "FEFFE1" }, "b": { "t": ["thin", "000000"], "b": ["thin", "000000"], "l": ["thin", "000000"], "r": ["thin", "000000"] }, "a": { "h": "general", "v": "bottom" }, "nf": "General" }, "1": { "f": { "sz": 10, "n": "Arial" }, "fill": { "p": "none" }, "a": { "h": "left", "v": "bottom" }, "nf": "General" }, "2": { "f": { "sz": 10, "n": "Arial" }, "fill": { "p": "none" }, "a": { "h": "general", "v": "bottom" }, "nf": "General" }, "3": { "f": { "b": 1, "sz": 10, "n": "Arial" }, "fill": { "fg": "FF9A9A", "bg": "FF8080" }, "b": { "t": ["thin", "000000"], "b": ["thin", "000000"], "l": ["thin", "000000"], "r": ["thin", "000000"] }, "a": { "h": "general", "v": "bottom" }, "nf": "General" }, "4": { "f": { "b": 1, "sz": 10, "n": "Arial" }, "fill": { "fg": "FEFFE1", "bg": "FFFFFF" }, "b": { "t": ["thin", "000000"], "b": ["thin", "000000"], "l": ["thin", "000000"], "r": ["thin", "000000"] }, "a": { "h": "general", "v": "bottom" }, "nf": "General" }, "5": { "f": { "b": 1, "sz": 10, "n": "Arial" }, "fill": { "fg": "81D41A", "bg": "969696" }, "b": { "t": ["thin", "000000"], "b": ["thin", "000000"], "l": ["thin", "000000"], "r": ["thin", "000000"] }, "a": { "h": "general", "v": "bottom" }, "nf": "General" }, "6": { "f": { "b": 1, "sz": 12, "n": "Arial" }, "fill": { "p": "none" }, "a": { "h": "left", "v": "bottom" }, "nf": "General" }, "7": { "f": { "b": 1, "sz": 12, "n": "Arial" }, "fill": { "p": "none" }, "a": { "h": "general", "v": "bottom" }, "nf": "General" }, "8": { "f": { "b": 1, "sz": 10, "n": "Arial" }, "fill": { "fg": "E4E3EA", "bg": "FEFFE1" }, "b": { "t": ["thin", "000000"], "b": ["thin", "000000"], "l": ["thin", "000000"], "r": ["thin", "000000"] }, "a": { "h": "general", "v": "bottom" }, "nf": "General" }, "9": { "f": { "b": 1, "i": 1, "sz": 10, "n": "Arial" }, "fill": { "fg": "E4E3EA", "bg": "FEFFE1" }, "b": { "t": ["thin", "000000"], "b": ["thin", "000000"], "l": ["thin", "000000"], "r": ["thin", "000000"] }, "a": { "h": "general", "v": "bottom" }, "nf": "General" }, "10": { "f": { "b": 1, "sz": 12, "n": "Arial" }, "fill": { "fg": "E4E3EA", "bg": "FEFFE1" }, "b": { "t": ["thin", "000000"], "b": ["thin", "000000"] }, "a": { "h": "general", "v": "bottom" }, "nf": "General" }, "11": { "f": { "b": 1, "sz": 12, "n": "Arial" }, "fill": { "fg": "E4E3EA", "bg": "FEFFE1" }, "b": { "t": ["thin", "000000"], "b": ["thin", "000000"] }, "a": { "h": "left", "v": "bottom" }, "nf": "General" }, "12": { "f": { "i": 1, "sz": 10, "n": "Arial" }, "fill": { "p": "none" }, "a": { "h": "general", "v": "bottom" }, "nf": "General" }, "13": { "f": { "sz": 10, "n": "Arial" }, "fill": { "p": "none" }, "a": { "h": "left", "v": "bottom" }, "nf": '"TRUE";"TRUE";"FALSE"' }, "14": { "f": { "u": 1, "sz": 10, "n": "Arial" }, "fill": { "p": "none" }, "a": { "h": "general", "v": "bottom" }, "nf": "General" }, "15": { "f": { "sz": 10, "n": "Arial" }, "fill": { "fg": "FF9A9A", "bg": "FF8080" }, "b": { "t": ["thin", "000000"], "b": ["thin", "000000"], "l": ["thin", "000000"], "r": ["thin", "000000"] }, "a": { "h": "general", "v": "bottom" }, "nf": "General" }, "16": { "f": { "sz": 10, "n": "Arial" }, "fill": { "fg": "FEFFE1", "bg": "FFFFFF" }, "b": { "t": ["thin", "000000"], "b": ["thin", "000000"], "l": ["thin", "000000"], "r": ["thin", "000000"] }, "a": { "h": "general", "v": "bottom" }, "nf": "General" }, "17": { "f": { "sz": 10, "n": "Arial" }, "fill": { "fg": "81D41A", "bg": "969696" }, "b": { "t": ["thin", "000000"], "b": ["thin", "000000"], "l": ["thin", "000000"], "r": ["thin", "000000"] }, "a": { "h": "general", "v": "bottom" }, "nf": "General" } }, "sc": 18 };
+  var EXCEL_NODE_PROPERTIES = [
+    {
+      column: "ID",
+      type: "str",
+      required: true,
+      get: (n) => {
+        return n.id;
+      }
+    },
+    {
+      column: "Label",
+      type: "str",
+      apply: (n, v) => {
+        n.label = v;
+        n.style.label = false;
+        n.style.labelText = v;
+        n.style.labelFontSize = DEFAULTS.NODE.FONT_SIZE;
+        n.style.labelFill = DEFAULTS.NODE.FOREGROUND_COLOR;
+        n.style.labelBackground = DEFAULTS.NODE.BACKGROUND;
+        n.style.labelBackgroundFill = DEFAULTS.NODE.BACKGROUND_COLOR;
+        n.style.labelPlacement = DEFAULTS.NODE.PLACEMENT;
+      },
+      get: (n) => {
+        return n.label;
+      }
+    },
+    {
+      column: "Description",
+      type: "str",
+      apply: (n, v) => {
+        n.description = v;
+      },
+      get: (n) => {
+        return n.description;
+      }
+    },
+    {
+      column: "Shape",
+      type: "oneOf:circle|diamond|hexagon|rect|triangle|star",
+      apply: (n, v) => {
+        n.type = v;
+      },
+      get: (n) => {
+        return n.type;
+      }
+    },
+    {
+      column: "Size",
+      type: "num",
+      apply: (n, v) => {
+        n.style.size = v;
+      },
+      get: (n) => {
+        return n.style.size;
+      }
+    },
+    {
+      column: "Fill Color",
+      type: "rgba",
+      apply: (n, v) => {
+        n.style.fill = v;
+      },
+      get: (n) => {
+        return n.style.fill;
+      }
+    },
+    {
+      column: "Border Size",
+      type: "num",
+      apply: (n, v) => {
+        n.style.lineWidth = v;
+      },
+      get: (n) => {
+        return n.style.lineWidth;
+      }
+    },
+    {
+      column: "Border Color",
+      type: "rgba",
+      apply: (n, v) => {
+        n.style.stroke = v;
+      },
+      get: (n) => {
+        return n.style.stroke;
+      }
+    },
+    {
+      column: "Label Font Size",
+      type: "num",
+      apply: (n, v) => {
+        n.style.labelFontSize = v;
+      },
+      get: (n) => {
+        return n.style.labelFontSize;
+      }
+    },
+    {
+      column: "Label Placement",
+      type: "oneOf:left|right|top|bottom|left-top|left-bottom|right-top|right-bottom|top-left|top-right|bottom-left|bottom-right|center",
+      apply: (n, v) => {
+        n.style.labelPlacement = v;
+      },
+      get: (n) => {
+        return n.style.labelPlacement;
+      }
+    },
+    {
+      column: "Label Color",
+      type: "rgba",
+      apply: (n, v) => {
+        n.style.labelFill = v;
+      },
+      get: (n) => {
+        return n.style.labelFill;
+      }
+    },
+    {
+      column: "Label Background Color",
+      type: "rgba",
+      apply: (n, v) => {
+        n.style.labelBackground = true;
+        n.style.labelBackgroundFill = v;
+      },
+      get: (n) => {
+        return n.style.labelBackgroundFill;
+      }
+    },
+    {
+      column: "X Coordinate",
+      type: "num",
+      apply: (n, v) => {
+        n.style.x = v;
+      },
+      get: (n) => {
+        return n.style.x;
+      }
+    },
+    {
+      column: "Y Coordinate",
+      type: "num",
+      apply: (n, v) => {
+        n.style.y = v;
+      },
+      get: (n) => {
+        return n.style.y;
+      }
+    }
+  ];
+  var EXCEL_EDGE_PROPERTIES = [
+    {
+      column: "Source ID",
+      type: "str",
+      required: true,
+      get: (e) => {
+        return e.source;
+      }
+    },
+    {
+      column: "Target ID",
+      type: "str",
+      required: true,
+      get: (e) => {
+        return e.target;
+      }
+    },
+    {
+      column: "Label",
+      type: "str",
+      apply: (e, v) => {
+        e.label = v;
+        e.style.label = false;
+        e.style.labelText = v;
+        e.style.labelFontSize = DEFAULTS.EDGE.LABEL.FONT_SIZE;
+        e.style.labelFill = DEFAULTS.EDGE.LABEL.FOREGROUND_COLOR;
+        e.style.labelPlacement = DEFAULTS.EDGE.LABEL.PLACEMENT;
+        e.style.labelAutoRotate = DEFAULTS.EDGE.LABEL.AUTO_ROTATE;
+        e.style.labelBackground = DEFAULTS.EDGE.LABEL.BACKGROUND;
+        e.style.labelBackgroundFill = DEFAULTS.EDGE.LABEL.BACKGROUND_COLOR;
+      },
+      get: (e) => {
+        return e.label;
+      }
+    },
+    {
+      column: "Description",
+      type: "str",
+      apply: (e, v) => {
+        e.description = v;
+      },
+      get: (e) => {
+        return e.description;
+      }
+    },
+    {
+      column: "Type",
+      type: "oneOf:line|cubic|quadratic|polyline",
+      apply: (e, v) => {
+        e.type = v;
+      },
+      get: (e) => {
+        return e.type;
+      }
+    },
+    {
+      column: "Line Width",
+      type: "num",
+      apply: (e, v) => {
+        e.style.lineWidth = v;
+      },
+      get: (e) => {
+        return e.style.lineWidth;
+      }
+    },
+    {
+      column: "Line Dash",
+      type: "num",
+      apply: (e, v) => {
+        e.style.lineDash = v;
+      },
+      get: (e) => {
+        return e.style.lineDash;
+      }
+    },
+    {
+      column: "Color",
+      type: "rgba",
+      apply: (e, v) => {
+        e.style.stroke = v;
+      },
+      get: (e) => {
+        return e.style.stroke;
+      }
+    },
+    {
+      column: "Label Font Size",
+      type: "num",
+      apply: (e, v) => {
+        e.style.labelFontSize = v;
+      },
+      get: (e) => {
+        return e.style.labelFontSize;
+      }
+    },
+    {
+      column: "Label Placement",
+      type: "oneOf:start|center|end",
+      apply: (e, v) => {
+        e.style.labelPlacement = v;
+      },
+      get: (e) => {
+        return e.style.labelPlacement;
+      }
+    },
+    {
+      column: "Label Auto Rotate",
+      type: "bool",
+      apply: (e, v) => {
+        e.style.labelAutoRotate = v;
+      },
+      get: (e) => {
+        return e.style.labelAutoRotate;
+      }
+    },
+    {
+      column: "Label Offset X",
+      type: "num",
+      apply: (e, v) => {
+        e.style.labelOffsetX = v;
+      },
+      get: (e) => {
+        return e.style.labelOffsetX;
+      }
+    },
+    {
+      column: "Label Offset Y",
+      type: "num",
+      apply: (e, v) => {
+        e.style.labelOffsetY = v;
+      },
+      get: (e) => {
+        return e.style.labelOffsetY;
+      }
+    },
+    {
+      column: "Label Color",
+      type: "rgba",
+      apply: (e, v) => {
+        e.style.labelFill = v;
+      },
+      get: (e) => {
+        return e.style.labelFill;
+      }
+    },
+    {
+      column: "Label Background Color",
+      type: "rgba",
+      apply: (e, v) => {
+        e.style.labelBackground = true;
+        e.style.labelBackgroundFill = v;
+      },
+      get: (e) => {
+        return e.style.labelBackgroundFill;
+      }
+    },
+    {
+      column: "Start Arrow",
+      type: "bool",
+      apply: (e, v) => {
+        e.startArrow = v;
+      },
+      get: (e) => {
+        return e.startArrow;
+      }
+    },
+    {
+      column: "Start Arrow Size",
+      type: "num",
+      apply: (e, v) => {
+        e.startArrowSize = v;
+      },
+      get: (e) => {
+        return e.startArrowSize;
+      }
+    },
+    {
+      column: "Start Arrow Type",
+      type: "oneOf:triangle|circle|diamond|vee|rect|triangleRect|simple",
+      apply: (e, v) => {
+        e.startArrowType = v;
+      },
+      get: (e) => {
+        return e.startArrowType;
+      }
+    },
+    {
+      column: "End Arrow",
+      type: "bool",
+      apply: (e, v) => {
+        e.endArrow = v;
+      },
+      get: (e) => {
+        return e.endArrow;
+      }
+    },
+    {
+      column: "End Arrow Size",
+      type: "num",
+      apply: (e, v) => {
+        e.endArrowSize = v;
+      },
+      get: (e) => {
+        return e.endArrowSize;
+      }
+    },
+    {
+      column: "End Arrow Type",
+      type: "oneOf:triangle|circle|diamond|vee|rect|triangleRect|simple",
+      apply: (e, v) => {
+        e.endArrowType = v;
+      },
+      get: (e) => {
+        return e.endArrowType;
+      }
+    },
+    {
+      column: "Halo Color",
+      type: "rgba",
+      apply: (e, v) => {
+        e.style.halo = true;
+        e.style.haloStroke = v;
+      },
+      get: (e) => {
+        return e.style.haloStroke;
+      }
+    },
+    {
+      column: "Halo Width",
+      type: "num",
+      apply: (e, v) => {
+        e.style.haloLineWidth = v;
+      },
+      get: (e) => {
+        return e.style.haloLineWidth;
+      }
+    }
+  ];
+  var ExcelTemplate = class {
+    constructor(compressedData) {
+      this.compressed = compressedData;
+    }
+    createWorkbook(ExcelJS2) {
+      const workbook = new ExcelJS2.Workbook();
+      Object.entries(this.compressed.s).forEach(([sheetName, sheet]) => {
+        const worksheet = workbook.addWorksheet(sheetName);
+        sheet.d.forEach(([rowIndex, colIndex, value]) => {
+          const cell = worksheet.getCell(rowIndex + 1, colIndex + 1);
+          cell.value = value;
+        });
+        if (sheet.st) {
+          Object.entries(sheet.st).forEach(([ref, styleId]) => {
+            const cell = worksheet.getCell(ref);
+            const style = this.compressed.st[styleId];
+            if (style.f) {
+              cell.font = {
+                bold: style.f.b,
+                italic: style.f.i,
+                underline: style.f.u,
+                strike: style.f.s,
+                size: style.f.sz || 11,
+                name: style.f.n || "Calibri",
+                color: style.f.c && { argb: "FF" + style.f.c }
+              };
+            }
+            if (style.fill) {
+              cell.fill = {
+                type: "pattern",
+                pattern: style.fill.p || "solid",
+                fgColor: style.fill.fg && { argb: "FF" + style.fill.fg },
+                bgColor: style.fill.bg && { argb: "FF" + style.fill.bg }
+              };
+            }
+            if (style.b) {
+              const border = {};
+              const sides = ["top", "bottom", "left", "right"];
+              const keys = ["t", "b", "l", "r"];
+              keys.forEach((key, idx) => {
+                if (style.b[key]) {
+                  border[sides[idx]] = {
+                    style: style.b[key][0],
+                    color: { argb: "FF" + style.b[key][1] }
+                  };
+                }
+              });
+              cell.border = border;
+            }
+            if (style.a) {
+              cell.alignment = {
+                horizontal: style.a.h,
+                vertical: style.a.v,
+                wrapText: style.a.w
+              };
+            }
+            if (style.nf) {
+              cell.numFmt = style.nf;
+            }
+          });
+        }
+      });
+      return workbook;
+    }
+  };
+  var IOManager = class {
+    constructor(cache3) {
+      this.cache = cache3;
+    }
+    parseJSON(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const jsonContent = JSON.parse(reader.result);
+            if (!jsonContent.edges || !jsonContent.nodes) {
+              this.cache.ui.error("File does not contain edges or nodes.");
+              resolve(null);
+            } else {
+              this.restoreSetsFromJSON(jsonContent);
+              resolve(jsonContent);
+            }
+          } catch (errorMsg) {
+            this.cache.ui.error(`Failed to parse file as JSON: ${errorMsg}`);
+            resolve(null);
+          }
+        };
+        reader.onerror = () => {
+          this.cache.ui.error(`Failed to load file: ${reader.error}`);
+          resolve(null);
+        };
+        reader.readAsText(file);
+      });
+    }
+    restoreSetsFromJSON(jsonContent) {
+      if (jsonContent.nodeDataHeaders) {
+        const seen = /* @__PURE__ */ new Set();
+        jsonContent.nodeDataHeaders = jsonContent.nodeDataHeaders.filter((h) => {
+          const key = `${h.subGroup}::${h.key}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+      }
+      if (jsonContent.edgeDataHeaders) {
+        const seen = /* @__PURE__ */ new Set();
+        jsonContent.edgeDataHeaders = jsonContent.edgeDataHeaders.filter((h) => {
+          const key = `${h.subGroup}::${h.key}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+      }
+      if (jsonContent.layouts) {
+        for (const layoutName in jsonContent.layouts) {
+          const layout = jsonContent.layouts[layoutName];
+          for (const key in layout) {
+            if (key.endsWith("ManualMembers") && Array.isArray(layout[key])) {
+              layout[key] = new Set(layout[key]);
+            }
+            if (key.endsWith("Props") && Array.isArray(layout[key])) {
+              layout[key] = new Set(layout[key]);
+            }
+          }
+          if (layout.filters && typeof layout.filters === "object") {
+            const filtersMap = new Map(Object.entries(layout.filters));
+            for (const [propId, filterValue] of filtersMap.entries()) {
+              if (filterValue.categories && Array.isArray(filterValue.categories)) {
+                filterValue.categories = new Set(filterValue.categories);
+              }
+              for (const key in filterValue) {
+                if (key.endsWith("Members") && Array.isArray(filterValue[key])) {
+                  filterValue[key] = new Set(filterValue[key]);
+                }
+                if (key.endsWith("IDs") && Array.isArray(filterValue[key])) {
+                  filterValue[key] = new Set(filterValue[key]);
+                }
+                if (key.endsWith("MembersHidden") && Array.isArray(filterValue[key])) {
+                  filterValue[key] = new Set(filterValue[key]);
+                }
+                if (key.endsWith("IDsHidden") && Array.isArray(filterValue[key])) {
+                  filterValue[key] = new Set(filterValue[key]);
+                }
+              }
+            }
+            layout.filters = filtersMap;
+          }
+          if (layout.positions && typeof layout.positions === "object") {
+            layout.positions = new Map(Object.entries(layout.positions));
+          }
+          if (layout.nodeStyles && typeof layout.nodeStyles === "object") {
+            layout.nodeStyles = new Map(Object.entries(layout.nodeStyles));
+          }
+          if (layout.edgeStyles && typeof layout.edgeStyles === "object") {
+            layout.edgeStyles = new Map(Object.entries(layout.edgeStyles));
+          }
+        }
+      }
+      if (jsonContent.filterDefaults && typeof jsonContent.filterDefaults === "object") {
+        const filterDefaultsMap = new Map(Object.entries(jsonContent.filterDefaults));
+        for (const [propId, filterValue] of filterDefaultsMap.entries()) {
+          if (filterValue.categories && Array.isArray(filterValue.categories)) {
+            filterValue.categories = new Set(filterValue.categories);
+          }
+        }
+        jsonContent.filterDefaults = filterDefaultsMap;
+      }
+    }
+    /**
+     * Parses an Excel file into the required JSON structure.
+     *
+     * @param {File} file - The Excel file to be parsed.
+     * @returns {Object} - Parsed JSON structure compatible with the existing system.
+     */
+    async parseExcelToJson(file) {
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(file);
+      const nodesSheet = workbook.getWorksheet("nodes");
+      const edgesSheet = workbook.getWorksheet("edges");
+      if (!nodesSheet || !edgesSheet) {
+        this.cache.ui.error('The Excel file must contain a "nodes" and "edges" sheet.');
+        return;
+      }
+      const getOrNull = (row, key) => {
+        const lowerCaseKey = key.toString().toLowerCase().trim();
+        const value = row[Object.keys(row).find((key2) => key2.toLowerCase() === lowerCaseKey)];
+        if (value !== null && value !== void 0 && value.toString().trim() !== "") {
+          return value;
+        }
+        return null;
+      };
+      const validateColumns = (requiredColumns, firstRowKeys, sheetName) => {
+        for (const column of requiredColumns) {
+          if (!firstRowKeys.includes(column)) {
+            const origColumn = firstRowKeys.filter((k) => k.toLowerCase().trim() === column)[0];
+            this.cache.ui.error(`The "${sheetName}" sheet must contain an "${origColumn}" column.`);
+            return;
+          }
+        }
+      };
+      const sanitizeColumns = (sheetJson, sheetDescriptor) => {
+        if (!sheetJson || sheetJson.length === 0) return;
+        const firstRow = sheetJson[0];
+        const columnMapping = {};
+        Object.keys(firstRow).forEach((originalKey) => {
+          if (originalKey.startsWith("__EMPTY")) return;
+          if (originalKey.includes("(") || originalKey.includes(")")) {
+            columnMapping[originalKey] = originalKey.replace(/\(/g, "[").replace(/\)/g, "]");
+          }
+        });
+        sheetJson.forEach((row) => {
+          Object.entries(columnMapping).forEach(([originalKey, sanitizedKey]) => {
+            if (row.hasOwnProperty(originalKey)) {
+              row[sanitizedKey] = row[originalKey];
+              delete row[originalKey];
+            }
+          });
+        });
+        Object.entries(columnMapping).forEach(([original, sanitized]) => {
+          this.cache.ui.warning(`Column "${original}" in "${sheetDescriptor}" sheet was renamed to "${sanitized}" for proper group parsing.`);
+        });
+      };
+      const removeEmptyColumns = (sheetJson, sheetDescriptor) => {
+        const propertyDefs = sheetDescriptor === "edges" ? EXCEL_EDGE_PROPERTIES : EXCEL_NODE_PROPERTIES;
+        const requiredCols = propertyDefs.filter((prop) => prop.required).map((prop) => prop.column);
+        const optionalCols = propertyDefs.filter((prop) => !prop.required).map((prop) => prop.column);
+        const allCols = Object.keys(sheetJson[0]).filter((c) => !c.startsWith("__EMPTY") && c !== "__rowNum__");
+        const isColumnEmpty = (col) => sheetJson.every((row) => {
+          const v = row[col];
+          return v === null || v.toString().trim() === "";
+        });
+        const emptyRequiredColumns = allCols.filter(
+          (col) => requiredCols.includes(col) && isColumnEmpty(col)
+        );
+        const emptyOptionalColumns = allCols.filter(
+          (col) => optionalCols.includes(col) && isColumnEmpty(col)
+        );
+        const emptyUserColumns = allCols.filter(
+          (col) => !requiredCols.includes(col) && !optionalCols.includes(col) && isColumnEmpty(col)
+        );
+        emptyRequiredColumns.forEach((col) => {
+          this.cache.ui.error(`Required column "${col}" in "${sheetDescriptor}" sheet is empty.`);
+        });
+        emptyOptionalColumns.forEach((col) => {
+          this.cache.ui.info(`Optional column "${col}" in "${sheetDescriptor}" sheet is empty.`);
+        });
+        emptyUserColumns.forEach((col) => {
+          this.cache.ui.warning(`User defined column "${col}" in "${sheetDescriptor}" sheet is empty.`);
+        });
+        const allEmptyColumns = [...emptyRequiredColumns, ...emptyOptionalColumns, ...emptyUserColumns];
+        sheetJson.forEach((row) => {
+          allEmptyColumns.forEach((col) => delete row[col]);
+        });
+      };
+      const worksheetToJson = (worksheet) => {
+        if (!worksheet) return [];
+        const jsonData = [];
+        const headers = [];
+        const firstRow = worksheet.getRow(1);
+        firstRow.eachCell((cell, colNumber) => {
+          headers[colNumber] = cell.value;
+        });
+        worksheet.eachRow((row, rowNumber) => {
+          if (rowNumber === 1) return;
+          const rowData = { __rowNum__: rowNumber - 2 };
+          row.eachCell((cell, colNumber) => {
+            const header = headers[colNumber];
+            if (header) {
+              rowData[header] = cell.value;
+            }
+          });
+          const hasData = Object.values(rowData).some((val) => val !== null && val !== void 0 && val !== "");
+          if (hasData) {
+            jsonData.push(rowData);
+          }
+        });
+        return { "headers": headers, "jsonData": jsonData };
+      };
+      const decodeKey = (key) => {
+        let subGroup = this.cache.CFG.EXCEL_UNCATEGORIZED_SUBHEADER;
+        let trimmedKey;
+        const matches = key.match(/\[.*?\]/g);
+        if (matches && matches.length >= 2) {
+          const lastBracketContent = matches[matches.length - 1];
+          subGroup = lastBracketContent.substring(1, lastBracketContent.length - 1).trim();
+          const lastBracketIndex = key.lastIndexOf(matches[matches.length - 1]);
+          trimmedKey = key.substring(0, lastBracketIndex).trim();
+        } else if (matches && matches.length === 1) {
+          const bracketContent = matches[0];
+          subGroup = bracketContent.substring(1, bracketContent.length - 1).trim();
+          trimmedKey = key.substring(0, key.indexOf("[")).trim();
+        } else {
+          trimmedKey = key.trim();
+        }
+        return { "subGroup": subGroup, "key": trimmedKey };
+      };
+      const nodesDataDict = worksheetToJson(nodesSheet);
+      const edgesDataDict = worksheetToJson(edgesSheet);
+      const nodesData = nodesDataDict.jsonData;
+      const edgesData = edgesDataDict.jsonData;
+      if (nodesData.length === 0) {
+        this.cache.ui.error('The "nodes" sheet is empty or invalid.');
+        return;
+      }
+      if (edgesData.length === 0) {
+        this.cache.ui.error('The "edges" sheet is empty or invalid.');
+        return;
+      }
+      sanitizeColumns(nodesData, "nodes");
+      sanitizeColumns(edgesData, "edges");
+      removeEmptyColumns(nodesData, "nodes");
+      removeEmptyColumns(edgesData, "edges");
+      const firstNodeRowKeys = nodesDataDict.headers.map((k) => k.toLowerCase().trim());
+      const requiredNodeColumns = EXCEL_NODE_PROPERTIES.filter((node) => node.required).map((node) => node.column.toLowerCase().trim());
+      validateColumns(requiredNodeColumns, firstNodeRowKeys, "nodes");
+      const firstEdgeRowKeys = edgesDataDict.headers.map((k) => k.toLowerCase().trim());
+      const requiredEdgeColumns = EXCEL_EDGE_PROPERTIES.filter((edge) => edge.required).map((edge) => edge.column.toLowerCase().trim());
+      validateColumns(requiredEdgeColumns, firstEdgeRowKeys, "edges");
+      const nonDataNodeColumns = new Set(EXCEL_NODE_PROPERTIES.map((p) => p.column.toLowerCase().trim()));
+      const nodeDataHeaders = nodesDataDict.headers.filter((k) => !nonDataNodeColumns.has(k.toLowerCase().trim()) && !k.startsWith("__EMPTY") && k !== "__rowNum__").map((k) => decodeKey(k));
+      const nonDataEdgeColumns = new Set(EXCEL_EDGE_PROPERTIES.map((p) => p.column.toLowerCase().trim()));
+      const edgeDataHeaders = edgesDataDict.headers.filter((k) => !nonDataEdgeColumns.has(k.toLowerCase().trim()) && !k.startsWith("__EMPTY") && k !== "__rowNum__").map((k) => decodeKey(k));
+      const addNodeOrEdgeStyle = (nodeOrEdge, row, propertyMap, descriptor) => {
+        nodeOrEdge.style = {};
+        propertyMap.forEach(({ column, type, required, apply }) => {
+          if (required) return;
+          const rowNum = row.__rowNum__ + 1;
+          if (!type) {
+            this.cache.ui.warning(`Unsure how to validate ${descriptor} property ${column} in row ${rowNum}. 
+        Missing definition in EXCEL_NODE_PROPERTIES or EXCEL_EDGE_PROPERTIES?`);
+            return;
+          }
+          const maybeValue = getOrNull(row, column);
+          if (maybeValue) {
+            let validated = false;
+            let listValues = null;
+            if (type.startsWith("oneOf:")) {
+              listValues = type.split(":")[1].split("|");
+              type = "list";
+            }
+            switch (type) {
+              case "str":
+                validated = true;
+                break;
+              case "num":
+                validated = StaticUtilities.isNumber(maybeValue);
+                break;
+              case "bool":
+                validated = StaticUtilities.isBoolean(maybeValue);
+                break;
+              case "rgba":
+                validated = StaticUtilities.isHexColor(maybeValue);
+                break;
+              case "list":
+                validated = StaticUtilities.isInList(maybeValue, listValues);
+                break;
+              default:
+                break;
+            }
+            if (!validated) {
+              this.cache.ui.error(`${descriptor} property '${column}' in row ${rowNum} has an invalid value '${maybeValue}' and will be ignored (value must be of type '${type}').`);
+            } else {
+              apply(nodeOrEdge, maybeValue);
+            }
+          }
+        });
+      };
+      const validateUserData = (row, key) => {
+        const val = row[key];
+        if (val === null || val === void 0 || val.toString().trim() === "") {
+          return null;
+        }
+        return { "value": val, ...decodeKey(key) };
+      };
+      const addNodeOrEdgeUserData = (nodeOrEdge, row, propertyMap, header, descriptor) => {
+        nodeOrEdge.D4Data = {
+          [header]: {}
+        };
+        let propsAdded = 0;
+        const reservedProperties = propertyMap.map((p) => p.column.toLowerCase().trim());
+        for (let key in row) {
+          if (key === "__rowNum__" || reservedProperties.includes(key.toLowerCase())) continue;
+          const userData = validateUserData(row, key);
+          if (!userData) continue;
+          if (!nodeOrEdge.D4Data[header].hasOwnProperty(userData.subGroup)) {
+            nodeOrEdge.D4Data[header][userData.subGroup] = {};
+          }
+          nodeOrEdge.D4Data[header][userData.subGroup][userData.key] = userData.value;
+          propsAdded++;
+        }
+        if (propsAdded === 0) {
+          this.cache.ui.warning(`${descriptor} in row ${row.__rowNum__} (${nodeOrEdge.id}) has no properties. 
+      Added property 'exists' to enable display.`);
+          nodeOrEdge.D4Data[header][this.cache.CFG.EXCEL_UNCATEGORIZED_SUBHEADER] = {
+            "exists": true
+          };
+        }
+      };
+      const nodeIDs = /* @__PURE__ */ new Set();
+      const parsedNodes = nodesData.map((row) => {
+        const node = {};
+        const nodeRowNum = row.__rowNum__ + 1;
+        const descriptor = "Node";
+        const nodeID = getOrNull(row, "ID");
+        if (!nodeID) {
+          this.cache.ui.warning(`Node in row ${nodeRowNum} does not contain an ID and will be skipped.`);
+          return null;
+        }
+        if (nodeIDs.has(nodeID)) {
+          this.cache.ui.warning(`Node in row ${nodeRowNum} (ID ${nodeID}) already exists and will be skipped.`);
+          return null;
+        }
+        node.id = nodeID;
+        nodeIDs.add(nodeID);
+        addNodeOrEdgeStyle(node, row, EXCEL_NODE_PROPERTIES, descriptor);
+        addNodeOrEdgeUserData(node, row, EXCEL_NODE_PROPERTIES, this.cache.CFG.EXCEL_NODE_HEADER, descriptor);
+        return node;
+      }).filter((node) => node !== null);
+      const parsedEdges = edgesData.map((row) => {
+        const edge = {};
+        const edgeRowNum = row.__rowNum__ + 1;
+        const descriptor = "Edge";
+        const sourceID = getOrNull(row, "Source ID");
+        if (!sourceID) {
+          this.cache.ui.warning(`Edge in row ${edgeRowNum} does not contain a Source ID and will be skipped.`);
+          return null;
+        }
+        if (!nodeIDs.has(sourceID)) {
+          this.cache.ui.warning(`Edge in row ${edgeRowNum} has an invalid/missing Source ID (${sourceID}) and will be skipped.`);
+          return null;
+        }
+        const targetID = getOrNull(row, "Target ID");
+        if (!targetID) {
+          this.cache.ui.warning(`Edge in row ${edgeRowNum} does not contain a Target ID and will be skipped.`);
+          return null;
+        }
+        if (!nodeIDs.has(targetID)) {
+          this.cache.ui.warning(`Edge in row ${edgeRowNum} has an invalid/missing Target ID (${targetID}) and will be skipped.`);
+          return null;
+        }
+        edge.id = `${sourceID}::${targetID}`;
+        edge.source = sourceID;
+        edge.target = targetID;
+        addNodeOrEdgeStyle(edge, row, EXCEL_EDGE_PROPERTIES, descriptor);
+        addNodeOrEdgeUserData(edge, row, EXCEL_EDGE_PROPERTIES, this.cache.CFG.EXCEL_EDGE_HEADER, descriptor);
+        return edge;
+      }).filter((edge) => edge !== null);
+      return {
+        nodes: parsedNodes,
+        edges: parsedEdges,
+        nodeDataHeaders,
+        edgeDataHeaders
+      };
+    }
+    async downloadExcelTemplate() {
+      const template = new ExcelTemplate(excelData);
+      const workbook = template.createWorkbook(ExcelJS);
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "simple-template.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+    }
+    preProcessData(fileData) {
+      this.cache.reset();
+      this.cache.CFG.HIDE_LABELS = fileData.nodes.length > this.cache.CFG.MAX_NODES_BEFORE_HIDING_LABELS;
+      this.cache.CFG.DISABLE_HOVER_EFFECT = fileData.nodes.length > this.cache.CFG.MAX_NODES_BEFORE_DISABLING_HOVER_EFFECT;
+      this.cache.CFG.AVOID_MEMBERS_IN_BUBBLE_GROUPS = fileData.nodes.length > this.cache.CFG.MAX_NODES_BEFORE_DISABLING_AVOID_MEMBERS_IN_BUBBLE_GROUPS;
+      this.cache.nodePositionsFromExcelImport = /* @__PURE__ */ new Map();
+      this.populateCacheHeaders(fileData);
+      this.cache.data.nodes = fileData.nodes.map((node) => {
+        const nodeFeatures = /* @__PURE__ */ new Set();
+        const nodeFeatureValues = /* @__PURE__ */ new Map();
+        const nodeFeatureWithinThreshold = /* @__PURE__ */ new Map();
+        for (let [section, subsection, prop, data] of this.cache.gcm.traverseD4Data(node)) {
+          let propId = StaticUtilities.generatePropHashId(section, subsection, prop);
+          nodeFeatures.add(propId);
+          if (isNaN(data)) {
+            const values = String(data).includes("|") ? String(data).split("|").map((v) => v.trim()).filter((v) => v !== "") : [data];
+            if (!nodeFeatureValues.has(propId)) {
+              nodeFeatureValues.set(propId, /* @__PURE__ */ new Set());
+            }
+            values.forEach((val) => {
+              nodeFeatureValues.get(propId).add(val);
+              this.populateFilterPropsLowsAndHighs(propId, val);
+            });
+          } else {
+            nodeFeatureValues.set(propId, data);
+            this.populateFilterPropsLowsAndHighs(propId, data);
+          }
+          nodeFeatureWithinThreshold.set(propId, null);
+        }
+        if (node.style?.x && node.style?.y) {
+          this.cache.nodePositionsFromExcelImport.set(node.id, { x: node.style.x, y: node.style.y });
+        }
+        const savedVisibility = node.style?.visibility;
+        const nodeDefaults = this.cache.style.getNodeStyleOrDefaults(node);
+        const processedNode = {
+          ...node,
+          ...nodeDefaults,
+          originalType: nodeDefaults.type,
+          originalStyle: structuredClone(nodeDefaults.style),
+          features: nodeFeatures,
+          featureValues: nodeFeatureValues,
+          featureIsWithinThreshold: nodeFeatureWithinThreshold
+        };
+        if (savedVisibility) {
+          processedNode.style.visibility = savedVisibility;
+        }
+        return processedNode;
+      });
+      this.cache.data.edges = fileData.edges.map((edge) => {
+        const edgeFeatures = /* @__PURE__ */ new Set();
+        const edgeFeatureValues = /* @__PURE__ */ new Map();
+        const edgeFeatureWithinThreshold = /* @__PURE__ */ new Map();
+        for (let [section, subsection, prop, data] of this.cache.gcm.traverseD4Data(edge)) {
+          let propId = StaticUtilities.generatePropHashId(section, subsection, prop);
+          edgeFeatures.add(propId);
+          if (isNaN(data)) {
+            const values = String(data).includes("|") ? String(data).split("|").map((v) => v.trim()).filter((v) => v !== "") : [data];
+            if (!edgeFeatureValues.has(propId)) {
+              edgeFeatureValues.set(propId, /* @__PURE__ */ new Set());
+            }
+            values.forEach((val) => {
+              edgeFeatureValues.get(propId).add(val);
+              this.populateFilterPropsLowsAndHighs(propId, val);
+            });
+          } else {
+            edgeFeatureValues.set(propId, data);
+            this.populateFilterPropsLowsAndHighs(propId, data);
+          }
+          edgeFeatureWithinThreshold.set(propId, null);
+        }
+        const savedVisibility = edge.style?.visibility;
+        const edgeDefaults = this.cache.style.getEdgeStyleOrDefaults(edge);
+        const processedEdge = {
+          ...edge,
+          ...edgeDefaults,
+          originalType: edgeDefaults.type,
+          originalStyle: structuredClone(edgeDefaults.style),
+          features: edgeFeatures,
+          featureValues: edgeFeatureValues,
+          featureIsWithinThreshold: edgeFeatureWithinThreshold
+        };
+        if (savedVisibility) {
+          processedEdge.style.visibility = savedVisibility;
+        }
+        return processedEdge;
+      });
+      const excelHasCoordinates = this.cache.nodePositionsFromExcelImport.size > 0;
+      this.cache.data.selectedLayout = fileData.selectedLayout || (excelHasCoordinates ? this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME : "Default");
+      if (fileData.layouts) {
+        this.cache.data.layouts = this.cache.io.parseLayouts(fileData.layouts);
+        if (fileData.selectedLayout === this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME) {
+          this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = true;
+        }
+      } else {
+        this.cache.data.layouts = {
+          "Default": this.cache.lm.createDefaultLayout(this.cache.DEFAULTS.LAYOUT, false)
+        };
+        if (excelHasCoordinates) {
+          this.cache.data.layouts[this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME] = this.cache.lm.createDefaultLayout(this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME, true);
+          this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = true;
+        }
+      }
+      for (const layoutName in this.cache.data.layouts) {
+        const layout = this.cache.data.layouts[layoutName];
+        const oldFilters = new Map(layout.filters);
+        layout.filters.clear();
+        for (const [propId, defaultFilter] of this.cache.data.filterDefaults.entries()) {
+          if (oldFilters.has(propId)) {
+            layout.filters.set(propId, oldFilters.get(propId));
+          } else {
+            layout.filters.set(propId, structuredClone(defaultFilter));
+          }
+        }
+      }
+      this.cache.data.stash = {};
+      this.cache.initialize();
+      this.cache.ui.debug("Done pre-processing data");
+    }
+    getDefaultFilterObject() {
+      let obj = {
+        active: true,
+        lowerThreshold: Infinity,
+        upperThreshold: -Infinity,
+        isInverted: false,
+        isCategory: false,
+        categories: /* @__PURE__ */ new Set()
+      };
+      for (let group of this.cache.bs.traverseBubbleSets()) {
+        obj[`${group}Members`] = /* @__PURE__ */ new Set();
+        obj[`${group}MembersHidden`] = /* @__PURE__ */ new Set();
+        obj[`${group}IDs`] = /* @__PURE__ */ new Set();
+        obj[`${group}IDsHidden`] = /* @__PURE__ */ new Set();
+      }
+      return obj;
+    }
+    populateFilterPropsLowsAndHighs(propHash, nodeOrEdgeValue) {
+      if (!this.cache.data.filterDefaults.get(propHash)) {
+        this.cache.data.filterDefaults.set(propHash, this.getDefaultFilterObject());
+      }
+      if (nodeOrEdgeValue === "") {
+        return;
+      }
+      if (isNaN(nodeOrEdgeValue)) {
+        if (this.cache.data.filterDefaults.get(propHash).lowerThreshold !== Infinity) {
+          let [section, subSection, prop] = StaticUtilities.decodePropHashId(propHash);
+          this.cache.ui.warning(`Property ${prop} (section ${section} sub-section ${subSection} contains both numeric and 
+        categorical values. To proceed, please use a single data type. Property has been excluded.`);
+          this.cache.data.filterDefaults.delete(propHash);
+          return;
+        }
+        this.cache.data.filterDefaults.get(propHash).isCategory = true;
+        this.cache.data.filterDefaults.get(propHash).categories.add(nodeOrEdgeValue);
+        return;
+      }
+      this.cache.data.filterDefaults.get(propHash).lowerThreshold = Math.min(nodeOrEdgeValue, this.cache.data.filterDefaults.get(propHash).lowerThreshold);
+      this.cache.data.filterDefaults.get(propHash).upperThreshold = Math.max(nodeOrEdgeValue, this.cache.data.filterDefaults.get(propHash).upperThreshold);
+    }
+    populateCacheHeaders(fileData) {
+      if (fileData.nodeDataHeaders) {
+        for (const nodeHeader of fileData.nodeDataHeaders) {
+          const nodePropHash = StaticUtilities.generatePropHashId(this.cache.CFG.EXCEL_NODE_HEADER, nodeHeader.subGroup, nodeHeader.key);
+          this.cache.data.filterDefaults.set(nodePropHash, this.getDefaultFilterObject());
+        }
+      }
+      if (fileData.edgeDataHeaders) {
+        for (const edgeHeader of fileData.edgeDataHeaders) {
+          const edgePropHash = StaticUtilities.generatePropHashId(this.cache.CFG.EXCEL_EDGE_HEADER, edgeHeader.subGroup, edgeHeader.key);
+          this.cache.data.filterDefaults.set(edgePropHash, this.getDefaultFilterObject());
+        }
+      }
+    }
+    async exportGraphAsJSON() {
+      if (this.cache.data === null) {
+        this.cache.ui.error("No graph data to save.");
+        return false;
+      }
+      function replacer(key, value) {
+        if (value instanceof Map) return Object.fromEntries(value);
+        if (value instanceof Set) return [...value];
+        return value;
+      }
+      await this.cache.ui.showLoading("Exporting graph ..");
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      this.cache.data.nodeDataHeaders = [];
+      this.cache.data.edgeDataHeaders = [];
+      for (const filterDefaultKey of this.cache.data.filterDefaults.keys()) {
+        const [nodeOrEdge, subGroup, key] = StaticUtilities.decodePropHashId(filterDefaultKey);
+        const targetList = nodeOrEdge === this.cache.CFG.EXCEL_NODE_HEADER ? this.cache.data.nodeDataHeaders : this.cache.data.edgeDataHeaders;
+        const elem = { subGroup, key };
+        const exists = targetList.some((h) => h.subGroup === elem.subGroup && h.key === elem.key);
+        if (!exists) {
+          targetList.push(elem);
+        }
+      }
+      if (this.cache.graph) {
+        const { nodes, edges } = await this.cache.graph.getData();
+        for (const node of this.cache.data.nodes) {
+          const graphNode = nodes.find((n) => n.id === node.id);
+          const visibility = graphNode?.style?.visibility || "visible";
+          const nodeRefData = this.cache.nodeRef.get(node.id);
+          if (nodeRefData && nodeRefData.originalStyle) {
+            node.style = structuredClone(nodeRefData.originalStyle);
+            node.style.visibility = visibility;
+            node.type = nodeRefData.originalType;
+          } else {
+            node.style = { visibility };
+          }
+        }
+        for (const edge of this.cache.data.edges) {
+          const graphEdge = edges.find((e) => e.id === edge.id);
+          const visibility = graphEdge?.style?.visibility || "visible";
+          const edgeRefData = this.cache.edgeRef.get(edge.id);
+          if (edgeRefData && edgeRefData.originalStyle) {
+            edge.style = structuredClone(edgeRefData.originalStyle);
+            edge.style.visibility = visibility;
+            edge.type = edgeRefData.originalType;
+          } else {
+            edge.style = { visibility };
+          }
+        }
+      }
+      const blob = new Blob([JSON.stringify(this.cache.data, replacer)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "graph-export.json";
+      a.click();
+      URL.revokeObjectURL(url);
+      await this.cache.ui.hideLoading();
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    }
+    parseGroups(filterValue) {
+      const groupData = {
+        categories: new Set(filterValue?.categories || [])
+      };
+      for (let group of this.cache.bs.traverseBubbleSets()) {
+        groupData[`${group}Members`] = new Set(filterValue[`${group}Members`] || []);
+        groupData[`${group}IDs`] = new Set(filterValue[`${group}IDs`] || []);
+        groupData[`${group}MembersHidden`] = new Set(filterValue[`${group}MembersHidden`] || []);
+        groupData[`${group}IDsHidden`] = new Set(filterValue[`${group}IDsHidden`] || []);
+      }
+      return groupData;
+    }
+    parseLayouts(jsonLayouts) {
+      const parsedLayouts = {};
+      Object.entries(jsonLayouts).forEach(([key, layout]) => {
+        parsedLayouts[key] = {
+          internals: layout.internals || null,
+          // Check if already a Map (from restoreSetsFromJSON), otherwise convert
+          positions: layout.positions instanceof Map ? layout.positions : new Map(Object.entries(layout.positions || {})),
+          filters: this.parseFiltersAsMap(layout.filters),
+          isCustom: layout.isCustom || false,
+          query: layout["query"] || void 0,
+          // Per-view styles - check if already Maps
+          hideDisconnectedNodes: layout.hideDisconnectedNodes || false,
+          nodeStyles: layout.nodeStyles instanceof Map ? layout.nodeStyles : new Map(Object.entries(layout.nodeStyles || {})),
+          edgeStyles: layout.edgeStyles instanceof Map ? layout.edgeStyles : new Map(Object.entries(layout.edgeStyles || {})),
+          bubbleSetStyle: layout.bubbleSetStyle || structuredClone(this.cache.DEFAULTS.BUBBLE_GROUP_STYLE)
+        };
+        for (let group of this.cache.bs.traverseBubbleSets()) {
+          parsedLayouts[key][`${group}Props`] = new Set(layout[`${group}Props`] || []);
+          parsedLayouts[key][`${group}ManualMembers`] = layout[`${group}ManualMembers`] instanceof Set ? layout[`${group}ManualMembers`] : new Set(layout[`${group}ManualMembers`] || []);
+        }
+      });
+      return parsedLayouts;
+    }
+    parseFiltersAsMap(filtersObj) {
+      if (filtersObj instanceof Map) {
+        return structuredClone(filtersObj);
+      }
+      return new Map(Object.entries(filtersObj || {}).map(([key, value]) => [key, { ...value, ...this.parseGroups(value) }]));
+    }
+    loadFile(event) {
+      const file = event.target.files[0];
+      if (!file) {
+        this.cache.ui.error("No file selected.");
+        return Promise.resolve(null);
+      }
+      const fileType = file.name.split(".").pop().toLowerCase();
+      try {
+        switch (fileType) {
+          case "json":
+            return this.parseJSON(file);
+          case "xls":
+          case "xlsx":
+          case "ods":
+            return file.arrayBuffer().then((buffer) => {
+              return this.parseExcelToJson(buffer);
+            }).catch((errorMsg) => {
+              this.cache.ui.error(`Error reading Excel file: ${errorMsg}`);
+              return null;
+            });
+          default:
+            this.cache.ui.error(`Unsupported file type: ${fileType}`);
+        }
+      } catch (errorMsg) {
+        this.cache.ui.error(`Failed to load file: ${errorMsg}`);
+      }
+      event.target.value = "";
+    }
+    async loadFileWrapper(event) {
+      let file = event.target.files[0];
+      if (!file) return;
+      await this.cache.ui.showLoading("Loading", `Loading ${file.name} (${file.type} with ${StaticUtilities.humanFileSize(file.size)})`);
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      if (this.cache.graph) {
+        await this.cache.gcm.destroyGraphAndRollBackUI();
+        await this.cache.gcm.resetEventLocks();
+      }
+      this.cache.io.loadFile(event).then(async (fileData) => {
+        if (!fileData) {
+          this.cache.ui.error("File data is empty.");
+          await this.cache.ui.hideLoading();
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+          return;
+        }
+        this.cache.io.preProcessData(fileData);
+        this.cache.buildDataTable(fileData);
+        this.cache.initialize({
+          nodeDataHeaders: fileData.nodeDataHeaders,
+          edgeDataHeaders: fileData.edgeDataHeaders
+        });
+        this.cache.ui.buildUI();
+        const savedQuery = this.cache.data.layouts[this.cache.data.selectedLayout]["query"];
+        if (savedQuery) {
+          this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = true;
+          this.cache.qm.updateQueryTextArea();
+          this.cache.qm.updateUIFromQueryInstructions();
+        }
+        await this.cache.gcm.createGraphInstance();
+        if (!this.cache.graph) {
+          this.cache.ui.error("Graph not initialized, aborting.");
+          await this.cache.ui.hideLoading();
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+          return;
+        }
+        await this.cache.graph.render();
+        await this.cache.graph.fitView();
+        this.cache.ui.debug("Initial graph rendered.");
+        if (savedQuery) {
+          this.cache.ui.updateFilterLockState();
+        }
+      }).catch(async (errorMsg) => {
+        this.cache.ui.error(`Error loading graph: ${errorMsg}`);
+        await this.cache.ui.hideLoading();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+      }).finally(async () => {
+        await this.cache.ui.hideLoading();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+      });
+    }
+    async exportPNG() {
+      try {
+        await this.cache.ui.showLoading("Loading", "Generating picture data");
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const imageData = await this.cache.graph.toDataURL({
+          type: "image/png",
+          mode: "viewport"
+        });
+        const link = document.createElement("a");
+        link.href = imageData;
+        link.download = "graph-export.png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        await this.cache.ui.hideLoading();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+      } catch (errorMsg) {
+        await this.cache.ui.hideLoading();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        this.cache.ui.error(errorMsg);
+      }
+    }
+  };
+
+  // src/managers/metrics.js
+  var NODE_CONNECTIVITY_METRICS_PRECISION = 5;
+  var METRIC_VALUE_LABELS = {
+    centrality: "Centrality",
+    betweenness: "Score",
+    closeness: "Score",
+    eigenvector: "Score",
+    pagerank: "Score"
+  };
+  var metrics = {
+    centrality: {
+      id: "centrality",
+      label: "Degree Centrality",
+      calculate: async (cache3) => await calculateDegreeCentrality(cache3)
+    },
+    betweenness: {
+      id: "betweenness",
+      label: "Betweenness Centrality",
+      calculate: async (cache3) => await calculateBetweennessCentrality(cache3)
+    },
+    closeness: {
+      id: "closeness",
+      label: "Closeness Centrality",
+      calculate: async (cache3) => await calculateClosenessCentrality(cache3)
+    },
+    eigenvector: {
+      id: "eigenvector",
+      label: "Eigenvector Centrality",
+      calculate: async (cache3) => await calculateEigenvectorCentrality(cache3)
+    },
+    pagerank: { id: "pagerank", label: "PageRank", calculate: async (cache3) => await calculatePageRank(cache3) }
+  };
+  var NetworkMetrics = class {
+    constructor(cache3) {
+      this.selected = "centrality";
+      this.multiselect = null;
+      this.table = null;
+      this.m = metrics;
+      this.collapsed = false;
+      this.cache = cache3;
+      this.metricValueCache = /* @__PURE__ */ new Map();
+      this.selectBtns = {
+        "Add to Selection": async () => this.updateSelectedNodes(true),
+        "Remove from Selection": async () => this.updateSelectedNodes(false)
+      };
+    }
+    toggleUI() {
+      const panel = document.getElementById("networkMetricsContainer");
+      const willOpen = panel.classList.toggle("open");
+      const fullHeight = panel.scrollHeight + "px";
+      panel.style.maxHeight = fullHeight;
+      const btn = document.getElementById("metricsToggleBtn");
+      requestAnimationFrame(() => {
+        panel.style.maxHeight = willOpen ? fullHeight : "0";
+      });
+      if (willOpen) {
+        panel.addEventListener(
+          "transitionend",
+          () => panel.style.maxHeight = "none",
+          { once: true }
+        );
+        btn.classList.add("highlight");
+      } else {
+        btn.classList.remove("highlight");
+      }
+      this.collapsed = !willOpen;
+    }
+    async updateMetricUI() {
+      if (!this.cache.visibleElementsChanged) return;
+      const metricName = this.m[this.selected].label;
+      await this.cache.ui.showLoading("Calculating", `Network Metric: ${metricName}`);
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      this.resetNodeToolTipMetricTexts();
+      const metricResult = await this.m[this.selected]?.calculate(this.cache);
+      this.storeMetricValues(this.selected, metricResult);
+      const selectedValues = Array.from(this.multiselect.selectedOptions, (opt) => opt.value);
+      this.multiselect.innerHTML = "";
+      for (const ns of metricResult.scores) {
+        const opt = document.createElement("option");
+        opt.value = ns.id;
+        opt.textContent = `${ns.id} | ${ns.text}`;
+        opt.selected = selectedValues.includes(ns.id);
+        this.updateNodeToolTipMetricText(ns.id, metricName, ns.text);
+        this.multiselect.appendChild(opt);
+      }
+      this.table.innerHTML = "";
+      Object.entries(metricResult.graphLevelMetrics).forEach(([label, value]) => {
+        const row = document.createElement("tr");
+        const labelCell = document.createElement("td");
+        labelCell.textContent = label;
+        const valueCell = document.createElement("td");
+        valueCell.textContent = `${value}`;
+        row.append(labelCell, valueCell);
+        this.table.appendChild(row);
+      });
+      document.getElementById("metricInfoBtn").onclick = () => {
+        this.cache.popup = new Popup(metricResult.popupContent);
+      };
+      await this.cache.ui.hideLoading();
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    }
+    storeMetricValues(metricId, metricResult) {
+      if (!metricResult?.nodeValues) return;
+      this.metricValueCache.set(metricId, {
+        label: this.m[metricId]?.label || metricId,
+        valueLabel: METRIC_VALUE_LABELS[metricId] || "Value",
+        values: metricResult.nodeValues
+      });
+    }
+    invalidateMetricValues() {
+      this.metricValueCache.clear();
+    }
+    async ensureMetricValues(metricId) {
+      const existing = this.metricValueCache.get(metricId);
+      if (existing?.values?.size) return existing;
+      const metric = this.m[metricId];
+      if (!metric) return null;
+      const metricName = metric.label || metricId;
+      await this.cache.ui.showLoading("Calculating", `Network Metric: ${metricName}`);
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      const metricResult = await metric.calculate(this.cache);
+      this.storeMetricValues(metricId, metricResult);
+      await this.cache.ui.hideLoading();
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      return this.metricValueCache.get(metricId) || null;
+    }
+    getMetricScaleOptions() {
+      const options = Object.values(this.m).map((metric) => {
+        const cached = this.metricValueCache.get(metric.id);
+        return {
+          id: metric.id,
+          label: metric.label,
+          valueLabel: METRIC_VALUE_LABELS[metric.id] || "Value",
+          cached: !!cached?.values?.size
+        };
+      });
+      return options.sort((a, b) => a.label.localeCompare(b.label));
+    }
+    getMetricScaleValues(metricId) {
+      return this.metricValueCache.get(metricId) || null;
+    }
+    resetNodeToolTipMetricTexts() {
+      for (const nodeID of this.cache.toolTips.keys()) {
+        this.updateNodeToolTipMetricText(nodeID, void 0, void 0, true);
+      }
+    }
+    updateNodeToolTipMetricText(nodeId = void 0, header = void 0, text = void 0, reset = false) {
+      const tooltip = this.cache.toolTips.get(nodeId);
+      if (!tooltip) return;
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = tooltip;
+      const metricWrapper = tempDiv.querySelector(".tooltip-metric-wrapper");
+      if (!metricWrapper) return;
+      const metricContent = metricWrapper.querySelector(".tooltip-metric-content");
+      if (!metricContent) return;
+      const metricHeader = metricWrapper.querySelector(".tooltip-metric-header");
+      if (!metricHeader) return;
+      if (reset) {
+        metricWrapper.classList.remove("visible");
+        metricContent.textContent = "";
+        metricHeader.textContent = "";
+      } else {
+        metricWrapper.classList.add("visible");
+        metricContent.textContent = text;
+        metricHeader.textContent = header;
+      }
+      this.cache.toolTips.set(nodeId, tempDiv.innerHTML);
+    }
+    buildMetricUI() {
+      const container = document.createElement("div");
+      container.className = "nw-root";
+      container.id = "networkMetricsContainer";
+      const div = document.createElement("div");
+      div.className = "nw-div";
+      const header = document.createElement("h3");
+      header.textContent = "Network Metrics";
+      div.appendChild(header);
+      const dropdownContainer = document.createElement("div");
+      dropdownContainer.className = "nw-metric-select-container";
+      const dropdown = document.createElement("select");
+      dropdown.className = "nw-metric-select";
+      Object.values(this.m).forEach((metric) => {
+        const opt = document.createElement("option");
+        opt.value = metric.id;
+        opt.textContent = metric.label;
+        opt.selected = metric.id === this.selected;
+        dropdown.appendChild(opt);
+      });
+      dropdown.addEventListener("change", async (e) => {
+        try {
+          this.selected = e.target.value;
+          await this.updateMetricUI();
+        } catch (err) {
+          this.cache.ui.error(`Failed to update metrics: ${err.message}`);
+        }
+      });
+      dropdownContainer.appendChild(dropdown);
+      const infoBtn = document.createElement("button");
+      infoBtn.className = "info-btn";
+      infoBtn.textContent = "\u{1F6C8}";
+      infoBtn.id = "metricInfoBtn";
+      dropdownContainer.appendChild(infoBtn);
+      div.append(dropdownContainer);
+      this.multiselect = document.createElement("select");
+      this.multiselect.className = "nw-node-multiselect";
+      this.multiselect.multiple = true;
+      this.multiselect.id = "metricsMultiselect";
+      div.appendChild(this.multiselect);
+      const buttonRow = document.createElement("div");
+      Object.entries(this.selectBtns).forEach(([text, cb]) => {
+        const btn = document.createElement("button");
+        btn.textContent = text;
+        btn.className = "nw-button";
+        btn.onclick = cb;
+        buttonRow.appendChild(btn);
+      });
+      div.appendChild(buttonRow);
+      div.appendChild(document.createElement("hr"));
+      const tHeader = document.createElement("p");
+      tHeader.className = "nw-subheader";
+      tHeader.textContent = "Graph Level Metrics";
+      div.appendChild(tHeader);
+      this.table = document.createElement("table");
+      this.table.className = "nw-graph-metrics-table";
+      div.appendChild(this.table);
+      div.appendChild(document.createElement("hr"));
+      container.appendChild(div);
+      return container;
+    }
+    async updateSelectedNodes(add) {
+      const ids = Array.from(
+        this.multiselect.selectedOptions,
+        (opt) => opt.value
+      );
+      if (ids.length) {
+        const nodeData = await this.cache.graph.getNodeData(ids);
+        await this.cache.sm.updateSelectedState(nodeData, add);
+        if (add) {
+          this.cache.selectedNodes = [.../* @__PURE__ */ new Set([...this.cache.selectedNodes, ...ids])];
+        } else {
+          this.cache.selectedNodes = this.cache.selectedNodes.filter((id) => !ids.includes(id));
+        }
+      }
+    }
+  };
+  async function calculateDegreeCentrality(cache3) {
+    const { nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef } = cache3;
+    const n = nodes.size;
+    if (n === 0) {
+      return { scores: [], graphLevelMetrics: {} };
+    }
+    const degree = /* @__PURE__ */ new Map();
+    for (const id of nodes) degree.set(id, 0);
+    for (const edgeId of edges) {
+      const { source, target } = edgeRef.get(edgeId);
+      if (degree.has(source)) degree.set(source, degree.get(source) + 1);
+      if (degree.has(target)) degree.set(target, degree.get(target) + 1);
+    }
+    const scores = [];
+    let sum = 0, min = Infinity, max = -Infinity;
+    for (const [id, d] of degree) {
+      const c = d / (n - 1);
+      scores.push({ id, degree: d, centrality: c });
+      sum += c;
+      if (c < min) min = c;
+      if (c > max) max = c;
+    }
+    scores.sort((a, b) => b.centrality - a.centrality);
+    const median = scores[Math.floor(n / 2)].centrality;
+    const mean = sum / n;
+    const centralization = n > 2 ? scores.reduce((acc, s) => acc + (max - s.centrality), 0) / ((n - 1) * (n - 2)) : 0;
+    const nodeValues = new Map(scores.map((s) => [s.id, s.centrality]));
+    return {
+      scores: scores.map((s) => ({
+        id: s.id,
+        text: `Degree ${s.degree} | Centrality ${s.centrality.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round(s.centrality / max * 100)} %)`
+      })),
+      nodeValues,
+      graphLevelMetrics: {
+        "Maximum Degree Centrality": max * (n - 1),
+        "Minimum Degree Centrality": min * (n - 1),
+        "Average Degree Centrality": +(mean * (n - 1)).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+        "Median Degree": +(median * (n - 1)).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+        "Graph Density": +(sum / n).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+        "Centralization": +centralization.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
+      },
+      popupContent: `<div>
 <h1>Degree Centrality</h1>
 <hr>
 <p>Degree centrality is a measure of the number of connections a node has in a network.
@@ -119,7 +6303,87 @@ Nodes with more connections are considered more central and receive a higher sco
 <p><strong>Degree Centrality:</strong> Normalised number of neighbours a node possesses.</p>
 <p><strong>Graph Density:</strong> Fraction of realised edges out of all possible edges (0&nbsp;\u2013&nbsp;1).</p>
 <p><strong>Centralization:</strong> Freeman degree-centralization \u2014 how strongly the network is dominated by its most connected node (0&nbsp;=&nbsp;even, 1&nbsp;=&nbsp;perfect star).</p>
-</div>`}}async function Pe(l){let{nodeIDsToBeShown:e,edgeIDsToBeShown:t,edgeRef:s}=l,a=e.size;if(a===0)return{scores:[],graphLevelMetrics:{}};let i=new Map;for(let C of e)i.set(C,new Set);for(let C of t){let{source:w,target:D}=s.get(C);i.has(w)&&i.get(w).add(D),i.has(D)&&i.get(D).add(w)}let n=new Map;for(let C of e)n.set(C,0);for(let C of e){let w=new Map,D=new Map,L=[],v=[];for(w.set(C,0),D.set(C,1),L.push(C);L.length>0;){let A=L.shift();v.push(A);for(let x of i.get(A))w.has(x)?w.get(x)===w.get(A)+1&&D.set(x,D.get(x)+D.get(A)):(L.push(x),w.set(x,w.get(A)+1),D.set(x,D.get(A)))}let F=new Map;for(let A of e)F.set(A,0);for(;v.length>0;){let A=v.pop();if(A!==C){for(let x of i.get(A))if(w.get(x)===w.get(A)-1){let B=D.get(x)/D.get(A)*(1+F.get(A));F.set(x,F.get(x)+B)}n.set(A,n.get(A)+F.get(A)/2)}}}let o=[],c=-1/0,r=(a-1)*(a-2)/2;for(let[C,w]of n){let D=w/r;o.push({id:C,score:D}),D>c&&(c=D)}o.sort((C,w)=>w.score-C.score);let d=o.map(C=>C.score),m=d.reduce((C,w)=>C+w,0)/a,f=Math.min(...d),E=o.reduce((C,w)=>C+(c-w.score),0)/((a-1)*(a-2)/2);return{scores:o.map(C=>({id:C.id,text:`Score: ${C.score.toFixed($)} (${Math.round(C.score/c*100)}%)`})),graphLevelMetrics:{"Maximum Betweenness Centrality":+c.toFixed($),"Minimum Betweenness Centrality":+f.toFixed($),"Average Betweenness Centrality":+m.toFixed($),Centralization:+E.toFixed($)},popupContent:`<div>
+</div>`
+    };
+  }
+  async function calculateBetweennessCentrality(cache3) {
+    const { nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef } = cache3;
+    const n = nodes.size;
+    if (n === 0) {
+      return { scores: [], graphLevelMetrics: {} };
+    }
+    const adjacencyMap = /* @__PURE__ */ new Map();
+    for (const id of nodes) adjacencyMap.set(id, /* @__PURE__ */ new Set());
+    for (const edgeId of edges) {
+      const { source, target } = edgeRef.get(edgeId);
+      if (adjacencyMap.has(source)) adjacencyMap.get(source).add(target);
+      if (adjacencyMap.has(target)) adjacencyMap.get(target).add(source);
+    }
+    const betweenness = /* @__PURE__ */ new Map();
+    for (const id of nodes) betweenness.set(id, 0);
+    for (const source of nodes) {
+      const distance = /* @__PURE__ */ new Map();
+      const paths = /* @__PURE__ */ new Map();
+      const queue = [];
+      const stack = [];
+      distance.set(source, 0);
+      paths.set(source, 1);
+      queue.push(source);
+      while (queue.length > 0) {
+        const node = queue.shift();
+        stack.push(node);
+        for (const neighbor of adjacencyMap.get(node)) {
+          if (!distance.has(neighbor)) {
+            queue.push(neighbor);
+            distance.set(neighbor, distance.get(node) + 1);
+            paths.set(neighbor, paths.get(node));
+          } else if (distance.get(neighbor) === distance.get(node) + 1) {
+            paths.set(neighbor, paths.get(neighbor) + paths.get(node));
+          }
+        }
+      }
+      const dependency = /* @__PURE__ */ new Map();
+      for (const node of nodes) dependency.set(node, 0);
+      while (stack.length > 0) {
+        const node = stack.pop();
+        if (node === source) continue;
+        for (const neighbor of adjacencyMap.get(node)) {
+          if (distance.get(neighbor) === distance.get(node) - 1) {
+            const coeff = paths.get(neighbor) / paths.get(node) * (1 + dependency.get(node));
+            dependency.set(neighbor, dependency.get(neighbor) + coeff);
+          }
+        }
+        betweenness.set(node, betweenness.get(node) + dependency.get(node) / 2);
+      }
+    }
+    const scores = [];
+    let max = -Infinity;
+    const normalizationFactor = (n - 1) * (n - 2) / 2;
+    for (const [id, score] of betweenness) {
+      const normalizedScore = score / normalizationFactor;
+      scores.push({ id, score: normalizedScore });
+      if (normalizedScore > max) max = normalizedScore;
+    }
+    scores.sort((a, b) => b.score - a.score);
+    const centralityValues = scores.map((s) => s.score);
+    const sum = centralityValues.reduce((a, b) => a + b, 0);
+    const mean = sum / n;
+    const min = Math.min(...centralityValues);
+    const centralization = scores.reduce((acc, s) => acc + (max - s.score), 0) / ((n - 1) * (n - 2) / 2);
+    const nodeValues = new Map(scores.map((s) => [s.id, s.score]));
+    return {
+      scores: scores.map((s) => ({
+        id: s.id,
+        text: `Score: ${s.score.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round(s.score / max * 100)}%)`
+      })),
+      nodeValues,
+      graphLevelMetrics: {
+        "Maximum Betweenness Centrality": +max.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+        "Minimum Betweenness Centrality": +min.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+        "Average Betweenness Centrality": +mean.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+        "Centralization": +centralization.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
+      },
+      popupContent: `<div>
 <h1>Betweenness Centrality</h1>
 <hr>
 <p>Betweenness centrality measures how often a node acts as a bridge along the shortest path between two other nodes.
@@ -153,7 +6417,66 @@ Nodes with high betweenness centrality are important controllers of information 
 </svg>
 <hr>
 <p><strong>Centralization:</strong> 0 when paths are evenly shared, 1 when a single hub monopolises shortest paths (star-like topology).</p>
-</div>`}}async function Ge(l){let{nodeIDsToBeShown:e,edgeIDsToBeShown:t,edgeRef:s}=l,a=e.size;if(a===0)return{scores:[],graphLevelMetrics:{}};let i=new Map;for(let f of e)i.set(f,new Set);for(let f of t){let{source:E,target:C}=s.get(f);i.has(E)&&i.has(C)&&(i.get(E).add(C),i.get(C).add(E))}function n(f){let E=new Map,C=[[f,0]];for(E.set(f,0);C.length>0;){let[w,D]=C.shift();for(let L of i.get(w))E.has(L)||(E.set(L,D+1),C.push([L,D+1]))}return E}let o=[],c=0,r=1/0,d=-1/0;for(let f of e){let E=n(f),C=E.size,w=Array.from(E.values()).filter(L=>L>0).reduce((L,v)=>L+v,0),D=w>0?(C-1)*(C-1)/((a-1)*w):0;o.push({id:f,closeness:D}),c+=D,D<r&&(r=D),D>d&&(d=D)}o.sort((f,E)=>E.closeness-f.closeness);let h=c/a,m=d||1;return{scores:o.map(f=>({id:f.id,text:`Score: ${f.closeness.toFixed($)} (${Math.round(f.closeness/m*100)}%)`})),graphLevelMetrics:{"Maximum Closeness Centrality":+d.toFixed($),"Minimum Closeness Centrality":+r.toFixed($),"Average Closeness Centrality":+h.toFixed($),Centralization:+((a*d-c)/((a-1)*(a-2)/(2*a-3))).toFixed($)},popupContent:`<div>
+</div>`
+    };
+  }
+  async function calculateClosenessCentrality(cache3) {
+    const { nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef } = cache3;
+    const n = nodes.size;
+    if (n === 0) return { scores: [], graphLevelMetrics: {} };
+    const graphMap = /* @__PURE__ */ new Map();
+    for (const id of nodes) graphMap.set(id, /* @__PURE__ */ new Set());
+    for (const edgeId of edges) {
+      const { source, target } = edgeRef.get(edgeId);
+      if (graphMap.has(source) && graphMap.has(target)) {
+        graphMap.get(source).add(target);
+        graphMap.get(target).add(source);
+      }
+    }
+    function bfs(start) {
+      const distances = /* @__PURE__ */ new Map();
+      const queue = [[start, 0]];
+      distances.set(start, 0);
+      while (queue.length > 0) {
+        const [node, dist] = queue.shift();
+        for (const neighbor of graphMap.get(node)) {
+          if (!distances.has(neighbor)) {
+            distances.set(neighbor, dist + 1);
+            queue.push([neighbor, dist + 1]);
+          }
+        }
+      }
+      return distances;
+    }
+    const scores = [];
+    let sum = 0, min = Infinity, max = -Infinity;
+    for (const nodeId of nodes) {
+      const distances = bfs(nodeId);
+      const reachableNodes = distances.size;
+      const totalDistance = Array.from(distances.values()).filter((d) => d > 0).reduce((a, b) => a + b, 0);
+      const closeness = totalDistance > 0 ? (reachableNodes - 1) * (reachableNodes - 1) / ((n - 1) * totalDistance) : 0;
+      scores.push({ id: nodeId, closeness });
+      sum += closeness;
+      if (closeness < min) min = closeness;
+      if (closeness > max) max = closeness;
+    }
+    scores.sort((a, b) => b.closeness - a.closeness);
+    const mean = sum / n;
+    const maxForPercentage = max || 1;
+    const nodeValues = new Map(scores.map((s) => [s.id, s.closeness]));
+    return {
+      scores: scores.map((s) => ({
+        id: s.id,
+        text: `Score: ${s.closeness.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round(s.closeness / maxForPercentage * 100)}%)`
+      })),
+      nodeValues,
+      graphLevelMetrics: {
+        "Maximum Closeness Centrality": +max.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+        "Minimum Closeness Centrality": +min.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+        "Average Closeness Centrality": +mean.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+        "Centralization": +((n * max - sum) / ((n - 1) * (n - 2) / (2 * n - 3))).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
+      },
+      popupContent: `<div>
 <h1>Closeness Centrality</h1>
 <hr>
 <p>Closeness centrality measures how near a node is to all others via shortest paths. A higher score (up to 1.0)
@@ -188,7 +6511,63 @@ Nodes with high betweenness centrality are important controllers of information 
 <p>
 <strong>Centralization:</strong> Freeman closeness-centralization \u2014 degree to which one node is, on average, closer to all others than the rest of the network.
 </p>
-</div>`}}async function Ue(l){let{nodeIDsToBeShown:e,edgeIDsToBeShown:t,edgeRef:s}=l,a=e.size;if(a===0)return{scores:[],graphLevelMetrics:{}};let i=Array(a).fill().map(()=>Array(a).fill(0)),n=Array.from(e),o=new Map(n.map((D,L)=>[D,L]));for(let D of t){let{source:L,target:v}=s.get(D);if(o.has(L)&&o.has(v)){let F=o.get(L),A=o.get(v);i[F][A]=i[A][F]=1}}let c=Array(a).fill(1/a),r,d=100,h=1e-6;for(let D=0;D<d;D++){r=[...c],c=Array(a).fill(0);for(let v=0;v<a;v++)for(let F=0;F<a;F++)c[v]+=i[v][F]*r[F];let L=Math.sqrt(c.reduce((v,F)=>v+F*F,0));if(c=c.map(v=>v/L),c.every((v,F)=>Math.abs(v-r[F])<h))break}let m=c.map((D,L)=>({id:n[L],centrality:D}));m.sort((D,L)=>L.centrality-D.centrality);let f=m[0].centrality,E=m[m.length-1].centrality,C=c.reduce((D,L)=>D+L)/a,w=c.reduce((D,L)=>D+Math.pow(L-C,2),0)/a;return{scores:m.map(D=>({id:D.id,text:`Score: ${D.centrality.toFixed($)} (${Math.round(D.centrality/f*100)}%)`})),graphLevelMetrics:{"Maximum Eigenvector Centrality":+f.toFixed($),"Minimum Eigenvector Centrality":+E.toFixed($),"Average Eigenvector Centrality":+C.toFixed($),"Variance Eigenvector Centrality":+w.toFixed($),Centralization:+(m.reduce((D,L)=>D+(f-L.centrality),0)/(a-1)).toFixed($)},popupContent:`<div>
+</div>`
+    };
+  }
+  async function calculateEigenvectorCentrality(cache3) {
+    const { nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef } = cache3;
+    const n = nodes.size;
+    if (n === 0) return { scores: [], graphLevelMetrics: {} };
+    const matrix = Array(n).fill().map(() => Array(n).fill(0));
+    const nodeArray = Array.from(nodes);
+    const nodeIndex = new Map(nodeArray.map((id, i) => [id, i]));
+    for (const edgeId of edges) {
+      const { source, target } = edgeRef.get(edgeId);
+      if (nodeIndex.has(source) && nodeIndex.has(target)) {
+        const i = nodeIndex.get(source), j = nodeIndex.get(target);
+        matrix[i][j] = matrix[j][i] = 1;
+      }
+    }
+    let eigenVector = Array(n).fill(1 / n);
+    let prevEigenVector;
+    const maxIterations = 100;
+    const tolerance = 1e-6;
+    for (let iter = 0; iter < maxIterations; iter++) {
+      prevEigenVector = [...eigenVector];
+      eigenVector = Array(n).fill(0);
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+          eigenVector[i] += matrix[i][j] * prevEigenVector[j];
+        }
+      }
+      const norm = Math.sqrt(eigenVector.reduce((sum, x) => sum + x * x, 0));
+      eigenVector = eigenVector.map((x) => x / norm);
+      if (eigenVector.every((x, i) => Math.abs(x - prevEigenVector[i]) < tolerance)) break;
+    }
+    const scores = eigenVector.map((score, i) => ({
+      id: nodeArray[i],
+      centrality: score
+    }));
+    scores.sort((a, b) => b.centrality - a.centrality);
+    const max = scores[0].centrality;
+    const min = scores[scores.length - 1].centrality;
+    const mean = eigenVector.reduce((a, b) => a + b) / n;
+    const variance = eigenVector.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n;
+    const nodeValues = new Map(scores.map((s) => [s.id, s.centrality]));
+    return {
+      scores: scores.map((s) => ({
+        id: s.id,
+        text: `Score: ${s.centrality.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round(s.centrality / max * 100)}%)`
+      })),
+      nodeValues,
+      graphLevelMetrics: {
+        "Maximum Eigenvector Centrality": +max.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+        "Minimum Eigenvector Centrality": +min.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+        "Average Eigenvector Centrality": +mean.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+        "Variance Eigenvector Centrality": +variance.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+        "Centralization": +(scores.reduce((acc, s) => acc + (max - s.centrality), 0) / (n - 1)).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
+      },
+      popupContent: `<div>
 <h1>Eigenvector Centrality</h1>
 <hr>
 <p>Eigenvector centrality scores nodes by connecting to other high-scoring nodes: 
@@ -228,7 +6607,78 @@ links to influential neighbours matter more than links to peripheral ones.
 </svg>
 <hr>
 <p><strong>Centralization:</strong> Measures how much the network centrality is dominated by a single node.</p>
-</div>`}}async function $e(l){let{nodeIDsToBeShown:e,edgeIDsToBeShown:t,edgeRef:s}=l,a=e.size;if(a===0)return{scores:[],graphLevelMetrics:{}};let i=Array.from(e),n=new Map(i.map((A,x)=>[A,x])),o=Array(a).fill().map(()=>Array(a).fill(0)),c=Array(a).fill(0);for(let A of t){let{source:x,target:B}=s.get(A);if(n.has(x)&&n.has(B)){let P=n.get(x),M=n.get(B);o[M][P]=o[P][M]=1,c[P]++,c[M]++}}for(let A=0;A<a;A++)if(c[A]>0)for(let x=0;x<a;x++)o[x][A]=o[x][A]/c[A];else for(let x=0;x<a;x++)o[x][A]=1/a;let r=.85,d=Array(a).fill(1/a),h,m=100,f=1e-6;for(let A=0;A<m;A++){h=[...d],d=Array(a).fill((1-r)/a);for(let x=0;x<a;x++)for(let B=0;B<a;B++)d[x]+=r*o[x][B]*h[B];if(d.every((x,B)=>Math.abs(x-h[B])<f))break}let E=d.map((A,x)=>({id:i[x],score:A})).sort((A,x)=>x.score-A.score),C=E[0].score,w=E[E.length-1].score,D=d.reduce((A,x)=>A+x)/a,L=Math.min(...c),v=Math.max(...c),F=c.reduce((A,x)=>A+x)/a;return{scores:E.map(A=>({id:A.id,text:`Score: ${A.score.toFixed($)} (${Math.round(A.score/C*100)}%)`})),graphLevelMetrics:{"Maximum PageRank Score":+C.toFixed($),"Minimum PageRank Score":+w.toFixed($),"Mean PageRank Score":+D.toFixed($),"Maximum Degree":v,"Minimum Degree":L,"Mean Degree":+F.toFixed($)},popupContent:`<div>
+</div>`
+    };
+  }
+  async function calculatePageRank(cache3) {
+    const { nodeIDsToBeShown: nodes, edgeIDsToBeShown: edges, edgeRef } = cache3;
+    const n = nodes.size;
+    if (n === 0) return { scores: [], graphLevelMetrics: {} };
+    const nodeArray = Array.from(nodes);
+    const nodeIndex = new Map(nodeArray.map((id, i) => [id, i]));
+    const matrix = Array(n).fill().map(() => Array(n).fill(0));
+    const degrees = Array(n).fill(0);
+    for (const edgeId of edges) {
+      const { source, target } = edgeRef.get(edgeId);
+      if (nodeIndex.has(source) && nodeIndex.has(target)) {
+        const i = nodeIndex.get(source), j = nodeIndex.get(target);
+        matrix[j][i] = matrix[i][j] = 1;
+        degrees[i]++;
+        degrees[j]++;
+      }
+    }
+    for (let i = 0; i < n; i++) {
+      if (degrees[i] > 0) {
+        for (let j = 0; j < n; j++) {
+          matrix[j][i] = matrix[j][i] / degrees[i];
+        }
+      } else {
+        for (let j = 0; j < n; j++) {
+          matrix[j][i] = 1 / n;
+        }
+      }
+    }
+    const d = 0.85;
+    let scores = Array(n).fill(1 / n);
+    let prevScores;
+    const maxIter = 100;
+    const tolerance = 1e-6;
+    for (let iter = 0; iter < maxIter; iter++) {
+      prevScores = [...scores];
+      scores = Array(n).fill((1 - d) / n);
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+          scores[i] += d * matrix[i][j] * prevScores[j];
+        }
+      }
+      if (scores.every((x, i) => Math.abs(x - prevScores[i]) < tolerance)) break;
+    }
+    const sortedScores = scores.map((score, i) => ({
+      id: nodeArray[i],
+      score
+    })).sort((a, b) => b.score - a.score);
+    const maxScore = sortedScores[0].score;
+    const minScore = sortedScores[sortedScores.length - 1].score;
+    const meanScore = scores.reduce((a, b) => a + b) / n;
+    const minDegree = Math.min(...degrees);
+    const maxDegree = Math.max(...degrees);
+    const avgDegree = degrees.reduce((a, b) => a + b) / n;
+    const nodeValues = new Map(sortedScores.map((s) => [s.id, s.score]));
+    return {
+      scores: sortedScores.map((s) => ({
+        id: s.id,
+        text: `Score: ${s.score.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)} (${Math.round(s.score / maxScore * 100)}%)`
+      })),
+      nodeValues,
+      graphLevelMetrics: {
+        "Maximum PageRank Score": +maxScore.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+        "Minimum PageRank Score": +minScore.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+        "Mean PageRank Score": +meanScore.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
+        "Maximum Degree": maxDegree,
+        "Minimum Degree": minDegree,
+        "Mean Degree": +avgDegree.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
+      },
+      popupContent: `<div>
 <h1>PageRank</h1>
 <hr>
 <p>PageRank measures node importance based on the number and quality of incoming links. 
@@ -317,26 +6767,577 @@ A node is important if it receives many links from other important nodes.
 <hr>
 <p><strong>PageRank Score:</strong> Probability that a random walker lands on the node.</p>
 <p><strong>PageRank Degree:</strong> In-degree used internally while computing PageRank.</p>
-</div>`}}var K,J,Oe,we,De=class{constructor(e){Ie(this,K);this.instructions=e}testNode(e){return Q(this,K,J).call(this,this.instructions,e,"Node filters")}testEdge(e){return Q(this,K,J).call(this,this.instructions,e,"Edge filters")}};K=new WeakSet,J=function(e,t,s){if(!Array.isArray(e))return!1;if(e.length===1)return Q(this,K,J).call(this,e[0],t,s);if(e.length>0&&!Array.isArray(e[0])&&typeof e[0]=="object"&&e[0]?.type==="property")return Q(this,K,Oe).call(this,e,t,s);if(e.length>=3&&typeof e[1]=="string"){let i=Q(this,K,J).call(this,e[0],t,s);for(let n=1;n<e.length;n+=2){let o=e[n],c=Q(this,K,J).call(this,e[n+1],t,s);switch(o){case"AND":i=i&&c;break;case"OR":i=i||c;break;case"NOT":i=i&&!c;break;default:return!1}}return i}return!1},Oe=function(e,t,s){let a=e[0],i=e[1],n=Q(this,K,we).call(this,t,a);if(n==null||a.main!==s)return!1;let o=Q(this,K,we).call(this,t,a);if(o==null)return!1;let c=e[1].value,r=!1;if(c==="BETWEEN"){let d=e[2].value,h=e[4].value;r=typeof o=="number"&&o>=d&&o<=h}if(c==="LOWER THAN"){let d=e[2].value,h=e[4].value;r=typeof o=="number"&&(o<=d||o>=h)}if(c.startsWith("IN")){let d=e.slice(2).map(m=>m.value);r=(String(o).includes("|")?String(o).split("|").map(m=>m.trim()).filter(m=>m!==""):[o]).some(m=>d.includes(m))}return t.featureIsWithinThreshold.set(e[0].propID,r),r},we=function(e,{main:t,sub:s,prop:a}){try{return e?.D4Data?.[t]?.[s]?.[a]}catch{return}};var pe=class{constructor(e){this.cache=e}encodeQuery(e){this.cache.query.valid=!0;let t="<span class='q-space' data-encoded> </span>";e||(this.cache.query.valid=!1),e=e.replace(/\(\s*\)/g,d=>(this.cache.query.valid=!1,`<span class="q-error-empty-instruction" data-encoded>${d}</span>`)),e=e.replace(/\)\s*\(/g,d=>(this.cache.query.valid=!1,'<span class="q-error-missing-connector" data-encoded>'+d+"</span>")),e=e.replace(/(Node filters|Edge filters)::([^:]+)::([^:]+)(?=\s(?:IN|BETWEEN|LOWER\sTHAN|\)))/g,(d,h,m,f)=>{let E=h in this.cache.uniquePropHierarchy,C=E&&m in this.cache.uniquePropHierarchy[h],w=C&&this.cache.uniquePropHierarchy[h][m].has(f),D=`<span class="${E?"q-maingroup":"q-error-unrecognized"}" data-encoded>${h}</span>`,L=`<span class="${C?"q-subgroup":"q-error-unrecognized"}" data-encoded>${m}</span>`,v=`<span class="${w?"q-property":"q-error-unrecognized"}" data-encoded>${f}</span>`,F='<span class="q-prop-group-separator" data-encoded>::</span>';return'<span class="q-property-wrapper" data-encoded>'+D+F+L+F+v+"</span>"}),e=e.replace(/(BETWEEN)\s+(-?\d+(?:\.\d+)?)\s+(AND)\s+(-?\d+(?:\.\d+)?)/gi,(d,h,m,f,E)=>`<span class='q-kw-between' data-encoded>${h}</span>`+t+`<span class='q-number' data-encoded>${m}</span>`+t+`<span class='q-kw-between-and' data-encoded>${f}</span>`+t+`<span class='q-number' data-encoded>${E}</span>`),e=e.replace(/(LOWER THAN)\s+(-?\d+(?:\.\d+)?)\s+(OR GREATER THAN)\s+(-?\d+(?:\.\d+)?)/gi,(d,h,m,f,E)=>`<span class='q-lower-than' data-encoded>${h}</span>`+t+`<span class='q-number' data-encoded>${m}</span>`+t+`<span class='q-or-greater-than' data-encoded>${f}</span>`+t+`<span class='q-number' data-encoded>${E}</span>`),e=e.replace(/IN\s*\[([^\]]*?)]/g,(d,h)=>{let m=h.split(",").map(f=>`<span class='q-string' data-encoded>${f}</span>`).join("<span class='q-comma' data-encoded>,</span>");return[`<span class='q-in-cat-bracket-open' data-encoded>IN${t}[</span>`,m,"<span class='q-cat-bracket-close' data-encoded>]</span>"].join("")});let s="<span class='q-connector-opening-bracket' data-encoded>(</span>",a="<span class='q-connector-closing' data-encoded>)</span>";e=e.replace(/\)\s*(OR|AND|NOT)\s*\(/gi,(d,h)=>a+`<span class='q-connector-${h.toLowerCase()}' data-encoded> `+h.toUpperCase()+" </span>"+s);function i(d){let h=[],m=new Set;for(let f=0;f<d.length;++f){let E=d[f];E==="("?h.push(f):E===")"&&(h.length?h.pop():m.add(f))}return h.forEach(f=>m.add(f)),m}let n=0,o=i(e);o.size&&(this.cache.query.valid=!1),e=[...e].map((d,h)=>{if(d==="(")return n++,`<span class='${[`q-bracket-open-lvl-${Math.min(n,5)}`,o.has(h)?"q-error-unmatched-opening-bracket":""].join(" ").trim()}' data-encoded>(</span>`;if(d===")"){let E=`<span class='${[`q-bracket-close-lvl-${Math.min(n,5)}`,o.has(h)?"q-error-unmatched-closing-bracket":""].join(" ").trim()}' data-encoded>)</span>`;return n=Math.max(n-1,0),E}return d}).join(""),e=e.split(/(<span\b[^>]*data-encoded[^>]*>[\s\S]*?<\/span>)/g).map(d=>d.startsWith("<span")&&d.includes("data-encoded")?d:d.replace(/&nbsp;|\u00a0| /g,t)).join(""),e=e.split(/(<span\b[^>]*data-encoded[^>]*>[\s\S]*?<\/span>)/g).map(d=>d.startsWith("<span")&&d.includes("data-encoded")||d===""||d==="</span> "||d==="</span>"||d==="[</span>"?d:(this.cache.query.valid=!1,d.replace(/\S+/g,h=>`<span class="q-error-unrecognized">${h}</span>`))).join("");let c=document.getElementById("queryUpdateBtn"),r=document.getElementById("querySelectBtn");return this.cache.query.valid?(c.classList.remove("disabled"),r.classList.remove("disabled")):(c.classList.add("disabled"),r.classList.add("disabled")),e}updateQueryTextArea(){let e=this.cache.data.layouts[this.cache.data.selectedLayout].query||"";if(!e){let t=[];for(let[s,a]of this.cache.data.layouts[this.cache.data.selectedLayout].filters.entries())a.active&&(a.isCategory?t.push(`${s} IN [${[...a.categories].map(i=>i).join(",")}]`):a.isInverted?t.push(`${s} LOWER THAN ${a.upperThreshold} OR GREATER THAN ${a.lowerThreshold}`):t.push(`${s} BETWEEN ${a.lowerThreshold} AND ${a.upperThreshold}`));t.length&&(e=`(${t.join(") OR (")})`)}this.cache.query.text.textContent=e,this.cache.query.overlay.innerHTML=this.encodeQuery(e)}clearQuery(){this.cache.query.text.textContent="",this.handleQueryValidationEvent(),this.cache.query.caret.style.display="none"}getCursorPosition(){let e=window.getSelection();if(!e.rangeCount)return 0;let t=e.getRangeAt(0).cloneRange(),s=t.cloneRange();return s.selectNodeContents(this.cache.query.text),s.setEnd(t.endContainer,t.endOffset),s.toString().length}setCursorPosition(e){let t=this.cache.query.text;e=Math.max(0,Math.min(e,t.textContent.length));let s=document.createRange(),a=window.getSelection(),i=0,n=!1;function o(c){if(!n)if(c.nodeType===Node.TEXT_NODE){let r=c.length;if(i+r>=e){s.setStart(c,e-i),s.collapse(!0),n=!0;return}i+=r}else for(let r of c.childNodes)o(r)}o(t),a.removeAllRanges(),a.addRange(s)}moveCaret(){let e=window.getSelection();if(!e||!e.rangeCount){this.cache.query.caret.style.display="none";return}let t=e.getRangeAt(0).cloneRange();t.collapse(!0);let s=this.cache?this.cache.query:window.cache.query,a=t.getBoundingClientRect(),i=s.text.getBoundingClientRect();if(!a||!a.height){s.caret.style.display="none";return}let n=a.bottom>i.top&&a.top<i.bottom,o=a.right>i.left&&a.left<i.right;if(!(n&&o)){s.caret.style.display="none";return}s.caret.style.display="block",s.caret.style.left=`${a.left-i.left}px`,s.caret.style.top=`${a.top-i.top}px`,s.caret.style.height=`${a.height}px`}handleQueryValidationEvent(){let e=this.getCursorPosition();this.cache.query.overlay.innerHTML=this.encodeQuery(this.cache.query.text.textContent),this.cache.query.overlay.scrollTop=this.cache.query.text.scrollTop,this.cache.query.overlay.scrollLeft=this.cache.query.text.scrollLeft,this.cache.query.valid?this.cache.data.layouts[this.cache.data.selectedLayout].query=this.cache.query.text.textContent:this.cache.data.layouts[this.cache.data.selectedLayout].query=void 0,requestAnimationFrame(()=>{this.setCursorPosition(e)})}async handleQueryUpdateEvent(){this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT=!0,this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY=!0;try{this.updateUIFromQueryInstructions(),this.cache.ui.updateFilterLockState(),await this.cache.fm.handleFilterEvent("Updating Graph from Query",this.cache.query.text.textContent,null,!1)}finally{this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT=!1}}async handleQuerySelectEvent(){await this.cache.ui.showLoading("Updating Selection","Modifying selection from query"),await new Promise(s=>requestAnimationFrame(s)),this.cache.EVENT_LOCKS.QUERY_SELECTION_EVENT=!0,this.decodeQueryAndBuildAST();let e=this.cache.nodeRef.values().filter(s=>this.cache.query.ast.testNode(s)&&this.cache.nodeIDsToBeShown.has(s.id)).map(s=>s.id),t=this.cache.edgeRef.values().filter(s=>this.cache.query.ast.testEdge(s)&&this.cache.edgeIDsToBeShown.has(s.id)).map(s=>s.id);await this.cache.sm.selectNodes(e),await this.cache.sm.selectEdges(t),await this.cache.ui.hideLoading(),await new Promise(s=>requestAnimationFrame(s))}decodeQuery(){let e=[],a=new DOMParser().parseFromString(`<div>${this.cache.query.overlay.innerHTML}</div>`,"text/html").body.firstElementChild,i={"q-connector-or":()=>"OR","q-connector-and":()=>"AND","q-connector-not":()=>"NOT","q-bracket-open-lvl-1":()=>({type:"(",value:"("}),"q-bracket-open-lvl-2":()=>({type:"(",value:"("}),"q-bracket-open-lvl-3":()=>({type:"(",value:"("}),"q-bracket-open-lvl-4":()=>({type:"(",value:"("}),"q-bracket-open-lvl-5":()=>({type:"(",value:"("}),"q-bracket-close-lvl-1":()=>({type:")",value:")"}),"q-bracket-close-lvl-2":()=>({type:")",value:")"}),"q-bracket-close-lvl-3":()=>({type:")",value:")"}),"q-bracket-close-lvl-4":()=>({type:")",value:")"}),"q-bracket-close-lvl-5":()=>({type:")",value:")"}),"q-number":r=>({type:"NUM",value:Number(r.textContent)}),"q-kw-between":()=>({type:"KW",value:"BETWEEN"}),"q-kw-between-and":()=>({type:"KW",value:"AND"}),"q-lower-than":()=>({type:"KW",value:"LOWER THAN"}),"q-or-greater-than":()=>({type:"KW",value:"OR GREATER THAN"}),"q-in-cat-bracket-open":()=>({type:"KW",value:"IN ["}),"q-string":r=>({type:"STR",value:r.textContent}),"q-property-wrapper":r=>{let[d,h,m]=r.textContent.split("::");return{type:"property",main:d,sub:h,prop:m,propID:r.textContent}}};function n(r){if(r.nodeType!==Node.TEXT_NODE){if(r.nodeType===Node.ELEMENT_NODE){for(let d of r.classList)if(i[d]){let h=i[d](r);h!==void 0&&e.push(h);break}}r.childNodes.forEach(n)}}n(a);function o(r=0){let d=[];for(;r<e.length;){let h=e[r];if(h.type===")")return[d,r+1];if(h.type==="("){let[m,f]=o(r+1);d.push(m),r=f;continue}d.push(h),r+=1}return[d,r]}let[c]=o();return c}updateUIFromQueryInstructions(){this.cache.ui.uncheckAllCheckboxes(),this.decodeQueryAndBuildAST();for(let e of this.cache.query.ast.instructions)this.refreshUI(e)}setFilter(e){if(e[1].type==="KW"&&e[1].value==="BETWEEN")this.cache.ui.checkCheckbox(e[0].propID,!0),this.cache.propIDToInvertibleRangeSliders.get(e[0].propID).setTo(e[2].value,e[4].value,!1);else if(e[1].type==="KW"&&e[1].value==="LOWER THAN")this.cache.ui.checkCheckbox(e[0].propID,!0),this.cache.propIDToInvertibleRangeSliders.get(e[0].propID).setTo(e[2].value,e[4].value,!0);else if(e[1].type==="KW"&&e[1].value==="IN ["){this.cache.ui.checkCheckbox(e[0].propID,!0);let t=this.cache.propIDToDropdownChecklists.get(e[0].propID);t.deselectAllCategories(!0);for(let s of e)s.type==="STR"&&t.selectCategory(s.value)}}refreshUI(e){if(e.constructor===Array)if(e[0].constructor===Object&&e[0].type==="property")this.setFilter(e);else for(let t of e)this.refreshUI(t)}moveCaretToEnd(){let e=this.cache.query.text;if(!e)return;if("selectionStart"in e){e.selectionStart=e.selectionEnd=e.value.length,e.focus();return}let t=document.createRange();t.selectNodeContents(e),t.collapse(!1);let s=window.getSelection();s.removeAllRanges(),s.addRange(t),e.focus()}resetQuery(){delete this.cache.data.layouts[this.cache.data.selectedLayout].query,this.cache.query.text.textContent="",this.cache.query.overlay.innerHTML="",this.updateQueryTextArea(),this.moveCaretToEnd(),this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY=!1,this.cache.ui.updateFilterLockState()}storeQuery(){this.cache.query.textCache=this.cache.query.text.textContent}restoreQuery(){this.cache.query.textCache===void 0||this.cache.query.textCache===null||this.cache.query.textCache===""||(this.cache.query.text.textContent=this.cache.query.textCache,this.cache.query.overlay.innerHTML=this.encodeQuery(this.cache.query.textCache),this.moveCaretToEnd(),this.cache.query.textCache=null)}showQueryHelp(){this.cache.popup=new Y(`
+</div>`
+    };
+  }
+
+  // src/managers/query.js
+  var QueryAST = class {
+    constructor(instructions) {
+      this.instructions = instructions;
+    }
+    /* ===== public API =================================================== */
+    testNode(node) {
+      return this.#evalExpr(
+        this.instructions,
+        node,
+        /*elemType*/
+        "Node filters"
+      );
+    }
+    testEdge(edge) {
+      return this.#evalExpr(
+        this.instructions,
+        edge,
+        /*elemType*/
+        "Edge filters"
+      );
+    }
+    /* ===== internal helpers ============================================ */
+    /**
+     * Recursively evaluate any sub-expression.
+     * Implements "left-before-right" for chains of arbitrary length.
+     */
+    #evalExpr(expr, element, requestedMainGroup) {
+      if (!Array.isArray(expr)) return false;
+      if (expr.length === 1) {
+        return this.#evalExpr(expr[0], element, requestedMainGroup);
+      }
+      const isLeaf = expr.length > 0 && !Array.isArray(expr[0]) && // first item is NOT another list
+      typeof expr[0] === "object" && expr[0]?.type === "property";
+      if (isLeaf) {
+        return this.#evalLeaf(expr, element, requestedMainGroup);
+      }
+      if (expr.length >= 3 && typeof expr[1] === "string") {
+        let acc = this.#evalExpr(expr[0], element, requestedMainGroup);
+        for (let i = 1; i < expr.length; i += 2) {
+          const op = expr[i];
+          const rhs = this.#evalExpr(expr[i + 1], element, requestedMainGroup);
+          switch (op) {
+            case "AND":
+              acc = acc && rhs;
+              break;
+            case "OR":
+              acc = acc || rhs;
+              break;
+            case "NOT":
+              acc = acc && !rhs;
+              break;
+            default:
+              return false;
+          }
+        }
+        return acc;
+      }
+      return false;
+    }
+    // Evaluate a single property expression
+    #evalLeaf(tokens, element, requestedMainGroup) {
+      const propTok = tokens[0];
+      const opTok = tokens[1];
+      const value = this.#readValue(element, propTok);
+      if (value === void 0 || value === null) return false;
+      if (propTok.main !== requestedMainGroup) return false;
+      const propVal = this.#readValue(element, propTok);
+      if (propVal === void 0 || propVal === null) return false;
+      const op = tokens[1].value;
+      let validated = false;
+      if (op === "BETWEEN") {
+        const lower = tokens[2].value;
+        const upper = tokens[4].value;
+        validated = typeof propVal === "number" && propVal >= lower && propVal <= upper;
+      }
+      if (op === "LOWER THAN") {
+        const low = tokens[2].value;
+        const high = tokens[4].value;
+        validated = typeof propVal === "number" && (propVal <= low || propVal >= high);
+      }
+      if (op.startsWith("IN")) {
+        const set = tokens.slice(2).map((t) => t.value);
+        const values = String(propVal).includes("|") ? String(propVal).split("|").map((v) => v.trim()).filter((v) => v !== "") : [propVal];
+        validated = values.some((val) => set.includes(val));
+      }
+      element.featureIsWithinThreshold.set(tokens[0].propID, validated);
+      return validated;
+    }
+    // Safely pull the data from the D4Data hierarchy
+    #readValue(element, { main, sub, prop }) {
+      try {
+        return element?.D4Data?.[main]?.[sub]?.[prop];
+      } catch {
+        return void 0;
+      }
+    }
+  };
+  var QueryManager = class {
+    #validationTimer = 0;
+    constructor(cache3) {
+      this.cache = cache3;
+    }
+    encodeQuery(asciiStr) {
+      this.cache.query.valid = true;
+      const space = `<span class='q-space' data-encoded> </span>`;
+      if (!asciiStr) {
+        this.cache.query.valid = false;
+      }
+      asciiStr = asciiStr.replace(
+        /\(\s*\)/g,
+        (match) => {
+          this.cache.query.valid = false;
+          return `<span class="q-error-empty-instruction" data-encoded>${match}</span>`;
+        }
+      );
+      asciiStr = asciiStr.replace(
+        /\)\s*\(/g,
+        (match) => {
+          this.cache.query.valid = false;
+          return `<span class="q-error-missing-connector" data-encoded>` + match + `</span>`;
+        }
+      );
+      asciiStr = asciiStr.replace(
+        /(Node filters|Edge filters)::([^:]+)::([^:]+)(?=\s(?:IN|BETWEEN|LOWER\sTHAN|\)))/g,
+        (match, mainGroup, subGroup, prop) => {
+          const mgok = mainGroup in this.cache.uniquePropHierarchy;
+          const sgok = mgok && subGroup in this.cache.uniquePropHierarchy[mainGroup];
+          const pok = sgok && this.cache.uniquePropHierarchy[mainGroup][subGroup].has(prop);
+          const mainGroupEncoded = `<span class="${mgok ? "q-maingroup" : "q-error-unrecognized"}" data-encoded>${mainGroup}</span>`;
+          const subGroupEncoded = `<span class="${sgok ? "q-subgroup" : "q-error-unrecognized"}" data-encoded>${subGroup}</span>`;
+          const propEncoded = `<span class="${pok ? "q-property" : "q-error-unrecognized"}" data-encoded>${prop}</span>`;
+          const sep = `<span class="q-prop-group-separator" data-encoded>::</span>`;
+          return `<span class="q-property-wrapper" data-encoded>` + mainGroupEncoded + sep + subGroupEncoded + sep + propEncoded + `</span>`;
+        }
+      );
+      asciiStr = asciiStr.replace(
+        /(BETWEEN)\s+(-?\d+(?:\.\d+)?)\s+(AND)\s+(-?\d+(?:\.\d+)?)/gi,
+        (_m, betweenKw, low, andKw, high) => `<span class='q-kw-between' data-encoded>${betweenKw}</span>` + space + `<span class='q-number' data-encoded>${low}</span>` + space + `<span class='q-kw-between-and' data-encoded>${andKw}</span>` + space + `<span class='q-number' data-encoded>${high}</span>`
+      );
+      asciiStr = asciiStr.replace(
+        /(LOWER THAN)\s+(-?\d+(?:\.\d+)?)\s+(OR GREATER THAN)\s+(-?\d+(?:\.\d+)?)/gi,
+        (_m, lowerThanKw, low, andGreaterThanKw, high) => `<span class='q-lower-than' data-encoded>${lowerThanKw}</span>` + space + `<span class='q-number' data-encoded>${low}</span>` + space + `<span class='q-or-greater-than' data-encoded>${andGreaterThanKw}</span>` + space + `<span class='q-number' data-encoded>${high}</span>`
+      );
+      asciiStr = asciiStr.replace(
+        /IN\s*\[([^\]]*?)]/g,
+        (_match, list) => {
+          const encodedCategories = list.split(",").map((cat) => `<span class='q-string' data-encoded>${cat}</span>`).join(`<span class='q-comma' data-encoded>,</span>`);
+          return [
+            `<span class='q-in-cat-bracket-open' data-encoded>IN${space}[</span>`,
+            encodedCategories,
+            `<span class='q-cat-bracket-close' data-encoded>]</span>`
+          ].join("");
+        }
+      );
+      const connectorOpeningBracket = `<span class='q-connector-opening-bracket' data-encoded>(</span>`;
+      const connectorClosingBracket = `<span class='q-connector-closing' data-encoded>)</span>`;
+      asciiStr = asciiStr.replace(
+        /\)\s*(OR|AND|NOT)\s*\(/gi,
+        (_m, connector) => connectorClosingBracket + `<span class='q-connector-${connector.toLowerCase()}' data-encoded> ` + connector.toUpperCase() + ` </span>` + connectorOpeningBracket
+      );
+      const bracketChunks = asciiStr.split(/(<span\b[^>]*data-encoded[^>]*>[\s\S]*?<\/span>)/g);
+      const plainBrackets = [];
+      bracketChunks.forEach((chunk, ci) => {
+        if (chunk.startsWith("<span") && chunk.includes("data-encoded")) return;
+        for (let i = 0; i < chunk.length; i++) {
+          if (chunk[i] === "(" || chunk[i] === ")") {
+            plainBrackets.push({ chunkIdx: ci, charIdx: i, char: chunk[i] });
+          }
+        }
+      });
+      const unmatchedSet = /* @__PURE__ */ new Set();
+      const stack = [];
+      plainBrackets.forEach((b, idx) => {
+        if (b.char === "(") {
+          stack.push(idx);
+        } else {
+          if (stack.length) stack.pop();
+          else unmatchedSet.add(idx);
+        }
+      });
+      stack.forEach((idx) => unmatchedSet.add(idx));
+      if (unmatchedSet.size) {
+        this.cache.query.valid = false;
+      }
+      let bracketLevel = 0;
+      let bracketIdx = 0;
+      asciiStr = bracketChunks.map((chunk) => {
+        if (chunk.startsWith("<span") && chunk.includes("data-encoded")) return chunk;
+        return [...chunk].map((ch) => {
+          if (ch === "(") {
+            bracketLevel++;
+            const lvl = Math.min(bracketLevel, 5);
+            const cls = [
+              `q-bracket-open-lvl-${lvl}`,
+              unmatchedSet.has(bracketIdx) ? "q-error-unmatched-opening-bracket" : ""
+            ].join(" ");
+            bracketIdx++;
+            return `<span class='${cls.trim()}' data-encoded>(</span>`;
+          }
+          if (ch === ")") {
+            const lvl = Math.min(bracketLevel, 5);
+            const cls = [
+              `q-bracket-close-lvl-${lvl}`,
+              unmatchedSet.has(bracketIdx) ? "q-error-unmatched-closing-bracket" : ""
+            ].join(" ");
+            bracketIdx++;
+            const html = `<span class='${cls.trim()}' data-encoded>)</span>`;
+            bracketLevel = Math.max(bracketLevel - 1, 0);
+            return html;
+          }
+          return ch;
+        }).join("");
+      }).join("");
+      asciiStr = asciiStr.split(/(<span\b[^>]*data-encoded[^>]*>[\s\S]*?<\/span>)/g).map((chunk) => {
+        if (chunk.startsWith("<span") && chunk.includes("data-encoded")) {
+          return chunk;
+        }
+        return chunk.replace(/&nbsp;|\u00a0| /g, space);
+      }).join("");
+      asciiStr = asciiStr.split(/(<span\b[^>]*data-encoded[^>]*>[\s\S]*?<\/span>)/g).map((chunk) => {
+        if (chunk.startsWith("<span") && chunk.includes("data-encoded") || chunk === "" || chunk === "</span> " || chunk === "</span>" || chunk === "[</span>") {
+          return chunk;
+        }
+        this.cache.query.valid = false;
+        return chunk.replace(
+          /\S+/g,
+          (txt) => `<span class="q-error-unrecognized">${txt}</span>`
+        );
+      }).join("");
+      const updateQueryBtn = document.getElementById("queryUpdateBtn");
+      const selectQueryBtn = document.getElementById("querySelectBtn");
+      if (this.cache.query.valid) {
+        updateQueryBtn.classList.remove("disabled");
+        selectQueryBtn.classList.remove("disabled");
+      } else {
+        updateQueryBtn.classList.add("disabled");
+        selectQueryBtn.classList.add("disabled");
+      }
+      return asciiStr;
+    }
+    updateQueryTextArea() {
+      let queryStr = this.cache.data.layouts[this.cache.data.selectedLayout]["query"] || "";
+      if (!queryStr) {
+        let queryEntries = [];
+        for (const [propID, fo] of this.cache.data.layouts[this.cache.data.selectedLayout].filters.entries()) {
+          if (fo.active) {
+            if (fo.isCategory) {
+              queryEntries.push(`${propID} IN [${[...fo.categories].map((cat) => cat).join(",")}]`);
+            } else if (fo.isInverted) {
+              queryEntries.push(`${propID} LOWER THAN ${fo.upperThreshold} OR GREATER THAN ${fo.lowerThreshold}`);
+            } else {
+              queryEntries.push(`${propID} BETWEEN ${fo.lowerThreshold} AND ${fo.upperThreshold}`);
+            }
+          }
+        }
+        if (queryEntries.length) {
+          queryStr = `(${queryEntries.join(") OR (")})`;
+        }
+      }
+      this.cache.query.text.textContent = queryStr;
+      this.cache.query.overlay.innerHTML = this.encodeQuery(queryStr);
+    }
+    clearQuery() {
+      this.cache.query.text.textContent = "";
+      this.handleQueryValidationEvent(true);
+      this.cache.query.caret.style.display = "none";
+    }
+    getCursorPosition() {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return 0;
+      const range = sel.getRangeAt(0).cloneRange();
+      const preCaretRange = range.cloneRange();
+      preCaretRange.selectNodeContents(this.cache.query.text);
+      preCaretRange.setEnd(range.endContainer, range.endOffset);
+      return preCaretRange.toString().length;
+    }
+    setCursorPosition(charIndex) {
+      const root = this.cache.query.text;
+      charIndex = Math.max(0, Math.min(charIndex, root.textContent.length));
+      const range = document.createRange();
+      const sel = window.getSelection();
+      let currentPos = 0;
+      let found = false;
+      function traverseNodes(node) {
+        if (found) return;
+        if (node.nodeType === Node.TEXT_NODE) {
+          const length = node.length;
+          if (currentPos + length >= charIndex) {
+            range.setStart(node, charIndex - currentPos);
+            range.collapse(true);
+            found = true;
+            return;
+          }
+          currentPos += length;
+        } else {
+          for (const child of node.childNodes) {
+            traverseNodes(child);
+          }
+        }
+      }
+      traverseNodes(root);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+    moveCaret() {
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) {
+        this.cache.query.caret.style.display = "none";
+        return;
+      }
+      const range = sel.getRangeAt(0).cloneRange();
+      range.collapse(true);
+      let tmpQuery = this.cache ? this.cache.query : window.cache.query;
+      const rect = range.getBoundingClientRect();
+      const parentRect = tmpQuery.text.getBoundingClientRect();
+      if (!rect || !rect.height) {
+        return;
+      }
+      const overlapsVert = rect.bottom > parentRect.top && rect.top < parentRect.bottom;
+      const overlapsHoriz = rect.right > parentRect.left && rect.left < parentRect.right;
+      if (!(overlapsVert && overlapsHoriz)) {
+        tmpQuery.caret.style.display = "none";
+        return;
+      }
+      tmpQuery.caret.style.display = "block";
+      tmpQuery.caret.style.left = `${rect.left - parentRect.left}px`;
+      tmpQuery.caret.style.top = `${rect.top - parentRect.top}px`;
+      tmpQuery.caret.style.height = `${rect.height}px`;
+    }
+    handleQueryValidationEvent(immediate) {
+      if (immediate) {
+        clearTimeout(this.#validationTimer);
+        this.#runValidation();
+        return;
+      }
+      clearTimeout(this.#validationTimer);
+      this.#validationTimer = setTimeout(() => this.#runValidation(), 40);
+    }
+    #runValidation() {
+      this.cache.query.overlay.style.width = `${this.cache.query.text.offsetWidth}px`;
+      this.cache.query.overlay.innerHTML = this.encodeQuery(this.cache.query.text.textContent);
+      this.cache.query.overlay.scrollTop = this.cache.query.text.scrollTop;
+      this.cache.query.overlay.scrollLeft = this.cache.query.text.scrollLeft;
+      if (this.cache.query.valid) {
+        this.cache.data.layouts[this.cache.data.selectedLayout]["query"] = this.cache.query.text.textContent;
+      } else {
+        this.cache.data.layouts[this.cache.data.selectedLayout]["query"] = void 0;
+      }
+    }
+    async handleQueryUpdateEvent() {
+      this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT = true;
+      this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = true;
+      try {
+        this.updateUIFromQueryInstructions();
+        this.cache.ui.updateFilterLockState();
+        await this.cache.fm.handleFilterEvent("Updating Graph from Query", this.cache.query.text.textContent, null, false);
+      } finally {
+        this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT = false;
+      }
+    }
+    async handleQuerySelectEvent() {
+      await this.cache.ui.showLoading("Updating Selection", `Modifying selection from query`);
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      this.cache.EVENT_LOCKS.QUERY_SELECTION_EVENT = true;
+      this.decodeQueryAndBuildAST();
+      const nodeIDsToSelect = this.cache.nodeRef.values().filter((node) => this.cache.query.ast.testNode(node) && this.cache.nodeIDsToBeShown.has(node.id)).map((node) => node.id);
+      const edgeIDsToSelect = this.cache.edgeRef.values().filter((edge) => this.cache.query.ast.testEdge(edge) && this.cache.edgeIDsToBeShown.has(edge.id)).map((edge) => edge.id);
+      await this.cache.sm.selectNodes(nodeIDsToSelect);
+      await this.cache.sm.selectEdges(edgeIDsToSelect);
+      await this.cache.ui.hideLoading();
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    }
+    /**
+     * Turn the HTML produced by `encodeQuery()` back into a nested data
+     * structure that mirrors the original logical expression.
+     *
+     * Returned format (simplified):
+     * [
+     *   {type: 'property', main:'Node filters', sub:'Label', prop:'name'},
+     *   {type: 'KW', value: 'BETWEEN'},
+     *   {type: 'NUM', value: 10},
+     *   {type: 'KW', value: 'AND'},
+     *   {type: 'NUM', value: 20},
+     *   'AND',
+     *   [                                    // ← nested group (brackets)
+     *     {type:'property', …},
+     *     'OR',
+     *     {type:'property', …}
+     *   ]
+     * ]
+     *
+     * The tree can afterwards be compiled into any instruction format you need.
+     */
+    decodeQuery() {
+      const tokens = [];
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(`<div>${this.cache.query.overlay.innerHTML}</div>`, "text/html");
+      const root = doc.body.firstElementChild;
+      const classMap = {
+        // connectors
+        "q-connector-or": () => "OR",
+        "q-connector-and": () => "AND",
+        "q-connector-not": () => "NOT",
+        // brackets (depth-colored and connector-adjacent)
+        "q-bracket-open-lvl-1": () => ({ type: "(", value: "(" }),
+        "q-bracket-open-lvl-2": () => ({ type: "(", value: "(" }),
+        "q-bracket-open-lvl-3": () => ({ type: "(", value: "(" }),
+        "q-bracket-open-lvl-4": () => ({ type: "(", value: "(" }),
+        "q-bracket-open-lvl-5": () => ({ type: "(", value: "(" }),
+        "q-bracket-close-lvl-1": () => ({ type: ")", value: ")" }),
+        "q-bracket-close-lvl-2": () => ({ type: ")", value: ")" }),
+        "q-bracket-close-lvl-3": () => ({ type: ")", value: ")" }),
+        "q-bracket-close-lvl-4": () => ({ type: ")", value: ")" }),
+        "q-bracket-close-lvl-5": () => ({ type: ")", value: ")" }),
+        "q-connector-opening-bracket": () => ({ type: "(", value: "(" }),
+        "q-connector-closing": () => ({ type: ")", value: ")" }),
+        // numbers & keywords
+        "q-number": (el) => ({ type: "NUM", value: Number(el.textContent) }),
+        "q-kw-between": () => ({ type: "KW", value: "BETWEEN" }),
+        "q-kw-between-and": () => ({ type: "KW", value: "AND" }),
+        "q-lower-than": () => ({ type: "KW", value: "LOWER THAN" }),
+        "q-or-greater-than": () => ({ type: "KW", value: "OR GREATER THAN" }),
+        "q-in-cat-bracket-open": () => ({ type: "KW", value: "IN [" }),
+        // category strings
+        "q-string": (el) => ({ type: "STR", value: el.textContent }),
+        // whole property path ("A::B::C")
+        "q-property-wrapper": (el) => {
+          const [main, sub, prop] = el.textContent.split("::");
+          return { type: "property", main, sub, prop, propID: el.textContent };
+        }
+      };
+      function walk(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          return;
+        }
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          for (const cls of node.classList) {
+            if (classMap[cls]) {
+              const t = classMap[cls](node);
+              if (t !== void 0) tokens.push(t);
+              break;
+            }
+          }
+        }
+        node.childNodes.forEach(walk);
+      }
+      walk(root);
+      function readGroup(idx = 0) {
+        const group = [];
+        while (idx < tokens.length) {
+          const tok = tokens[idx];
+          if (tok.type === ")") {
+            return [group, idx + 1];
+          }
+          if (tok.type === "(") {
+            const [subGroup, next] = readGroup(idx + 1);
+            group.push(subGroup);
+            idx = next;
+            continue;
+          }
+          group.push(tok);
+          idx += 1;
+        }
+        return [group, idx];
+      }
+      const [instructions] = readGroup();
+      return instructions;
+    }
+    updateUIFromQueryInstructions() {
+      this.cache.ui.uncheckAllCheckboxes();
+      this.decodeQueryAndBuildAST();
+      for (const inst of this.cache.query.ast.instructions) {
+        this.refreshUI(inst);
+      }
+    }
+    setFilter(obj) {
+      if (obj[1].type === "KW" && obj[1].value === "BETWEEN") {
+        this.cache.ui.checkCheckbox(obj[0].propID, true);
+        this.cache.propIDToInvertibleRangeSliders.get(obj[0].propID).setTo(obj[2].value, obj[4].value, false);
+      } else if (obj[1].type === "KW" && obj[1].value === "LOWER THAN") {
+        this.cache.ui.checkCheckbox(obj[0].propID, true);
+        this.cache.propIDToInvertibleRangeSliders.get(obj[0].propID).setTo(obj[2].value, obj[4].value, true);
+      } else if (obj[1].type === "KW" && obj[1].value === "IN [") {
+        this.cache.ui.checkCheckbox(obj[0].propID, true);
+        const dropdown = this.cache.propIDToDropdownChecklists.get(obj[0].propID);
+        dropdown.deselectAllCategories(true);
+        for (const dropdownElem of obj) {
+          if (dropdownElem.type === "STR") {
+            dropdown.selectCategory(dropdownElem.value);
+          }
+        }
+      }
+    }
+    refreshUI(obj) {
+      if (obj.constructor === Array) {
+        if (obj[0].constructor === Object && obj[0].type === "property") {
+          this.setFilter(obj);
+        } else {
+          for (const nestedInst of obj) {
+            this.refreshUI(nestedInst);
+          }
+        }
+      }
+    }
+    moveCaretToEnd() {
+      const el = this.cache.query.text;
+      if (!el) return;
+      if ("selectionStart" in el) {
+        el.selectionStart = el.selectionEnd = el.value.length;
+        el.focus();
+        return;
+      }
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      range.collapse(false);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      el.focus();
+    }
+    resetQuery() {
+      delete this.cache.data.layouts[this.cache.data.selectedLayout]["query"];
+      this.cache.query.text.textContent = "";
+      this.cache.query.overlay.innerHTML = "";
+      this.updateQueryTextArea();
+      this.moveCaretToEnd();
+      this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = false;
+      this.cache.ui.updateFilterLockState();
+    }
+    storeQuery() {
+      this.cache.query.textCache = this.cache.query.text.textContent;
+    }
+    restoreQuery() {
+      if (this.cache.query.textCache === void 0 || this.cache.query.textCache === null || this.cache.query.textCache === "") {
+        return;
+      }
+      this.cache.query.text.textContent = this.cache.query.textCache;
+      this.cache.query.overlay.innerHTML = this.encodeQuery(this.cache.query.textCache);
+      this.moveCaretToEnd();
+      this.cache.query.textCache = null;
+    }
+    showQueryHelp() {
+      this.cache.popup = new Popup(`
 <h2>Query Editor</h2>
 <p>Build complex filters using nested AND, OR and NOT expressions.</p>
 
 <div class="alert-warning">
-  <strong>\u26A0\uFE0F Important:</strong> Using the filtering UI panel or adding/modifying bubble groups will automatically 
-  overwrite the this.cache.query. Any custom logic (AND/NOT operators, nested brackets) will be cleared and replaced 
+  <strong>\u26A0\uFE0F Important:</strong> Using the filtering UI panel or adding/modifying bubble groups will automatically
+  overwrite the this.cache.query. Any custom logic (AND/NOT operators, nested brackets) will be cleared and replaced
   with the UI-generated this.cache.query.
 </div>
 <div class="alert-info">
-  <strong>\u{1F4A1} Tip:</strong> Queries are saved for each view and included when exporting the model \u{1F4BE}
+  <strong>\u{1F4A1} Tip:</strong> Queries are saved for each workspace and included when exporting the model \u{1F4BE}
 </div>
 
 <h3>Available Actions</h3>
+<p><strong>Header buttons:</strong></p>
 <ul>
-  <li><span class="tooltip-dummy-buttons">\u{1F50D} Filter</span> \u2014 Apply the query to filter the graph</li>
-  <li><span class="tooltip-dummy-buttons blue">\u{1F3AF} Select</span> \u2014 Select all matching elements (without filtering)</li>
-  <li><span class="tooltip-dummy-buttons pink">\u27F3 Sync</span> \u2014 Sync query with current UI panel settings</li>
-  <li><span class="tooltip-dummy-buttons red">\u2717 Clear</span> \u2014 Remove all query conditions</li>
-  <li><span class="add-to-query-button show tt">\u{1F4DD}</span> (filtering panel) \u2014 Add a single parameter to the query</li>
+  <li><span class="tooltip-dummy-buttons green">\u{1F50D} Filter</span> - Apply the query to filter the graph</li>
+  <li><span class="tooltip-dummy-buttons blue">\u{1F3AF} Select</span> - Select all matching elements (without filtering)</li>
+  <li><span class="tooltip-dummy-buttons pink">\u27F3 Sync</span> - Sync query with current UI panel settings</li>
+  <li><span class="tooltip-dummy-buttons red">\u2717 Clear</span> - Remove all query conditions</li>
+</ul>
+<p><strong>Filtering panel:</strong></p>
+<ul>
+  <li><span class="add-to-query-button show tt">\u{1F4DD}</span> - Add a single parameter to the query</li>
 </ul>
 
 <hr>
@@ -377,22 +7378,22 @@ A node is important if it receives many links from other important nodes.
 
 <p><strong>2. Filter Instructions</strong></p>
 <ul style="margin-top: -8px;">
-  <li><span class="q-kw-between">BETWEEN</span>&nbsp;<span class="q-number">0</span>&nbsp;<span class="q-kw-between-and">AND</span>&nbsp;<span class="q-number">1.3</span> \u2014 Keep numerical values in range (inclusive)</li>
-  <li><span class="q-lower-than">LOWER THAN</span>&nbsp;<span class="q-number">0.2</span>&nbsp;<span class="q-or-greater-than">OR GREATER THAN</span>&nbsp;<span class="q-number">0.8</span> \u2014 Keep numerical values \u2264 0.2 or \u2265 0.8</li>
-  <li><span class="q-in-cat-bracket-open">IN&nbsp;[</span><span class="q-string">foo</span><span class="q-comma">,</span>&nbsp;<span class="q-string">bar</span><span class="q-cat-bracket-close">]</span> \u2014 Keep specific categorical values</li>
+  <li><span class="q-kw-between">BETWEEN</span>&nbsp;<span class="q-number">0</span>&nbsp;<span class="q-kw-between-and">AND</span>&nbsp;<span class="q-number">1.3</span> - Keep numerical values in range (inclusive)</li>
+  <li><span class="q-lower-than">LOWER THAN</span>&nbsp;<span class="q-number">0.2</span>&nbsp;<span class="q-or-greater-than">OR GREATER THAN</span>&nbsp;<span class="q-number">0.8</span> - Keep numerical values \u2264 0.2 or \u2265 0.8</li>
+  <li><span class="q-in-cat-bracket-open">IN&nbsp;[</span><span class="q-string">foo</span><span class="q-comma">,</span>&nbsp;<span class="q-string">bar</span><span class="q-cat-bracket-close">]</span> - Keep specific categorical values</li>
 </ul>
 
 <p><strong>3. Logical Operators</strong></p>
 <ul style="margin-top: -8px;">
-  <li><span class="q-connector-or">&nbsp;OR&nbsp;</span> \u2014 True if at least one condition is true</li>
-  <li><span class="q-connector-and">&nbsp;AND&nbsp;</span> \u2014 True if both conditions are true</li>
-  <li><span class="q-connector-not">&nbsp;NOT&nbsp;</span> \u2014 True if first condition is true and second is false</li>
+  <li><span class="q-connector-or">&nbsp;OR&nbsp;</span> - True if at least one condition is true</li>
+  <li><span class="q-connector-and">&nbsp;AND&nbsp;</span> - True if both conditions are true</li>
+  <li><span class="q-connector-not">&nbsp;NOT&nbsp;</span> - True if first condition is true and second is false</li>
   <li>\u26A1 Left-to-right precedence; use parentheses for complex logic</li>
 </ul>
 
 <p><strong>4. Grouping with Parentheses</strong></p>
 <ul style="margin-top: -8px;">
-  <li><span class="q-bracket-open-lvl-1">(</span> <span class="q-bracket-close-lvl-1">)</span> \u2014 Group multiple conditions into one logical unit</li>
+  <li><span class="q-bracket-open-lvl-1">(</span> <span class="q-bracket-close-lvl-1">)</span> - Group multiple conditions into one logical unit</li>
   <li>Nest to any depth with color coding: <span class="q-bracket-open-lvl-1">(</span><span class="q-bracket-open-lvl-2">(</span><span class="q-bracket-open-lvl-3">(</span><span class="q-bracket-open-lvl-4">(</span><span class="q-bracket-open-lvl-5">(</span><span class="q-bracket-close-lvl-5">)</span><span class="q-bracket-close-lvl-4">)</span><span class="q-bracket-close-lvl-3">)</span><span class="q-bracket-close-lvl-2">)</span><span class="q-bracket-close-lvl-1">)</span></li>
   <li>Unmatched brackets are highlighted: <span class="q-bracket-close-lvl-0 q-error-unmatched-closing-bracket">)</span></li>
 </ul>
@@ -402,24 +7403,368 @@ A node is important if it receives many links from other important nodes.
   <li>Invalid syntax is <span class="q-error-unrecognized">highlighted like this</span></li>
 </ul>
 
-`,{width:"80vw",height:"75vh",lineHeight:"1.5em"})}decodeQueryAndBuildAST(){let e=this.decodeQuery();this.cache.query.ast=new De(e)}performANDFilterLogic(){for(let e of this.cache.nodeIDsToBeShown)this.cache.fm.getPropertiesNotWithinThresholds(e,null).length>0&&(this.cache.nodeIDsToBeShown.delete(e),this.cache.fm.removeFromPropIDsToNodeIDsToBeShown(e));for(let e of this.cache.edgeIDsToBeShown)if(this.cache.fm.getPropertiesNotWithinThresholds(null,e).length>0)this.cache.edgeIDsToBeShown.delete(e),this.cache.fm.removeFromPropIDsToEdgeIDsToBeShown(e);else{let[s,a]=e.split("::");this.cache.remainingEdgeRelatedNodes.add(s),this.cache.remainingEdgeRelatedNodes.add(a)}}validateAlignment(){let e=_.getLineMetrics(this.cache.query.text),t=_.getLineMetrics(this.cache.query.overlay),s=e.lines===t.lines,a=Math.abs(e.lastLineWidth-t.lastLineWidth)<=1;if(s&&a){this.cache.query.sizeChangeLocked&&(this.cache.query.text.style.removeProperty("width"),this.cache.query.overlay.style.removeProperty("width"),this.cache.query.sizeChangeLocked=!1,this.cache.ui.info("Alignment restored, width unlocked")),this.cache.query.lastGoodWidth=this.cache.query.text.offsetWidth;return}!this.cache.query.sizeChangeLocked&&this.cache.query.lastGoodWidth>0&&(console.warn(`Mismatch \u2014 lines: ${e.lines}/${t.lines}, last width: ${e.lastLineWidth}/${t.lastLineWidth}. Locking at ${this.cache.query.lastGoodWidth}px`),this.cache.query.text.style.width=`${this.cache.query.lastGoodWidth}px`,this.cache.query.overlay.style.width=`${this.cache.query.lastGoodWidth}px`,this.cache.query.sizeChangeLocked=!0)}};var ge=class{constructor(e,t){this.propID=e,this.cache=t,this.categories=this.cache.data.filterDefaults.get(e).categories,this.selectedCategories=this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(e).categories,this.isVisible=!1,this.sortCategories(),this.cache.propIDToDropdownChecklists.set(e,this)}sortCategories(){let e=Array.isArray(this.categories)?[...this.categories]:Array.from(this.categories);e.sort((t,s)=>{let a=o=>{let c=o.toLowerCase();return c==="low"?1:c==="medium"?2:c==="high"?3:0},i=a(t),n=a(s);return i===0&&n===0?t.localeCompare(s):i-n}),this.categories=new Set(e)}appendTo(e){this.container=document.createElement("div"),this.container.id=this.propID+"-dropdown",this.container.className="dropdown-check-list",this.container.tabIndex=100,this.anchor=document.createElement("h5"),this.anchor.className="anchor purple round-border",this.anchor.textContent=`${this.selectedCategories.size}/${this.categories.size} selected`,this.anchor.id=this.propID+"-dropdown-anchor",this.container.appendChild(this.anchor),this.itemsList=document.createElement("ul"),this.itemsList.className="items",this.buttonContainer=document.createElement("div"),this.buttonContainer.className="dropdown-buttons",this.selectAllButton=document.createElement("button"),this.selectAllButton.textContent="Select All",this.deselectAllButton=document.createElement("button"),this.deselectAllButton.textContent="Deselect All",this.buttonContainer.appendChild(this.selectAllButton),this.buttonContainer.appendChild(this.deselectAllButton),this.itemsList.appendChild(this.buttonContainer),this.categories.forEach(t=>{let s=document.createElement("li"),a=document.createElement("input");a.type="checkbox",a.value=t,a.checked=this.selectedCategories.has(t),a.style.display="none",a.addEventListener("change",async o=>await this.handleSelection(o));let i=document.createElement("span");i.className="custom-checkbox",a.addEventListener("change",()=>{a.checked?i.classList.add("checked"):i.classList.remove("checked")}),a.checked&&i.classList.add("checked");let n=document.createElement("label");n.textContent=t,n.prepend(i),n.prepend(a),s.appendChild(n),this.itemsList.appendChild(s)}),this.container.appendChild(this.itemsList),e.appendChild(this.container)}async handleSelection(e){if(this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY){e.preventDefault();return}try{e.target.checked?this.selectedCategories.add(e.target.value):this.selectedCategories.delete(e.target.value),this.anchor.textContent=`${this.selectedCategories.size}/${this.categories.size} selected`,await this.cache.fm.handleFilterEvent(e.target.checked?"Showing":"Hiding Elements",`Nodes and related edges for ${this.propID} ${e.target.value}`,this.propID)}catch(t){this.cache.ui.error(`Failed to handle category selection: ${t.message}`)}}appendListeners(){let e=()=>{this.itemsList.style.visibility="hidden",this.itemsList.style.display="block";let t=this.itemsList.offsetHeight;this.itemsList.style.display="",this.itemsList.style.visibility="";let s=this.anchor.getBoundingClientRect(),i=window.innerHeight-s.bottom;this.itemsList.style.top=`${s.bottom}px`,this.itemsList.style.left=`${s.left-3}px`,t>i?(this.itemsList.style.maxHeight=`${i}px`,this.itemsList.style.overflowY="auto"):(this.itemsList.style.maxHeight="",this.itemsList.style.overflowY="")};this.anchor.addEventListener("click",()=>{this.isVisible=!this.isVisible,this.isVisible?(e(),document.addEventListener("scroll",e,!0),this.container.classList.add("visible")):(this.container.classList.remove("visible"),document.removeEventListener("scroll",e,!0))}),this.selectAllButton.addEventListener("click",async()=>await this.selectAllCategories()),this.deselectAllButton.addEventListener("click",async()=>await this.deselectAllCategories()),document.addEventListener("click",t=>{this.container.contains(t.target)||(this.isVisible=!1,this.container.classList.remove("visible"))})}selectCategory(e){if(!this.categories.has(e)){this.cache.ui.warning(`Category "${e}" does not exist for ${this.propID}`);return}this.selectedCategories.add(e);let t=this.itemsList.querySelector(`input[type="checkbox"][value="${CSS.escape(e)}"]`);t.checked=!0,t.nextElementSibling.classList.add("checked"),this.anchor.textContent=`${this.selectedCategories.size}/${this.categories.size} selected`}async selectAllCategories(e=!1){try{this.categories.forEach(t=>this.selectedCategories.add(t)),this.updateCheckboxStates(!0),e||await this.cache.fm.handleFilterEvent("Showing Elements",`Nodes and related edges for ${this.propID}`,this.propID)}catch(t){this.cache.ui.error(`Failed to select all categories: ${t.message}`)}}async deselectAllCategories(e=!1){try{this.categories.forEach(t=>this.selectedCategories.delete(t)),this.updateCheckboxStates(!1),e||await this.cache.fm.handleFilterEvent("Hiding Elements",`Nodes and related edges for ${this.propID}`,this.propID)}catch(t){this.cache.ui.error(`Failed to deselect all categories: ${t.message}`)}}updateCheckboxStates(e){Array.from(this.itemsList.querySelectorAll("input[type='checkbox']")).forEach(t=>{t.checked=e,e?t.nextElementSibling.classList.add("checked"):t.nextElementSibling.classList.remove("checked")}),this.anchor.textContent=`${this.selectedCategories.size}/${this.categories.size} selected`}},fe=class{constructor(e,t){this.propID=e,this.cache=t;let s=structuredClone(this.cache.data.filterDefaults.get(e));this.readCurrentFilterSettings(),this.sliderMin=s.lowerThreshold,this.sliderMax=s.upperThreshold,this.stepSize=_.isInteger(this.sliderMin)&&_.isInteger(this.sliderMax)?this.cache.CFG.FILTER_STEP_SIZE_INTEGER:this.cache.CFG.FILTER_STEP_SIZE_FLOAT,this.initializeIds(),this.inputStart=null,this.inputEnd=null,this.cache.propIDToInvertibleRangeSliders.set(e,this)}initializeIds(){this.sliderId=`filter-${this.propID}-slider`,this.sliderIdStart=`${this.sliderId}-start`,this.sliderIdStartInput=`${this.sliderId}-start-input`,this.sliderIdEnd=`${this.sliderId}-end`,this.sliderIdEndInput=`${this.sliderId}-end-input`,this.inverseLeftId=`${this.sliderId}-inverse-left`,this.inverseRightId=`${this.sliderId}-inverse-right`,this.rangeId=`${this.sliderId}-range`,this.thumbStartId=`${this.sliderId}-thumb-start`,this.thumbEndId=`${this.sliderId}-thumb-end`,this.labelStartId=`${this.sliderIdStart}-label`,this.labelEndId=`${this.sliderIdEnd}-label`}readCurrentFilterSettings(){if(!this.cache.data.layouts[this.cache.data.selectedLayout].filters.has(this.propID))this.currentMin=0,this.currentMax=1,this.isInverted=!1;else{let e=this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(this.propID);this.currentMin=e.lowerThreshold,this.currentMax=e.upperThreshold,this.isInverted=e.isInverted}}writeCurrentFilterSettings(){if(this.cache.data.layouts[this.cache.data.selectedLayout].filters.has(this.propID)){let e=this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(this.propID);e.lowerThreshold=this.currentMin,e.upperThreshold=this.currentMax,e.isInverted=this.isInverted}}calcPercentage(e){return(e-this.sliderMin)/(this.sliderMax-this.sliderMin)*100}getDOMReferences(){this.slider=document.getElementById(this.sliderId),this.sliderStart=document.getElementById(this.sliderIdStart),this.sliderStartInput=document.getElementById(this.sliderIdStartInput),this.sliderEnd=document.getElementById(this.sliderIdEnd),this.sliderEndInput=document.getElementById(this.sliderIdEndInput),this.inverseLeft=document.getElementById(this.inverseLeftId),this.inverseRight=document.getElementById(this.inverseRightId),this.range=document.getElementById(this.rangeId),this.thumbStart=document.getElementById(this.thumbStartId),this.thumbEnd=document.getElementById(this.thumbEndId),this.labelStart=document.getElementById(this.labelStartId),this.labelEnd=document.getElementById(this.labelEndId)}createSliderInput(e,t,s){let a=document.createElement("input");return a.id=e,a.style.width="80px",a.style.height="16px",a.style.boxSizing="border-box",a.value=t,a.addEventListener("keydown",i=>{if(this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY){i.preventDefault();return}if(i.key==="Enter"){let n=parseFloat(a.value),o=document.getElementById(s);isNaN(n)||n<this.sliderMin||n>this.sliderMax?a.value=o.value:(o.value=n,o.dispatchEvent(new Event("input")),o.dispatchEvent(new Event("change")))}}),a}reset(){this.setTo(this.sliderMin,this.sliderMax,!1),this.isInverted=!1,this.currentMin=this.sliderMin,this.currentMax=this.sliderMax,this.writeCurrentFilterSettings()}appendTo(e){if(this.cache.CFG.HIDE_SLIDERS_WITH_SAME_MIN_MAX_VALUES&&this.sliderMin===this.sliderMax)return e.appendChild(document.createElement("span")),!1;this.isValidSlider=!0;let t=document.createElement("div");t.classList.add("show-on-edit"),t.style.transition="width 0.2s ease",this.inputStart=this.createSliderInput(this.sliderIdStartInput,this.currentMin,this.sliderIdStart),t.appendChild(this.inputStart);let s=document.createElement("div");s.classList.add("show-on-edit"),s.style.transition="width 0.2s ease",this.inputEnd=this.createSliderInput(this.sliderIdEndInput,this.currentMax,this.sliderIdEnd),s.appendChild(this.inputEnd);let a=document.createElement("div");a.innerHTML=this.createDivInnerHTML();let i=a.firstElementChild;i.style.width="100%",i.title=`Set the thresholds for the numeric property: ${_.formatPropsAsTree(this.propID)}
+`, { width: "80vw", height: "75vh", lineHeight: "1.5em" });
+    }
+    decodeQueryAndBuildAST() {
+      const instructions = this.decodeQuery();
+      this.cache.query.ast = new QueryAST(instructions);
+    }
+    performANDFilterLogic() {
+      for (let nodeID of this.cache.nodeIDsToBeShown) {
+        let propertiesNotWithinThresholds = this.cache.fm.getPropertiesNotWithinThresholds(nodeID, null);
+        if (propertiesNotWithinThresholds.length > 0) {
+          this.cache.nodeIDsToBeShown.delete(nodeID);
+          this.cache.fm.removeFromPropIDsToNodeIDsToBeShown(nodeID);
+        }
+      }
+      for (let edgeID of this.cache.edgeIDsToBeShown) {
+        let propertiesNotWithinThresholds = this.cache.fm.getPropertiesNotWithinThresholds(null, edgeID);
+        if (propertiesNotWithinThresholds.length > 0) {
+          this.cache.edgeIDsToBeShown.delete(edgeID);
+          this.cache.fm.removeFromPropIDsToEdgeIDsToBeShown(edgeID);
+        } else {
+          const [source, target] = edgeID.split("::");
+          this.cache.remainingEdgeRelatedNodes.add(source);
+          this.cache.remainingEdgeRelatedNodes.add(target);
+        }
+      }
+    }
+    validateAlignment() {
+      this.cache.query.overlay.style.width = `${this.cache.query.text.offsetWidth}px`;
+      const mText = StaticUtilities.getLineMetrics(this.cache.query.text);
+      const mOverlay = StaticUtilities.getLineMetrics(this.cache.query.overlay);
+      const linesMatch = mText.lines === mOverlay.lines;
+      const lastWidthMatch = Math.abs(mText.lastLineWidth - mOverlay.lastLineWidth) <= 1;
+      if (linesMatch && lastWidthMatch) {
+        this.cache.query.lastGoodWidth = this.cache.query.text.offsetWidth;
+        return;
+      }
+      if (this.cache.query.lastGoodWidth > 0) {
+        this.cache.query.text.style.width = `${this.cache.query.lastGoodWidth}px`;
+        this.cache.query.overlay.style.width = `${this.cache.query.lastGoodWidth}px`;
+      }
+    }
+  };
+
+  // src/managers/ui_components.js
+  var DropdownChecklist = class {
+    constructor(propID, cache3) {
+      this.propID = propID;
+      this.cache = cache3;
+      this.categories = this.cache.data.filterDefaults.get(propID).categories;
+      this.selectedCategories = this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(propID).categories;
+      this.isVisible = false;
+      this.sortCategories();
+      this.cache.propIDToDropdownChecklists.set(propID, this);
+    }
+    sortCategories() {
+      const catArray = Array.isArray(this.categories) ? [...this.categories] : Array.from(this.categories);
+      catArray.sort((a, b) => {
+        const getPriority = (val) => {
+          const lower = val.toLowerCase();
+          if (lower === "low") return 1;
+          if (lower === "medium") return 2;
+          if (lower === "high") return 3;
+          return 0;
+        };
+        const priorityA = getPriority(a);
+        const priorityB = getPriority(b);
+        if (priorityA === 0 && priorityB === 0) {
+          return a.localeCompare(b);
+        }
+        return priorityA - priorityB;
+      });
+      this.categories = new Set(catArray);
+    }
+    appendTo(parent) {
+      this.container = document.createElement("div");
+      this.container.id = this.propID + "-dropdown";
+      this.container.className = "dropdown-check-list";
+      this.container.tabIndex = 100;
+      this.anchor = document.createElement("h5");
+      this.anchor.className = "anchor purple round-border";
+      this.anchor.textContent = `${this.selectedCategories.size}/${this.categories.size} selected`;
+      this.anchor.id = this.propID + "-dropdown-anchor";
+      this.container.appendChild(this.anchor);
+      this.itemsList = document.createElement("ul");
+      this.itemsList.className = "items";
+      this.buttonContainer = document.createElement("div");
+      this.buttonContainer.className = "dropdown-buttons";
+      this.selectAllButton = document.createElement("button");
+      this.selectAllButton.textContent = "Select All";
+      this.deselectAllButton = document.createElement("button");
+      this.deselectAllButton.textContent = "Deselect All";
+      this.buttonContainer.appendChild(this.selectAllButton);
+      this.buttonContainer.appendChild(this.deselectAllButton);
+      this.itemsList.appendChild(this.buttonContainer);
+      this.categories.forEach((option) => {
+        const listItem = document.createElement("li");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = option;
+        checkbox.checked = this.selectedCategories.has(option);
+        checkbox.style.display = "none";
+        checkbox.addEventListener("change", async (ev) => await this.handleSelection(ev));
+        const customCheckbox = document.createElement("span");
+        customCheckbox.className = "custom-checkbox";
+        checkbox.addEventListener("change", () => {
+          checkbox.checked ? customCheckbox.classList.add("checked") : customCheckbox.classList.remove("checked");
+        });
+        if (checkbox.checked) customCheckbox.classList.add("checked");
+        const label = document.createElement("label");
+        label.textContent = option;
+        label.prepend(customCheckbox);
+        label.prepend(checkbox);
+        listItem.appendChild(label);
+        this.itemsList.appendChild(listItem);
+      });
+      this.container.appendChild(this.itemsList);
+      parent.appendChild(this.container);
+    }
+    async handleSelection(ev) {
+      if (this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) {
+        ev.preventDefault();
+        return;
+      }
+      try {
+        ev.target.checked ? this.selectedCategories.add(ev.target.value) : this.selectedCategories.delete(ev.target.value);
+        this.anchor.textContent = `${this.selectedCategories.size}/${this.categories.size} selected`;
+        await this.cache.fm.handleFilterEvent(
+          ev.target.checked ? "Showing" : "Hiding Elements",
+          `Nodes and related edges for ${this.propID} ${ev.target.value}`,
+          this.propID
+        );
+      } catch (err) {
+        this.cache.ui.error(`Failed to handle category selection: ${err.message}`);
+      }
+    }
+    appendListeners() {
+      const updateDropdownPosition = () => {
+        this.itemsList.style.visibility = "hidden";
+        this.itemsList.style.display = "block";
+        const dropdownHeight = this.itemsList.offsetHeight;
+        this.itemsList.style.display = "";
+        this.itemsList.style.visibility = "";
+        const anchorRect = this.anchor.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const availableHeight = viewportHeight - anchorRect.bottom;
+        this.itemsList.style.top = `${anchorRect.bottom}px`;
+        this.itemsList.style.left = `${anchorRect.left - 3}px`;
+        if (dropdownHeight > availableHeight) {
+          this.itemsList.style.maxHeight = `${availableHeight}px`;
+          this.itemsList.style.overflowY = "auto";
+        } else {
+          this.itemsList.style.maxHeight = "";
+          this.itemsList.style.overflowY = "";
+        }
+      };
+      this.anchor.addEventListener("click", () => {
+        this.isVisible = !this.isVisible;
+        if (this.isVisible) {
+          updateDropdownPosition();
+          document.addEventListener("scroll", updateDropdownPosition, true);
+          this.container.classList.add("visible");
+        } else {
+          this.container.classList.remove("visible");
+          document.removeEventListener("scroll", updateDropdownPosition, true);
+        }
+      });
+      this.selectAllButton.addEventListener("click", async () => await this.selectAllCategories());
+      this.deselectAllButton.addEventListener("click", async () => await this.deselectAllCategories());
+      document.addEventListener("click", (event) => {
+        if (!this.container.contains(event.target)) {
+          this.isVisible = false;
+          this.container.classList.remove("visible");
+        }
+      });
+    }
+    selectCategory(category) {
+      if (!this.categories.has(category)) {
+        this.cache.ui.warning(`Category "${category}" does not exist for ${this.propID}`);
+        return;
+      }
+      this.selectedCategories.add(category);
+      const checkbox = this.itemsList.querySelector(
+        `input[type="checkbox"][value="${CSS.escape(category)}"]`
+      );
+      checkbox.checked = true;
+      checkbox.nextElementSibling.classList.add("checked");
+      this.anchor.textContent = `${this.selectedCategories.size}/${this.categories.size} selected`;
+    }
+    async selectAllCategories(skipFilterEvent = false) {
+      try {
+        this.categories.forEach((category) => this.selectedCategories.add(category));
+        this.updateCheckboxStates(true);
+        if (!skipFilterEvent) {
+          await this.cache.fm.handleFilterEvent("Showing Elements", `Nodes and related edges for ${this.propID}`, this.propID);
+        }
+      } catch (err) {
+        this.cache.ui.error(`Failed to select all categories: ${err.message}`);
+      }
+    }
+    async deselectAllCategories(skipFilterEvent = false) {
+      try {
+        this.categories.forEach((category) => this.selectedCategories.delete(category));
+        this.updateCheckboxStates(false);
+        if (!skipFilterEvent) {
+          await this.cache.fm.handleFilterEvent("Hiding Elements", `Nodes and related edges for ${this.propID}`, this.propID);
+        }
+      } catch (err) {
+        this.cache.ui.error(`Failed to deselect all categories: ${err.message}`);
+      }
+    }
+    updateCheckboxStates(selectAll) {
+      Array.from(this.itemsList.querySelectorAll("input[type='checkbox']")).forEach((checkbox) => {
+        checkbox.checked = selectAll;
+        selectAll ? checkbox.nextElementSibling.classList.add("checked") : checkbox.nextElementSibling.classList.remove("checked");
+      });
+      this.anchor.textContent = `${this.selectedCategories.size}/${this.categories.size} selected`;
+    }
+  };
+  var InvertibleRangeSlider = class {
+    constructor(propID, cache3) {
+      this.propID = propID;
+      this.cache = cache3;
+      const defaultFilterData = structuredClone(this.cache.data.filterDefaults.get(propID));
+      this.readCurrentFilterSettings();
+      this.sliderMin = defaultFilterData.lowerThreshold;
+      this.sliderMax = defaultFilterData.upperThreshold;
+      this.stepSize = StaticUtilities.isInteger(this.sliderMin) && StaticUtilities.isInteger(this.sliderMax) ? this.cache.CFG.FILTER_STEP_SIZE_INTEGER : this.cache.CFG.FILTER_STEP_SIZE_FLOAT;
+      this.initializeIds();
+      this.inputStart = null;
+      this.inputEnd = null;
+      this.cache.propIDToInvertibleRangeSliders.set(propID, this);
+    }
+    initializeIds() {
+      this.sliderId = `filter-${this.propID}-slider`;
+      this.sliderIdStart = `${this.sliderId}-start`;
+      this.sliderIdStartInput = `${this.sliderId}-start-input`;
+      this.sliderIdEnd = `${this.sliderId}-end`;
+      this.sliderIdEndInput = `${this.sliderId}-end-input`;
+      this.inverseLeftId = `${this.sliderId}-inverse-left`;
+      this.inverseRightId = `${this.sliderId}-inverse-right`;
+      this.rangeId = `${this.sliderId}-range`;
+      this.thumbStartId = `${this.sliderId}-thumb-start`;
+      this.thumbEndId = `${this.sliderId}-thumb-end`;
+      this.labelStartId = `${this.sliderIdStart}-label`;
+      this.labelEndId = `${this.sliderIdEnd}-label`;
+    }
+    readCurrentFilterSettings() {
+      if (!this.cache.data.layouts[this.cache.data.selectedLayout].filters.has(this.propID)) {
+        this.currentMin = 0;
+        this.currentMax = 1;
+        this.isInverted = false;
+      } else {
+        let filterData = this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(this.propID);
+        this.currentMin = filterData.lowerThreshold;
+        this.currentMax = filterData.upperThreshold;
+        this.isInverted = filterData.isInverted;
+      }
+    }
+    writeCurrentFilterSettings() {
+      if (this.cache.data.layouts[this.cache.data.selectedLayout].filters.has(this.propID)) {
+        let filterData = this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(this.propID);
+        filterData.lowerThreshold = this.currentMin;
+        filterData.upperThreshold = this.currentMax;
+        filterData.isInverted = this.isInverted;
+      }
+    }
+    calcPercentage(value) {
+      return (value - this.sliderMin) / (this.sliderMax - this.sliderMin) * 100;
+    }
+    getDOMReferences() {
+      this.slider = document.getElementById(this.sliderId);
+      this.sliderStart = document.getElementById(this.sliderIdStart);
+      this.sliderStartInput = document.getElementById(this.sliderIdStartInput);
+      this.sliderEnd = document.getElementById(this.sliderIdEnd);
+      this.sliderEndInput = document.getElementById(this.sliderIdEndInput);
+      this.inverseLeft = document.getElementById(this.inverseLeftId);
+      this.inverseRight = document.getElementById(this.inverseRightId);
+      this.range = document.getElementById(this.rangeId);
+      this.thumbStart = document.getElementById(this.thumbStartId);
+      this.thumbEnd = document.getElementById(this.thumbEndId);
+      this.labelStart = document.getElementById(this.labelStartId);
+      this.labelEnd = document.getElementById(this.labelEndId);
+    }
+    createSliderInput(id, initialValue, relatedSliderId) {
+      const input = document.createElement("input");
+      input.id = id;
+      input.style.width = "80px";
+      input.style.height = "16px";
+      input.style.boxSizing = "border-box";
+      input.value = initialValue;
+      input.addEventListener("keydown", (ev) => {
+        if (this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) {
+          ev.preventDefault();
+          return;
+        }
+        if (ev.key === "Enter") {
+          let newValue = parseFloat(input.value);
+          const sliderElem = document.getElementById(relatedSliderId);
+          if (isNaN(newValue) || newValue < this.sliderMin || newValue > this.sliderMax) {
+            input.value = sliderElem.value;
+          } else {
+            sliderElem.value = newValue;
+            sliderElem.dispatchEvent(new Event("input"));
+            sliderElem.dispatchEvent(new Event("change"));
+          }
+        }
+      });
+      return input;
+    }
+    reset() {
+      this.setTo(this.sliderMin, this.sliderMax, false);
+      this.isInverted = false;
+      this.currentMin = this.sliderMin;
+      this.currentMax = this.sliderMax;
+      this.writeCurrentFilterSettings();
+    }
+    appendTo(parent) {
+      if (this.cache.CFG.HIDE_SLIDERS_WITH_SAME_MIN_MAX_VALUES && this.sliderMin === this.sliderMax) {
+        parent.appendChild(document.createElement("span"));
+        return false;
+      }
+      this.isValidSlider = true;
+      const colLeft = document.createElement("div");
+      colLeft.classList.add("show-on-edit");
+      colLeft.style.transition = "width 0.2s ease";
+      this.inputStart = this.createSliderInput(this.sliderIdStartInput, this.currentMin, this.sliderIdStart);
+      colLeft.appendChild(this.inputStart);
+      const colRight = document.createElement("div");
+      colRight.classList.add("show-on-edit");
+      colRight.style.transition = "width 0.2s ease";
+      this.inputEnd = this.createSliderInput(this.sliderIdEndInput, this.currentMax, this.sliderIdEnd);
+      colRight.appendChild(this.inputEnd);
+      const div = document.createElement("div");
+      div.innerHTML = this.createDivInnerHTML();
+      const slider = div.firstElementChild;
+      slider.classList.add("hide-on-edit");
+      slider.style.width = "100%";
+      slider.title = `Set the thresholds for the numeric property: ${StaticUtilities.formatPropsAsTree(this.propID)}
 ---
   - Move handles to set min/max (\u2265 min \u2227 \u2264 max).
   - Swap handles to invert (\u2264 min \u2228 \u2265 max).
-  - Double-click to reset.`,e.appendChild(a),e.appendChild(t),e.appendChild(i),e.appendChild(s)}createDivInnerHTML(){return`
+  - Double-click to reset.`;
+      parent.appendChild(div);
+      parent.appendChild(colLeft);
+      parent.appendChild(slider);
+      parent.appendChild(colRight);
+    }
+    createDivInnerHTML() {
+      return `
       <div slider id="${this.sliderId}">
         <div>
           <div id="${this.inverseLeftId}" inverse-left style="width:${this.calcPercentage(this.currentMin)}%;"></div>
-          <div id="${this.inverseRightId}" inverse-right style="width:${100-this.calcPercentage(this.currentMax)}%;"></div>
+          <div id="${this.inverseRightId}" inverse-right style="width:${100 - this.calcPercentage(this.currentMax)}%;"></div>
           <div id="${this.rangeId}" range style="left:${this.calcPercentage(this.currentMin)}%; 
-                 right:${100-this.calcPercentage(this.currentMax)}%;"></div>
+                 right:${100 - this.calcPercentage(this.currentMax)}%;"></div>
           <span id="${this.thumbStartId}" thumb style="left:${this.calcPercentage(this.currentMin)}%;"></span>
           <span id="${this.thumbEndId}" thumb style="left:${this.calcPercentage(this.currentMax)}%;"></span>
           <div sign class="left" style="left:0%;">
-            <span id="${this.labelStartId}">${_.formatNumber(this.currentMin,this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION)}</span>
+            <span id="${this.labelStartId}">${StaticUtilities.formatNumber(this.currentMin, this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION)}</span>
           </div>
           <div sign class="right" style="left:100%; margin-left: 24px;">
-            <span id="${this.labelEndId}">${_.formatNumber(this.currentMax,this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION)}</span>
+            <span id="${this.labelEndId}">${StaticUtilities.formatNumber(this.currentMax, this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION)}</span>
           </div>
         </div>
         <input type="range" tabindex="0" value="${this.currentMin}" max="${this.sliderMax}" min="${this.sliderMin}" 
@@ -427,27 +7772,2180 @@ A node is important if it receives many links from other important nodes.
         <input type="range" tabindex="0" value="${this.currentMax}" max="${this.sliderMax}" min="${this.sliderMin}" 
           step="${this.stepSize}" id="${this.sliderIdEnd}" />
       </div>
-    `}appendListeners(){this.isValidSlider&&(this.getDOMReferences(),this.slider.addEventListener("dblclick",()=>{this.reset(),this.sliderEnd.dispatchEvent(new Event("change"))}),this.sliderStart.addEventListener("input",()=>{this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY||this.handleThresholdOnInputEvent(!0)}),this.sliderStart.addEventListener("change",async()=>{if(!this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY)try{this.writeCurrentFilterSettings(),await this.cache.fm.handleFilterEvent("Filtering",`Applying lower threshold ${this.sliderStart.value} for ${this.propID}`,this.propID)}catch(e){this.cache.ui.error(`Failed to apply lower threshold: ${e.message}`)}}),this.sliderEnd.addEventListener("input",()=>{this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY||this.handleThresholdOnInputEvent(!1)}),this.sliderEnd.addEventListener("change",async()=>{if(!this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY)try{this.writeCurrentFilterSettings(),await this.cache.fm.handleFilterEvent("Filtering",`Applying upper threshold ${this.sliderEnd.value} for ${this.propID}`,this.propID)}catch(e){this.cache.ui.error(`Failed to apply upper threshold: ${e.message}`)}}),this.sliderStart.dispatchEvent(new Event("input")),this.sliderEnd.dispatchEvent(new Event("input")))}handleThresholdOnInputEvent(e){let t=e?this.sliderStart:this.sliderEnd,s=e?this.sliderEnd:this.sliderStart,a=parseFloat(t.value),i=parseFloat(s.value);if(this.isInverted=e?a>i:a<i,this.isInverted){this.range.style.width="0%";let n=this.calcPercentage(e?i:a),o=this.calcPercentage(e?a:i);this.inverseLeft.style.width=n+"%",this.inverseRight.style.width=100-o+"%",this.range.style.left="50%",this.inverseLeft.style.backgroundColor="#C33D35",this.inverseRight.style.backgroundColor="#C33D35",e?(this.labelEnd.innerHTML=_.formatNumber(a,this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION),this.labelStart.innerHTML=_.formatNumber(i,this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION)):(this.labelStart.innerHTML=_.formatNumber(a,this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION),this.labelEnd.innerHTML=_.formatNumber(i,this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION)),this.labelStart.parentElement.classList.add("flipped"),this.labelEnd.parentElement.classList.add("flipped"),this.inputStart.classList.add("red"),this.inputEnd.classList.add("red")}else{let n=this.calcPercentage(e?a:i),o=100-this.calcPercentage(e?i:a);this.range.style.left=n+"%",this.range.style.width=100-n-o+"%",this.inverseLeft.style.width=n+"%",this.inverseRight.style.width=o+"%",this.inverseLeft.style.backgroundColor="grey",this.inverseRight.style.backgroundColor="grey",e?(this.labelStart.innerHTML=_.formatNumber(a,this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION),this.labelEnd.innerHTML=_.formatNumber(i,this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION)):(this.labelStart.innerHTML=_.formatNumber(i,this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION),this.labelEnd.innerHTML=_.formatNumber(a,this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION)),this.labelStart.parentElement.classList.remove("flipped"),this.labelEnd.parentElement.classList.remove("flipped"),this.inputStart.classList.remove("red"),this.inputEnd.classList.remove("red")}e?(this.thumbStart.style.left=this.calcPercentage(a)+"%",this.sliderStartInput.value=a,this.currentMin=a):(this.thumbEnd.style.left=this.calcPercentage(a)+"%",this.sliderEndInput.value=a,this.currentMax=a)}setTo(e,t,s){let a=Math.min(Math.max(e,this.sliderMin),this.sliderMax),i=Math.min(Math.max(t,this.sliderMin),this.sliderMax);if(!s&&e>t){this.cache.ui.error(`Cannot set min threshold to ${e} and max threshold to ${t} for ${this.propID}`);return}if(s&&t<e){this.cache.ui.error(`Cannot set threshold to LOWER THAN ${e} OR GREATER THAN ${t} for inverted ${this.propID}`);return}e<this.sliderMin&&this.cache.ui.warning(`Minimum threshold for ${this.propID} corrected to ${a} (from ${e})`),t>this.sliderMax&&this.cache.ui.warning(`Maximum threshold for ${this.propID} corrected to ${i} (from ${t})`),this.sliderStart.value=s?i:a,this.sliderEnd.value=s?a:i,this.handleThresholdOnInputEvent(!0),this.handleThresholdOnInputEvent(!1),this.writeCurrentFilterSettings()}},me=class{constructor(e){this.cache=e}buildDropdownOptions(){let e=document.getElementById("selectView"),t=Object.keys(this.cache.data.layouts).map(s=>{let a=this.cache.data.selectedLayout===s?"selected":"";return`<option value="${s}" ${a}>${s}</option>`});e.innerHTML=t.join("")}createSectionToggleButton(e,t,s=null){let a=document.createElement("button");return a.className="small-btn toggle-section-btn ml-1",s&&a.classList.add("extra-small"),a.textContent=e?"\u2714":"\u2717",a.title=`${e?"Enable":"Disable"} all filters for the ${s?`group: 
- \u2514\u2500 `+t+`
-        \u2514\u2500 `+s:`section: 
- \u2514\u2500 `+t}`,a.onclick=async()=>{s?await this.cache.ui.toggleSubSection(e,t,s):await this.cache.ui.toggleSection(e,t)},a}createSectionResetButton(e,t=void 0){let s=document.createElement("button");return s.className="small-btn toggle-section-btn ml-1",t&&s.classList.add("extra-small"),s.textContent="\u27F3",s.title=`Reset all filters for the ${t?`group to their default values: 
- \u2514\u2500 `+e+`
-        \u2514\u2500 `+t:`section to their default values: 
- \u2514\u2500 `+e}`,s.onclick=async()=>{await this.cache.fm.resetFilters(e,t)},s}createCircleGroupButtonWithQuadrants(e){let t=document.createElement("div");t.className="circle-button";for(let[s,a]of Object.entries(z.BUBBLE_GROUP_QUADRANT_POSITIONS)){let i=document.createElement("button");i.classList.add("quadrant"),i.classList.add(a),this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(e)[`${s}Members`].size===0?i.classList.remove("active"):i.classList.add("active"),i.addEventListener("click",async()=>{try{let n=i.classList.contains("active"),o=this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(e)[`${s}Members`];n?(this.cache.data.layouts[this.cache.data.selectedLayout][`${s}Props`].delete(e),i.title=`Remove ${e} from ${s}.`,o.delete(e),i.classList.remove("active"),await this.cache.gcm.decideToRenderOrDraw()):(this.cache.data.layouts[this.cache.data.selectedLayout][`${s}Props`].add(e),i.title=`Highlight ${e} and add to bubble-group (${s})`,o.add(e),i.classList.add("active"),await this.cache.gcm.decideToRenderOrDraw())}catch(n){this.cache.ui.error(`Failed to update bubble set group: ${n.message}`)}}),i.title=`Highlight ${e} and add to bubble-group (${s})`,t.appendChild(i)}return t}createManualBubbleGroupButton(){let e=document.createElement("div");e.className="circle-button-compact",e.id="manualBubbleGroupButton";for(let[t,s]of Object.entries(z.BUBBLE_GROUP_QUADRANT_POSITIONS)){let a=document.createElement("button");a.classList.add("quadrant"),a.classList.add(s),a.classList.add("manual"),a.classList.add("compact"),a.addEventListener("click",async()=>{try{await this.cache.bs.toggleSelectedNodesInManualGroup(t)}catch(i){this.cache.ui.error(`Failed to update manual bubble group: ${i.message}`)}}),a.title=`Toggle selected nodes in manual ${t}`,e.appendChild(a)}return e}buildToolTipText(e,t){function s(){let D=`<span class='purple'>ID: </span>${n.id}`,L=n.label&&n.label!==n.id?`${n.label}<br><small>${D}</small>`:D;return`<h3>
-      <span class="purple">${t?"Edge":"Node"}</span> 
-      <span class="red">${L}</span>
-    </h3>`}function a(){n.description&&(o+=`<p class="tooltip-description">${n.description}</p>`)}function i(){t||(o+=`<div class="tooltip-metric-wrapper purple">
+    `;
+    }
+    appendListeners() {
+      if (!this.isValidSlider) return;
+      this.getDOMReferences();
+      this.slider.addEventListener("dblclick", () => {
+        this.reset();
+        this.sliderEnd.dispatchEvent(new Event("change"));
+      });
+      this.sliderStart.addEventListener("input", () => {
+        if (this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) return;
+        this.handleThresholdOnInputEvent(true);
+      });
+      this.sliderStart.addEventListener("change", async () => {
+        if (this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) return;
+        try {
+          this.writeCurrentFilterSettings();
+          await this.cache.fm.handleFilterEvent(
+            "Filtering",
+            `Applying lower threshold ${this.sliderStart.value} for ${this.propID}`,
+            this.propID
+          );
+        } catch (err) {
+          this.cache.ui.error(`Failed to apply lower threshold: ${err.message}`);
+        }
+      });
+      this.sliderEnd.addEventListener("input", () => {
+        if (this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) return;
+        this.handleThresholdOnInputEvent(false);
+      });
+      this.sliderEnd.addEventListener("change", async () => {
+        if (this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) return;
+        try {
+          this.writeCurrentFilterSettings();
+          await this.cache.fm.handleFilterEvent(
+            "Filtering",
+            `Applying upper threshold ${this.sliderEnd.value} for ${this.propID}`,
+            this.propID
+          );
+        } catch (err) {
+          this.cache.ui.error(`Failed to apply upper threshold: ${err.message}`);
+        }
+      });
+      this.sliderStart.dispatchEvent(new Event("input"));
+      this.sliderEnd.dispatchEvent(new Event("input"));
+    }
+    handleThresholdOnInputEvent(isLower) {
+      const primarySlider = isLower ? this.sliderStart : this.sliderEnd;
+      const secondarySlider = isLower ? this.sliderEnd : this.sliderStart;
+      const primaryValue = parseFloat(primarySlider.value);
+      const secondaryValue = parseFloat(secondarySlider.value);
+      this.isInverted = isLower ? primaryValue > secondaryValue : primaryValue < secondaryValue;
+      if (this.isInverted) {
+        this.range.style.width = "0%";
+        const leftWidth = this.calcPercentage(isLower ? secondaryValue : primaryValue);
+        const rightWidth = this.calcPercentage(isLower ? primaryValue : secondaryValue);
+        this.inverseLeft.style.width = leftWidth + "%";
+        this.inverseRight.style.width = 100 - rightWidth + "%";
+        this.range.style.left = "50%";
+        this.inverseLeft.style.backgroundColor = "#C33D35";
+        this.inverseRight.style.backgroundColor = "#C33D35";
+        if (isLower) {
+          this.labelEnd.innerHTML = StaticUtilities.formatNumber(primaryValue, this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION);
+          this.labelStart.innerHTML = StaticUtilities.formatNumber(secondaryValue, this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION);
+        } else {
+          this.labelStart.innerHTML = StaticUtilities.formatNumber(primaryValue, this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION);
+          this.labelEnd.innerHTML = StaticUtilities.formatNumber(secondaryValue, this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION);
+        }
+        this.labelStart.parentElement.classList.add("flipped");
+        this.labelEnd.parentElement.classList.add("flipped");
+        this.inputStart.classList.add("red");
+        this.inputEnd.classList.add("red");
+      } else {
+        const leftPos = this.calcPercentage(isLower ? primaryValue : secondaryValue);
+        const rightPos = 100 - this.calcPercentage(isLower ? secondaryValue : primaryValue);
+        this.range.style.left = leftPos + "%";
+        this.range.style.width = 100 - leftPos - rightPos + "%";
+        this.inverseLeft.style.width = leftPos + "%";
+        this.inverseRight.style.width = rightPos + "%";
+        this.inverseLeft.style.backgroundColor = "grey";
+        this.inverseRight.style.backgroundColor = "grey";
+        if (isLower) {
+          this.labelStart.innerHTML = StaticUtilities.formatNumber(primaryValue, this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION);
+          this.labelEnd.innerHTML = StaticUtilities.formatNumber(secondaryValue, this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION);
+        } else {
+          this.labelStart.innerHTML = StaticUtilities.formatNumber(secondaryValue, this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION);
+          this.labelEnd.innerHTML = StaticUtilities.formatNumber(primaryValue, this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION);
+        }
+        this.labelStart.parentElement.classList.remove("flipped");
+        this.labelEnd.parentElement.classList.remove("flipped");
+        this.inputStart.classList.remove("red");
+        this.inputEnd.classList.remove("red");
+      }
+      if (isLower) {
+        this.thumbStart.style.left = this.calcPercentage(primaryValue) + "%";
+        this.sliderStartInput.value = primaryValue;
+        this.currentMin = primaryValue;
+      } else {
+        this.thumbEnd.style.left = this.calcPercentage(primaryValue) + "%";
+        this.sliderEndInput.value = primaryValue;
+        this.currentMax = primaryValue;
+      }
+    }
+    setTo(min, max, inverted) {
+      const clampedMin = Math.min(Math.max(min, this.sliderMin), this.sliderMax);
+      const clampedMax = Math.min(Math.max(max, this.sliderMin), this.sliderMax);
+      if (!inverted && min > max) {
+        this.cache.ui.error(`Cannot set min threshold to ${min} and max threshold to ${max} for ${this.propID}`);
+        return;
+      }
+      if (inverted && max < min) {
+        this.cache.ui.error(`Cannot set threshold to LOWER THAN ${min} OR GREATER THAN ${max} for inverted ${this.propID}`);
+        return;
+      }
+      if (min < this.sliderMin) {
+        this.cache.ui.warning(`Minimum threshold for ${this.propID} corrected to ${clampedMin} (from ${min})`);
+      }
+      if (max > this.sliderMax) {
+        this.cache.ui.warning(`Maximum threshold for ${this.propID} corrected to ${clampedMax} (from ${max})`);
+      }
+      this.sliderStart.value = inverted ? clampedMax : clampedMin;
+      this.sliderEnd.value = inverted ? clampedMin : clampedMax;
+      this.handleThresholdOnInputEvent(true);
+      this.handleThresholdOnInputEvent(false);
+      this.writeCurrentFilterSettings();
+    }
+  };
+  var UIComponentManager = class {
+    constructor(cache3) {
+      this.cache = cache3;
+    }
+    buildDropdownOptions() {
+      let selectViewDropdown = document.getElementById("selectView");
+      let selectViewOptions = Object.keys(this.cache.data.layouts).map((key) => {
+        let selected = this.cache.data.selectedLayout === key ? "selected" : "";
+        return `<option value="${key}" ${selected}>${key}</option>`;
+      });
+      selectViewDropdown.innerHTML = selectViewOptions.join("");
+    }
+    createSectionToggleButton(enable, section, subSection = null) {
+      const btn = document.createElement("button");
+      btn.className = "small-btn toggle-section-btn ml-1";
+      if (subSection) btn.classList.add("extra-small");
+      btn.textContent = enable ? "\u2714" : "\u2717";
+      btn.title = `${enable ? "Enable" : "Disable"} all filters for the ${subSection ? "group: \n \u2514\u2500 " + section + "\n        \u2514\u2500 " + subSection : "section: \n \u2514\u2500 " + section}`;
+      btn.onclick = async () => {
+        subSection ? await this.cache.ui.toggleSubSection(enable, section, subSection) : await this.cache.ui.toggleSection(enable, section);
+      };
+      return btn;
+    }
+    createSectionResetButton(section, subSection = void 0) {
+      const btn = document.createElement("button");
+      btn.className = "small-btn toggle-section-btn ml-1";
+      if (subSection) btn.classList.add("extra-small");
+      btn.textContent = "\u27F3";
+      btn.title = `Reset all filters for the ${subSection ? "group to their default values: \n \u2514\u2500 " + section + "\n        \u2514\u2500 " + subSection : "section to their default values: \n \u2514\u2500 " + section}`;
+      btn.onclick = async () => {
+        await this.cache.fm.resetFilters(section, subSection);
+      };
+      return btn;
+    }
+    createCircleGroupButtonWithQuadrants(propID) {
+      const circleButton = document.createElement("div");
+      circleButton.className = `circle-button`;
+      for (let [group, quadrantPosition] of Object.entries(DEFAULTS.BUBBLE_GROUP_QUADRANT_POSITIONS)) {
+        const quadrant = document.createElement("button");
+        quadrant.classList.add("quadrant");
+        quadrant.classList.add(quadrantPosition);
+        this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(propID)[`${group}Members`].size === 0 ? quadrant.classList.remove("active") : quadrant.classList.add("active");
+        quadrant.addEventListener("click", async () => {
+          try {
+            let shouldShowRemove = quadrant.classList.contains("active");
+            let members = this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(propID)[`${group}Members`];
+            if (shouldShowRemove) {
+              this.cache.data.layouts[this.cache.data.selectedLayout][`${group}Props`].delete(propID);
+              quadrant.title = `Remove ${propID} from ${group}.`;
+              members.delete(propID);
+              quadrant.classList.remove("active");
+              await this.cache.gcm.decideToRenderOrDraw();
+            } else {
+              this.cache.data.layouts[this.cache.data.selectedLayout][`${group}Props`].add(propID);
+              quadrant.title = `Highlight ${propID} and add to bubble-group (${group})`;
+              members.add(propID);
+              quadrant.classList.add("active");
+              await this.cache.gcm.decideToRenderOrDraw();
+            }
+          } catch (err) {
+            this.cache.ui.error(`Failed to update bubble set group: ${err.message}`);
+          }
+        });
+        quadrant.title = `Highlight ${propID} and add to bubble-group (${group})`;
+        circleButton.appendChild(quadrant);
+      }
+      return circleButton;
+    }
+    createManualBubbleGroupButton() {
+      const circleButton = document.createElement("div");
+      circleButton.className = `circle-button-compact`;
+      circleButton.id = "manualBubbleGroupButton";
+      for (let [group, quadrantPosition] of Object.entries(DEFAULTS.BUBBLE_GROUP_QUADRANT_POSITIONS)) {
+        const quadrant = document.createElement("button");
+        quadrant.classList.add("quadrant");
+        quadrant.classList.add(quadrantPosition);
+        quadrant.classList.add("manual");
+        quadrant.classList.add("compact");
+        quadrant.addEventListener("click", async () => {
+          try {
+            await this.cache.bs.toggleSelectedNodesInManualGroup(group);
+          } catch (err) {
+            this.cache.ui.error(`Failed to update manual bubble group: ${err.message}`);
+          }
+        });
+        quadrant.title = `Toggle selected nodes in manual ${group}`;
+        circleButton.appendChild(quadrant);
+      }
+      return circleButton;
+    }
+    buildToolTipText(nodeOrEdgeID, isEdge) {
+      function initAndAddHeader() {
+        const idFormatted = `<span class='purple'>ID: </span>${item.id}`;
+        const label = item.label && item.label !== item.id ? `${item.label}<br><small>${idFormatted}</small>` : idFormatted;
+        return `<div class="tooltip-header">
+      <div class="tooltip-header-text">
+        <span class="purple">${isEdge ? "Edge" : "Node"}</span>
+        <span class="red">${label}</span>
+      </div>
+      <button class="tooltip-expand-btn" onclick="window.toggleTooltipExpand(this)">\u2922</button>
+    </div>
+    <div class="tooltip-content">`;
+      }
+      function addDescription() {
+        if (item.description) {
+          tooltip += `<p class="tooltip-description">${item.description}</p>`;
+        }
+      }
+      function addMetric() {
+        if (!isEdge) {
+          tooltip += `<div class="tooltip-metric-wrapper purple">
         <hr>
         <h5 class="tooltip-sub-section red-background">
           \u{1F4CA} <span class="tooltip-metric-header"></span>
         </h5>
         <p class="tooltip-metric-content"></p>
-      </div>`)}let n=t?this.cache.edgeRef.get(e):this.cache.nodeRef.get(e),o=s();if(a(),i(),!n.D4Data)return o;let c=this.cache.CFG.SORT_TOOLTIPS?[...this.cache.data.filterDefaults.keys()].sort():[...this.cache.data.filterDefaults.keys()],r=[];function d(D,L,v,F){let A=r.find(B=>B.section===D);A||(A={section:D,subSections:[]},r.push(A));let x=A.subSections.find(B=>B.name===L);x||(x={name:L,props:[]},A.subSections.push(x)),x.props.push({key:v,value:F})}for(let D of c){let[L,v,F]=_.decodePropHashId(D),A=n.D4Data?.[L]?.[v]?.[F];if(A===void 0||this.cache.CFG.TOOLTIP_HIDE_NULL_VALUES&&A===0)continue;let x=isNaN(A)?A:_.formatNumber(A,this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION);d(L,v,F,x)}function h(){for(let D of r)for(let L of D.subSections)L.props.sort((v,F)=>v.key.localeCompare(F.key))}this.cache.CFG.SORT_TOOLTIPS&&h();function m(){let D=[];for(let L of r){D.push({type:"section",text:L.section});for(let v of L.subSections)D.push({type:"subSection",section:L.section,text:v.name,props:v.props})}return D}let f=m();if(f.length===0)return o;let E=[],C=Math.ceil(f.length/this.cache.CFG.TOOLTIP_MAX_COLUMNS);for(let D=0;D<this.cache.CFG.TOOLTIP_MAX_COLUMNS;D++){let L=D*C,v=L+C;E.push(f.slice(L,v))}function w(){o+='<hr><div class="tooltip-columns">';for(let D of E){o+='<div class="tooltip-column">';let L=!1;for(let v of D)if(v.type==="section")L&&(o+="</ul>",L=!1);else if(v.type==="subSection"){L&&(o+="</ul>",L=!1),o+=`<h5 class="tooltip-sub-section">${v.text}</h5><ul>`,L=!0;for(let F of v.props)o+=`<li>${F.key}: <span class="red"><b>${F.value}</b></span></li>`}L&&(o+="</ul>"),o+="</div>"}o+="</div>"}return w(),o}createCheckbox(e,t){let s=this.cache.uiComponents.createCheckboxContainer(e),a=document.createElement("label");a.className="checkboxWrapper",a.id=`filter-${e}-checkbox-wrapper`;let i=this.cache.uiComponents.createCheckboxInput(e,this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(e).active),n=this.cache.uiComponents.createCustomCheckbox(e),o=this.cache.uiComponents.createAddToQueryButton(e),c=document.createElement("span");c.className="checkboxLabel",c.textContent=t;let r=()=>{n.textContent=i.checked?"\u2714":"",a.title=this.cache.uiComponents.getCheckboxTT(i.checked,e)};return r(),i.addEventListener("change",r),a.addEventListener("change",async()=>{if(!this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY)try{this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(e).active=i.checked,i.checked?this.cache.activeProps.add(e):this.cache.activeProps.delete(e);let d=i.checked?"Showing":"Hiding";await this.cache.fm.handleFilterEvent(`${d} Elements`,`Nodes and related edges for ${e}`)}catch(d){this.cache.ui.error(`Failed to toggle filter: ${d.message}`)}}),a.append(i,n),s.append(a,o,c),i.checked?this.cache.activeProps.add(e):this.cache.activeProps.delete(e),s}createQueryButton(e,t){let s=document.createElement("button");return s.className="showOnQuery tiny-btn",s.textContent="Q",s.title=`Query for nodes with the property:
- * ${e}`,s.onclick=async()=>{console.log("foo")},s}createCheckboxContainer(e){let t=document.createElement("div");return t.className="checkboxContainer",t.id=`filter-${e}-container`,t}createCheckboxInput(e,t){let s=document.createElement("input");return s.id=`filter-${e}-checkbox`,s.type="checkbox",s.checked=t,s.style.display="none",s}createCustomCheckbox(e){let t=document.createElement("span");return t.id=`filter-${e}-checkbox-inner`,t.className="checkbox checkbox-green",t}createAddToQueryButton(e){let t=document.createElement("button");return t.className="add-to-query-button",t.textContent="\u{1F4DD}",t.title=`Add ${e} to the query`,t.addEventListener("click",s=>{s.preventDefault(),s.stopPropagation();let a=this.cache.propIDToInvertibleRangeSliders.get(e),i=this.cache.propIDToDropdownChecklists.get(e),n;a?this.cache.CFG.QUERY_BTN_USE_CURRENT_FILTER?n=a.isInverted?`${e} LOWER THAN ${a.currentMax} OR GREATER THAN ${a.currentMin}`:`${e} BETWEEN ${a.currentMin} AND ${a.currentMax}`:n=`(${e} BETWEEN ${a.sliderMin} AND ${a.sliderMax}`:i&&(this.cache.CFG.QUERY_BTN_USE_CURRENT_FILTER?n=`${e} IN [${[...i.selectedCategories].join(",")}]`:n=`${e} IN [${[...i.categories].join(",")}]`),this.cache.data.layouts[this.cache.data.selectedLayout].query===void 0&&this.cache.qm.handleQueryValidationEvent(),this.cache.query.text.textContent.trim()?this.cache.data.layouts[this.cache.data.selectedLayout].query+=` OR (${n})`:this.cache.data.layouts[this.cache.data.selectedLayout].query=`(${n})`,this.cache.qm.updateQueryTextArea()}),t}getCheckboxTT(e,t){return`Click to ${e?"hide":"show"} elements with the property:${_.formatPropsAsTree(t)}`}createAddOrRemoveToSelectionGroup(e){let t=document.createElement("div");t.classList.add("pm-group");let s=this.createAddOrRemoveToSelectionButton(e,!0),a=this.createAddOrRemoveToSelectionButton(e,!1);return t.appendChild(s),t.appendChild(a),t}createAddOrRemoveToSelectionButton(e,t){let s=document.createElement("button");return s.classList.add("plus-minus-button"),s.textContent=t?"+":"-",s.title=t?"Add to selection":"Remove from selection",s.addEventListener("click",async()=>{try{if(!this.cache.graph){this.cache.ui.warning("Please wait for graph to initialize");return}let a=this.cache.propIDsToNodeIDsToBeShown.get(e)||[];if(a.size>0){let n=this.cache.graph.getNodeData([...a]);await this.cache.sm.updateSelectedState(n,t)}let i=this.cache.propIDsToEdgeIDsToBeShown.get(e)||[];if(i.size>0){let n=this.cache.graph.getEdgeData([...i]);await this.cache.sm.updateSelectedState(n,t)}}catch(a){this.cache.ui.error(`Failed to update selection: ${a.message}`)}}),s}};function xe(l){let e=document.createElement("div");function t(g){let u=document.createElement("div");return u.classList.add("card-row"),g.appendChild(u),u}function s(g,u=void 0,p=void 0,y=void 0,b=void 0){let S=document.createElement("div");S.className="vr",b&&S.classList.add(b),g.appendChild(S),i(g,u,p,y,b)}function a(g,u=void 0){if(g){let p=document.createElement("label");return p.textContent=g,p.className="vr-label",p.id=g,u&&(p.title=u),p}return null}function i(g,u,p=void 0,y=void 0,b=void 0){let S=a(u,p);y&&(S.id=y),b&&S.classList.add(b),S&&g.appendChild(S)}function n(g,u=void 0){let p=document.createElement("div");return p.classList.add("card-labeled"),p.dataset.label=g,p.id=g,u?u.appendChild(p):e.appendChild(p),p}function o(g=void 0,u=void 0,p=!1){let y=document.createElement("label");y.className="switch";let b=document.createElement("input");b.type="checkbox",b.checked=p;let S=document.createElement("span");return S.className="slider round",g&&b.addEventListener("change",g),u&&(b.id=u,y.id=`${u}Label`),y.append(b,S),y.setChecked=N=>{b.checked=N},y.toggle=()=>{b.checked=!b.checked},y.isChecked=()=>b.checked,y}async function c(g,u){let p=[];if(u==="set_continuous_color_scale"&&(p.push("set_continuous_color_scale"),l.picker.currentProperty=g),u==="set_numeric_scale"&&p.push("set_numeric_scale"),g.startsWith("Bubble Set")){await l.bs.updateBubbleSetStyle(g,u);return}switch(g){case"Node Size":await l.gcm.updateNodes({style:{size:u}},p);break;case"Node Border Size":await l.gcm.updateNodes({style:{lineWidth:u}},p);break;case"Node Label Font Size":await l.gcm.updateNodes({style:{labelFontSize:u}},p);break;case"Node Label Font Color":await l.gcm.updateNodes({style:{labelFill:u}},p);break;case"Node Label Background Color":await l.gcm.updateNodes({style:{labelBackground:!0,labelBackgroundFill:u}},p);break;case"Node Fill Color":await l.gcm.updateNodes({style:{fill:u}},p);break;case"Node Border Color":await l.gcm.updateNodes({style:{stroke:u}},p);break;case"Node Label Color":await l.gcm.updateNodes({style:{labelFill:u}},p);break;case"Node Label Placement":await l.gcm.updateNodes({style:{labelPlacement:u}},p);break;case"Edge Color":await l.gcm.updateEdges({style:{stroke:u}},p);break;case"Edge Width":await l.gcm.updateEdges({style:{lineWidth:u}},p);break;case"Edge Dash":await l.gcm.updateEdges({style:{lineDash:u}},p);break;case"Edge Label Font Size":await l.gcm.updateEdges({style:{labelFontSize:u}},p);break;case"Edge Label Offset X":await l.gcm.updateEdges({style:{labelOffsetX:u}},p);break;case"Edge Label Offset Y":await l.gcm.updateEdges({style:{labelOffsetY:u}},p);break;case"Edge Label Placement":await l.gcm.updateEdges({style:{labelPlacement:u}},p);break;case"Edge Label Font Color":await l.gcm.updateEdges({style:{labelFill:u}},p);break;case"Edge Label Background Color":await l.gcm.updateEdges({style:{labelBackground:!0,labelBackgroundFill:u}},p);break;case"Edge Label Auto Rotate":await l.gcm.updateEdges({style:{labelAutoRotate:u}},p);break;case"Edge Start Arrow":await l.gcm.updateEdges({style:{startArrow:u}},p);break;case"Edge End Arrow":await l.gcm.updateEdges({style:{endArrow:u}},p);break;case"Edge Start Arrow Size":await l.gcm.updateEdges({style:{startArrowSize:u}},p);break;case"Edge End Arrow Size":await l.gcm.updateEdges({style:{endArrowSize:u}},p);break;case"Edge Start Arrow Type":await l.gcm.updateEdges({style:{startArrowType:u}},p);break;case"Edge End Arrow Type":await l.gcm.updateEdges({style:{endArrowType:u}},p);break;case"Edge Halo":await l.gcm.updateEdges({style:{halo:u}},p);break;case"Edge Halo Width":await l.gcm.updateEdges({style:{haloLineWidth:u}},p);break;case"Edge Halo Color":await l.gcm.updateEdges({style:{haloStroke:u}},p);break;default:break}}function r(g,u,p=void 0){let y=document.createElement("button");y.textContent="On",y.classList.add("style-inner-button"),y.onclick=async()=>{await c(u,!0)},p&&(y.title=p),g.appendChild(y);let b=document.createElement("button");b.textContent="Off",b.classList.add("style-inner-button"),b.onclick=async()=>{await c(u,!1)},p&&(b.title=p),g.appendChild(b)}function d(g,u,p,y,b=void 0){let S=document.createElement("select");S.className="style-inner-button",b&&(S.title=b),y.forEach(N=>{let T=document.createElement("option");T.value=N,T.textContent=N,S.appendChild(T),S.onchange=async()=>{await c(u,S.value)}}),S.value=p,g.appendChild(S)}function h(g,u,p,y={min:0,max:100,step:1},b=void 0,S=!0){let N=!Number.isInteger(y.min)||!Number.isInteger(y.max)||!Number.isInteger(y.step);function T(q){return N?parseFloat(q):parseInt(q,10)}let I=T(p),R=document.createElement("div");R.className="style-slider-container",b&&(R.title=b);let k=document.createElement("input");k.type="range",k.min=y.min,k.max=y.max,k.step=y.step,k.value=I,k.classList.add("style-slider");let O=document.createElement("input");if(O.type="number",O.value=I,O.classList.add("style-input-sm"),k.oninput=()=>{O.value=k.value},k.onchange=async()=>{await c(u,T(k.value))},O.onchange=async()=>{k.value=O.value,await c(u,T(O.value))},R.appendChild(k),R.appendChild(O),S){let q=document.createElement("button");q.className="style-inner-button style-numeric-scale-button",q.textContent="\u223F",q.title=`Scale ${u} based on a property's values`,q.style.marginLeft="2px",q.dataset.property=u,q.onclick=async()=>{l.numericPicker.currentProperty=u,await c(u,"set_numeric_scale")},R.appendChild(q)}g.appendChild(R)}function m(g,u){let p=document.createElement("input");return p.type="color",p.classList.add("style-inner-button"),p.style.width="24px",p.value=g,p.title=u,p}function f(g,u,p,y,b=!0,S=void 0){let N=document.createElement("div");N.className="style-color-button-container",S&&N.classList.add(S);for(let[R,k]of Object.entries(y)){let O=document.createElement("button");O.style.backgroundColor=k,O.style.color=_.getReadableForegroundColor(k),O.className="style-inner-button style-color-button",O.title=`Set ${u} of the selected elements to ${R} (${k}).`,R==="none"&&(O.textContent="\xD7",O.style.maxWidth="12px"),O.onclick=async()=>{I.value=k,await c(u,k)},S&&O.classList.add(S),N.appendChild(O)}g.appendChild(N);let T=m(p,`Set ${u} of the selected elements to a color of choice.`);T.oninput=()=>{I.value=T.value},T.onchange=async()=>{await c(u,T.value)};let I=document.createElement("input");if(I.type="text",I.value=p,I.classList.add("style-input"),I.title=`Set ${u} of the selected elements to a color of choice (RGBA hex color code). Confirm with Enter`,I.placeholder="Enter Color",I.addEventListener("keypress",async function(R){R.key==="Enter"&&(R.preventDefault(),await c(u,I.value))}),S&&(T.classList.add(S),I.classList.add(S)),g.appendChild(T),g.appendChild(I),b){let R=document.createElement("button");R.className="style-inner-button style-color-button style-color-gradient-button",R.title=`Set ${u} of the selected elements to a continuous scale.`,R.onclick=async()=>{I.value="",await c(u,"set_continuous_color_scale")},S&&R.classList.add(S),g.appendChild(R)}}function E(g,u,p=null){let y=D(120,`Enter Custom ${u}`,`Set the label of the selected ${p?"nodes":"edges"} to a custom label.`,void 0,async()=>{p?await l.gcm.updateNodes({style:{label:!0,labelText:y.value.trim()}}):await l.gcm.updateEdges({style:{label:!0,labelText:y.value.trim()}})}),b=C("Clear",`Clear the label of the selected ${p?"nodes":"edges"}.`,async()=>{y.value="";let T={style:{label:!0,labelText:l.CFG.INVISIBLE_CHAR}};p?await l.gcm.updateNodes(T):await l.gcm.updateEdges(T),y.value=""}),S=C("Set to ID",`Set the label of the selected ${p?"nodes":"edges"} to their predefined IDs.`,async()=>{y.value="";let T=["label_set_to_id"];p?await l.gcm.updateNodes(void 0,T):await l.gcm.updateEdges(void 0,T)}),N=C("Set to Label",`Set the label of the selected ${p?"nodes":"edges"} to their predefined labels.`,async()=>{y.value="";let T=["label_set_to_label"];p?await l.gcm.updateNodes(void 0,T):await l.gcm.updateEdges(void 0,T)});g.appendChild(y),g.appendChild(S),g.appendChild(N),g.appendChild(b)}function C(g,u,p,y=void 0){let b=document.createElement("button");return b.textContent=g,b.title=u,b.classList.add("style-inner-button"),g==="Clear"&&b.classList.add("red"),y?b.id=y:b.id=g,b.onclick=()=>{p()},b}function w(g,u,p,y){let b=C(u,p,y);g.appendChild(b)}function D(g=80,u=void 0,p=void 0,y=void 0,b=void 0){let S=document.createElement("input");return S.type="text",S.placeholder=u,S.title=p,S.classList.add("style-input"),S.style.width=`${g}px`,S.value=y||"",b&&S.addEventListener("keypress",function(N){N.key==="Enter"&&(N.preventDefault(),b(S.value.trim()))}),S}function L(g){for(let[u,p]of Object.entries(l.DEFAULTS.STYLES.NODE_FORM))w(g,u,p,async()=>await l.gcm.updateNodes({type:p}))}function v(g){for(let u of l.DEFAULTS.STYLES.EDGE_TYPES)w(g,u,u,async()=>await l.gcm.updateEdges({type:u}))}function F(g){let u=D(120,"Enter Badge Text","Enter the text of the badge to add to the selected nodes.",void 0,void 0);g.appendChild(u);let p=m(l.DEFAULTS.NODE.BADGE.COLOR,"Set the color of the badge.");g.appendChild(p);let y=document.createElement("select");y.className="style-inner-button",l.DEFAULTS.STYLES.NODE_BADGE_PLACEMENTS.forEach(b=>{let S=document.createElement("option");S.value=b,S.textContent=b.replace("-"," "),y.appendChild(S)}),g.appendChild(y),w(g,"Add","Add a badge to the selected nodes.",async()=>{await l.gcm.updateNodes({style:{badges:[{text:u.value.trim(),placement:y.value}],badgePalette:[p.value]}},["badge_add"])}),w(g,"Clear","Clear all badges from the selected nodes.",async()=>{await l.gcm.updateNodes({},["badge_clear"])})}function A(){let g=n("Focus Elements"),u=t(g);i(u,"Node ID/Label","Select the Node ID or Label to focus.","nodeFocusLabel"),x(u,!0),s(u),i(u,"Edge ID/Label","Select the Edge ID or Label to focus.","edgeFocusLabel"),x(u,!1)}function x(g,u,p=220){let y=document.createElement("input"),b=`focusOptions${u?"Node":"Edge"}`;y.setAttribute("list",b),y.placeholder=`Search ${u?"node":"edge"} ID or label...`,y.classList.add("style-input"),y.style.width=`${p}px`;let S=document.createElement("datalist");S.id=b;let N=u?l.nodeIDOrLabelToNodeIDs:l.edgeIDOrLabelToEdgeIDs;for(let I of N.keys()){let R=document.createElement("option");R.value=I,S.appendChild(R)}let T=document.createElement("button");T.textContent="Focus",T.classList.add("style-inner-button"),T.onclick=async()=>{let I=y.value;if(I){let R=N.get(I);R?(R.size!==1&&l.ui.warning(`Ambiguous selection: ${I} matches ${R.size} ${u?"nodes":"edges"} (${Array.from(R).join(",")}).`),await l.gcm.focusElements(R,u)):l.ui.warning(`No ${u?"node":"edge"} found for: ${I}`)}},g.appendChild(y),g.appendChild(S),g.appendChild(T)}function B(){let g=n("Select Elements"),u=t(g);w(u,"All Nodes","Select all visible nodes",async()=>await l.sm.toggleSelectionForAllNodes(!0)),w(u,"No Nodes","Deselect all visible nodes",async()=>await l.sm.toggleSelectionForAllNodes(!1)),s(u),w(u,"All Edges","Select all visible edges",async()=>await l.sm.toggleSelectionForAllEdges(!0)),w(u,"No Edges","Deselect all visible edges",async()=>await l.sm.toggleSelectionForAllEdges(!1)),s(u),w(u,"Expand Edges","Add all edges connected to the currently selected nodes to the selection",async()=>await l.sm.toggleSelectionByNeighbors("expand-edges")),w(u,"Reduce Edges","Remove edges that do not connect two selected nodes",async()=>await l.sm.toggleSelectionByNeighbors("reduce-edges")),s(u),w(u,"Expand Neighbors","Add all directly connected neighbor nodes (and their edges) to the current selection",async()=>await l.sm.toggleSelectionByNeighbors("expand-neighbors")),w(u,"Reduce Neighbors","Remove the outermost layer of selected neighbor nodes (and their edges) from the ",async()=>await l.sm.toggleSelectionByNeighbors("reduce-neighbors"));let p=t(g),y=`Enter comma-separated list of node IDs to add/remove to/from selection
-Confirm with Enter`;i(p,"Node ID(s)",y);let b=l.data?.nodes?.slice(0,2).map(H=>H.id).join(",")||"Node1,Node2",S=D(204,b,y,void 0,async H=>{await l.sm.addNodeOrEdgeIDsToSelectionWrapper(H,!0)});S.id="selectByNodeIDsInput",p.appendChild(S);let N=o(H=>{let W=document.getElementById("selectByNodeIDsButton");H.target.checked?(W.textContent="Exclude",W.classList.add("red"),W.title="Remove the selected nodes from the selection"):(W.textContent="Include",W.classList.remove("red"),W.title="Add the selected nodes to the selection")},"selectByNodeIDsSwitch");p.appendChild(N);let T=C("Include","Add the selected nodes to the selection",async()=>{let H=document.getElementById("selectByNodeIDsInput").value;H&&await l.sm.addNodeOrEdgeIDsToSelectionWrapper(H,!0)},"selectByNodeIDsButton");p.appendChild(T);let I=`Enter comma-separated list of edge IDs (SourceID::TargetID) to add/remove to/from selection
-Confirm with Enter`;s(p,"Edge ID(s)",I);let R=l.data?.edges?.slice(0,2).map(H=>H.id).join(",")||"Node1::Node2,Node1::Node3",k=D(204,R,I,void 0,async H=>{await l.sm.addNodeOrEdgeIDsToSelectionWrapper(H,!1)});k.id="selectByEdgeIDsInput",p.appendChild(k);let O=o(H=>{let W=document.getElementById("selectByEdgeIDsButton");H.target.checked?(W.textContent="Exclude",W.classList.add("red"),W.title="Remove the selected edges from the selection"):(W.textContent="Include",W.classList.remove("red"),W.title="Add the selected edges to the selection")},"selectByEdgeIDsSwitch");p.appendChild(O);let q=C("Include","Add the selected nodes to the selection",async()=>{let H=document.getElementById("selectByEdgeIDsInput").value;H&&await l.sm.addNodeOrEdgeIDsToSelectionWrapper(H,!1)},"selectByEdgeIDsButton");p.appendChild(q),P(g)}function P(g){let u;if((l.nodeLabels.length>0||l.edgeLabels.length>0)&&(u=t(g)),l.nodeLabels.length>0){let p=`Enter comma-separated list of node labels to add/remove to/from selection
-Confirm with Enter`;i(u,"Node Label(s)",p);let y=l.nodeLabels?.slice(0,2).join(",")||"Label1,Label2",b=D(200,y,p,void 0,async T=>{await l.sm.addNodeOrEdgeLabelsToSelectionWrapper(T,!0)});b.id="selectByNodeLabelsInput",u.appendChild(b);let S=o(T=>{let I=document.getElementById("selectByNodeLabelsButton");T.target.checked?(I.textContent="Exclude",I.classList.add("red"),I.title="Remove the selected nodes from the selection"):(I.textContent="Include",I.classList.remove("red"),I.title="Add the selected nodes to the selection")},"selectByNodeLabelsSwitch");u.appendChild(S);let N=C("Include","Add the selected nodes to the selection",async()=>{let T=document.getElementById("selectByNodeLabelsInput").value;T&&await l.sm.addNodeOrEdgeLabelsToSelectionWrapper(T,!0)},"selectByNodeLabelsButton");u.appendChild(N)}if(l.edgeLabels.length>0){let p=`Enter comma-separated list of edge Labels to add/remove to/from selection
-Confirm with Enter`;s(u,"Edge Label(s)",p);let y=l.edgeLabels.slice(0,2).join(",")||"Label1,Label2",b=D(200,y,p,void 0,async T=>{await l.sm.addNodeOrEdgeLabelsToSelectionWrapper(T,!1)});b.id="selectByEdgeLabelsInput",u.appendChild(b);let S=o(T=>{let I=document.getElementById("selectByEdgeLabelsButton");T.target.checked?(I.textContent="Exclude",I.classList.add("red"),I.title="Remove the selected edges from the selection"):(I.textContent="Include",I.classList.remove("red"),I.title="Add the selected edges to the selection")},"selectByEdgeLabelsSwitch");u.appendChild(S);let N=C("Include","Add the selected nodes to the selection",async()=>{let T=document.getElementById("selectByEdgeLabelsInput").value;T&&await l.sm.addNodeOrEdgeLabelsToSelectionWrapper(T,!1)},"selectByEdgeLabelsButton");u.appendChild(N)}}function M(){let g=n("Arrange Selection"),u=t(g);w(u,"Shrink","Move nodes closer together, halving their distance to the center.",async()=>await l.lm.layoutSelectedNodes("shrink")),w(u,"Expand","Move nodes farther apart, doubling their distance to the center.",async()=>await l.lm.layoutSelectedNodes("expand")),s(u),w(u,"Circle","Arrange nodes evenly in a circular layout around the center.",async()=>await l.lm.layoutSelectedNodes("circle")),w(u,"Force","Apply a force-directed layout to the selected nodes.",async()=>await l.lm.layoutSelectedNodes("force")),w(u,"Grid","Apply a uniform grid layout to the selected nodes.",async()=>await l.lm.layoutSelectedNodes("grid")),w(u,"Random","Apply a random layout to the selected nodes while preserving the original layout bonds.",async()=>await l.lm.layoutSelectedNodes("random"))}function G(){let g=n("Node Configuration"),u=t(g);i(u,"Shape"),L(u),s(u,"Size"),h(u,"Node Size",l.DEFAULTS.NODE.SIZE,{min:10,max:50,step:1}),s(u,"Fill Color"),f(u,"Node Fill Color",l.DEFAULTS.NODE.FILL_COLOR,l.DEFAULTS.STYLES.NODE_COLORS);let p=t(g);i(p,"Border Size","Defines the width of the border of the selected nodes."),h(p,"Node Border Size",l.DEFAULTS.NODE.LINE_WIDTH,{min:1,max:10,step:1},"Defines the width of the border of the selected nodes."),s(p,"Border Color","Defines the fill color of the selected nodes."),f(p,"Node Border Color",l.DEFAULTS.NODE.STROKE_COLOR,l.DEFAULTS.STYLES.NODE_BORDER_COLORS);let y=t(g);i(y,"Label","Customize the selected nodes labels."),E(y,"Node Label",!0),s(y,"Font Size","Defines the font size of the selected nodes labels."),h(y,"Node Label Font Size",l.DEFAULTS.NODE.LABEL.FONT_SIZE,{min:10,max:30,step:1},"Defines the font size of the selected nodes labels."),s(y,"Placement","Defines the placement of the selected nodes labels."),d(y,"Node Label Placement",l.DEFAULTS.NODE.LABEL.PLACEMENT,l.DEFAULTS.STYLES.NODE_LABEL_PLACEMENTS,"Defines the placement of the selected nodes labels.");let b=t(g);i(b,"Label Color","Defines the foreground (text) color of the selected nodes labels."),f(b,"Node Label Font Color",l.DEFAULTS.NODE.LABEL.FOREGROUND_COLOR,l.DEFAULTS.STYLES.NODE_LABEL_COLORS),s(b,"Label Background Color","Defines the background color of the selected nodes labels."),f(b,"Node Label Background Color",l.DEFAULTS.NODE.LABEL.BACKGROUND_COLOR,l.DEFAULTS.STYLES.NODE_LABEL_BACKGROUND_COLORS);let S=t(g);i(S,"Badges","Add Badges to the selected nodes."),F(S)}function V(){let g=n("Edge Configuration"),u=t(g);i(u,"Type","Change the geometric edge type of the selected edges."),v(u),s(u,"Width","Change the width of the selected edges."),h(u,"Edge Width",l.DEFAULTS.EDGE.LINE_WIDTH,{min:.1,max:10,step:.1},"Change the width of the selected edges."),s(u,"Dash","Define the dash pattern of the selected edges."),h(u,"Edge Dash",l.DEFAULTS.EDGE.LINE_DASH,{min:0,max:40,step:1},"Define the dash pattern of the selected edges."),s(u,"Color","Define the selected edges color."),f(u,"Edge Color",l.DEFAULTS.EDGE.COLOR,l.DEFAULTS.STYLES.EDGE_COLORS);let p=t(g);i(p,"Label","Customize the selected edges labels."),E(p,"Edge Label"),s(p,"Font Size","Defines the font size of the selected edges labels."),h(p,"Edge Label Font Size",l.DEFAULTS.EDGE.LABEL.FONT_SIZE,{min:10,max:30,step:1},"Defines the font size of the selected edges labels."),s(p,"Placement","Defines the placement of the selected edges labels."),d(p,"Edge Label Placement",l.DEFAULTS.EDGE.LABEL.PLACEMENT,l.DEFAULTS.STYLES.EDGE_LABEL_PLACEMENTS,"Defines the placement of the selected edges labels."),s(p,"Rotate","Enable/Disable label rotation."),r(p,"Edge Label Auto Rotate","Enable/Disable label rotation.");let y=t(g);i(y,"Label Offset X","Define the offset of the selected edges labels along the X-axis."),h(y,"Edge Label Offset X",l.DEFAULTS.EDGE.LABEL.OFFSET_X,{min:-100,max:100,step:1},"Define the offset of the selected edges labels along the X-axis.",!1),s(y,"Label Offset Y","Define the offset of the selected edges labels along the Y-axis."),h(y,"Edge Label Offset Y",l.DEFAULTS.EDGE.LABEL.OFFSET_Y,{min:-100,max:100,step:1},"Define the offset of the selected edges labels along the Y-axis.",!1);let b=t(g);i(b,"Label Color","Defines the foreground (text) color of the selected edges labels."),f(b,"Edge Label Font Color",l.DEFAULTS.EDGE.LABEL.FOREGROUND_COLOR,l.DEFAULTS.STYLES.EDGE_LABEL_COLORS,"Defines the foreground (text) color of the selected edges labels."),s(b,"Label Background Color","Defines the background color of the selected edges labels."),f(b,"Edge Label Background Color",l.DEFAULTS.EDGE.LABEL.BACKGROUND_COLOR,l.DEFAULTS.STYLES.EDGE_LABEL_BACKGROUND_COLORS,"Defines the background color of the selected edges labels.");let S=t(g);i(S,"Start Arrow","Enable/Disable the start arrow of the selected edges."),r(S,"Edge Start Arrow","Enable/Disable the start arrow of the selected edges."),s(S,"Size","Define the size of the start arrow of the selected edges."),h(S,"Edge Start Arrow Size",l.DEFAULTS.EDGE.ARROWS.START_SIZE,{min:10,max:40,step:1},"Define the size of the start arrow of the selected edges.",!0),s(S,"Type","Define the type of the start arrow of the selected edges."),d(S,"Edge Start Arrow Type",l.DEFAULTS.EDGE.ARROWS.START_TYPE,l.DEFAULTS.STYLES.EDGE_ARROW_TYPES,"Define the type of the start arrow of the selected edges.");let N=t(g);i(N,"End Arrow","Enable/Disable the end arrow of the selected edges."),r(N,"Edge End Arrow","Enable/Disable the end arrow of the selected edges."),s(N,"Size","Define the size of the end arrow of the selected edges."),h(N,"Edge End Arrow Size",l.DEFAULTS.EDGE.ARROWS.END_SIZE,{min:10,max:40,step:1},"Define the size of the end arrow of the selected edges.",!0),s(N,"Type","Define the type of the end arrow of the selected edges."),d(N,"Edge End Arrow Type",l.DEFAULTS.EDGE.ARROWS.END_TYPE,l.DEFAULTS.STYLES.EDGE_ARROW_TYPES,"Define the type of the end arrow of the selected edges.");let T=t(g);i(T,"Halo","Enable/Disable a halo around the selected edges."),r(T,"Edge Halo","Enable/Disable a halo around the selected edges."),s(T,"Color","Define the color of the halo for the selected edges."),f(T,"Edge Halo Color",l.DEFAULTS.EDGE.COLOR,l.DEFAULTS.STYLES.EDGE_COLORS),s(T,"Width","Define the halo width for the selected edges."),h(T,"Edge Halo Width",l.DEFAULTS.EDGE.HALO.WIDTH,{min:1,max:30,step:1},"Define the halo width for the selected edges.")}function U(){let g=n("Bubble Set Configuration"),u="bubbleSetOptionalLabelConfig",p=0;for(let y of l.bs.traverseBubbleSets()){p++;let b=n(`Bubble Set ${p}`,g);b.id=`bubbleSetStyleCard${y}`;let S=t(b);i(S,"Fill Color"),f(S,`Bubble Set ${y} Fill Color`,l.data.layouts[l.data.selectedLayout].bubbleSetStyle[y].fill,[],!1),s(S,"Fill Opacity"),h(S,`Bubble Set ${y} Fill Opacity`,l.data.layouts[l.data.selectedLayout].bubbleSetStyle[y].fillOpacity,{min:0,max:1,step:.01},`Define the fill opacity of the bubble set ${y}.`,!1),s(S,"Stroke Color"),f(S,`Bubble Set ${y} Stroke Color`,l.data.layouts[l.data.selectedLayout].bubbleSetStyle[y].stroke,[],!1),s(S,"Stroke Opacity"),h(S,`Bubble Set ${y} Stroke Opacity`,l.data.layouts[l.data.selectedLayout].bubbleSetStyle[y].strokeOpacity,{min:0,max:1,step:.01},`Define the stroke opacity of the bubble set ${y}.`,!1);let N=t(b);i(N,"Label");let T=o(async()=>{await l.bs.updateBubbleSetStyle(`Bubble Set ${y} Label`,T.isChecked())},void 0,l.data.layouts[l.data.selectedLayout].bubbleSetStyle[y].label);N.appendChild(T),s(N,"Label Text",void 0,void 0,u);let I=D(120,`${y} label text`,`Enter the label text for the bubble set ${y}.`,l.data.layouts[l.data.selectedLayout].bubbleSetStyle[y].labelText,async()=>{let k=I.value.trim();await l.bs.updateBubbleSetStyle(`Bubble Set ${y} Label Text`,k)});I.classList.add(u),N.appendChild(I),s(N,"Label Background",void 0,void 0,u);let R=o(async()=>{await l.bs.updateBubbleSetStyle(`Bubble Set ${y} Label Background`,R.isChecked())},void 0,l.data.layouts[l.data.selectedLayout].bubbleSetStyle[y].labelBackground||!0);R.classList.add(u),N.appendChild(R),s(N,"Label Background Color",void 0,void 0,u),f(N,`Bubble Set ${y} Label Background Color`,l.data.layouts[l.data.selectedLayout].bubbleSetStyle[y].labelBackgroundFill||l.data.layouts[l.data.selectedLayout].bubbleSetStyle[y].fill,[],!1,u)}}return A(),B(),M(),G(),V(),U(),e}var ye=class{constructor(e,t=!1){this.cache=e,this.debugEnabled=t}async showLoading(e,t=""){let s=document.getElementById("loadingOverlay");s.style.display="flex",s.style.opacity="1",document.getElementById("loadingHeader").textContent=e,document.getElementById("loadingText").textContent=t;let a=e;return t&&(a+=`: ${t}`),this.debug(a),s.getBoundingClientRect(),await new Promise(i=>requestAnimationFrame(i)),new Promise(i=>requestAnimationFrame(i))}async hideLoading(){let e=document.getElementById("loadingOverlay");e.style.opacity="0",await new Promise(t=>{let s=getComputedStyle(e).transitionDuration,a=parseFloat(s)*(s.includes("ms")?1:1e3);setTimeout(t,a)}),e.style.display="none",this.refreshUI()}refreshUI(){this.cache.initialized&&(this.toggleStyleElementsThatRequireAtLeastOneVisibleNode(this.cache.nodeIDsToBeShown.size>0),this.toggleStyleElementsThatRequireAtLeastOneVisibleEdge(this.cache.edgeIDsToBeShown.size>0),this.toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(this.cache.nodeIDsToBeShown.size>0||this.cache.edgeIDsToBeShown.size>0),document.getElementById("visibleNodes").innerHTML=`${this.cache.nodeIDsToBeShown.size-this.cache.hiddenDanglingNodeIDs.size}`,document.getElementById("totalNodes").innerHTML=`${this.cache.data.nodes.length}`,document.getElementById("visibleEdges").innerHTML=`${this.cache.edgeIDsToBeShown.size-this.cache.hiddenDanglingEdgeIDs.size}`,document.getElementById("totalEdges").innerHTML=`${this.cache.data.edges.length}`,this.cache.bs.refreshBubbleStyleElements())}toggleStyleElementsThatRequireAtLeastOneSelectedNode(e){this.toggleDisabledElements(["Node Configuration","Expand Edges","Reduce Edges","Expand Neighbors","Reduce Neighbors","deselectNodesBtn","focusNodesBtn"],e)}toggleStyleElementsThatRequireAtLeastOneSelectedEdge(e){this.toggleDisabledElements(["Edge Configuration","deselectEdgesBtn","focusEdgesBtn"],e)}toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(e){this.toggleDisabledElements(["resetSelectedElementsStyleBtn"],e)}toggleStyleElementsThatRequireAtLeastOneVisibleNode(e){this.toggleDisabledElements(["selectByNodeIDsInput","Node ID(s)","selectByNodeIDsSwitch","selectByNodeIDsSwitchLabel","selectByNodeIDsButton"],e)}toggleStyleElementsThatRequireAtLeastOneVisibleEdge(e){this.toggleDisabledElements(["selectByEdgeIDsInput","Edge ID(s)","selectByEdgeIDsSwitch","selectByEdgeIDsSwitchLabel","selectByEdgeIDsButton"],e)}toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(e){this.toggleDisabledElements(["Select Elements"],e)}toggleStyleElementsThatRequireMoreThanOneSelectedNode(e){this.toggleDisabledElements(["Arrange Selection"],e)}toggleDisabledElements(e,t){for(let s of e){let a=document.getElementById(s);a?t?a.classList.remove("disabled"):a.classList.add("disabled"):this.debug("Element not found: "+s)}}logMessage(e,t,s=!1,a=""){let i=_.getTimestamp(),n=document.getElementById("sidebarStatusContainer");n.style.height="8%";let o=document.createElement("p");o.style.margin="0 0 1px 0";let c=document.createElement("span");if(c.textContent=`${i} | `,c.classList.add("grey"),o.appendChild(c),a){let d=document.createElement("span");d.textContent=a,d.classList.add("mr"),o.appendChild(d)}let r=document.createElement("span");r.classList.add(t),r.style.fontWeight=s?"bold":"normal",r.textContent=e,o.appendChild(r),n.appendChild(o),n.scrollTop=n.scrollHeight}info(e){this.logMessage(e,"black",!1)}warning(e){this.logMessage(e,"dark-orange",!1,"\u26A0\uFE0F")}error(e){this.logMessage(e,"red",!0,"\u26D4")}success(e){this.logMessage(e,"green",!1)}debug(e){console.log(`${_.getTimestamp(!0)} | ${e}`),this.debugEnabled&&this.logMessage(e,"grey",!1)}toggleQueryEditor(){let e=document.getElementById("queryToggleBtn"),t=document.getElementById("dataToggleBtn");!e.classList.contains("highlight")?(this.showEditor("query"),e.classList.add("highlight"),t.classList.remove("highlight")):(this.hideBottomBar(),e.classList.remove("highlight"))}async toggleDataEditor(){let e=document.getElementById("queryToggleBtn"),t=document.getElementById("dataToggleBtn");!t.classList.contains("highlight")?(await this.showLoading("Data Editor","Loading Data Editor .."),this.showEditor("data"),t.classList.add("highlight"),e.classList.remove("highlight")):(await this.showLoading("Data Editor","Closing Data Editor .."),this.hideBottomBar(),t.classList.remove("highlight")),await this.hideLoading()}showEditor(e){let t=document.getElementById("mainContent"),s=document.getElementById("bottomBar"),a=document.getElementById("queryEditor"),i=document.getElementById("dataEditor"),n=document.querySelector(".query-buttons"),o=document.querySelector(".data-buttons"),c=document.getElementById("queryHelpIconDiv"),r=document.getElementById("dataHelpIconDiv"),d=document.querySelectorAll(".add-to-query-button");t.style.height="80%",s.style.height="20%",s.classList.add("active"),e==="query"?(a.style.display="block",i.style.display="none",n.style.display="flex",o.style.display="none",c.style.display="flex",r.style.display="none",d.forEach(h=>h.classList.add("show"))):e==="data"&&(a.style.display="none",i.style.display="block",n.style.display="none",o.style.display="flex",c.style.display="none",r.style.display="flex",d.forEach(h=>h.classList.remove("show")))}hideBottomBar(){let e=document.getElementById("mainContent"),t=document.getElementById("bottomBar"),s=document.querySelectorAll(".add-to-query-button");e.style.height="100%",t.style.height="0",t.classList.remove("active"),s.forEach(a=>a.classList.remove("show"))}makeBottomBarResizable(){let e=document.getElementById("bottomBar"),t=document.getElementById("mainContent"),s=e.querySelector(".resize-handle"),a=!1,i=0,n=0,o=null;function c(){return o||(o=document.createElement("div"),o.classList.add("resize-shadow-bar"),document.body.appendChild(o),o)}s.addEventListener("mousedown",h=>{e.classList.contains("active")&&(a=!0,i=h.clientY,n=parseInt(document.defaultView.getComputedStyle(e).height,10),c(),o.style.display="block",o.style.bottom=n+"px",o.style.height=n+"px",document.addEventListener("mousemove",r),document.addEventListener("mouseup",d),h.preventDefault(),document.body.style.userSelect="none",document.body.style.cursor="ns-resize")});function r(h){if(!a||!e.classList.contains("active"))return;let m=i-h.clientY,f=n+m,E=50,C=window.innerHeight*.5,w=Math.min(Math.max(f,E),C);o.style.bottom="0px",o.style.height=w+"px"}function d(h){if(!a)return;a=!1,document.removeEventListener("mousemove",r),document.removeEventListener("mouseup",d);let m=i-h.clientY,f=n+m,E=50,C=window.innerHeight*.5,w=Math.min(Math.max(f,E),C);if(w!==n){let L=window.innerHeight-w;e.style.height=w+"px",t.style.height=L+"px"}o.style.display="none",document.body.style.userSelect="",document.body.style.cursor=""}window.addEventListener("beforeunload",()=>{o&&o.parentNode&&o.parentNode.removeChild(o)})}async toggleEditMode(){let e=document.getElementById("editBtn");e.classList.contains("active")?e.classList.remove("active"):e.classList.add("active"),this.handleEditModeUIChanges()}async toggleLassoSelection(){let e=document.getElementById("lassoWrapper"),t=e.classList.contains("active");t?e.classList.remove("active"):e.classList.add("active");let s=[this.cache.gcm.BEHAVIOURS.DRAG_CANVAS,this.cache.gcm.BEHAVIOURS.DRAG_ELEMENT];this.cache.CFG.DISABLE_HOVER_EFFECT||s.push(this.cache.gcm.BEHAVIOURS.HOVER_ACTIVATE);let a=[this.cache.gcm.BEHAVIOURS.LASSO_SELECT];(!this.cache.CFG.APPLY_BUBBLE_SET_HOTFIX||this.cache.CFG.APPLY_BUBBLE_SET_HOTFIX&&!this.cache.CFG.DISABLE_HOVER_EFFECT)&&a.push(this.cache.gcm.BEHAVIOURS.CLICK_SELECT);let i=await this.cache.graph.getBehaviors().filter(n=>![...s.map(o=>o.type),...a.map(o=>o.type)].includes(n.type));t?this.info("Switched to click and drag mode"):this.info("Switched to lasso selection mode"),await this.cache.graph.setBehaviors([...i,...t?s:a]),await this.cache.graph.updatePlugin({key:"tooltip",enable:t})}handleEditModeUIChanges(){let e=document.getElementById("editBtn"),t=document.getElementById("sidebarContentContainer"),s=document.getElementById("sidebar"),a=document.getElementById("sidebarStatusContainer"),i=e.classList.contains("active");i?e.classList.add("highlight"):e.classList.remove("highlight"),t.style.paddingRight=i?"6px":"0",document.querySelectorAll(".show-on-edit, .show-on-edit-full-width").forEach(r=>{i?r.classList.add("show"):r.classList.remove("show"),r.style.height=i?`${r.scrollHeight}px`:"0"}),i||document.querySelectorAll(".style-row").forEach(d=>{d.classList.remove("show")}),document.querySelectorAll(".filter-row").forEach(r=>{let d=r.children[0];d.style.width=i?"45%":"56%";let h=r.querySelector(".filter-row-col2");if(h.style.width=i?"65%":"33%",h.style.display=i?"flex":"",h.style.alignItems=i?"center":"",h.children[2]?.id.endsWith("slider")){let m=h.children[2];m&&(m.style.width=i?"200%":"")}else if(h.children[0]?.id.endsWith("dropdown")){let m=h.children[0];m&&(m.style.width=i?"96.5%":"",m.children[0].style.width=i?"100%":"90%",m.children[0].style.margin=i?"0":"0 0 0 4px")}}),s.style.maxWidth=i?"100%":"unset",a.style.maxWidth=i?`${t.offsetWidth}px`:"375px";let c=document.getElementById("networkMetricsContainer");c.style.maxWidth=i?`${t.offsetWidth}px`:"350px"}buildUI(){this.cache.query.text=document.getElementById("queryTextArea"),this.cache.query.overlay=document.getElementById("queryOverlay"),this.cache.query.caret=document.getElementById("queryCaret"),this.cache.query.editorDiv=document.getElementById("queryEditor"),this.cache.query.sizeObserver=new ResizeObserver(()=>requestAnimationFrame(()=>this.cache.qm.validateAlignment())),this.cache.query.sizeObserver.observe(this.cache.query.editorDiv),this.cache.query.text.addEventListener("scroll",()=>{this.cache.query.overlay.scrollTop=this.cache.query.text.scrollTop,this.cache.query.overlay.scrollLeft=this.cache.query.text.scrollLeft}),this.cache.uiComponents.buildDropdownOptions();let e=document.getElementById("metricsContainer");e.innerHTML="",e.appendChild(this.cache.metrics.buildMetricUI());let t=document.getElementById("manualBubbleGroupButtonContainer");t.innerHTML="",t.appendChild(this.cache.uiComponents.createManualBubbleGroupButton()),this.buildFilterUI(),document.getElementById("resetSelectedElementsStyleBtn").title=this.cache.CFG.RESET_SELECTION_BUTTON_RESETS_POSITIONS?"Reset the visual appearance and positions of the selected elements to their defaults":"Reset the visual appearance of the selected elements to their defaults",this.showUI(!0),this.cache.query.lastGoodWidth=this.cache.query.editorDiv.offsetWidth,this.cache.qm.validateAlignment()}buildFilterUI(){let e=document.getElementById("filterContainer");e.innerHTML="";let t=this.createFilterLockStatusBar();t.id="filterLockStatusBar",t.style.display=this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY?"flex":"none",e.appendChild(t),this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY?e.classList.add("locked"):e.classList.remove("locked");let s=new Set,a=new Set,i=this.cache.CFG.SORT_FILTERS?[...this.cache.data.layouts[this.cache.data.selectedLayout].filters.keys()].sort():[...this.cache.data.layouts[this.cache.data.selectedLayout].filters.keys()];for(let o of i){let[c,r,d]=_.decodePropHashId(o),h=this.cache.data.filterDefaults.get(o).isCategory;if(!s.has(c)){s.size>0&&e.appendChild(document.createElement("hr"));let D=document.createElement("div");D.className="header-card";let L=document.createElement("h4");L.textContent=c,L.className="m-0 white",D.appendChild(L),D.appendChild(this.cache.uiComponents.createSectionToggleButton(!1,c)),D.appendChild(this.cache.uiComponents.createSectionResetButton(c)),D.appendChild(this.cache.uiComponents.createSectionToggleButton(!0,c)),e.appendChild(D),e.appendChild(document.createElement("br")),s.add(c)}if(!a.has(`${c}::${r}`)){let D=document.createElement("div");D.className="sub-header-card";let L=document.createElement("h5");L.textContent=r,L.className="m-0 inline",D.appendChild(L),D.appendChild(this.cache.uiComponents.createSectionToggleButton(!1,c,r)),D.appendChild(this.cache.uiComponents.createSectionResetButton(c,r)),D.appendChild(this.cache.uiComponents.createSectionToggleButton(!0,c,r)),e.appendChild(D),a.add(`${c}::${r}`)}let m=document.createElement("div");m.className="filter-row";let f=document.createElement("div");f.className="filter-row-col1",f.appendChild(this.cache.uiComponents.createCheckbox(o,d)),m.appendChild(f);let E=document.createElement("div");E.className="filter-row-col2",m.appendChild(E);let C=h?new ge(o,this.cache):new fe(o,this.cache);C.appendTo(E);let w=document.createElement("div");if(w.className="filter-row-col3",this.cache.nodeExclusiveProps.has(o)||this.cache.mixedProps.has(o))w.appendChild(this.cache.uiComponents.createCircleGroupButtonWithQuadrants(o));else{let D=document.createElement("div");D.style.width="18px",w.appendChild(D)}w.appendChild(this.cache.uiComponents.createAddOrRemoveToSelectionGroup(o)),m.appendChild(w),e.append(m),C.appendListeners()}let n=document.getElementById("staticStyleDiv");n.innerHTML="",n.appendChild(xe(this.cache)),this.manageDynamicWidgets(),this.handleEditModeUIChanges(),this.cache.qm.updateQueryTextArea()}showUI(e){document.querySelectorAll(".showOnLoad").forEach(t=>{t.style.opacity=e?"1":"0",t.style.pointerEvents=e?"auto":"none"}),document.querySelectorAll(".hideOnLoad").forEach(t=>{t.style.opacity=e?"0":"1",t.style.pointerEvents=e?"none":"auto",t.style.height=e?"0":"auto"})}uncheckAllCheckboxes(){for(let e of this.cache.propIDs)this.checkCheckbox(e,!1)}checkCheckbox(e,t=!0){let s=document.getElementById(`filter-${e}-checkbox`),a=document.getElementById(`filter-${e}-checkbox-inner`),i=document.getElementById(`filter-${e}-checkbox-wrapper`);s.checked=t,this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(e).active=t,t?this.cache.activeProps.add(e):this.cache.activeProps.delete(e),a.textContent=t?"\u2714":"",i.title=this.cache.uiComponents.getCheckboxTT(t,e)}manageDynamicWidgets(){let e=this.cache.data.layouts[this.cache.data.selectedLayout].isCustom,t=document.getElementById("removeSelectedLayoutButton").classList;e?t.remove("disabled"):t.add("disabled")}async toggleSection(e,t){this.toggleCheckboxesForSetOfPropIDs(e,t),await this.cache.fm.handleFilterEvent(`${e?"Showing":"Hiding"} Elements`,`Nodes and related edges for ${t}`)}async toggleSubSection(e,t,s){this.toggleCheckboxesForSetOfPropIDs(e,t+"::"+s),await this.cache.fm.handleFilterEvent(`${e?"Showing":"Hiding"} Elements`,`Nodes and related edges for ${t} ${s}`)}toggleCheckboxesForSetOfPropIDs(e,t){let s=[...this.cache.propToNodes.keys(),...this.cache.propToEdgeIDs.keys()].filter(a=>a.startsWith(t));for(let a of s){let i=document.getElementById(`filter-${a}-checkbox`),n=document.getElementById(`filter-${a}-checkbox-wrapper`),o=document.getElementById(`filter-${a}-checkbox-inner`);i.checked=e,this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(a).active=e,e?this.cache.activeProps.add(a):this.cache.activeProps.delete(a),n.title=this.cache.uiComponents.getCheckboxTT(e,a),o.textContent=e?"\u2714":""}}clearActivePropsCacheOnLayoutChange(){this.cache.activeProps=new Set;for(let[e,t]of this.cache.data.layouts[this.cache.data.selectedLayout].filters.entries())t.active&&this.cache.activeProps.add(e)}createFilterLockStatusBar(){let e=document.createElement("div");return e.className="filter-lock-status-bar",e.innerHTML=`
+      </div>`;
+        }
+      }
+      const item = isEdge ? this.cache.edgeRef.get(nodeOrEdgeID) : this.cache.nodeRef.get(nodeOrEdgeID);
+      let tooltip = initAndAddHeader();
+      addDescription();
+      addMetric();
+      if (!item.D4Data) return tooltip;
+      const sortedPropIDs = this.cache.CFG.SORT_TOOLTIPS ? [...this.cache.data.filterDefaults.keys()].sort() : [...this.cache.data.filterDefaults.keys()];
+      const structuredData = [];
+      function pushSubSectionProperty(secName, subName, prop, val) {
+        let sectionObj = structuredData.find((s) => s.section === secName);
+        if (!sectionObj) {
+          sectionObj = { section: secName, subSections: [] };
+          structuredData.push(sectionObj);
+        }
+        let subObj = sectionObj.subSections.find((sub) => sub.name === subName);
+        if (!subObj) {
+          subObj = { name: subName, props: [] };
+          sectionObj.subSections.push(subObj);
+        }
+        subObj.props.push({ key: prop, value: val });
+      }
+      for (const propID of sortedPropIDs) {
+        const [section, subSection, property] = StaticUtilities.decodePropHashId(propID);
+        const rawValue = item.D4Data?.[section]?.[subSection]?.[property];
+        if (rawValue === void 0) continue;
+        if (this.cache.CFG.TOOLTIP_HIDE_NULL_VALUES && rawValue === 0) continue;
+        const displayValue = isNaN(rawValue) ? rawValue : StaticUtilities.formatNumber(rawValue, this.cache.CFG.FILTER_VISUAL_FLOAT_PRECISION);
+        pushSubSectionProperty(section, subSection, property, displayValue);
+      }
+      function sortProps() {
+        for (const sec of structuredData) {
+          for (const sub of sec.subSections) {
+            sub.props.sort((a, b) => a.key.localeCompare(b.key));
+          }
+        }
+      }
+      if (this.cache.CFG.SORT_TOOLTIPS) sortProps();
+      function flattenBlocks() {
+        const blocks = [];
+        for (const s of structuredData) {
+          blocks.push({ type: "section", text: s.section });
+          for (const sb of s.subSections) {
+            blocks.push({ type: "subSection", section: s.section, text: sb.name, props: sb.props });
+          }
+        }
+        return blocks;
+      }
+      const orderedBlocks = flattenBlocks();
+      if (orderedBlocks.length === 0) return tooltip;
+      const columns = [];
+      const columnSize = Math.ceil(orderedBlocks.length / this.cache.CFG.TOOLTIP_MAX_COLUMNS);
+      for (let i = 0; i < this.cache.CFG.TOOLTIP_MAX_COLUMNS; i++) {
+        const start = i * columnSize;
+        const end = start + columnSize;
+        columns.push(orderedBlocks.slice(start, end));
+      }
+      function buildColumns() {
+        tooltip += `<hr><div class="tooltip-columns">`;
+        for (const col of columns) {
+          tooltip += `<div class="tooltip-column">`;
+          let startedList = false;
+          for (const block of col) {
+            if (block.type === "section") {
+              if (startedList) {
+                tooltip += `</ul>`;
+                startedList = false;
+              }
+            } else if (block.type === "subSection") {
+              if (startedList) {
+                tooltip += `</ul>`;
+                startedList = false;
+              }
+              tooltip += `<h5 class="tooltip-sub-section">${block.text}</h5><ul>`;
+              startedList = true;
+              for (const propItem of block.props) {
+                tooltip += `<li>${propItem.key}: <span class="red"><b>${propItem.value}</b></span></li>`;
+              }
+            }
+          }
+          if (startedList) {
+            tooltip += `</ul>`;
+          }
+          tooltip += `</div>`;
+        }
+        tooltip += `</div>`;
+      }
+      buildColumns();
+      tooltip += "</div>";
+      return tooltip;
+    }
+    createCheckbox(propID, prop) {
+      const container = this.cache.uiComponents.createCheckboxContainer(propID);
+      const wrapper = document.createElement("label");
+      wrapper.className = "checkboxWrapper";
+      wrapper.id = `filter-${propID}-checkbox-wrapper`;
+      const input = this.cache.uiComponents.createCheckboxInput(propID, this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(propID).active);
+      const customCheckbox = this.cache.uiComponents.createCustomCheckbox(propID);
+      const actionButton = this.cache.uiComponents.createAddToQueryButton(propID);
+      const displayField = document.createElement("span");
+      displayField.className = "checkboxLabel";
+      displayField.textContent = prop;
+      const updateCheckbox = () => {
+        customCheckbox.textContent = input.checked ? "\u2714" : "";
+        wrapper.title = this.cache.uiComponents.getCheckboxTT(input.checked, propID);
+      };
+      updateCheckbox();
+      input.addEventListener("change", updateCheckbox);
+      wrapper.addEventListener("change", async () => {
+        if (this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) return;
+        try {
+          this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(propID).active = input.checked;
+          input.checked ? this.cache.activeProps.add(propID) : this.cache.activeProps.delete(propID);
+          let status = input.checked ? "Showing" : "Hiding";
+          await this.cache.fm.handleFilterEvent(`${status} Elements`, `Nodes and related edges for ${propID}`);
+        } catch (err) {
+          this.cache.ui.error(`Failed to toggle filter: ${err.message}`);
+        }
+      });
+      wrapper.append(input, customCheckbox);
+      container.append(wrapper, actionButton, displayField);
+      input.checked ? this.cache.activeProps.add(propID) : this.cache.activeProps.delete(propID);
+      return container;
+    }
+    createQueryButton(propID, prop) {
+      const btn = document.createElement("button");
+      btn.className = "showOnQuery tiny-btn";
+      btn.textContent = "Q";
+      btn.title = `Query for nodes with the property:
+ * ${propID}`;
+      btn.onclick = async () => {
+        console.log("foo");
+      };
+      return btn;
+    }
+    createCheckboxContainer(propID) {
+      const container = document.createElement("div");
+      container.className = "checkboxContainer";
+      container.id = `filter-${propID}-container`;
+      return container;
+    }
+    createCheckboxInput(propID, initialState) {
+      const input = document.createElement("input");
+      input.id = `filter-${propID}-checkbox`;
+      input.type = "checkbox";
+      input.checked = initialState;
+      input.style.display = "none";
+      return input;
+    }
+    createCustomCheckbox(propID) {
+      const customCheckbox = document.createElement("span");
+      customCheckbox.id = `filter-${propID}-checkbox-inner`;
+      customCheckbox.className = "checkbox checkbox-green";
+      return customCheckbox;
+    }
+    createAddToQueryButton(propID) {
+      const actionButton = document.createElement("button");
+      actionButton.className = "add-to-query-button";
+      actionButton.textContent = "\u{1F4DD}";
+      actionButton.title = `Add ${propID} to the query`;
+      actionButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const slider = this.cache.propIDToInvertibleRangeSliders.get(propID);
+        const dropdown = this.cache.propIDToDropdownChecklists.get(propID);
+        let queryFragment;
+        if (slider) {
+          if (this.cache.CFG.QUERY_BTN_USE_CURRENT_FILTER) {
+            queryFragment = slider.isInverted ? `${propID} LOWER THAN ${slider.currentMax} OR GREATER THAN ${slider.currentMin}` : `${propID} BETWEEN ${slider.currentMin} AND ${slider.currentMax}`;
+          } else {
+            queryFragment = `(${propID} BETWEEN ${slider.sliderMin} AND ${slider.sliderMax}`;
+          }
+        } else if (dropdown) {
+          if (this.cache.CFG.QUERY_BTN_USE_CURRENT_FILTER) {
+            queryFragment = `${propID} IN [${[...dropdown.selectedCategories].join(",")}]`;
+          } else {
+            queryFragment = `${propID} IN [${[...dropdown.categories].join(",")}]`;
+          }
+        }
+        if (this.cache.data.layouts[this.cache.data.selectedLayout]["query"] === void 0) {
+          this.cache.qm.handleQueryValidationEvent(true);
+        }
+        if (!this.cache.query.text.textContent.trim()) {
+          this.cache.data.layouts[this.cache.data.selectedLayout]["query"] = `(${queryFragment})`;
+        } else {
+          this.cache.data.layouts[this.cache.data.selectedLayout]["query"] += ` OR (${queryFragment})`;
+        }
+        this.cache.qm.updateQueryTextArea();
+      });
+      return actionButton;
+    }
+    getCheckboxTT(enable, propID) {
+      return `Click to ${enable ? "hide" : "show"} elements with the property:${StaticUtilities.formatPropsAsTree(propID)}`;
+    }
+    createAddOrRemoveToSelectionGroup(propID) {
+      const group = document.createElement("div");
+      group.classList.add("pm-group");
+      const addBtn = this.createAddOrRemoveToSelectionButton(propID, true);
+      const removeBtn = this.createAddOrRemoveToSelectionButton(propID, false);
+      group.appendChild(addBtn);
+      group.appendChild(removeBtn);
+      return group;
+    }
+    createAddOrRemoveToSelectionButton(propID, shouldAdd) {
+      const btn = document.createElement("button");
+      btn.classList.add("plus-minus-button");
+      btn.textContent = shouldAdd ? "+" : "-";
+      btn.title = shouldAdd ? "Add to selection" : "Remove from selection";
+      btn.addEventListener("click", async () => {
+        try {
+          if (!this.cache.graph) {
+            this.cache.ui.warning("Please wait for graph to initialize");
+            return;
+          }
+          const nodeIDs = this.cache.propIDsToNodeIDsToBeShown.get(propID) || [];
+          if (nodeIDs.size > 0) {
+            const nodes = this.cache.graph.getNodeData([...nodeIDs]);
+            await this.cache.sm.updateSelectedState(nodes, shouldAdd);
+          }
+          const edgeIDs = this.cache.propIDsToEdgeIDsToBeShown.get(propID) || [];
+          if (edgeIDs.size > 0) {
+            const edges = this.cache.graph.getEdgeData([...edgeIDs]);
+            await this.cache.sm.updateSelectedState(edges, shouldAdd);
+          }
+        } catch (err) {
+          this.cache.ui.error(`Failed to update selection: ${err.message}`);
+        }
+      });
+      return btn;
+    }
+  };
+
+  // src/managers/ui_style_div.js
+  function createStyleDiv(cache3) {
+    const root = document.createElement("div");
+    function createNewRow(parent) {
+      const row = document.createElement("div");
+      row.classList.add("card-row");
+      parent.appendChild(row);
+      return row;
+    }
+    function appendVerticalRule(parent, label = void 0, tooltip = void 0, id = void 0, customCSSClass = void 0) {
+      const verticalRule = document.createElement("div");
+      verticalRule.className = "vr";
+      if (customCSSClass) verticalRule.classList.add(customCSSClass);
+      parent.appendChild(verticalRule);
+      appendLabel(parent, label, tooltip, id, customCSSClass);
+    }
+    function appendHorizontalRule(parent, label = void 0, tooltip = void 0, id = void 0, customCSSClass = void 0) {
+      const horizontalRule = document.createElement("hr");
+      horizontalRule.className = "hr";
+      if (customCSSClass) horizontalRule.classList.add(customCSSClass);
+      parent.appendChild(horizontalRule);
+    }
+    function createLabel(labelText, tooltip = void 0) {
+      if (labelText) {
+        const label = document.createElement("label");
+        label.textContent = labelText;
+        label.className = "vr-label";
+        label.id = labelText;
+        if (tooltip) label.title = tooltip;
+        return label;
+      }
+      return null;
+    }
+    function appendLabel(parent, labelText, tooltip = void 0, id = void 0, customCSSClass = void 0) {
+      const label = createLabel(labelText, tooltip);
+      if (id) label.id = id;
+      if (customCSSClass) label.classList.add(customCSSClass);
+      if (label) parent.appendChild(label);
+    }
+    function createCard(label, parent = void 0, additionalCSSClass = void 0) {
+      const card = document.createElement("div");
+      card.classList.add("card-labeled");
+      if (additionalCSSClass) card.classList.add(additionalCSSClass);
+      card.dataset.label = label;
+      card.id = label;
+      if (parent) {
+        parent.appendChild(card);
+      } else {
+        root.appendChild(card);
+      }
+      return card;
+    }
+    function createSwitch(callback = void 0, inputId = void 0, enabledByDefault = false) {
+      const label = document.createElement("label");
+      label.className = "switch";
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.checked = enabledByDefault;
+      const span = document.createElement("span");
+      span.className = "slider round";
+      if (callback) {
+        input.addEventListener("change", callback);
+      }
+      if (inputId) {
+        input.id = inputId;
+        label.id = `${inputId}Label`;
+      }
+      label.append(input, span);
+      label.setChecked = (checked) => {
+        input.checked = checked;
+      };
+      label.toggle = () => {
+        input.checked = !input.checked;
+      };
+      label.isChecked = () => input.checked;
+      return label;
+    }
+    async function handleStyleChangeEvent(property, value) {
+      const commands = [];
+      if (value === "set_continuous_color_scale") {
+        commands.push("set_continuous_color_scale");
+        cache3.picker.currentProperty = property;
+      }
+      if (value === "set_numeric_scale") {
+        commands.push("set_numeric_scale");
+      }
+      if (property.startsWith("Bubble Set")) {
+        await cache3.bs.updateBubbleSetStyle(property, value);
+        return;
+      }
+      switch (property) {
+        case "Node Size":
+          await cache3.gcm.updateNodes({ style: { size: value } }, commands);
+          break;
+        case "Node Border Size":
+          await cache3.gcm.updateNodes({ style: { lineWidth: value } }, commands);
+          break;
+        case "Node Label Font Size":
+          await cache3.gcm.updateNodes({ style: { labelFontSize: value } }, commands);
+          break;
+        case "Node Label Font Color":
+          await cache3.gcm.updateNodes({ style: { labelFill: value } }, commands);
+          break;
+        case "Node Label Background Color":
+          await cache3.gcm.updateNodes({ style: { labelBackground: true, labelBackgroundFill: value } }, commands);
+          break;
+        case "Node Fill Color":
+          await cache3.gcm.updateNodes({ style: { fill: value } }, commands);
+          break;
+        case "Node Border Color":
+          await cache3.gcm.updateNodes({ style: { stroke: value } }, commands);
+          break;
+        case "Node Label Color":
+          await cache3.gcm.updateNodes({ style: { labelFill: value } }, commands);
+          break;
+        case "Node Label Placement":
+          await cache3.gcm.updateNodes({ style: { labelPlacement: value } }, commands);
+          break;
+        case "Edge Color":
+          await cache3.gcm.updateEdges({ style: { stroke: value } }, commands);
+          break;
+        case "Edge Width":
+          await cache3.gcm.updateEdges({ style: { lineWidth: value } }, commands);
+          break;
+        case "Edge Dash":
+          await cache3.gcm.updateEdges({ style: { lineDash: value } }, commands);
+          break;
+        case "Edge Label Font Size":
+          await cache3.gcm.updateEdges({ style: { labelFontSize: value } }, commands);
+          break;
+        case "Edge Label Offset X":
+          await cache3.gcm.updateEdges({ style: { labelOffsetX: value } }, commands);
+          break;
+        case "Edge Label Offset Y":
+          await cache3.gcm.updateEdges({ style: { labelOffsetY: value } }, commands);
+          break;
+        case "Edge Label Placement":
+          await cache3.gcm.updateEdges({ style: { labelPlacement: value } }, commands);
+          break;
+        case "Edge Label Font Color":
+          await cache3.gcm.updateEdges({ style: { labelFill: value } }, commands);
+          break;
+        case "Edge Label Background Color":
+          await cache3.gcm.updateEdges({ style: { labelBackground: true, labelBackgroundFill: value } }, commands);
+          break;
+        case "Edge Label Auto Rotate":
+          await cache3.gcm.updateEdges({ style: { labelAutoRotate: value } }, commands);
+          break;
+        case "Edge Start Arrow":
+          await cache3.gcm.updateEdges({ style: { startArrow: value } }, commands);
+          break;
+        case "Edge End Arrow":
+          await cache3.gcm.updateEdges({ style: { endArrow: value } }, commands);
+          break;
+        case "Edge Start Arrow Size":
+          await cache3.gcm.updateEdges({ style: { startArrowSize: value } }, commands);
+          break;
+        case "Edge End Arrow Size":
+          await cache3.gcm.updateEdges({ style: { endArrowSize: value } }, commands);
+          break;
+        case "Edge Start Arrow Type":
+          await cache3.gcm.updateEdges({ style: { startArrowType: value } }, commands);
+          break;
+        case "Edge End Arrow Type":
+          await cache3.gcm.updateEdges({ style: { endArrowType: value } }, commands);
+          break;
+        case "Edge Halo":
+          await cache3.gcm.updateEdges({ style: { halo: value } }, commands);
+          break;
+        case "Edge Halo Width":
+          await cache3.gcm.updateEdges({ style: { haloLineWidth: value } }, commands);
+          break;
+        case "Edge Halo Color":
+          await cache3.gcm.updateEdges({ style: { haloStroke: value } }, commands);
+          break;
+        default:
+          break;
+      }
+    }
+    function createBooleanControls(parent, property, tooltip = void 0) {
+      const onBtn = document.createElement("button");
+      onBtn.textContent = "On";
+      onBtn.classList.add("style-inner-button");
+      onBtn.onclick = async () => {
+        await handleStyleChangeEvent(property, true);
+      };
+      if (tooltip) onBtn.title = tooltip;
+      parent.appendChild(onBtn);
+      const offBtn = document.createElement("button");
+      offBtn.textContent = "Off";
+      offBtn.classList.add("style-inner-button");
+      offBtn.onclick = async () => {
+        await handleStyleChangeEvent(property, false);
+      };
+      if (tooltip) offBtn.title = tooltip;
+      parent.appendChild(offBtn);
+    }
+    function createCategoricalControls(parent, property, defaultValue, listOfValues, tooltip = void 0) {
+      const dropdown = document.createElement("select");
+      dropdown.className = "style-inner-button";
+      if (tooltip) dropdown.title = tooltip;
+      listOfValues.forEach((value) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        dropdown.appendChild(option);
+        dropdown.onchange = async () => {
+          await handleStyleChangeEvent(property, dropdown.value);
+        };
+      });
+      dropdown.value = defaultValue;
+      parent.appendChild(dropdown);
+    }
+    function createNumericalSlider(parent, property, defaultValue, sliderParams = {
+      min: 0,
+      max: 100,
+      step: 1
+    }, tooltip = void 0, enableNumericScale = true) {
+      const useFloat = !Number.isInteger(sliderParams.min) || !Number.isInteger(sliderParams.max) || !Number.isInteger(sliderParams.step);
+      function parseValue(val) {
+        return useFloat ? parseFloat(val) : parseInt(val, 10);
+      }
+      const typedDefaultValue = parseValue(defaultValue);
+      const container = document.createElement("div");
+      container.className = "style-slider-container";
+      if (tooltip) container.title = tooltip;
+      const slider = document.createElement("input");
+      slider.type = "range";
+      slider.min = sliderParams.min;
+      slider.max = sliderParams.max;
+      slider.step = sliderParams.step;
+      slider.value = typedDefaultValue;
+      slider.classList.add("style-slider");
+      const valueInput = document.createElement("input");
+      valueInput.type = "number";
+      valueInput.value = typedDefaultValue;
+      valueInput.classList.add("style-input-sm");
+      slider.oninput = () => {
+        valueInput.value = slider.value;
+      };
+      slider.onchange = async () => {
+        await handleStyleChangeEvent(property, parseValue(slider.value));
+      };
+      valueInput.onchange = async () => {
+        slider.value = valueInput.value;
+        await handleStyleChangeEvent(property, parseValue(valueInput.value));
+      };
+      container.appendChild(slider);
+      container.appendChild(valueInput);
+      if (enableNumericScale) {
+        const scaleButton = document.createElement("button");
+        scaleButton.className = "style-inner-button style-numeric-scale-button";
+        scaleButton.textContent = "\u223F";
+        scaleButton.title = `Scale ${property} based on a property's values`;
+        scaleButton.style.marginLeft = "2px";
+        scaleButton.dataset.property = property;
+        scaleButton.onclick = async () => {
+          cache3.numericPicker.currentProperty = property;
+          await handleStyleChangeEvent(property, "set_numeric_scale");
+        };
+        container.appendChild(scaleButton);
+      }
+      parent.appendChild(container);
+    }
+    function createColorPicker(defaultColor, title) {
+      const colorPicker = document.createElement("input");
+      colorPicker.type = "color";
+      colorPicker.classList.add("style-inner-button");
+      colorPicker.style.width = "24px";
+      colorPicker.value = defaultColor;
+      colorPicker.title = title;
+      return colorPicker;
+    }
+    function createColorControls(parent, property, defaultColor, colors, continuousScaleBtn = true, customCSSClass = void 0) {
+      const colorButtonDiv = document.createElement("div");
+      colorButtonDiv.className = "style-color-button-container";
+      if (customCSSClass) colorButtonDiv.classList.add(customCSSClass);
+      for (const [label, value] of Object.entries(colors)) {
+        const colorButton = document.createElement("button");
+        colorButton.style.backgroundColor = value;
+        colorButton.style.color = StaticUtilities.getReadableForegroundColor(value);
+        colorButton.className = "style-inner-button style-color-button";
+        colorButton.title = `Set ${property} of the selected elements to ${label} (${value}).`;
+        if (label === "none") {
+          colorButton.textContent = "\xD7";
+          colorButton.style.maxWidth = "12px";
+        }
+        colorButton.onclick = async () => {
+          colorInput.value = value;
+          await handleStyleChangeEvent(property, value);
+        };
+        if (customCSSClass) colorButton.classList.add(customCSSClass);
+        colorButtonDiv.appendChild(colorButton);
+      }
+      parent.appendChild(colorButtonDiv);
+      const colorPicker = createColorPicker(
+        defaultColor,
+        `Set ${property} of the selected elements to a color of choice.`
+      );
+      colorPicker.oninput = () => {
+        colorInput.value = colorPicker.value;
+      };
+      colorPicker.onchange = async () => {
+        await handleStyleChangeEvent(property, colorPicker.value);
+      };
+      const colorInput = document.createElement("input");
+      colorInput.type = "text";
+      colorInput.value = defaultColor;
+      colorInput.classList.add("style-input");
+      colorInput.title = `Set ${property} of the selected elements to a color of choice (RGBA hex color code). Confirm with Enter`;
+      colorInput.placeholder = `Enter Color`;
+      colorInput.addEventListener("keypress", async function(event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          await handleStyleChangeEvent(property, colorInput.value);
+        }
+      });
+      if (customCSSClass) {
+        colorPicker.classList.add(customCSSClass);
+        colorInput.classList.add(customCSSClass);
+      }
+      parent.appendChild(colorPicker);
+      parent.appendChild(colorInput);
+      if (continuousScaleBtn) {
+        const contScaleBtn = document.createElement("button");
+        contScaleBtn.className = "style-inner-button style-color-button style-color-gradient-button";
+        contScaleBtn.title = `Set ${property} of the selected elements to a continuous scale.`;
+        contScaleBtn.onclick = async () => {
+          colorInput.value = "";
+          await handleStyleChangeEvent(property, "set_continuous_color_scale");
+        };
+        if (customCSSClass) contScaleBtn.classList.add(customCSSClass);
+        parent.appendChild(contScaleBtn);
+      }
+    }
+    function createLabelControls(parent, property, isNode = null) {
+      const labelInput = createInput(
+        120,
+        `Enter Custom ${property}`,
+        `Set the label of the selected ${isNode ? "nodes" : "edges"} to a custom label.`,
+        void 0,
+        async () => {
+          isNode ? await cache3.gcm.updateNodes({
+            style: {
+              label: true,
+              labelText: labelInput.value.trim()
+            }
+          }) : await cache3.gcm.updateEdges({ style: { label: true, labelText: labelInput.value.trim() } });
+        }
+      );
+      const clearLabelButton = createButton(
+        "Clear",
+        `Clear the label of the selected ${isNode ? "nodes" : "edges"}.`,
+        async () => {
+          labelInput.value = "";
+          const sharedOverride = {
+            style: {
+              label: true,
+              labelText: cache3.CFG.INVISIBLE_CHAR
+            }
+          };
+          isNode ? await cache3.gcm.updateNodes(sharedOverride) : await cache3.gcm.updateEdges(sharedOverride);
+          labelInput.value = "";
+        }
+      );
+      const setToIDButton = createButton(
+        "Set to ID",
+        `Set the label of the selected ${isNode ? "nodes" : "edges"} to their predefined IDs.`,
+        async () => {
+          labelInput.value = "";
+          const sharedCommands = ["label_set_to_id"];
+          isNode ? await cache3.gcm.updateNodes(void 0, sharedCommands) : await cache3.gcm.updateEdges(void 0, sharedCommands);
+        }
+      );
+      const setToLabelButton = createButton(
+        "Set to Label",
+        `Set the label of the selected ${isNode ? "nodes" : "edges"} to their predefined labels.`,
+        async () => {
+          labelInput.value = "";
+          const sharedCommands = ["label_set_to_label"];
+          isNode ? await cache3.gcm.updateNodes(void 0, sharedCommands) : await cache3.gcm.updateEdges(void 0, sharedCommands);
+        }
+      );
+      parent.appendChild(labelInput);
+      parent.appendChild(setToIDButton);
+      parent.appendChild(setToLabelButton);
+      parent.appendChild(clearLabelButton);
+    }
+    function createButton(label, tooltip, callback, id = void 0) {
+      const btn = document.createElement("button");
+      btn.textContent = label;
+      btn.title = tooltip;
+      btn.classList.add("style-inner-button");
+      if (label === "Clear") btn.classList.add("red");
+      if (id) {
+        btn.id = id;
+      } else {
+        btn.id = label;
+      }
+      btn.onclick = () => {
+        callback();
+      };
+      return btn;
+    }
+    function appendButton(parent, label, tooltip, callback) {
+      const btn = createButton(label, tooltip, callback);
+      parent.appendChild(btn);
+    }
+    function createInput(widthInPx = 80, placeholder = void 0, title = void 0, defaultValue = void 0, callback = void 0) {
+      const input = document.createElement("input");
+      input.type = "text";
+      input.placeholder = placeholder;
+      input.title = title;
+      input.classList.add("style-input");
+      input.style.width = `${widthInPx}px`;
+      input.value = defaultValue || "";
+      if (callback) {
+        input.addEventListener("keypress", function(event) {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            callback(input.value.trim());
+          }
+        });
+      }
+      return input;
+    }
+    function createNodeShapeControls(parent) {
+      for (const [label, value] of Object.entries(cache3.DEFAULTS.STYLES.NODE_FORM)) {
+        appendButton(
+          parent,
+          label,
+          value,
+          async () => await cache3.gcm.updateNodes({ type: value })
+        );
+      }
+    }
+    function createEdgeTypeControls(parent) {
+      for (const label of cache3.DEFAULTS.STYLES.EDGE_TYPES) {
+        appendButton(parent, label, label, async () => await cache3.gcm.updateEdges({ type: label }));
+      }
+    }
+    function createNodeBadgeControls(parent) {
+      const badgeInput = createInput(
+        120,
+        "Enter Badge Text",
+        "Enter the text of the badge to add to the selected nodes.",
+        void 0,
+        void 0
+      );
+      parent.appendChild(badgeInput);
+      const badgeColorPicker = createColorPicker(cache3.DEFAULTS.NODE.BADGE.COLOR, "Set the color of the badge.");
+      parent.appendChild(badgeColorPicker);
+      const badgePlacementDropdown = document.createElement("select");
+      badgePlacementDropdown.className = "style-inner-button";
+      cache3.DEFAULTS.STYLES.NODE_BADGE_PLACEMENTS.forEach((placement) => {
+        const option = document.createElement("option");
+        option.value = placement;
+        option.textContent = placement.replace("-", " ");
+        badgePlacementDropdown.appendChild(option);
+      });
+      parent.appendChild(badgePlacementDropdown);
+      appendButton(parent, "Add", "Add a badge to the selected nodes.", async () => {
+        await cache3.gcm.updateNodes(
+          {
+            style: {
+              badges: [{
+                text: badgeInput.value.trim(),
+                placement: badgePlacementDropdown.value
+              }],
+              badgePalette: [badgeColorPicker.value]
+            }
+          },
+          ["badge_add"]
+        );
+      });
+      appendButton(parent, "Clear", "Clear all badges from the selected nodes.", async () => {
+        await cache3.gcm.updateNodes({}, ["badge_clear"]);
+      });
+    }
+    function createFocusCard() {
+      const focDiv = createCard("Focus Elements");
+      const row1 = createNewRow(focDiv);
+      appendLabel(row1, "Node", "Select the Node ID or Label to focus.", "nodeFocusLabel");
+      appendEditableDropdown(row1, true);
+      const row2 = createNewRow(focDiv);
+      appendLabel(row2, "Edge", "Select the Edge ID or Label to focus.", "edgeFocusLabel");
+      appendEditableDropdown(row2, false);
+    }
+    function appendEditableDropdown(parent, isNode, widthInPx = 220) {
+      const input = document.createElement("input");
+      const dataListID = `focusOptions${isNode ? "Node" : "Edge"}`;
+      input.setAttribute("list", dataListID);
+      input.placeholder = `Search ${isNode ? "node" : "edge"} ID or label...`;
+      input.classList.add("style-input");
+      input.style.width = `${widthInPx}px`;
+      const datalist = document.createElement("datalist");
+      datalist.id = dataListID;
+      const sourceMap = isNode ? cache3.nodeIDOrLabelToNodeIDs : cache3.edgeIDOrLabelToEdgeIDs;
+      const getVisibleIDs = () => {
+        const visibleIDs = isNode ? cache3.nodeIDsToBeShown : cache3.edgeIDsToBeShown;
+        return visibleIDs && visibleIDs.size ? visibleIDs : null;
+      };
+      const populateFocusOptions = () => {
+        const visibleIDs = getVisibleIDs();
+        const fragment = document.createDocumentFragment();
+        datalist.textContent = "";
+        for (const [key, ids] of sourceMap.entries()) {
+          let include = !visibleIDs;
+          if (visibleIDs) {
+            for (const id of ids) {
+              if (visibleIDs.has(id)) {
+                include = true;
+                break;
+              }
+            }
+          }
+          if (include) {
+            const option = document.createElement("option");
+            option.value = key;
+            fragment.appendChild(option);
+          }
+        }
+        datalist.appendChild(fragment);
+      };
+      populateFocusOptions();
+      input.addEventListener("focus", populateFocusOptions);
+      const focusButton = document.createElement("button");
+      focusButton.textContent = "Focus";
+      focusButton.classList.add("style-inner-button");
+      focusButton.onclick = async () => {
+        const selectedValue = input.value;
+        if (selectedValue) {
+          const ids = sourceMap.get(selectedValue);
+          if (ids) {
+            if (ids.size !== 1) {
+              cache3.ui.warning(`Ambiguous selection: ${selectedValue} matches ${ids.size} ${isNode ? "nodes" : "edges"} (${Array.from(ids).join(",")}).`);
+            }
+            await cache3.gcm.focusElements(ids, isNode);
+          } else {
+            cache3.ui.warning(`No ${isNode ? "node" : "edge"} found for: ${selectedValue}`);
+          }
+        }
+      };
+      parent.appendChild(input);
+      parent.appendChild(datalist);
+      parent.appendChild(focusButton);
+    }
+    function createSelectCard() {
+      const selDiv = createCard("Select Elements");
+      const rowOne = createNewRow(selDiv);
+      appendButton(
+        rowOne,
+        "All Nodes",
+        "Select all visible nodes",
+        async () => await cache3.sm.toggleSelectionForAllNodes(true)
+      );
+      appendButton(
+        rowOne,
+        "No Nodes",
+        "Deselect all visible nodes",
+        async () => await cache3.sm.toggleSelectionForAllNodes(false)
+      );
+      appendVerticalRule(rowOne);
+      appendButton(
+        rowOne,
+        "All Edges",
+        "Select all visible edges",
+        async () => await cache3.sm.toggleSelectionForAllEdges(true)
+      );
+      appendButton(
+        rowOne,
+        "No Edges",
+        "Deselect all visible edges",
+        async () => await cache3.sm.toggleSelectionForAllEdges(false)
+      );
+      const rowTwo = createNewRow(selDiv);
+      appendButton(
+        rowTwo,
+        "Expand Edges",
+        "Add all edges connected to the currently selected nodes to the selection",
+        async () => await cache3.sm.toggleSelectionByNeighbors("expand-edges")
+      );
+      appendButton(
+        rowTwo,
+        "Reduce Edges",
+        "Remove edges that do not connect two selected nodes",
+        async () => await cache3.sm.toggleSelectionByNeighbors("reduce-edges")
+      );
+      const rowThree = createNewRow(selDiv);
+      appendButton(
+        rowThree,
+        "Expand Neighbors",
+        "Add all directly connected neighbor nodes (and their edges) to the current selection",
+        async () => await cache3.sm.toggleSelectionByNeighbors("expand-neighbors")
+      );
+      appendButton(
+        rowThree,
+        "Reduce Neighbors",
+        "Remove the outermost layer of selected neighbor nodes (and their edges) from the ",
+        async () => await cache3.sm.toggleSelectionByNeighbors("reduce-neighbors")
+      );
+      appendHorizontalRule(selDiv);
+      const rowFour = createNewRow(selDiv);
+      const nodeIDsTT = "Enter comma-separated list of node IDs to add/remove to/from selection\nConfirm with Enter";
+      appendLabel(rowFour, "Node IDs", nodeIDsTT);
+      const topTwoNodeIDs = cache3.data?.nodes?.slice(0, 2).map((n) => n.id).join(",") || "Node1,Node2";
+      const nodeIDsInput = createInput(
+        190,
+        topTwoNodeIDs,
+        nodeIDsTT,
+        void 0,
+        async (val) => {
+          await cache3.sm.addNodeOrEdgeIDsToSelectionWrapper(val, true);
+        }
+      );
+      nodeIDsInput.id = "selectByNodeIDsInput";
+      rowFour.appendChild(nodeIDsInput);
+      const nodeIDsInputSwitch = createSwitch((e) => {
+        const btn = document.getElementById("selectByNodeIDsButton");
+        if (e.target.checked) {
+          btn.textContent = "Exclude";
+          btn.classList.add("red");
+          btn.title = "Remove the selected nodes from the selection";
+        } else {
+          btn.textContent = "Include";
+          btn.classList.remove("red");
+          btn.title = "Add the selected nodes to the selection";
+        }
+      }, "selectByNodeIDsSwitch");
+      rowFour.appendChild(nodeIDsInputSwitch);
+      const includeNodesByIdBtn = createButton("Include", "Add the selected nodes to the selection", async () => {
+        const elements = document.getElementById("selectByNodeIDsInput").value;
+        if (elements) {
+          await cache3.sm.addNodeOrEdgeIDsToSelectionWrapper(elements, true);
+        }
+      }, "selectByNodeIDsButton");
+      rowFour.appendChild(includeNodesByIdBtn);
+      const rowFive = createNewRow(selDiv);
+      const edgeIDsTT = "Enter comma-separated list of edge IDs (SourceID::TargetID) to add/remove to/from selection\nConfirm with Enter";
+      appendLabel(rowFive, "Edge IDs", edgeIDsTT);
+      const topTwoEdgeIDs = cache3.data?.edges?.slice(0, 2).map((e) => e.id).join(",") || "Node1::Node2,Node1::Node3";
+      const edgeIDsInput = createInput(
+        190,
+        topTwoEdgeIDs,
+        edgeIDsTT,
+        void 0,
+        async (val) => {
+          await cache3.sm.addNodeOrEdgeIDsToSelectionWrapper(val, false);
+        }
+      );
+      edgeIDsInput.id = "selectByEdgeIDsInput";
+      rowFive.appendChild(edgeIDsInput);
+      const edgeIDsInputSwitch = createSwitch((e) => {
+        const btn = document.getElementById("selectByEdgeIDsButton");
+        if (e.target.checked) {
+          btn.textContent = "Exclude";
+          btn.classList.add("red");
+          btn.title = "Remove the selected edges from the selection";
+        } else {
+          btn.textContent = "Include";
+          btn.classList.remove("red");
+          btn.title = "Add the selected edges to the selection";
+        }
+      }, "selectByEdgeIDsSwitch");
+      rowFive.appendChild(edgeIDsInputSwitch);
+      const includeEdgesByIdBtn = createButton("Include", "Add the selected nodes to the selection", async () => {
+        const elements = document.getElementById("selectByEdgeIDsInput").value;
+        if (elements) {
+          await cache3.sm.addNodeOrEdgeIDsToSelectionWrapper(elements, false);
+        }
+      }, "selectByEdgeIDsButton");
+      rowFive.appendChild(includeEdgesByIdBtn);
+      conditionallyCreateNodeOrEdgeSelectionRow(selDiv);
+    }
+    function conditionallyCreateNodeOrEdgeSelectionRow(selDiv) {
+      let row;
+      if (cache3.nodeLabels.length > 0 || cache3.edgeLabels.length > 0) {
+        row = createNewRow(selDiv);
+      }
+      if (cache3.nodeLabels.length > 0) {
+        const nodeLabelsTT = "Enter comma-separated list of node labels to add/remove to/from selection\nConfirm with Enter";
+        appendLabel(row, "Node Labels", nodeLabelsTT);
+        const topTwoNodeLabels = cache3.nodeLabels?.slice(0, 2).join(",") || "Label1,Label2";
+        const nodeLabelsInput = createInput(
+          174,
+          topTwoNodeLabels,
+          nodeLabelsTT,
+          void 0,
+          async (val) => {
+            await cache3.sm.addNodeOrEdgeLabelsToSelectionWrapper(val, true);
+          }
+        );
+        nodeLabelsInput.id = "selectByNodeLabelsInput";
+        row.appendChild(nodeLabelsInput);
+        const nodeLabelsInputSwitch = createSwitch((e) => {
+          const btn = document.getElementById("selectByNodeLabelsButton");
+          if (e.target.checked) {
+            btn.textContent = "Exclude";
+            btn.classList.add("red");
+            btn.title = "Remove the selected nodes from the selection";
+          } else {
+            btn.textContent = "Include";
+            btn.classList.remove("red");
+            btn.title = "Add the selected nodes to the selection";
+          }
+        }, "selectByNodeLabelsSwitch");
+        row.appendChild(nodeLabelsInputSwitch);
+        const includeNodesByLabelBtn = createButton("Include", "Add the selected nodes to the selection", async () => {
+          const elements = document.getElementById("selectByNodeLabelsInput").value;
+          if (elements) {
+            await cache3.sm.addNodeOrEdgeLabelsToSelectionWrapper(elements, true);
+          }
+        }, "selectByNodeLabelsButton");
+        row.appendChild(includeNodesByLabelBtn);
+      }
+      if (cache3.edgeLabels.length > 0) {
+        const edgeLabelsTT = "Enter comma-separated list of edge Labels to add/remove to/from selection\nConfirm with Enter";
+        appendVerticalRule(row, "Edge Label(s)", edgeLabelsTT);
+        const topTwoEdgeLabels = cache3.edgeLabels.slice(0, 2).join(",") || "Label1,Label2";
+        const edgeLabelsInput = createInput(
+          200,
+          topTwoEdgeLabels,
+          edgeLabelsTT,
+          void 0,
+          async (val) => {
+            await cache3.sm.addNodeOrEdgeLabelsToSelectionWrapper(val, false);
+          }
+        );
+        edgeLabelsInput.id = "selectByEdgeLabelsInput";
+        row.appendChild(edgeLabelsInput);
+        const edgeLabelsInputSwitch = createSwitch((e) => {
+          const btn = document.getElementById("selectByEdgeLabelsButton");
+          if (e.target.checked) {
+            btn.textContent = "Exclude";
+            btn.classList.add("red");
+            btn.title = "Remove the selected edges from the selection";
+          } else {
+            btn.textContent = "Include";
+            btn.classList.remove("red");
+            btn.title = "Add the selected edges to the selection";
+          }
+        }, "selectByEdgeLabelsSwitch");
+        row.appendChild(edgeLabelsInputSwitch);
+        const includeEdgesByLabelBtn = createButton("Include", "Add the selected nodes to the selection", async () => {
+          const elements = document.getElementById("selectByEdgeLabelsInput").value;
+          if (elements) {
+            await cache3.sm.addNodeOrEdgeLabelsToSelectionWrapper(elements, false);
+          }
+        }, "selectByEdgeLabelsButton");
+        row.appendChild(includeEdgesByLabelBtn);
+      }
+    }
+    function createArrangeNodesCard() {
+      const arrDiv = createCard("Arrange Selection");
+      const rowOne = createNewRow(arrDiv);
+      appendButton(
+        rowOne,
+        "Shrink",
+        "Move nodes closer together, halving their distance to the center.",
+        async () => await cache3.lm.layoutSelectedNodes("shrink")
+      );
+      appendButton(
+        rowOne,
+        "Expand",
+        "Move nodes farther apart, doubling their distance to the center.",
+        async () => await cache3.lm.layoutSelectedNodes("expand")
+      );
+      appendVerticalRule(rowOne);
+      appendButton(
+        rowOne,
+        "Circle",
+        "Arrange nodes evenly in a circular layout around the center.",
+        async () => await cache3.lm.layoutSelectedNodes("circle")
+      );
+      appendButton(
+        rowOne,
+        "Force",
+        "Apply a force-directed layout to the selected nodes.",
+        async () => await cache3.lm.layoutSelectedNodes("force")
+      );
+      appendButton(
+        rowOne,
+        "Grid",
+        "Apply a uniform grid layout to the selected nodes.",
+        async () => await cache3.lm.layoutSelectedNodes("grid")
+      );
+      appendButton(
+        rowOne,
+        "Random",
+        "Apply a random layout to the selected nodes while preserving the original layout bonds.",
+        async () => await cache3.lm.layoutSelectedNodes("random")
+      );
+    }
+    function createNodeConfigCard() {
+      const nodeDiv = createCard("Node Configuration");
+      const rowOne = createNewRow(nodeDiv);
+      appendLabel(rowOne, "Shape");
+      createNodeShapeControls(rowOne);
+      const rowTwo = createNewRow(nodeDiv);
+      appendLabel(rowTwo, "Size");
+      createNumericalSlider(rowTwo, "Node Size", cache3.DEFAULTS.NODE.SIZE, { min: 10, max: 50, step: 1 });
+      const rowThree = createNewRow(nodeDiv);
+      appendLabel(rowThree, "Fill Color");
+      createColorControls(rowThree, "Node Fill Color", cache3.DEFAULTS.NODE.FILL_COLOR, cache3.DEFAULTS.STYLES.NODE_COLORS);
+      const rowFour = createNewRow(nodeDiv);
+      appendLabel(rowFour, "Border Size", "Defines the width of the border of the selected nodes.");
+      createNumericalSlider(
+        rowFour,
+        "Node Border Size",
+        cache3.DEFAULTS.NODE.LINE_WIDTH,
+        { min: 1, max: 10, step: 1 },
+        "Defines the width of the border of the selected nodes."
+      );
+      const rowFive = createNewRow(nodeDiv);
+      appendLabel(rowFive, "Border Color", "Defines the fill color of the selected nodes.");
+      createColorControls(
+        rowFive,
+        "Node Border Color",
+        cache3.DEFAULTS.NODE.STROKE_COLOR,
+        cache3.DEFAULTS.STYLES.NODE_BORDER_COLORS
+      );
+      appendHorizontalRule(nodeDiv);
+      const rowSix = createNewRow(nodeDiv);
+      appendLabel(rowSix, "Label", "Customize the selected nodes labels.");
+      createLabelControls(rowSix, "Node Label", true);
+      const rowSeven = createNewRow(nodeDiv);
+      appendLabel(rowSeven, "Label Font Size", "Defines the font size of the selected nodes labels.");
+      createNumericalSlider(
+        rowSeven,
+        "Node Label Font Size",
+        cache3.DEFAULTS.NODE.LABEL.FONT_SIZE,
+        { min: 10, max: 30, step: 1 },
+        "Defines the font size of the selected nodes labels."
+      );
+      const rowEight = createNewRow(nodeDiv);
+      appendLabel(rowEight, "Label Placement", "Defines the placement of the selected nodes labels.");
+      createCategoricalControls(
+        rowEight,
+        "Node Label Placement",
+        cache3.DEFAULTS.NODE.LABEL.PLACEMENT,
+        cache3.DEFAULTS.STYLES.NODE_LABEL_PLACEMENTS,
+        "Defines the placement of the selected nodes labels."
+      );
+      const rowNine = createNewRow(nodeDiv);
+      appendLabel(
+        rowNine,
+        "Label Color",
+        "Defines the foreground (text) color of the selected nodes labels."
+      );
+      createColorControls(
+        rowNine,
+        "Node Label Font Color",
+        cache3.DEFAULTS.NODE.LABEL.FOREGROUND_COLOR,
+        cache3.DEFAULTS.STYLES.NODE_LABEL_COLORS
+      );
+      const rowTen = createNewRow(nodeDiv);
+      appendLabel(
+        rowTen,
+        "Label Background Color",
+        "Defines the background color of the selected nodes labels."
+      );
+      createColorControls(
+        rowTen,
+        "Node Label Background Color",
+        cache3.DEFAULTS.NODE.LABEL.BACKGROUND_COLOR,
+        cache3.DEFAULTS.STYLES.NODE_LABEL_BACKGROUND_COLORS
+      );
+      appendHorizontalRule(nodeDiv);
+      const rowEleven = createNewRow(nodeDiv);
+      appendLabel(rowEleven, "Badges", "Add Badges to the selected nodes.");
+      createNodeBadgeControls(rowEleven);
+    }
+    function createEdgeConfigCard() {
+      const edgeDiv = createCard("Edge Configuration");
+      const rowOne = createNewRow(edgeDiv);
+      appendLabel(rowOne, "Type", "Change the geometric edge type of the selected edges.");
+      createEdgeTypeControls(rowOne);
+      const rowTwo = createNewRow(edgeDiv);
+      appendLabel(rowTwo, "Line Width", "Change the width of the selected edges.");
+      createNumericalSlider(
+        rowTwo,
+        "Edge Width",
+        cache3.DEFAULTS.EDGE.LINE_WIDTH,
+        { min: 0.1, max: 10, step: 0.1 },
+        "Change the width of the selected edges."
+      );
+      const rowThree = createNewRow(edgeDiv);
+      appendLabel(rowThree, "Line Dash", "Define the dash pattern of the selected edges.");
+      createNumericalSlider(
+        rowThree,
+        "Edge Dash",
+        cache3.DEFAULTS.EDGE.LINE_DASH,
+        { min: 0, max: 40, step: 1 },
+        "Define the dash pattern of the selected edges."
+      );
+      const rowFour = createNewRow(edgeDiv);
+      appendLabel(rowFour, "Color", "Define the selected edges color.");
+      createColorControls(rowFour, "Edge Color", cache3.DEFAULTS.EDGE.COLOR, cache3.DEFAULTS.STYLES.EDGE_COLORS);
+      appendHorizontalRule(edgeDiv);
+      const rowFive = createNewRow(edgeDiv);
+      appendLabel(rowFive, "Label", "Customize the selected edges labels.");
+      createLabelControls(rowFive, "Edge Label");
+      const rowSix = createNewRow(edgeDiv);
+      appendLabel(rowSix, "Label Font Size", "Defines the font size of the selected edges labels.");
+      createNumericalSlider(
+        rowSix,
+        "Edge Label Font Size",
+        cache3.DEFAULTS.EDGE.LABEL.FONT_SIZE,
+        { min: 10, max: 30, step: 1 },
+        "Defines the font size of the selected edges labels."
+      );
+      const rowSeven = createNewRow(edgeDiv);
+      appendLabel(rowSeven, "Label Placement", "Defines the placement of the selected edges labels.");
+      createCategoricalControls(
+        rowSeven,
+        "Edge Label Placement",
+        cache3.DEFAULTS.EDGE.LABEL.PLACEMENT,
+        cache3.DEFAULTS.STYLES.EDGE_LABEL_PLACEMENTS,
+        "Defines the placement of the selected edges labels."
+      );
+      const rowEight = createNewRow(edgeDiv);
+      appendLabel(rowEight, "Label Auto Rotate", "Enable/Disable label rotation.");
+      createBooleanControls(rowEight, "Edge Label Auto Rotate", "Enable/Disable label rotation.");
+      const rowNine = createNewRow(edgeDiv);
+      appendLabel(
+        rowNine,
+        "Label Offset X",
+        "Define the offset of the selected edges labels along the X-axis."
+      );
+      createNumericalSlider(
+        rowNine,
+        "Edge Label Offset X",
+        cache3.DEFAULTS.EDGE.LABEL.OFFSET_X,
+        { min: -100, max: 100, step: 1 },
+        "Define the offset of the selected edges labels along the X-axis.",
+        false
+      );
+      const rowTen = createNewRow(edgeDiv);
+      appendLabel(
+        rowTen,
+        "Label Offset Y",
+        "Define the offset of the selected edges labels along the Y-axis."
+      );
+      createNumericalSlider(
+        rowTen,
+        "Edge Label Offset Y",
+        cache3.DEFAULTS.EDGE.LABEL.OFFSET_Y,
+        { min: -100, max: 100, step: 1 },
+        "Define the offset of the selected edges labels along the Y-axis.",
+        false
+      );
+      const rowEleven = createNewRow(edgeDiv);
+      appendLabel(
+        rowEleven,
+        "Label Color",
+        "Defines the foreground (text) color of the selected edges labels."
+      );
+      createColorControls(
+        rowEleven,
+        "Edge Label Font Color",
+        cache3.DEFAULTS.EDGE.LABEL.FOREGROUND_COLOR,
+        cache3.DEFAULTS.STYLES.EDGE_LABEL_COLORS,
+        "Defines the foreground (text) color of the selected edges labels."
+      );
+      const rowTwelve = createNewRow(edgeDiv);
+      appendLabel(
+        rowTwelve,
+        "Label Background Color",
+        "Defines the background color of the selected edges labels."
+      );
+      createColorControls(
+        rowTwelve,
+        "Edge Label Background Color",
+        cache3.DEFAULTS.EDGE.LABEL.BACKGROUND_COLOR,
+        cache3.DEFAULTS.STYLES.EDGE_LABEL_BACKGROUND_COLORS,
+        "Defines the background color of the selected edges labels."
+      );
+      appendHorizontalRule(edgeDiv);
+      const rowThirteen = createNewRow(edgeDiv);
+      appendLabel(rowThirteen, "Start Arrow", "Enable/Disable the start arrow of the selected edges.");
+      createBooleanControls(rowThirteen, "Edge Start Arrow", "Enable/Disable the start arrow of the selected edges.");
+      const rowFourteen = createNewRow(edgeDiv);
+      appendLabel(rowFourteen, "Start Arrow Size", "Define the size of the start arrow of the selected edges.");
+      createNumericalSlider(
+        rowFourteen,
+        "Edge Start Arrow Size",
+        cache3.DEFAULTS.EDGE.ARROWS.START_SIZE,
+        { min: 10, max: 40, step: 1 },
+        "Define the size of the start arrow of the selected edges.",
+        true
+      );
+      const rowFifteen = createNewRow(edgeDiv);
+      appendLabel(rowFifteen, "Start Arrow Type", "Define the type of the start arrow of the selected edges.");
+      createCategoricalControls(
+        rowFifteen,
+        "Edge Start Arrow Type",
+        cache3.DEFAULTS.EDGE.ARROWS.START_TYPE,
+        cache3.DEFAULTS.STYLES.EDGE_ARROW_TYPES,
+        "Define the type of the start arrow of the selected edges."
+      );
+      const rowSixteen = createNewRow(edgeDiv);
+      appendLabel(rowSixteen, "End Arrow", "Enable/Disable the end arrow of the selected edges.");
+      createBooleanControls(rowSixteen, "Edge End Arrow", "Enable/Disable the end arrow of the selected edges.");
+      const rowEighteen = createNewRow(edgeDiv);
+      appendLabel(rowEighteen, "End Arrow Size", "Define the size of the end arrow of the selected edges.");
+      createNumericalSlider(
+        rowEighteen,
+        "Edge End Arrow Size",
+        cache3.DEFAULTS.EDGE.ARROWS.END_SIZE,
+        { min: 10, max: 40, step: 1 },
+        "Define the size of the end arrow of the selected edges.",
+        true
+      );
+      const rowNineteen = createNewRow(edgeDiv);
+      appendLabel(rowNineteen, "End Arrow Type", "Define the type of the end arrow of the selected edges.");
+      createCategoricalControls(
+        rowNineteen,
+        "Edge End Arrow Type",
+        cache3.DEFAULTS.EDGE.ARROWS.END_TYPE,
+        cache3.DEFAULTS.STYLES.EDGE_ARROW_TYPES,
+        "Define the type of the end arrow of the selected edges."
+      );
+      appendHorizontalRule(edgeDiv);
+      const rowTwenty = createNewRow(edgeDiv);
+      appendLabel(rowTwenty, "Halo", "Enable/Disable a halo around the selected edges.");
+      createBooleanControls(rowTwenty, "Edge Halo", "Enable/Disable a halo around the selected edges.");
+      const rowTwentyOne = createNewRow(edgeDiv);
+      appendLabel(rowTwentyOne, "Halo Color", "Define the color of the halo for the selected edges.");
+      createColorControls(
+        rowTwentyOne,
+        "Edge Halo Color",
+        cache3.DEFAULTS.EDGE.COLOR,
+        cache3.DEFAULTS.STYLES.EDGE_COLORS
+      );
+      const rowTwentyTwo = createNewRow(edgeDiv);
+      appendLabel(rowTwentyTwo, "Halo Width", "Define the halo width for the selected edges.");
+      createNumericalSlider(
+        rowTwentyTwo,
+        "Edge Halo Width",
+        cache3.DEFAULTS.EDGE.HALO.WIDTH,
+        { min: 1, max: 30, step: 1 },
+        "Define the halo width for the selected edges."
+      );
+    }
+    function createBubbleSetConfigCard() {
+      const bubbleDiv = createCard("Bubble Set Configuration", void 0, "bubble-set-config-card-header");
+      const optionalCSSClass = "bubbleSetOptionalLabelConfig";
+      let rowCount = 0;
+      for (const group of cache3.bs.traverseBubbleSets()) {
+        rowCount++;
+        const card = createCard(`Bubble Set ${rowCount}`, bubbleDiv);
+        card.id = `bubbleSetStyleCard${group}`;
+        const rowOne = createNewRow(card);
+        appendLabel(rowOne, "Fill Color");
+        createColorControls(rowOne, `Bubble Set ${group} Fill Color`, cache3.data.layouts[cache3.data.selectedLayout].bubbleSetStyle[group].fill, [], false);
+        const rowTwo = createNewRow(card);
+        appendLabel(rowTwo, "Fill Opacity");
+        createNumericalSlider(
+          rowTwo,
+          `Bubble Set ${group} Fill Opacity`,
+          cache3.data.layouts[cache3.data.selectedLayout].bubbleSetStyle[group].fillOpacity,
+          { min: 0, max: 1, step: 0.01 },
+          `Define the fill opacity of the bubble set ${group}.`,
+          false
+        );
+        const rowThree = createNewRow(card);
+        appendLabel(rowThree, "Stroke Color");
+        createColorControls(rowThree, `Bubble Set ${group} Stroke Color`, cache3.data.layouts[cache3.data.selectedLayout].bubbleSetStyle[group].stroke, [], false);
+        const rowFour = createNewRow(card);
+        appendLabel(rowFour, "Stroke Opacity");
+        createNumericalSlider(
+          rowFour,
+          `Bubble Set ${group} Stroke Opacity`,
+          cache3.data.layouts[cache3.data.selectedLayout].bubbleSetStyle[group].strokeOpacity,
+          { min: 0, max: 1, step: 0.01 },
+          `Define the stroke opacity of the bubble set ${group}.`,
+          false
+        );
+        const rowFive = createNewRow(card);
+        appendLabel(rowFive, "Label Text");
+        const enableTextSwitch = createSwitch(async () => {
+          await cache3.bs.updateBubbleSetStyle(`Bubble Set ${group} Label`, enableTextSwitch.isChecked());
+        }, void 0, cache3.data.layouts[cache3.data.selectedLayout].bubbleSetStyle[group].label);
+        rowFive.appendChild(enableTextSwitch);
+        const labelInput = createInput(120, `${group} label text`, `Enter the label text for the bubble set ${group}.`, cache3.data.layouts[cache3.data.selectedLayout].bubbleSetStyle[group].labelText, async () => {
+          const val = labelInput.value.trim();
+          await cache3.bs.updateBubbleSetStyle(`Bubble Set ${group} Label Text`, val);
+        });
+        labelInput.classList.add(optionalCSSClass);
+        rowFive.appendChild(labelInput);
+        const rowSix = createNewRow(card);
+        appendLabel(rowSix, "Label Background Color", void 0, void 0, optionalCSSClass);
+        const enableBackgroundSwitch = createSwitch(async () => {
+          await cache3.bs.updateBubbleSetStyle(`Bubble Set ${group} Label Background`, enableBackgroundSwitch.isChecked());
+        }, void 0, cache3.data.layouts[cache3.data.selectedLayout].bubbleSetStyle[group].labelBackground || true);
+        enableBackgroundSwitch.classList.add(optionalCSSClass);
+        rowSix.appendChild(enableBackgroundSwitch);
+        createColorControls(rowSix, `Bubble Set ${group} Label Background Color`, cache3.data.layouts[cache3.data.selectedLayout].bubbleSetStyle[group].labelBackgroundFill || cache3.data.layouts[cache3.data.selectedLayout].bubbleSetStyle[group].fill, [], false, optionalCSSClass);
+      }
+    }
+    createFocusCard();
+    createSelectCard();
+    createArrangeNodesCard();
+    createNodeConfigCard();
+    createEdgeConfigCard();
+    createBubbleSetConfigCard();
+    return root;
+  }
+
+  // src/managers/ui.js
+  var UIManager = class {
+    constructor(cache3, debugEnabled = false) {
+      this.cache = cache3;
+      this.debugEnabled = debugEnabled;
+    }
+    async showLoading(header, text = "") {
+      const overlay = document.getElementById("loadingOverlay");
+      overlay.style.display = "flex";
+      overlay.style.opacity = "1";
+      document.getElementById("loadingHeader").textContent = header;
+      document.getElementById("loadingText").textContent = text;
+      let logInfo = header;
+      if (text) logInfo += `: ${text}`;
+      this.debug(logInfo);
+      overlay.getBoundingClientRect();
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      return new Promise((resolve) => requestAnimationFrame(resolve));
+    }
+    async hideLoading() {
+      const overlay = document.getElementById("loadingOverlay");
+      overlay.style.opacity = "0";
+      await new Promise((resolve) => {
+        const transitionDuration = getComputedStyle(overlay).transitionDuration;
+        const durationInMs = parseFloat(transitionDuration) * (transitionDuration.includes("ms") ? 1 : 1e3);
+        setTimeout(resolve, durationInMs);
+      });
+      overlay.style.display = "none";
+      this.refreshUI();
+    }
+    refreshUI() {
+      if (!this.cache.initialized) return;
+      this.toggleStyleElementsThatRequireAtLeastOneVisibleNode(this.cache.nodeIDsToBeShown.size > 0);
+      this.toggleStyleElementsThatRequireAtLeastOneVisibleEdge(this.cache.edgeIDsToBeShown.size > 0);
+      this.toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(this.cache.nodeIDsToBeShown.size > 0 || this.cache.edgeIDsToBeShown.size > 0);
+      document.getElementById("visibleNodes").innerHTML = `${this.cache.nodeIDsToBeShown.size - this.cache.hiddenDanglingNodeIDs.size}`;
+      document.getElementById("totalNodes").innerHTML = `${this.cache.data.nodes.length}`;
+      document.getElementById("visibleEdges").innerHTML = `${this.cache.edgeIDsToBeShown.size - this.cache.hiddenDanglingEdgeIDs.size}`;
+      document.getElementById("totalEdges").innerHTML = `${this.cache.data.edges.length}`;
+      this.cache.bs.refreshBubbleStyleElements();
+    }
+    toggleStyleElementsThatRequireAtLeastOneSelectedNode(enable) {
+      this.toggleDisabledElements([
+        "Node Configuration",
+        "Expand Edges",
+        "Reduce Edges",
+        "Expand Neighbors",
+        "Reduce Neighbors",
+        "deselectNodesBtn",
+        "focusNodesBtn"
+      ], enable);
+    }
+    toggleStyleElementsThatRequireAtLeastOneSelectedEdge(enable) {
+      this.toggleDisabledElements(["Edge Configuration", "deselectEdgesBtn", "focusEdgesBtn"], enable);
+    }
+    toggleStyleElementsThatRequireAtLeastOneSelectedNodeOrEdge(enable) {
+      this.toggleDisabledElements(["resetSelectedElementsStyleBtn"], enable);
+    }
+    toggleStyleElementsThatRequireAtLeastOneVisibleNode(enable) {
+      this.toggleDisabledElements([
+        "selectByNodeIDsInput",
+        "Node IDs",
+        "selectByNodeIDsSwitch",
+        "selectByNodeIDsSwitchLabel",
+        "selectByNodeIDsButton"
+      ], enable);
+    }
+    toggleStyleElementsThatRequireAtLeastOneVisibleEdge(enable) {
+      this.toggleDisabledElements([
+        "selectByEdgeIDsInput",
+        "Edge IDs",
+        "selectByEdgeIDsSwitch",
+        "selectByEdgeIDsSwitchLabel",
+        "selectByEdgeIDsButton"
+      ], enable);
+    }
+    toggleStyleElementsThatRequireAtLeastOneVisibleNodeOrEdge(enable) {
+      this.toggleDisabledElements(["Select Elements"], enable);
+    }
+    toggleStyleElementsThatRequireMoreThanOneSelectedNode(enable) {
+      this.toggleDisabledElements(["Arrange Selection"], enable);
+    }
+    toggleDisabledElements(headingLabels, enable) {
+      for (let elemID of headingLabels) {
+        const elem = document.getElementById(elemID);
+        if (elem) {
+          enable ? elem.classList.remove("disabled") : elem.classList.add("disabled");
+        } else {
+          this.debug("Element not found: " + elemID);
+        }
+      }
+    }
+    logMessage(text, colorClass, bold = false, iconPrefix = "") {
+      const timestamp = StaticUtilities.getTimestamp();
+      const container = document.getElementById("sidebarStatusContainer");
+      container.style.height = "8%";
+      const p = document.createElement("p");
+      p.style.margin = "0 0 1px 0";
+      const spanTime = document.createElement("span");
+      spanTime.textContent = `${timestamp} | `;
+      spanTime.classList.add("grey");
+      p.appendChild(spanTime);
+      if (iconPrefix) {
+        const spanIcon = document.createElement("span");
+        spanIcon.textContent = iconPrefix;
+        spanIcon.classList.add("mr");
+        p.appendChild(spanIcon);
+      }
+      const spanText = document.createElement("span");
+      spanText.classList.add(colorClass);
+      spanText.style.fontWeight = bold ? "bold" : "normal";
+      spanText.textContent = text;
+      p.appendChild(spanText);
+      container.appendChild(p);
+      container.scrollTop = container.scrollHeight;
+    }
+    info(message) {
+      this.logMessage(message, "black", false);
+    }
+    warning(message) {
+      this.logMessage(message, "dark-orange", false, "\u26A0\uFE0F");
+    }
+    error(message) {
+      this.logMessage(message, "red", true, "\u26D4");
+    }
+    success(message) {
+      this.logMessage(message, "green", false);
+    }
+    debug(message) {
+      console.log(`${StaticUtilities.getTimestamp(true)} | ${message}`);
+      if (this.debugEnabled) {
+        this.logMessage(message, "grey", false);
+      }
+    }
+    toggleQueryEditor() {
+      const queryBtn = document.getElementById("queryToggleBtn");
+      const dataBtn = document.getElementById("dataToggleBtn");
+      const shouldEnable = !queryBtn.classList.contains("highlight");
+      if (shouldEnable) {
+        this.showEditor("query");
+        queryBtn.classList.add("highlight");
+        dataBtn.classList.remove("highlight");
+      } else {
+        this.hideBottomBar();
+        queryBtn.classList.remove("highlight");
+      }
+      setTimeout(() => {
+        if (this.cache.graph) {
+          this.cache.graph.resize();
+        }
+      }, 300);
+    }
+    async closeBottomBar() {
+      const queryBtn = document.getElementById("queryToggleBtn");
+      const dataBtn = document.getElementById("dataToggleBtn");
+      if (dataBtn.classList.contains("highlight")) {
+        await this.toggleDataEditor();
+        return;
+      }
+      if (queryBtn.classList.contains("highlight")) {
+        this.toggleQueryEditor();
+        return;
+      }
+      const bottomBar = document.getElementById("bottomBar");
+      if (bottomBar.classList.contains("active")) {
+        this.hideBottomBar();
+        setTimeout(() => {
+          if (this.cache.graph) {
+            this.cache.graph.resize();
+          }
+        }, 300);
+      }
+    }
+    async toggleDataEditor() {
+      const queryBtn = document.getElementById("queryToggleBtn");
+      const dataBtn = document.getElementById("dataToggleBtn");
+      const shouldEnable = !dataBtn.classList.contains("highlight");
+      if (shouldEnable) {
+        await this.showLoading("Data Editor", "Loading Data Editor ..");
+        this.showEditor("data");
+        dataBtn.classList.add("highlight");
+        queryBtn.classList.remove("highlight");
+      } else {
+        await this.showLoading("Data Editor", "Closing Data Editor ..");
+        this.hideBottomBar();
+        dataBtn.classList.remove("highlight");
+      }
+      await this.hideLoading();
+      setTimeout(() => {
+        if (this.cache.graph) {
+          this.cache.graph.resize();
+        }
+      }, 300);
+    }
+    async reloadApp() {
+      if (!this.cache.initialized) return;
+      const confirmed = await Popup.confirm("Reload the application and start from scratch?");
+      if (confirmed) {
+        location.reload();
+      }
+    }
+    showEditor(editorType) {
+      const mainContent = document.getElementById("mainContent");
+      const bottomBar = document.getElementById("bottomBar");
+      const queryEditor = document.getElementById("queryEditor");
+      const dataEditor = document.getElementById("dataEditor");
+      const queryButtons = document.querySelector(".query-buttons");
+      const dataButtons = document.querySelector(".data-buttons");
+      const queryToggleButtons = document.querySelectorAll(".add-to-query-button");
+      const headerText = document.getElementById("bottomBarHeaderText");
+      const helpBtn = document.getElementById("bottomBarHelpBtn");
+      mainContent.style.height = "80%";
+      bottomBar.style.height = "20%";
+      bottomBar.classList.add("active");
+      if (editorType === "query") {
+        queryEditor.style.display = "block";
+        dataEditor.style.display = "none";
+        queryButtons.style.display = "flex";
+        dataButtons.style.display = "none";
+        queryToggleButtons.forEach((btn) => btn.classList.add("show"));
+        headerText.textContent = "Query Editor";
+        helpBtn.onclick = () => this.cache.qm.showQueryHelp();
+        helpBtn.title = "Display query editor help";
+      } else if (editorType === "data") {
+        queryEditor.style.display = "none";
+        dataEditor.style.display = "block";
+        queryButtons.style.display = "none";
+        dataButtons.style.display = "flex";
+        queryToggleButtons.forEach((btn) => btn.classList.remove("show"));
+        headerText.textContent = "Data Editor";
+        helpBtn.onclick = () => this.cache.dataTable.help();
+        helpBtn.title = "Display data editor help";
+      }
+    }
+    hideBottomBar() {
+      const mainContent = document.getElementById("mainContent");
+      const bottomBar = document.getElementById("bottomBar");
+      const queryToggleButtons = document.querySelectorAll(".add-to-query-button");
+      mainContent.style.height = "100%";
+      bottomBar.style.height = "0";
+      bottomBar.classList.remove("active");
+      queryToggleButtons.forEach((btn) => btn.classList.remove("show"));
+    }
+    makeBottomBarResizable() {
+      const bottomBar = document.getElementById("bottomBar");
+      const mainContent = document.getElementById("mainContent");
+      const resizeHandle = bottomBar.querySelector(".resize-handle");
+      let isResizing = false;
+      let startY = 0;
+      let startHeight = 0;
+      let shadowBar = null;
+      function createShadowBar() {
+        if (shadowBar) return shadowBar;
+        shadowBar = document.createElement("div");
+        shadowBar.classList.add("resize-shadow-bar");
+        document.body.appendChild(shadowBar);
+        return shadowBar;
+      }
+      resizeHandle.addEventListener("mousedown", (e) => {
+        if (!bottomBar.classList.contains("active")) return;
+        isResizing = true;
+        startY = e.clientY;
+        startHeight = parseInt(document.defaultView.getComputedStyle(bottomBar).height, 10);
+        createShadowBar();
+        shadowBar.style.display = "block";
+        shadowBar.style.bottom = startHeight + "px";
+        shadowBar.style.height = startHeight + "px";
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("mouseup", handleMouseUp);
+        e.preventDefault();
+        document.body.style.userSelect = "none";
+        document.body.style.cursor = "ns-resize";
+      });
+      function handleMouseMove(e) {
+        if (!isResizing || !bottomBar.classList.contains("active")) return;
+        const dy = startY - e.clientY;
+        const newHeight = startHeight + dy;
+        const minHeight = 50;
+        const maxHeight = window.innerHeight * 0.5;
+        const clampedHeight = Math.min(Math.max(newHeight, minHeight), maxHeight);
+        shadowBar.style.bottom = "0px";
+        shadowBar.style.height = clampedHeight + "px";
+      }
+      const handleMouseUp = (e) => {
+        if (!isResizing) return;
+        isResizing = false;
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+        const dy = startY - e.clientY;
+        const newHeight = startHeight + dy;
+        const minHeight = 50;
+        const maxHeight = window.innerHeight * 0.5;
+        const finalHeight = Math.min(Math.max(newHeight, minHeight), maxHeight);
+        if (finalHeight !== startHeight) {
+          const viewportHeight = window.innerHeight;
+          const newMainHeight = viewportHeight - finalHeight;
+          bottomBar.style.height = finalHeight + "px";
+          mainContent.style.height = newMainHeight + "px";
+          if (this.cache.graph) {
+            this.cache.graph.resize();
+          }
+        }
+        shadowBar.style.display = "none";
+        document.body.style.userSelect = "";
+        document.body.style.cursor = "";
+      };
+      window.addEventListener("beforeunload", () => {
+        if (shadowBar && shadowBar.parentNode) {
+          shadowBar.parentNode.removeChild(shadowBar);
+        }
+      });
+    }
+    async toggleEditMode() {
+      const editBtn = document.getElementById("editBtn");
+      if (!editBtn) return;
+      let editModeActive = editBtn.classList.contains("active");
+      editModeActive ? editBtn.classList.remove("active") : editBtn.classList.add("active");
+      this.handleEditModeUIChanges();
+    }
+    toggleStylingPanel() {
+      const rightSidebar = document.getElementById("rightSidebar");
+      const styleBtn = document.getElementById("styleToggleBtn");
+      const outerGraphContainer = document.getElementById("outerGraphContainer");
+      const isActive = rightSidebar.classList.contains("active");
+      if (isActive) {
+        rightSidebar.classList.remove("active");
+        styleBtn.classList.remove("highlight");
+        outerGraphContainer.classList.remove("styling-panel-active");
+      } else {
+        rightSidebar.classList.add("active");
+        styleBtn.classList.add("highlight");
+        outerGraphContainer.classList.add("styling-panel-active");
+      }
+      setTimeout(() => {
+        if (this.cache.graph) {
+          this.cache.graph.resize();
+        }
+      }, 300);
+    }
+    toggleSelectionEditor() {
+      const container = document.getElementById("selectedElementsContainer");
+      const panel = document.getElementById("selectionEditorPanel");
+      const toggleBtn = document.getElementById("selectionEditorToggleBtn");
+      if (!container || !panel || !toggleBtn) return;
+      const isExpanded = container.classList.toggle("expanded");
+      toggleBtn.textContent = isExpanded ? "\u25B4" : "\u25BE";
+      toggleBtn.title = isExpanded ? "Collapse selection editor" : "Expand selection editor";
+      toggleBtn.setAttribute("aria-expanded", isExpanded ? "true" : "false");
+    }
+    async toggleLassoSelection() {
+      const lassoWrapper = document.getElementById("lassoWrapper");
+      let lassoIsActive = lassoWrapper.classList.contains("active");
+      lassoIsActive ? lassoWrapper.classList.remove("active") : lassoWrapper.classList.add("active");
+      const clickAndDragBehaviors = [
+        this.cache.gcm.BEHAVIOURS.DRAG_CANVAS,
+        this.cache.gcm.BEHAVIOURS.DRAG_ELEMENT
+      ];
+      if (!this.cache.CFG.DISABLE_HOVER_EFFECT) {
+        clickAndDragBehaviors.push(this.cache.gcm.BEHAVIOURS.HOVER_ACTIVATE);
+      }
+      const lassoBehaviors = [
+        this.cache.gcm.BEHAVIOURS.LASSO_SELECT
+      ];
+      if (!this.cache.CFG.APPLY_BUBBLE_SET_HOTFIX || this.cache.CFG.APPLY_BUBBLE_SET_HOTFIX && !this.cache.CFG.DISABLE_HOVER_EFFECT) {
+        lassoBehaviors.push(this.cache.gcm.BEHAVIOURS.CLICK_SELECT);
+      }
+      let behaviors = await this.cache.graph.getBehaviors().filter((b) => ![
+        ...clickAndDragBehaviors.map((b2) => b2.type),
+        ...lassoBehaviors.map((b2) => b2.type)
+      ].includes(b.type));
+      lassoIsActive ? this.info("Switched to click and drag mode") : this.info("Switched to lasso selection mode");
+      await this.cache.graph.setBehaviors([...behaviors, ...lassoIsActive ? clickAndDragBehaviors : lassoBehaviors]);
+      await this.cache.graph.updatePlugin({ key: "tooltip", enable: lassoIsActive });
+    }
+    handleEditModeUIChanges() {
+      const editBtn = document.getElementById("editBtn");
+      if (!editBtn) return;
+      const editModeActive = editBtn.classList.contains("active");
+      editModeActive ? editBtn.classList.add("highlight") : editBtn.classList.remove("highlight");
+      const editElements = document.querySelectorAll(".show-on-edit, .show-on-edit-full-width");
+      editElements.forEach((el) => {
+        editModeActive ? el.classList.add("show") : el.classList.remove("show");
+        el.style.height = editModeActive ? `${el.scrollHeight}px` : "0";
+      });
+      const hideOnEditElements = document.querySelectorAll(".hide-on-edit");
+      hideOnEditElements.forEach((el) => {
+        el.style.display = editModeActive ? "none" : "";
+      });
+      if (!editModeActive) {
+        const styleRows = document.querySelectorAll(".style-row");
+        styleRows.forEach((row) => {
+          row.classList.remove("show");
+        });
+      }
+      const filterRows = document.querySelectorAll(".filter-row");
+      filterRows.forEach((row) => {
+        const sliderCol = row.querySelector(".filter-row-col2");
+        const hasRangeSlider = sliderCol.querySelector(".hide-on-edit");
+        if (hasRangeSlider) {
+          sliderCol.style.display = editModeActive ? "flex" : "";
+          sliderCol.style.alignItems = editModeActive ? "center" : "";
+          sliderCol.style.gap = editModeActive ? "4px" : "";
+        } else {
+          sliderCol.style.display = "";
+          sliderCol.style.alignItems = "";
+          sliderCol.style.gap = "";
+        }
+      });
+    }
+    buildUI() {
+      this.cache.query.text = document.getElementById("queryTextArea");
+      this.cache.query.overlay = document.getElementById("queryOverlay");
+      this.cache.query.caret = document.getElementById("queryCaret");
+      this.cache.query.editorDiv = document.getElementById("queryEditor");
+      this.cache.query.sizeObserver = new ResizeObserver(() => requestAnimationFrame(() => this.cache.qm.validateAlignment()));
+      this.cache.query.sizeObserver.observe(this.cache.query.editorDiv);
+      this.cache.query.text.addEventListener("scroll", () => {
+        this.cache.query.overlay.scrollTop = this.cache.query.text.scrollTop;
+        this.cache.query.overlay.scrollLeft = this.cache.query.text.scrollLeft;
+      });
+      this.cache.uiComponents.buildDropdownOptions();
+      const div = document.getElementById("metricsContainer");
+      div.innerHTML = "";
+      div.appendChild(this.cache.metrics.buildMetricUI());
+      const manualButtonContainer = document.getElementById("manualBubbleGroupButtonContainer");
+      manualButtonContainer.innerHTML = "";
+      manualButtonContainer.appendChild(this.cache.uiComponents.createManualBubbleGroupButton());
+      this.buildFilterUI();
+      this.buildStylingPanelUI();
+      document.getElementById("resetSelectedElementsStyleBtn").title = this.cache.CFG.RESET_SELECTION_BUTTON_RESETS_POSITIONS ? "Reset the visual appearance and positions of the selected elements to their defaults" : "Reset the visual appearance of the selected elements to their defaults";
+      this.showUI(true);
+      this.cache.query.lastGoodWidth = this.cache.query.editorDiv.offsetWidth;
+      this.cache.qm.validateAlignment();
+    }
+    buildFilterUI() {
+      const div = document.getElementById("filterContainer");
+      const editBtn = document.getElementById("editBtn");
+      div.innerHTML = "";
+      if (editBtn) {
+        div.appendChild(editBtn);
+      }
+      const statusBar = this.createFilterLockStatusBar();
+      statusBar.id = "filterLockStatusBar";
+      statusBar.style.display = this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY ? "flex" : "none";
+      div.appendChild(statusBar);
+      if (this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) {
+        div.classList.add("locked");
+      } else {
+        div.classList.remove("locked");
+      }
+      let sectionsCreated = /* @__PURE__ */ new Set();
+      let subSectionsCreated = /* @__PURE__ */ new Set();
+      const sortedPropIDs = this.cache.CFG.SORT_FILTERS ? [...this.cache.data.layouts[this.cache.data.selectedLayout].filters.keys()].sort() : [...this.cache.data.layouts[this.cache.data.selectedLayout].filters.keys()];
+      for (let propID of sortedPropIDs) {
+        let [section, subSection, prop] = StaticUtilities.decodePropHashId(propID);
+        let isCategoricalProperty = this.cache.data.filterDefaults.get(propID).isCategory;
+        if (!sectionsCreated.has(section)) {
+          if (sectionsCreated.size > 0) div.appendChild(document.createElement("hr"));
+          const headerDiv = document.createElement("div");
+          headerDiv.className = "header-card";
+          const header = document.createElement("h4");
+          header.textContent = section;
+          header.className = "m-0 white";
+          headerDiv.appendChild(header);
+          headerDiv.appendChild(this.cache.uiComponents.createSectionToggleButton(false, section));
+          headerDiv.appendChild(this.cache.uiComponents.createSectionResetButton(section));
+          headerDiv.appendChild(this.cache.uiComponents.createSectionToggleButton(true, section));
+          div.appendChild(headerDiv);
+          div.appendChild(document.createElement("br"));
+          sectionsCreated.add(section);
+        }
+        if (!subSectionsCreated.has(`${section}::${subSection}`)) {
+          const subHeaderDiv = document.createElement("div");
+          subHeaderDiv.className = "sub-header-card";
+          const subHeader = document.createElement("h5");
+          subHeader.textContent = subSection;
+          subHeader.className = "m-0 inline";
+          subHeaderDiv.appendChild(subHeader);
+          subHeaderDiv.appendChild(this.cache.uiComponents.createSectionToggleButton(false, section, subSection));
+          subHeaderDiv.appendChild(this.cache.uiComponents.createSectionResetButton(section, subSection));
+          subHeaderDiv.appendChild(this.cache.uiComponents.createSectionToggleButton(true, section, subSection));
+          div.appendChild(subHeaderDiv);
+          subSectionsCreated.add(`${section}::${subSection}`);
+        }
+        const row = document.createElement("div");
+        row.className = "filter-row";
+        const col1 = document.createElement("div");
+        col1.className = "filter-row-col1";
+        col1.appendChild(this.cache.uiComponents.createCheckbox(propID, prop));
+        row.appendChild(col1);
+        const col2 = document.createElement("div");
+        col2.className = "filter-row-col2";
+        row.appendChild(col2);
+        const sliderOrDropdown = isCategoricalProperty ? new DropdownChecklist(propID, this.cache) : new InvertibleRangeSlider(propID, this.cache);
+        sliderOrDropdown.appendTo(col2);
+        const col3 = document.createElement("div");
+        col3.className = "filter-row-col3";
+        if (this.cache.nodeExclusiveProps.has(propID) || this.cache.mixedProps.has(propID)) {
+          col3.appendChild(this.cache.uiComponents.createCircleGroupButtonWithQuadrants(propID));
+        } else {
+          const placeHolder = document.createElement("div");
+          placeHolder.style.width = "18px";
+          col3.appendChild(placeHolder);
+        }
+        col3.appendChild(this.cache.uiComponents.createAddOrRemoveToSelectionGroup(propID));
+        row.appendChild(col3);
+        div.append(row);
+        sliderOrDropdown.appendListeners();
+      }
+      this.manageDynamicWidgets();
+      this.handleEditModeUIChanges();
+      this.cache.qm.updateQueryTextArea();
+    }
+    showUI(show) {
+      document.querySelectorAll(".showOnLoad").forEach((element) => {
+        element.style.opacity = show ? "1" : "0";
+        element.style.pointerEvents = show ? "auto" : "none";
+      });
+      document.querySelectorAll(".hideOnLoad").forEach((element) => {
+        element.style.opacity = show ? "0" : "1";
+        element.style.pointerEvents = show ? "none" : "auto";
+        element.style.height = show ? "0" : "auto";
+      });
+      const appHeader = document.getElementById("appHeader");
+      if (appHeader) {
+        if (show) {
+          appHeader.classList.remove("disabled-header");
+          appHeader.classList.add("compact-header");
+          appHeader.title = "Click to reload application";
+        } else {
+          appHeader.classList.add("disabled-header");
+          appHeader.classList.remove("compact-header");
+          appHeader.title = "";
+        }
+      }
+    }
+    uncheckAllCheckboxes() {
+      for (const propID of this.cache.propIDs) {
+        this.checkCheckbox(propID, false);
+      }
+    }
+    checkCheckbox(propID, enable = true) {
+      const checkbox = document.getElementById(`filter-${propID}-checkbox`);
+      const span = document.getElementById(`filter-${propID}-checkbox-inner`);
+      const wrapper = document.getElementById(`filter-${propID}-checkbox-wrapper`);
+      checkbox.checked = enable;
+      this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(propID).active = enable;
+      enable ? this.cache.activeProps.add(propID) : this.cache.activeProps.delete(propID);
+      span.textContent = enable ? "\u2714" : "";
+      wrapper.title = this.cache.uiComponents.getCheckboxTT(enable, propID);
+    }
+    manageDynamicWidgets() {
+      let isCustomLayout = this.cache.data.layouts[this.cache.data.selectedLayout].isCustom;
+      let removeLayoutBtnCls = document.getElementById("removeSelectedLayoutButton").classList;
+      isCustomLayout ? removeLayoutBtnCls.remove("disabled") : removeLayoutBtnCls.add("disabled");
+    }
+    async toggleSection(enable, section) {
+      this.toggleCheckboxesForSetOfPropIDs(enable, section);
+      await this.cache.fm.handleFilterEvent(`${enable ? "Showing" : "Hiding"} Elements`, `Nodes and related edges for ${section}`);
+    }
+    async toggleSubSection(enable, section, subSection) {
+      this.toggleCheckboxesForSetOfPropIDs(enable, section + "::" + subSection);
+      await this.cache.fm.handleFilterEvent(`${enable ? "Showing" : "Hiding"} Elements`, `Nodes and related edges for ${section} ${subSection}`);
+    }
+    toggleCheckboxesForSetOfPropIDs(enable, propIDPrefixToSearchFor) {
+      const setOfPropIDs = [...this.cache.propToNodes.keys(), ...this.cache.propToEdgeIDs.keys()].filter((propID) => propID.startsWith(propIDPrefixToSearchFor));
+      for (let propID of setOfPropIDs) {
+        let checkbox = document.getElementById(`filter-${propID}-checkbox`);
+        let wrapper = document.getElementById(`filter-${propID}-checkbox-wrapper`);
+        let inner = document.getElementById(`filter-${propID}-checkbox-inner`);
+        checkbox.checked = enable;
+        this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(propID).active = enable;
+        enable ? this.cache.activeProps.add(propID) : this.cache.activeProps.delete(propID);
+        wrapper.title = this.cache.uiComponents.getCheckboxTT(enable, propID);
+        inner.textContent = enable ? "\u2714" : "";
+      }
+    }
+    clearActivePropsCacheOnLayoutChange() {
+      this.cache.activeProps = /* @__PURE__ */ new Set();
+      for (const [key, value] of this.cache.data.layouts[this.cache.data.selectedLayout].filters.entries()) {
+        if (value.active) {
+          this.cache.activeProps.add(key);
+        }
+      }
+    }
+    createFilterLockStatusBar() {
+      const statusBar = document.createElement("div");
+      statusBar.className = "filter-lock-status-bar";
+      statusBar.innerHTML = `
       <div class="filter-lock-message">
         <span class="filter-lock-icon">\u{1F512}</span>
         <span>Filters locked | Query manually edited</span>
@@ -455,10 +9953,1087 @@ Confirm with Enter`;s(u,"Edge Label(s)",p);let y=l.edgeLabels.slice(0,2).join(",
       <button class="filter-unlock-btn" onclick="cache.ui.unlockFiltersAndResetQuery()">
         Reset
       </button>
-    `,e}updateFilterLockState(){let e=document.getElementById("filterLockStatusBar"),t=document.getElementById("filterContainer");if(e&&t){let s=this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY;s?(e.style.display="flex",t.classList.add("locked")):(e.style.display="none",t.classList.remove("locked")),t.querySelectorAll('input[type="range"]').forEach(n=>{n.disabled=s}),t.querySelectorAll('input[type="number"]').forEach(n=>{n.disabled=s})}}async unlockFiltersAndResetQuery(){this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY=!1,this.cache.qm.resetQuery(),this.updateFilterLockState(),this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT=!0;try{await this.cache.fm.handleFilterEvent("Resetting Query","Syncing filters with UI state",null,!1)}finally{this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT=!1}}};var Ee=class{constructor(e,t,s=9606,a=50,i=400){this.cache=e,this.baseUrl="https://string-db.org/api/json",this.genes=t,this.species=s,this.amountOfNodes=a,this.requiredScore=i}async loadNetwork(){let e=new URLSearchParams({identifiers:this.genes.join("%0d"),species:this.species,add_nodes:this.amountOfNodes,required_score:this.requiredScore}),t=`${this.baseUrl}/network?${e}`;await this.cache.ui.showLoading("Demo Data",`Loading STRING network with ${this.genes.length} genes: ${this.genes.join(",")}, ${this.amountOfNodes} additional nodes, species ${this.species}, minimum confidence: ${this.requiredScore}. URL: ${t}`);try{let s=await this._fetchFromString(t);if(!s||s.length===0)return this.cache.ui.warning("No interaction data returned from STRING"),null;let a=new Set;s.forEach(n=>{a.add(n.preferredName_A),a.add(n.preferredName_B)});let i=await this._fetchFunctionalAnnotations(Array.from(a));return this._convertToAppFormat(s,i)}catch{return this.cache.ui.error(`Failed to load STRING network. Make sure gene symbols and species ID exist. ${t}`),null}}_getEdgeColor(e,t,s){let a=s===t?0:(e-t)/(s-t),i={r:135,g:137,b:150},n={r:140,g:166,b:217},o={r:153,g:170,b:187},c={r:239,g:176,b:170},r,d,h;if(a<=.33){let m=a/.33;r=Math.round(i.r+(n.r-i.r)*m),d=Math.round(i.g+(n.g-i.g)*m),h=Math.round(i.b+(n.b-i.b)*m)}else if(a<=.66){let m=(a-.33)/.33;r=Math.round(n.r+(o.r-n.r)*m),d=Math.round(n.g+(o.g-n.g)*m),h=Math.round(n.b+(o.b-n.b)*m)}else{let m=(a-.66)/.34;r=Math.round(o.r+(c.r-o.r)*m),d=Math.round(o.g+(c.g-o.g)*m),h=Math.round(o.b+(c.b-o.b)*m)}return`rgb(${r}, ${d}, ${h})`}async _fetchFromString(e){let t=await fetch(e);if(!t.ok)throw new Error(`STRING API request failed: ${t.status}`);return await t.json()}async _fetchFunctionalAnnotations(e){let t=`${this.baseUrl}/functional_annotation?identifiers=${e.join("%0d")}&species=${this.species}`,s=await fetch(t);return s.ok?await s.json():[]}_getSourceAndSubcategory(e){return{Process:{source:"Gene Ontology",subcategory:"Biological Process"},Function:{source:"Gene Ontology",subcategory:"Molecular Function"},Component:{source:"Gene Ontology",subcategory:"Cellular Component"},Keyword:{source:"UniProt",subcategory:"Annotated Keywords"},KEGG:{source:"KEGG",subcategory:"Pathways"},RCTM:{source:"Reactome",subcategory:"Pathways"},HPO:{source:"Monarch",subcategory:"Human Phenotype"},MPO:{source:"Monarch",subcategory:"Mammalian Phenotype"},DPO:{source:"Monarch",subcategory:"Drosophila Phenotype"},WPO:{source:"Monarch",subcategory:"C. elegans Phenotype"},ZPO:{source:"Monarch",subcategory:"Zebrafish Phenotype"},FYPO:{source:"Monarch",subcategory:"Fission Yeast Phenotype"},Pfam:{source:"Pfam",subcategory:"Protein Domains"},SMART:{source:"SMART",subcategory:"Protein Domains"},InterPro:{source:"InterPro",subcategory:"Protein Domains and Features"},PMID:{source:"PubMed",subcategory:"Reference Publications"},NetworkNeighborAL:{source:"STRING",subcategory:"Local Network Cluster"},COMPARTMENTS:{source:"Compartments",subcategory:"Subcellular Localization"},TISSUES:{source:"Tissues",subcategory:"Tissue Expression"},DISEASES:{source:"Diseases",subcategory:"Disease-gene Associations"},WikiPathways:{source:"WikiPathways",subcategory:"WikiPathways"}}[e]||{source:this._sanitizeForAST(e),subcategory:this._sanitizeForAST(e)}}_sanitizeForAST(e){return typeof e!="string"?e:e.replace(/\(/g,"{").replace(/\)/g,"}").replace(/\[/g,"{").replace(/]/g,"}").replace(/:/g,"-").replace(/,/g," ").replace(/&/g,"and").replace(/</g,"less").replace(/>/g,"greater").replace(/"/g,"").replace(/'/g,"").replace(/\\/g,"").replace(/\//g," or ")}_convertToAppFormat(e,t){let s=new Map,a=[],i=new Map,n=new Map;t.forEach(d=>{let h=d.category,m=this._sanitizeForAST(d.description),f=d.preferredNames||[],{source:E,subcategory:C}=this._getSourceAndSubcategory(h);i.has(E)||i.set(E,new Map),i.get(E).has(C)||i.get(E).set(C,new Set),i.get(E).get(C).add(m),f.forEach(w=>{n.has(w)||n.set(w,new Map),n.get(w).has(E)||n.get(w).set(E,new Map),n.get(w).get(E).has(C)||n.get(w).get(E).set(C,[]),n.get(w).get(E).get(C).push(m)})});let o=new Map;i.forEach((d,h)=>{let m=new Map;d.forEach((f,E)=>{f.size>1&&m.set(E,f)}),m.size>0&&o.set(h,m)});let c=[];o.forEach((d,h)=>{d.forEach((m,f)=>{c.push({subGroup:h,key:f})})});let r=[{subGroup:"Scores",key:"Combined Score"},{subGroup:"Evidence Scores",key:"Neighborhood Score"},{subGroup:"Evidence Scores",key:"Fusion Score"},{subGroup:"Evidence Scores",key:"Cooccurrence Score"},{subGroup:"Evidence Scores",key:"Coexpression Score"},{subGroup:"Evidence Scores",key:"Experimental Score"},{subGroup:"Evidence Scores",key:"Database Score"},{subGroup:"Evidence Scores",key:"Textmining Score"}];return e.forEach((d,h)=>{let{stringId_A:m,stringId_B:f,preferredName_A:E,preferredName_B:C,score:w,nscore:D,fscore:L,pscore:v,ascore:F,escore:A,dscore:x,tscore:B}=d,P=(U,g)=>{let u=n.get(g)||new Map,p={};return o.forEach((y,b)=>{p[b]||(p[b]={}),y.forEach((S,N)=>{let I=(u.get(b)||new Map).get(N)||[];p[b][N]=I.length>0?I[0]:`No ${N}`})}),{id:U,label:g,style:{labelText:g},D4Data:{"Node filters":p}}};s.has(E)||s.set(E,P(m,E)),s.has(C)||s.set(C,P(f,C));let M=e.map(U=>U.score),G=Math.min(...M),V=Math.max(...M);a.push({id:`${m}::${f}`,source:m,target:f,style:{stroke:this._getEdgeColor(w,G,V),lineWidth:Math.max(.1,w*3)},D4Data:{"Edge filters":{Scores:{"Combined Score":w},"Evidence Scores":{"Neighborhood Score":D,"Fusion Score":L,"Cooccurrence Score":v,"Coexpression Score":F,"Experimental Score":A,"Database Score":x,"Textmining Score":B}}}})}),{nodes:Array.from(s.values()),edges:a,nodeDataHeaders:c,edgeDataHeaders:r}}};var{Graph:qt,NodeEvent:Ht,EdgeEvent:Vt,GraphEvent:zt,CanvasEvent:Wt,CommonEvent:Yt,WindowEvent:Kt,Layout:Xt,BaseLayout:Qt,ExtensionCategory:jt,register:Zt}=G6,Le=class{constructor(){}reset(){this.initialized=!1,this.graph=null,this.data={filterDefaults:new Map},this.query={valid:!1,ast:null,text:null,overlay:null,caret:null,editorDiv:null,lastGoodWidth:0,sizeObserver:null,sizeChangeLocked:!1,textCache:null},this.DEFAULTS=z,this.CFG=Ae,this.INSTANCES={BUBBLE_GROUPS:{}},this.EVENT_LOCKS={BEFORE_DRAW_RUNNING:!1,AFTER_DRAW_RUNNING:!1,DRAG_END_RUNNING:!1,BEFORE_RENDER_RUNNING:!1,AFTER_RENDER_RUNNING:!1,BEFORE_LAYOUT_RUNNING:!1,AFTER_LAYOUT_RUNNING:!1,ONCE_AFTER_RENDER_RUNNING:!1,ONCE_AFTER_RENDER_COMPLETED:!1,IS_DESELECTING:!1,BUBBLE_GROUP_REDRAW_RUNNING:!1,TRIGGER_SET_LAYOUT_ONCE:!1,HOTKEY_EVENTS_REGISTERED:!1,GLOBAL_EVENTS_REGISTERED:!1,SKIP_QUERY_VALIDATION:!1,QUERY_SELECTION_EVENT:!1,QUERY_UPDATE_EVENT:!1,FILTERS_LOCKED_BY_MANUAL_QUERY:!1},this.excelData=Ce,this.gcm=new ie(this),this.io=new he(this),this.qm=new pe(this),this.bs=new ne(this),this.sm=new re(this),this.fm=new oe(this),this.lm=new le(this),this.ui=new ye(this),this.uiComponents=new me(this),this.style=new ce(this),this.picker=new ee(this),this.numericPicker=new se(this),this.dataTable=new de(this),this.metrics=new ue(this),this.buildDataTable=ve}initialize(e=void 0){this.initialized=!0,e&&(e.nodes&&e.nodes.length>0&&(this.data.nodes=e.nodes),e.edges&&e.edges.length>0&&(this.data.edges=e.edges),e.nodeDataHeaders&&e.nodeDataHeaders.length>0&&(this.data.nodeDataHeaders=e.nodeDataHeaders),e.edgeDataHeaders&&e.edgeDataHeaders.length>0&&(this.data.edgeDataHeaders=e.edgeDataHeaders)),this.nodeRef=new Map,this.edgeRef=new Map,this.toolTips=new Map,this.propIDs=new Set,this.activeProps=new Set,this.nodeExclusiveProps=new Set,this.edgeExclusiveProps=new Set,this.mixedProps=new Set,this.propToNodes=new Map,this.propToNodeIDs=new Map,this.propToEdges=new Map,this.propToEdgeIDs=new Map,this.nodeIDToEdgeIDs=new Map,this.edgeIDToNodeIDs=new Map,this.nodeIDToPropIDs=new Map,this.edgeIDToPropIDs=new Map,this.propIDToDropdownChecklists=new Map,this.propIDToInvertibleRangeSliders=new Map,this.lastBubbleSetMembers=new Map,this.bubbleSetChanged=!1,this.nodeIDsToBeShown=new Set,this.propIDsToNodeIDsToBeShown=new Map,this.edgeIDsToBeShown=new Set,this.propIDsToEdgeIDsToBeShown=new Map,this.selectedNodes=new Set,this.selectedEdges=new Set,this.selectionMemory=[{nodes:[],edges:[]}],this.selectedMemoryIndex=0,this.hiddenDanglingNodeIDs=new Set,this.hiddenDanglingEdgeIDs=new Set,this.uniquePropHierarchy={},this.styleChanged=!1,this.labelStyleChanged=!1,this.visibleElementsChanged=!1,this.layoutChanged=!1,this.popup=null,this.nodeLabels=[],this.edgeLabels=[],this.nodeLabelToNodeIDs=new Map,this.edgeLabelToEdgeIDs=new Map,this.nodeIDOrLabelToNodeIDs=new Map,this.edgeIDOrLabelToEdgeIDs=new Map;for(let t of this.bs.traverseBubbleSets())this.lastBubbleSetMembers.set(t,new Set);this.iterNodes(),this.iterEdges(),this.dataTable.init()}iterNodes(){this.data.nodes.forEach(e=>{let t=structuredClone(e),s=this.style.getNodeStyleOrDefaults(e);t.type=s.type,t.style=structuredClone(s.style),t.originalStyle=structuredClone(s.style),t.originalType=s.type,this.nodeRef.set(e.id,t),this.toolTips.set(e.id,this.uiComponents.buildToolTipText(e.id,!1)),this.nodeIDToPropIDs.set(e.id,new Set),e.label&&(this.nodeLabels.push(e.label),this.nodeLabelToNodeIDs.has(e.label)||this.nodeLabelToNodeIDs.set(e.label,new Set),this.nodeLabelToNodeIDs.get(e.label).add(e.id),this.nodeIDOrLabelToNodeIDs.has(e.label)||this.nodeIDOrLabelToNodeIDs.set(e.label,new Set),this.nodeIDOrLabelToNodeIDs.get(e.label).add(e.id)),this.nodeIDOrLabelToNodeIDs.has(e.id)||this.nodeIDOrLabelToNodeIDs.set(e.id,new Set),this.nodeIDOrLabelToNodeIDs.get(e.id).add(e.id);for(let a of e.features)this.populateUniquePropGroups(a),this.propToNodes.has(a)||this.propToNodes.set(a,new Set),this.propToNodeIDs.has(a)||this.propToNodeIDs.set(a,new Set),this.propToNodes.get(a).add(e),this.propToNodeIDs.get(a).add(e.id),this.nodeExclusiveProps.add(a),this.propIDs.add(a),this.nodeIDToPropIDs.get(e.id).add(a)})}iterEdges(){this.data.edges.forEach(e=>{let t=structuredClone(e),s=this.style.getEdgeStyleOrDefaults(e);t.type=s.type,t.style=structuredClone(s.style),t.originalStyle=structuredClone(s.style),t.originalType=s.type,this.edgeRef.set(e.id,t),this.toolTips.set(e.id,this.uiComponents.buildToolTipText(e.id,!0)),this.edgeIDToPropIDs.set(e.id,new Set),e.label&&(this.edgeLabels.push(e.label),this.edgeLabelToEdgeIDs.has(e.label)||this.edgeLabelToEdgeIDs.set(e.label,new Set),this.edgeLabelToEdgeIDs.get(e.label).add(e.id),this.edgeIDOrLabelToEdgeIDs.has(e.label)||this.edgeIDOrLabelToEdgeIDs.set(e.label,new Set),this.edgeIDOrLabelToEdgeIDs.get(e.label).add(e.id)),this.edgeIDOrLabelToEdgeIDs.has(e.id)||this.edgeIDOrLabelToEdgeIDs.set(e.id,new Set),this.edgeIDOrLabelToEdgeIDs.get(e.id).add(e.id);for(let a of e.features)this.populateUniquePropGroups(a),this.propToEdges.has(a)||this.propToEdges.set(a,new Set),this.propToEdgeIDs.has(a)||this.propToEdgeIDs.set(a,new Set),this.propToEdges.get(a).add(e),this.propToEdgeIDs.get(a).add(e.id),this.nodeExclusiveProps.has(a)?(this.nodeExclusiveProps.delete(a),this.mixedProps.add(a)):this.edgeExclusiveProps.add(a),this.propIDs.add(a),this.edgeIDToPropIDs.get(e.id).add(a);this.nodeIDToEdgeIDs.has(e.source)||this.nodeIDToEdgeIDs.set(e.source,new Set),this.nodeIDToEdgeIDs.has(e.target)||this.nodeIDToEdgeIDs.set(e.target,new Set),this.edgeIDToNodeIDs.has(e.id)||this.edgeIDToNodeIDs.set(e.id,new Set),this.nodeIDToEdgeIDs.get(e.source).add(e.id),this.nodeIDToEdgeIDs.get(e.target).add(e.id),this.edgeIDToNodeIDs.get(e.id).add(e.source),this.edgeIDToNodeIDs.get(e.id).add(e.target)})}populateUniquePropGroups(e){let[t,s,a]=_.decodePropHashId(e);this.uniquePropHierarchy[t]||(this.uniquePropHierarchy[t]={}),this.uniquePropHierarchy[t][s]||(this.uniquePropHierarchy[t][s]=new Set),this.uniquePropHierarchy[t][s].add(a)}},X=new Le;async function qe(){let l=document.createElement("div");return l.innerHTML=`
+    `;
+      return statusBar;
+    }
+    updateFilterLockState() {
+      const statusBar = document.getElementById("filterLockStatusBar");
+      const container = document.getElementById("filterContainer");
+      if (statusBar && container) {
+        const isLocked = this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY;
+        if (isLocked) {
+          statusBar.style.display = "flex";
+          container.classList.add("locked");
+        } else {
+          statusBar.style.display = "none";
+          container.classList.remove("locked");
+        }
+        const rangeInputs = container.querySelectorAll('input[type="range"]');
+        rangeInputs.forEach((input) => {
+          input.disabled = isLocked;
+        });
+        const numberInputs = container.querySelectorAll('input[type="number"]');
+        numberInputs.forEach((input) => {
+          input.disabled = isLocked;
+        });
+      }
+    }
+    async unlockFiltersAndResetQuery() {
+      this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY = false;
+      this.cache.qm.resetQuery();
+      this.updateFilterLockState();
+      this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT = true;
+      try {
+        await this.cache.fm.handleFilterEvent("Resetting Query", "Syncing filters with UI state", null, false);
+      } finally {
+        this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT = false;
+      }
+    }
+    buildStylingPanelUI() {
+      const content = document.getElementById("stylingPanelContent");
+      content.innerHTML = "";
+      content.appendChild(createStyleDiv(this.cache));
+      this.mountSelectionEditorCards();
+    }
+    mountSelectionEditorCards() {
+      const selectionPanel = document.getElementById("selectionEditorPanel");
+      if (!selectionPanel) return;
+      selectionPanel.innerHTML = "";
+      ["Focus Elements", "Select Elements", "Arrange Selection"].forEach((cardId) => {
+        const card = document.getElementById(cardId);
+        if (card) selectionPanel.appendChild(card);
+      });
+    }
+  };
+
+  // src/utilities/demo_loader.js
+  var StringDemoDataLoader = class {
+    constructor(cache3, genes, species = 9606, amountOfNodes = 50, requiredScore = 400) {
+      this.cache = cache3;
+      this.baseUrl = "https://string-db.org/api/json";
+      this.genes = genes;
+      this.species = species;
+      this.amountOfNodes = amountOfNodes;
+      this.requiredScore = requiredScore;
+    }
+    async loadNetwork() {
+      if (this.genes.length === 1 && this.amountOfNodes === 0) {
+        return await this._loadSingleProtein();
+      }
+      const params = new URLSearchParams({
+        identifiers: this.genes.join("%0d"),
+        species: this.species,
+        add_nodes: this.amountOfNodes,
+        required_score: this.requiredScore
+      });
+      const url = `${this.baseUrl}/network?${params}`;
+      await this.cache.ui.showLoading("Demo Data", `Loading STRING network with ${this.genes.length} genes: ${this.genes.join(",")}, ${this.amountOfNodes} additional nodes, species ${this.species}, minimum confidence: ${this.requiredScore}. URL: ${url}`);
+      try {
+        const stringData = await this._fetchFromString(url);
+        if (!stringData || stringData.length === 0) {
+          this.cache.ui.warning("No interaction data returned from STRING");
+          return null;
+        }
+        const allProteins = /* @__PURE__ */ new Set();
+        stringData.forEach((interaction) => {
+          allProteins.add(interaction.preferredName_A);
+          allProteins.add(interaction.preferredName_B);
+        });
+        const annotations = await this._fetchFunctionalAnnotations(Array.from(allProteins));
+        return this._convertToAppFormat(stringData, annotations);
+      } catch (err) {
+        this.cache.ui.error(`Failed to load STRING network. Make sure gene symbols and species ID exist. ${url}`);
+        return null;
+      }
+    }
+    async _loadSingleProtein() {
+      const params = new URLSearchParams({
+        identifiers: this.genes[0],
+        species: this.species
+      });
+      const url = `${this.baseUrl}/get_string_ids?${params}`;
+      await this.cache.ui.showLoading("Demo Data", `Loading protein info for ${this.genes[0]}, species ${this.species}. URL: ${url}`);
+      try {
+        const stringData = await this._fetchFromString(url);
+        if (!stringData || stringData.length === 0) {
+          this.cache.ui.warning("No protein data returned from STRING");
+          return null;
+        }
+        const proteinInfo = stringData[0];
+        const annotationData = await this._fetchFunctionalAnnotations([proteinInfo.preferredName]);
+        return this._convertSingleProteinToAppFormat(proteinInfo, annotationData);
+      } catch (err) {
+        this.cache.ui.error(`Failed to load protein info from STRING. Make sure gene symbol and species ID exist. ${url}`);
+        return null;
+      }
+    }
+    _convertSingleProteinToAppFormat(proteinInfo, annotationData) {
+      const annotationsBySourceAndSubcategory = /* @__PURE__ */ new Map();
+      const proteinToAnnotations = /* @__PURE__ */ new Map();
+      annotationData.forEach((ann) => {
+        const category = ann.category;
+        const description = this._sanitizeForAST(ann.description);
+        const proteins = ann.preferredNames || [];
+        const { source, subcategory } = this._getSourceAndSubcategory(category);
+        if (!annotationsBySourceAndSubcategory.has(source)) {
+          annotationsBySourceAndSubcategory.set(source, /* @__PURE__ */ new Map());
+        }
+        if (!annotationsBySourceAndSubcategory.get(source).has(subcategory)) {
+          annotationsBySourceAndSubcategory.get(source).set(subcategory, /* @__PURE__ */ new Set());
+        }
+        annotationsBySourceAndSubcategory.get(source).get(subcategory).add(description);
+        proteins.forEach((protein) => {
+          if (!proteinToAnnotations.has(protein)) {
+            proteinToAnnotations.set(protein, /* @__PURE__ */ new Map());
+          }
+          if (!proteinToAnnotations.get(protein).has(source)) {
+            proteinToAnnotations.get(protein).set(source, /* @__PURE__ */ new Map());
+          }
+          if (!proteinToAnnotations.get(protein).get(source).has(subcategory)) {
+            proteinToAnnotations.get(protein).get(source).set(subcategory, []);
+          }
+          proteinToAnnotations.get(protein).get(source).get(subcategory).push(description);
+        });
+      });
+      const filteredAnnotations = /* @__PURE__ */ new Map();
+      annotationsBySourceAndSubcategory.forEach((subcategories, source) => {
+        const filteredSubcategories = /* @__PURE__ */ new Map();
+        subcategories.forEach((annotations, subcategory) => {
+          if (annotations.size > 1) {
+            filteredSubcategories.set(subcategory, annotations);
+          }
+        });
+        if (filteredSubcategories.size > 0) {
+          filteredAnnotations.set(source, filteredSubcategories);
+        }
+      });
+      const nodeDataHeaders = [];
+      filteredAnnotations.forEach((subcategories, source) => {
+        subcategories.forEach((annotations, subcategory) => {
+          nodeDataHeaders.push({ subGroup: source, key: subcategory });
+        });
+      });
+      const proteinAnnotations = proteinToAnnotations.get(proteinInfo.preferredName) || /* @__PURE__ */ new Map();
+      const nodeFilters = {};
+      filteredAnnotations.forEach((subcategories, source) => {
+        if (!nodeFilters[source]) {
+          nodeFilters[source] = {};
+        }
+        subcategories.forEach((annotations, subcategory) => {
+          const proteinSourceAnnotations = proteinAnnotations.get(source) || /* @__PURE__ */ new Map();
+          const proteinSubcategoryAnnotations = proteinSourceAnnotations.get(subcategory) || [];
+          nodeFilters[source][subcategory] = proteinSubcategoryAnnotations.length > 0 ? proteinSubcategoryAnnotations[0] : `No ${subcategory}`;
+        });
+      });
+      return {
+        nodes: [{
+          id: proteinInfo.stringId,
+          label: proteinInfo.preferredName,
+          style: {
+            labelText: proteinInfo.preferredName
+          },
+          D4Data: {
+            "Node filters": nodeFilters
+          }
+        }],
+        edges: [],
+        nodeDataHeaders,
+        edgeDataHeaders: []
+      };
+    }
+    _getEdgeColor(score, minScore, maxScore) {
+      const normalizedScore = maxScore === minScore ? 0 : (score - minScore) / (maxScore - minScore);
+      const greyColor = { r: 135, g: 137, b: 150 };
+      const blueColor = { r: 140, g: 166, b: 217 };
+      const purpleColor = { r: 153, g: 170, b: 187 };
+      const pinkColor = { r: 239, g: 176, b: 170 };
+      let r, g, b;
+      if (normalizedScore <= 0.33) {
+        const t = normalizedScore / 0.33;
+        r = Math.round(greyColor.r + (blueColor.r - greyColor.r) * t);
+        g = Math.round(greyColor.g + (blueColor.g - greyColor.g) * t);
+        b = Math.round(greyColor.b + (blueColor.b - greyColor.b) * t);
+      } else if (normalizedScore <= 0.66) {
+        const t = (normalizedScore - 0.33) / 0.33;
+        r = Math.round(blueColor.r + (purpleColor.r - blueColor.r) * t);
+        g = Math.round(blueColor.g + (purpleColor.g - blueColor.g) * t);
+        b = Math.round(blueColor.b + (purpleColor.b - blueColor.b) * t);
+      } else {
+        const t = (normalizedScore - 0.66) / 0.34;
+        r = Math.round(purpleColor.r + (pinkColor.r - purpleColor.r) * t);
+        g = Math.round(purpleColor.g + (pinkColor.g - purpleColor.g) * t);
+        b = Math.round(purpleColor.b + (pinkColor.b - purpleColor.b) * t);
+      }
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+    async _fetchFromString(url) {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`STRING API request failed: ${response.status}`);
+      }
+      return await response.json();
+    }
+    async _fetchFunctionalAnnotations(proteins) {
+      const url = `${this.baseUrl}/functional_annotation?identifiers=${proteins.join("%0d")}&species=${this.species}`;
+      const response = await fetch(url);
+      if (!response.ok) return [];
+      return await response.json();
+    }
+    _getSourceAndSubcategory(category) {
+      const mapping = {
+        "Process": { source: "Gene Ontology", subcategory: "Biological Process" },
+        "Function": { source: "Gene Ontology", subcategory: "Molecular Function" },
+        "Component": { source: "Gene Ontology", subcategory: "Cellular Component" },
+        "Keyword": { source: "UniProt", subcategory: "Annotated Keywords" },
+        "KEGG": { source: "KEGG", subcategory: "Pathways" },
+        "RCTM": { source: "Reactome", subcategory: "Pathways" },
+        "HPO": { source: "Monarch", subcategory: "Human Phenotype" },
+        "MPO": { source: "Monarch", subcategory: "Mammalian Phenotype" },
+        "DPO": { source: "Monarch", subcategory: "Drosophila Phenotype" },
+        "WPO": { source: "Monarch", subcategory: "C. elegans Phenotype" },
+        "ZPO": { source: "Monarch", subcategory: "Zebrafish Phenotype" },
+        "FYPO": { source: "Monarch", subcategory: "Fission Yeast Phenotype" },
+        "Pfam": { source: "Pfam", subcategory: "Protein Domains" },
+        "SMART": { source: "SMART", subcategory: "Protein Domains" },
+        "InterPro": { source: "InterPro", subcategory: "Protein Domains and Features" },
+        "PMID": { source: "PubMed", subcategory: "Reference Publications" },
+        "NetworkNeighborAL": { source: "STRING", subcategory: "Local Network Cluster" },
+        "COMPARTMENTS": { source: "Compartments", subcategory: "Subcellular Localization" },
+        "TISSUES": { source: "Tissues", subcategory: "Tissue Expression" },
+        "DISEASES": { source: "Diseases", subcategory: "Disease-gene Associations" },
+        "WikiPathways": { source: "WikiPathways", subcategory: "WikiPathways" }
+      };
+      return mapping[category] || { source: this._sanitizeForAST(category), subcategory: this._sanitizeForAST(category) };
+    }
+    _sanitizeForAST(str) {
+      if (typeof str !== "string") return str;
+      return str.replace(/\(/g, "{").replace(/\)/g, "}").replace(/\[/g, "{").replace(/]/g, "}").replace(/:/g, "-").replace(/,/g, " ").replace(/&/g, "and").replace(/</g, "less").replace(/>/g, "greater").replace(/"/g, "").replace(/'/g, "").replace(/\\/g, "").replace(/\//g, " or ");
+    }
+    _convertToAppFormat(stringData, annotationData) {
+      const nodeMap = /* @__PURE__ */ new Map();
+      const edges = [];
+      const annotationsBySourceAndSubcategory = /* @__PURE__ */ new Map();
+      const proteinToAnnotations = /* @__PURE__ */ new Map();
+      annotationData.forEach((ann) => {
+        const category = ann.category;
+        const description = this._sanitizeForAST(ann.description);
+        const proteins = ann.preferredNames || [];
+        const { source, subcategory } = this._getSourceAndSubcategory(category);
+        if (!annotationsBySourceAndSubcategory.has(source)) {
+          annotationsBySourceAndSubcategory.set(source, /* @__PURE__ */ new Map());
+        }
+        if (!annotationsBySourceAndSubcategory.get(source).has(subcategory)) {
+          annotationsBySourceAndSubcategory.get(source).set(subcategory, /* @__PURE__ */ new Set());
+        }
+        annotationsBySourceAndSubcategory.get(source).get(subcategory).add(description);
+        proteins.forEach((protein) => {
+          if (!proteinToAnnotations.has(protein)) {
+            proteinToAnnotations.set(protein, /* @__PURE__ */ new Map());
+          }
+          if (!proteinToAnnotations.get(protein).has(source)) {
+            proteinToAnnotations.get(protein).set(source, /* @__PURE__ */ new Map());
+          }
+          if (!proteinToAnnotations.get(protein).get(source).has(subcategory)) {
+            proteinToAnnotations.get(protein).get(source).set(subcategory, []);
+          }
+          proteinToAnnotations.get(protein).get(source).get(subcategory).push(description);
+        });
+      });
+      const filteredAnnotations = /* @__PURE__ */ new Map();
+      annotationsBySourceAndSubcategory.forEach((subcategories, source) => {
+        const filteredSubcategories = /* @__PURE__ */ new Map();
+        subcategories.forEach((annotations, subcategory) => {
+          if (annotations.size > 1) {
+            filteredSubcategories.set(subcategory, annotations);
+          }
+        });
+        if (filteredSubcategories.size > 0) {
+          filteredAnnotations.set(source, filteredSubcategories);
+        }
+      });
+      const nodeDataHeaders = [];
+      filteredAnnotations.forEach((subcategories, source) => {
+        subcategories.forEach((annotations, subcategory) => {
+          nodeDataHeaders.push({ subGroup: source, key: subcategory });
+        });
+      });
+      const edgeDataHeaders = [
+        { subGroup: "Scores", key: "Combined Score" },
+        { subGroup: "Evidence Scores", key: "Neighborhood Score" },
+        { subGroup: "Evidence Scores", key: "Fusion Score" },
+        { subGroup: "Evidence Scores", key: "Cooccurrence Score" },
+        { subGroup: "Evidence Scores", key: "Coexpression Score" },
+        { subGroup: "Evidence Scores", key: "Experimental Score" },
+        { subGroup: "Evidence Scores", key: "Database Score" },
+        { subGroup: "Evidence Scores", key: "Textmining Score" }
+      ];
+      stringData.forEach((interaction, index) => {
+        const {
+          stringId_A,
+          stringId_B,
+          preferredName_A,
+          preferredName_B,
+          score,
+          nscore,
+          fscore,
+          pscore,
+          ascore,
+          escore,
+          dscore,
+          tscore
+        } = interaction;
+        const createNode = (stringId, preferredName) => {
+          const proteinAnnotations = proteinToAnnotations.get(preferredName) || /* @__PURE__ */ new Map();
+          const nodeFilters = {};
+          filteredAnnotations.forEach((subcategories, source) => {
+            if (!nodeFilters[source]) {
+              nodeFilters[source] = {};
+            }
+            subcategories.forEach((annotations, subcategory) => {
+              const proteinSourceAnnotations = proteinAnnotations.get(source) || /* @__PURE__ */ new Map();
+              const proteinSubcategoryAnnotations = proteinSourceAnnotations.get(subcategory) || [];
+              nodeFilters[source][subcategory] = proteinSubcategoryAnnotations.length > 0 ? proteinSubcategoryAnnotations[0] : `No ${subcategory}`;
+            });
+          });
+          return {
+            id: stringId,
+            label: preferredName,
+            style: {
+              labelText: preferredName
+            },
+            D4Data: {
+              "Node filters": nodeFilters
+            }
+          };
+        };
+        if (!nodeMap.has(preferredName_A)) {
+          nodeMap.set(preferredName_A, createNode(stringId_A, preferredName_A));
+        }
+        if (!nodeMap.has(preferredName_B)) {
+          nodeMap.set(preferredName_B, createNode(stringId_B, preferredName_B));
+        }
+        const scores = stringData.map((interaction2) => interaction2.score);
+        const minScore = Math.min(...scores);
+        const maxScore = Math.max(...scores);
+        edges.push({
+          id: `${stringId_A}::${stringId_B}`,
+          source: stringId_A,
+          target: stringId_B,
+          style: {
+            stroke: this._getEdgeColor(score, minScore, maxScore),
+            lineWidth: Math.max(0.1, score * 3)
+          },
+          D4Data: {
+            "Edge filters": {
+              "Scores": {
+                "Combined Score": score
+              },
+              "Evidence Scores": {
+                "Neighborhood Score": nscore,
+                "Fusion Score": fscore,
+                "Cooccurrence Score": pscore,
+                "Coexpression Score": ascore,
+                "Experimental Score": escore,
+                "Database Score": dscore,
+                "Textmining Score": tscore
+              }
+            }
+          }
+        });
+      });
+      return {
+        nodes: Array.from(nodeMap.values()),
+        edges,
+        nodeDataHeaders,
+        edgeDataHeaders
+      };
+    }
+  };
+
+  // src/utilities/tour.js
+  function generateTourData() {
+    const categories = ["Protein", "Enzyme", "Receptor", "Transporter", "Kinase"];
+    const compartments = ["Nucleus", "Cytoplasm", "Membrane", "Mitochondria", "ER"];
+    const pathways = ["MAPK signaling", "Apoptosis", "Cell cycle", "Metabolism", "Immune response"];
+    const nodes = [
+      { id: "n1", label: "TP53", description: "Tumor suppressor protein p53" },
+      { id: "n2", label: "MDM2", description: "E3 ubiquitin-protein ligase" },
+      { id: "n3", label: "BRCA1", description: "Breast cancer type 1 susceptibility" },
+      { id: "n4", label: "AKT1", description: "Serine/threonine-protein kinase" },
+      { id: "n5", label: "EGFR", description: "Epidermal growth factor receptor" },
+      { id: "n6", label: "KRAS", description: "GTPase KRas" },
+      { id: "n7", label: "BRAF", description: "Serine/threonine-protein kinase B-Raf" },
+      { id: "n8", label: "PIK3CA", description: "PI3-kinase catalytic subunit alpha" },
+      { id: "n9", label: "PTEN", description: "Phosphatase and tensin homolog" },
+      { id: "n10", label: "RB1", description: "Retinoblastoma-associated protein" },
+      { id: "n11", label: "MYC", description: "Myc proto-oncogene protein" },
+      { id: "n12", label: "CDK2", description: "Cyclin-dependent kinase 2" },
+      { id: "n13", label: "MAPK1", description: "Mitogen-activated protein kinase 1" },
+      { id: "n14", label: "JAK2", description: "Tyrosine-protein kinase JAK2" },
+      { id: "n15", label: "STAT3", description: "Signal transducer and activator of transcription 3" },
+      { id: "n16", label: "BCL2", description: "Apoptosis regulator Bcl-2" },
+      { id: "n17", label: "CASP3", description: "Caspase-3" },
+      { id: "n18", label: "TNF", description: "Tumor necrosis factor" },
+      { id: "n19", label: "VEGFA", description: "Vascular endothelial growth factor A" },
+      { id: "n20", label: "ERBB2", description: "Receptor tyrosine-protein kinase erbB-2" },
+      { id: "n21", label: "SRC", description: "Proto-oncogene tyrosine-protein kinase Src" },
+      { id: "n22", label: "MTOR", description: "Serine/threonine-protein kinase mTOR" },
+      // Disconnected nodes
+      { id: "n23", label: "INS", description: "Insulin (isolated node)" },
+      { id: "n24", label: "ALB", description: "Albumin (isolated node)" },
+      { id: "n25", label: "HBB", description: "Hemoglobin subunit beta (isolated node)" }
+    ];
+    const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const randNum = (min, max) => +(min + Math.random() * (max - min)).toFixed(2);
+    nodes.forEach((n) => {
+      n.style = { labelText: n.label };
+      n.D4Data = {
+        "Node filters": {
+          "Classification": {
+            "Type": rand(categories),
+            "Compartment": rand(compartments)
+          },
+          "Annotation": {
+            "Pathway": rand(pathways),
+            "Expression Level": randNum(0, 100),
+            "Confidence": randNum(0, 1)
+          }
+        }
+      };
+    });
+    const edgeDefs = [
+      ["n1", "n2"],
+      ["n1", "n3"],
+      ["n1", "n10"],
+      ["n1", "n11"],
+      ["n1", "n16"],
+      ["n2", "n1"],
+      ["n3", "n4"],
+      ["n4", "n8"],
+      ["n4", "n22"],
+      ["n5", "n6"],
+      ["n5", "n20"],
+      ["n6", "n7"],
+      ["n6", "n13"],
+      ["n7", "n13"],
+      ["n8", "n9"],
+      ["n8", "n22"],
+      ["n10", "n12"],
+      ["n11", "n12"],
+      ["n13", "n14"],
+      ["n14", "n15"],
+      ["n15", "n11"],
+      ["n16", "n17"],
+      ["n17", "n18"],
+      ["n18", "n15"],
+      ["n19", "n5"],
+      ["n20", "n21"],
+      ["n21", "n4"]
+    ];
+    const interactionTypes = ["activation", "inhibition", "binding", "phosphorylation", "expression"];
+    const edges = edgeDefs.map(([s, t], i) => ({
+      id: `e${i}`,
+      source: s,
+      target: t,
+      style: { lineWidth: randNum(0.5, 3) },
+      D4Data: {
+        "Edge filters": {
+          "Interaction": {
+            "Type": rand(interactionTypes),
+            "Score": randNum(0.1, 1)
+          }
+        }
+      }
+    }));
+    return {
+      nodes,
+      edges,
+      nodeDataHeaders: [
+        { subGroup: "Classification", key: "Type" },
+        { subGroup: "Classification", key: "Compartment" },
+        { subGroup: "Annotation", key: "Pathway" },
+        { subGroup: "Annotation", key: "Expression Level" },
+        { subGroup: "Annotation", key: "Confidence" }
+      ],
+      edgeDataHeaders: [
+        { subGroup: "Interaction", key: "Type" },
+        { subGroup: "Interaction", key: "Score" }
+      ]
+    };
+  }
+  var TOUR_STEPS = [
+    {
+      title: "Welcome to Graph Lens Lite! \u{1F44B}",
+      text: `This tour will walk you through the main features of the application.
+           We've loaded a small sample network of 25 protein nodes and their interactions.
+           <br><br>
+           <strong>3 nodes are disconnected</strong> \u2014 they have no edges. This is intentional, so you can see how filtering works.
+           <br><br>
+           Let's explore the interface!`,
+      target: null
+    },
+    {
+      title: "App Header \u2014 Quick Actions",
+      text: `The header bar contains quick-access buttons:
+           <br><br>
+           \u{1F4CA} <strong>Metrics</strong> \u2014 compute network metrics (degree, betweenness, PageRank, etc.)
+           <br>\u{1F522} <strong>Data Editor</strong> \u2014 view and edit your graph data in a spreadsheet
+           <br>\u{1F4DD} <strong>Query Editor</strong> \u2014 write filter/selection queries using our query language
+           <br>\u{1F4F7} <strong>Save Image</strong> \u2014 export the current view as PNG
+           <br>\u{1F4BE} <strong>Save Model</strong> \u2014 export the full graph (data + styles + layouts) as JSON
+           <br><br>
+           <em>Clicking the app name reloads the application.</em>`,
+      target: ".header-row",
+      position: "below"
+    },
+    {
+      title: "Workspaces",
+      text: `Workspaces let you save <strong>independent views</strong> of the same data.
+           Each workspace preserves its own:
+           <br><br>
+           \u2022 Node positions and layout
+           <br>\u2022 Filter settings
+           <br>\u2022 Query state
+           <br>\u2022 Bubble groups
+           <br>\u2022 Visual styles applied per workspace
+           <br><br>
+           Use the <strong class="tour-green">\u271A</strong> button to create a new workspace (clone or template-based), and the <strong class="tour-red">\u2717</strong> button to delete the current one.
+           <br><br>
+           The <strong>\u26F6</strong> button fits the graph to the screen, and <strong>\u{1F6AB}</strong> hides disconnected nodes.`,
+      target: "#selectView",
+      position: "below"
+    },
+    {
+      title: "Filtering Panel",
+      text: `This is the core of the app. Every property from your data becomes a <strong>filter</strong>.
+           <br><br>
+           \u2022 <strong>Numeric properties</strong> get range sliders \u2014 drag to set thresholds
+           <br>\u2022 <strong>Categorical properties</strong> get dropdown checklists \u2014 check/uncheck values
+           <br><br>
+           The <strong>checkbox</strong> next to each filter toggles whether that property is active.
+           Only nodes/edges matching <em>all active filters</em> are shown (AND logic by default).
+           <br><br>
+           The \u2699\uFE0F <strong>Edit Mode</strong> button reveals advanced filter controls including
+           bubble set group assignment and query builder buttons.`,
+      target: "#filterContainer",
+      position: "right"
+    },
+    {
+      title: "Query Editor \u2014 Filter & Select by Code",
+      text: `The query editor uses a <strong>custom DSL</strong> (domain-specific language) for filtering.
+           <br><br>
+           Syntax examples:
+           <br><code>property BETWEEN 0.5 AND 1.0</code>
+           <br><code>property IN (value1, value2)</code>
+           <br><code>property LOWER THAN 50</code>
+           <br><code>expr1 AND expr2</code>
+           <br><code>expr1 OR expr2</code>
+           <br><code>NOT expr</code>
+           <br><br>
+           The query <strong>syncs with the filter panel</strong> \u2014 changing filters updates the query text, and vice versa.
+           When you manually edit the query, filters get <strong>locked</strong> (\u{1F512}) to prevent conflicts.
+           <br><br>
+           Use <strong>\u{1F50D} Filter</strong> to filter the graph, or <strong>\u{1F3AF} Select</strong> to select matching nodes without hiding others.`,
+      target: null,
+      action: "openQueryEditor"
+    },
+    {
+      title: "Data Editor \u2014 Edit Your Graph",
+      text: `The data editor is a <strong>spreadsheet view</strong> of all nodes and edges.
+           <br><br>
+           You can:
+           <br>\u2022 Edit property values directly in cells
+           <br>\u2022 Add new nodes, edges, or property columns
+           <br>\u2022 Export the data as Excel
+           <br><br>
+           Click <strong>\u2714 Apply</strong> to push changes to the graph, or <strong>\u27F3 Reset</strong> to revert.`,
+      target: null,
+      action: "openDataEditor"
+    },
+    {
+      title: "Selection Panel",
+      text: `The selection panel sits above the graph canvas. It shows how many nodes and edges are currently selected.
+           <br><br>
+           \u2022 Use <strong>click</strong> to select individual elements (hold Shift for multi-select)
+           <br>\u2022 Toggle the <strong>lasso tool</strong> to draw a selection area
+           <br>\u2022 <strong>\u21A9/\u21AA</strong> undo/redo selections (up to 25 states)
+           <br>\u2022 <strong>\u27F3</strong> resets styles for selected elements
+           <br><br>
+           Expand the panel with <strong>\u25BE</strong> to see focus, selection-by-ID, and arrangement tools.`,
+      target: "#selectedElementsContainer",
+      position: "below"
+    },
+    {
+      title: "Styling Panel \u{1F3A8}",
+      text: `The styling panel (right sidebar) lets you customize the visual appearance of your graph.
+           <br><br>
+           \u2022 <strong>Global styles</strong> \u2014 change defaults for all nodes/edges
+           <br>\u2022 <strong>Selection styles</strong> \u2014 style only the selected elements
+           <br>\u2022 <strong>Color scales</strong> \u2014 map numeric properties to color gradients
+           <br>\u2022 <strong>Size scales</strong> \u2014 map numeric properties to node sizes
+           <br><br>
+           Styles are <strong>per-workspace</strong>, so you can have different visual configurations in each workspace.`,
+      target: null,
+      action: "openStylingPanel"
+    },
+    {
+      title: "You're all set! \u{1F389}",
+      text: `That covers the main features. Here are some <strong>keyboard shortcuts</strong> to remember:
+           <br><br>
+           <strong>F</strong> \u2014 Fit graph to screen
+           <br><strong>L</strong> \u2014 Toggle lasso selection
+           <br><strong>Q</strong> \u2014 Toggle query editor
+           <br><strong>D</strong> \u2014 Toggle data editor
+           <br><strong>M</strong> \u2014 Toggle metrics panel
+           <br><strong>Y</strong> \u2014 Toggle styling panel
+           <br><strong>E</strong> \u2014 Toggle edit mode
+           <br><strong>P</strong> \u2014 Export as PNG
+           <br><strong>S</strong> \u2014 Save as JSON
+           <br><br>
+           Try loading your own data from an <strong>Excel file</strong> or <strong>JSON export</strong>, or fetch protein networks from the <strong>STRING database</strong>.
+           <br><br>
+           <em>Enjoy exploring your graphs!</em>`,
+      target: null
+    }
+  ];
+  var GuidedTour = class {
+    constructor(cache3) {
+      this.cache = cache3;
+      this.currentStep = 0;
+      this.highlightEl = null;
+      this.popup = null;
+      this.overlay = null;
+    }
+    async start() {
+      this.currentStep = 0;
+      await this.showStep();
+    }
+    async showStep() {
+      this.cleanup();
+      if (this.currentStep >= TOUR_STEPS.length) {
+        this.finish();
+        return;
+      }
+      const step = TOUR_STEPS[this.currentStep];
+      if (step.action) {
+        await this.executeAction(step.action);
+      }
+      if (step.target) {
+        this.highlight(step.target, step.position || "below");
+      }
+      const content = document.createElement("div");
+      content.className = "tour-popup-content";
+      const stepIndicator = document.createElement("div");
+      stepIndicator.className = "tour-step-indicator";
+      stepIndicator.textContent = `Step ${this.currentStep + 1} of ${TOUR_STEPS.length}`;
+      content.appendChild(stepIndicator);
+      const title = document.createElement("h3");
+      title.className = "tour-title";
+      title.textContent = step.title;
+      content.appendChild(title);
+      const text = document.createElement("div");
+      text.className = "tour-text";
+      text.innerHTML = step.text;
+      content.appendChild(text);
+      const buttons = document.createElement("div");
+      buttons.className = "tour-buttons";
+      if (this.currentStep > 0) {
+        const prevBtn = document.createElement("button");
+        prevBtn.className = "p-button tour-btn-prev";
+        prevBtn.textContent = "\u2190 Back";
+        prevBtn.addEventListener("click", () => {
+          this.currentStep--;
+          this.showStep();
+        });
+        buttons.appendChild(prevBtn);
+      }
+      const isLast = this.currentStep === TOUR_STEPS.length - 1;
+      const nextBtn = document.createElement("button");
+      nextBtn.className = "p-button tour-btn-next";
+      nextBtn.textContent = isLast ? "Finish \u2713" : "Next \u2192";
+      nextBtn.addEventListener("click", () => {
+        this.currentStep++;
+        this.showStep();
+      });
+      buttons.appendChild(nextBtn);
+      const skipBtn = document.createElement("button");
+      skipBtn.className = "tour-btn-skip";
+      skipBtn.textContent = "Skip tour";
+      skipBtn.addEventListener("click", () => {
+        this.cleanup();
+        this.finish();
+      });
+      if (!isLast) buttons.appendChild(skipBtn);
+      content.appendChild(buttons);
+      let popupOpts = {
+        width: "460px",
+        showFullscreenButton: false,
+        closeOnClickOutside: false,
+        onClose: () => {
+          this.cleanup();
+          this.finish();
+        }
+      };
+      if (step.target && this.highlightEl) {
+        const rect = document.querySelector(step.target)?.getBoundingClientRect();
+        if (rect) {
+          const pos = this.computePopupPosition(rect, step.position || "below");
+          popupOpts.position = pos;
+        }
+      }
+      this.popup = new Popup(content, popupOpts);
+    }
+    computePopupPosition(targetRect, position) {
+      const popupWidth = 460;
+      const margin = 16;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      let x, y;
+      if (position === "below") {
+        x = targetRect.left;
+        y = targetRect.bottom + margin;
+      } else if (position === "right") {
+        x = targetRect.right + margin;
+        y = targetRect.top;
+      } else if (position === "above") {
+        x = targetRect.left;
+        y = targetRect.top - margin - 300;
+      }
+      x = Math.max(margin, Math.min(x, vw - popupWidth - margin));
+      y = Math.max(margin, Math.min(y, vh - 200));
+      return { x, y };
+    }
+    highlight(selector, position) {
+      const el = document.querySelector(selector);
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const padding = 6;
+      this.highlightEl = document.createElement("div");
+      this.highlightEl.className = "tour-highlight";
+      this.highlightEl.style.top = `${rect.top - padding}px`;
+      this.highlightEl.style.left = `${rect.left - padding}px`;
+      this.highlightEl.style.width = `${rect.width + padding * 2}px`;
+      this.highlightEl.style.height = `${rect.height + padding * 2}px`;
+      document.body.appendChild(this.highlightEl);
+    }
+    async executeAction(action) {
+      switch (action) {
+        case "openQueryEditor": {
+          const queryBtn = document.getElementById("queryToggleBtn");
+          if (queryBtn && !queryBtn.classList.contains("highlight")) {
+            this.cache.ui.toggleQueryEditor();
+          }
+          await this.sleep(350);
+          break;
+        }
+        case "openDataEditor": {
+          const queryBtn = document.getElementById("queryToggleBtn");
+          if (queryBtn && queryBtn.classList.contains("highlight")) {
+            this.cache.ui.toggleQueryEditor();
+            await this.sleep(350);
+          }
+          const dataBtn = document.getElementById("dataToggleBtn");
+          if (dataBtn && !dataBtn.classList.contains("highlight")) {
+            await this.cache.ui.toggleDataEditor();
+          }
+          await this.sleep(350);
+          break;
+        }
+        case "openStylingPanel": {
+          const dataBtn = document.getElementById("dataToggleBtn");
+          if (dataBtn && dataBtn.classList.contains("highlight")) {
+            await this.cache.ui.toggleDataEditor();
+            await this.sleep(350);
+          }
+          const styleBtn = document.getElementById("styleToggleBtn");
+          const rightSidebar = document.getElementById("rightSidebar");
+          if (rightSidebar && !rightSidebar.classList.contains("active")) {
+            this.cache.ui.toggleStylingPanel();
+          }
+          await this.sleep(350);
+          break;
+        }
+      }
+    }
+    sleep(ms) {
+      return new Promise((r) => setTimeout(r, ms));
+    }
+    cleanup() {
+      if (this.highlightEl) {
+        this.highlightEl.remove();
+        this.highlightEl = null;
+      }
+      if (this.popup) {
+        const p = this.popup;
+        this.popup = null;
+        p.close();
+      }
+    }
+    finish() {
+      this.cleanup();
+      const dataBtn = document.getElementById("dataToggleBtn");
+      if (dataBtn && dataBtn.classList.contains("highlight")) {
+        this.cache.ui.toggleDataEditor();
+      }
+      const queryBtn = document.getElementById("queryToggleBtn");
+      if (queryBtn && queryBtn.classList.contains("highlight")) {
+        this.cache.ui.toggleQueryEditor();
+      }
+      const rightSidebar = document.getElementById("rightSidebar");
+      if (rightSidebar && rightSidebar.classList.contains("active")) {
+        this.cache.ui.toggleStylingPanel();
+      }
+    }
+  };
+
+  // src/gll.js
+  var {
+    Graph: Graph2,
+    NodeEvent: NodeEvent2,
+    EdgeEvent: EdgeEvent2,
+    GraphEvent: GraphEvent2,
+    CanvasEvent: CanvasEvent2,
+    CommonEvent: CommonEvent2,
+    WindowEvent: WindowEvent2,
+    Layout: Layout2,
+    BaseLayout: BaseLayout2,
+    ExtensionCategory: ExtensionCategory2,
+    register: register2
+  } = G6;
+  var Cache = class {
+    constructor() {
+    }
+    reset() {
+      this.initialized = false;
+      this.graph = null;
+      this.data = {
+        filterDefaults: /* @__PURE__ */ new Map()
+      };
+      this.query = {
+        valid: false,
+        ast: null,
+        text: null,
+        overlay: null,
+        caret: null,
+        editorDiv: null,
+        lastGoodWidth: 0,
+        sizeObserver: null,
+        textCache: null
+      };
+      this.VERSION = VERSION;
+      this.DEFAULTS = DEFAULTS;
+      this.CFG = CFG;
+      this.INSTANCES = {
+        BUBBLE_GROUPS: {}
+      };
+      this.EVENT_LOCKS = {
+        BEFORE_DRAW_RUNNING: false,
+        AFTER_DRAW_RUNNING: false,
+        DRAG_END_RUNNING: false,
+        BEFORE_RENDER_RUNNING: false,
+        AFTER_RENDER_RUNNING: false,
+        BEFORE_LAYOUT_RUNNING: false,
+        AFTER_LAYOUT_RUNNING: false,
+        ONCE_AFTER_RENDER_RUNNING: false,
+        ONCE_AFTER_RENDER_COMPLETED: false,
+        IS_DESELECTING: false,
+        BUBBLE_GROUP_REDRAW_RUNNING: false,
+        TRIGGER_SET_LAYOUT_ONCE: false,
+        HOTKEY_EVENTS_REGISTERED: false,
+        GLOBAL_EVENTS_REGISTERED: false,
+        SKIP_QUERY_VALIDATION: false,
+        QUERY_SELECTION_EVENT: false,
+        QUERY_UPDATE_EVENT: false,
+        FILTERS_LOCKED_BY_MANUAL_QUERY: false
+      };
+      this.excelData = excelData;
+      this.gcm = new GraphCoreManager(this);
+      this.io = new IOManager(this);
+      this.qm = new QueryManager(this);
+      this.bs = new GraphBubbleSetManager(this);
+      this.sm = new GraphSelectionManager(this);
+      this.fm = new GraphFilterManager(this);
+      this.lm = new GraphLayoutManager(this);
+      this.ui = new UIManager(this);
+      this.uiComponents = new UIComponentManager(this);
+      this.style = new GraphStyleManager(this);
+      this.picker = new ColorScalePicker(this);
+      this.numericPicker = new NumericScalePicker(this);
+      this.dataTable = new DataTable(this);
+      this.metrics = new NetworkMetrics(this);
+      this.buildDataTable = buildDataTable;
+    }
+    initialize(data = void 0) {
+      this.initialized = true;
+      if (data) {
+        if (data.nodes && data.nodes.length > 0) {
+          this.data.nodes = data.nodes;
+        }
+        if (data.edges && data.edges.length > 0) {
+          this.data.edges = data.edges;
+        }
+        if (data.nodeDataHeaders && data.nodeDataHeaders.length > 0) {
+          this.data.nodeDataHeaders = data.nodeDataHeaders;
+        }
+        if (data.edgeDataHeaders && data.edgeDataHeaders.length > 0) {
+          this.data.edgeDataHeaders = data.edgeDataHeaders;
+        }
+      }
+      this.nodeRef = /* @__PURE__ */ new Map();
+      this.edgeRef = /* @__PURE__ */ new Map();
+      this.toolTips = /* @__PURE__ */ new Map();
+      this.propIDs = /* @__PURE__ */ new Set();
+      this.activeProps = /* @__PURE__ */ new Set();
+      this.nodeExclusiveProps = /* @__PURE__ */ new Set();
+      this.edgeExclusiveProps = /* @__PURE__ */ new Set();
+      this.mixedProps = /* @__PURE__ */ new Set();
+      this.propToNodes = /* @__PURE__ */ new Map();
+      this.propToNodeIDs = /* @__PURE__ */ new Map();
+      this.propToEdges = /* @__PURE__ */ new Map();
+      this.propToEdgeIDs = /* @__PURE__ */ new Map();
+      this.nodeIDToEdgeIDs = /* @__PURE__ */ new Map();
+      this.edgeIDToNodeIDs = /* @__PURE__ */ new Map();
+      this.nodeIDToPropIDs = /* @__PURE__ */ new Map();
+      this.edgeIDToPropIDs = /* @__PURE__ */ new Map();
+      this.propIDToDropdownChecklists = /* @__PURE__ */ new Map();
+      this.propIDToInvertibleRangeSliders = /* @__PURE__ */ new Map();
+      this.lastBubbleSetMembers = /* @__PURE__ */ new Map();
+      this.bubbleSetChanged = false;
+      this.nodeIDsToBeShown = /* @__PURE__ */ new Set();
+      this.propIDsToNodeIDsToBeShown = /* @__PURE__ */ new Map();
+      this.edgeIDsToBeShown = /* @__PURE__ */ new Set();
+      this.propIDsToEdgeIDsToBeShown = /* @__PURE__ */ new Map();
+      this.selectedNodes = /* @__PURE__ */ new Set();
+      this.selectedEdges = /* @__PURE__ */ new Set();
+      this.selectionMemory = [{ nodes: [], edges: [] }];
+      this.selectedMemoryIndex = 0;
+      this.hiddenDanglingNodeIDs = /* @__PURE__ */ new Set();
+      this.hiddenDanglingEdgeIDs = /* @__PURE__ */ new Set();
+      this.uniquePropHierarchy = {};
+      this.styleChanged = false;
+      this.labelStyleChanged = false;
+      this.visibleElementsChanged = false;
+      this.layoutChanged = false;
+      this.popup = null;
+      this.nodeLabels = [];
+      this.edgeLabels = [];
+      this.nodeLabelToNodeIDs = /* @__PURE__ */ new Map();
+      this.edgeLabelToEdgeIDs = /* @__PURE__ */ new Map();
+      this.nodeIDOrLabelToNodeIDs = /* @__PURE__ */ new Map();
+      this.edgeIDOrLabelToEdgeIDs = /* @__PURE__ */ new Map();
+      for (let group of this.bs.traverseBubbleSets()) {
+        this.lastBubbleSetMembers.set(group, /* @__PURE__ */ new Set());
+      }
+      this.iterNodes();
+      this.iterEdges();
+      this.dataTable.init();
+    }
+    iterNodes() {
+      this.data.nodes.forEach((node) => {
+        const nodeClone = structuredClone(node);
+        const nodeWithDefaults = this.style.getNodeStyleOrDefaults(node);
+        nodeClone.type = nodeWithDefaults.type;
+        nodeClone.style = structuredClone(nodeWithDefaults.style);
+        nodeClone.originalStyle = structuredClone(nodeWithDefaults.style);
+        nodeClone.originalType = nodeWithDefaults.type;
+        this.nodeRef.set(node.id, nodeClone);
+        this.toolTips.set(node.id, this.uiComponents.buildToolTipText(node.id, false));
+        this.nodeIDToPropIDs.set(node.id, /* @__PURE__ */ new Set());
+        if (node.label) {
+          this.nodeLabels.push(node.label);
+          if (!this.nodeLabelToNodeIDs.has(node.label)) {
+            this.nodeLabelToNodeIDs.set(node.label, /* @__PURE__ */ new Set());
+          }
+          this.nodeLabelToNodeIDs.get(node.label).add(node.id);
+          if (!this.nodeIDOrLabelToNodeIDs.has(node.label)) {
+            this.nodeIDOrLabelToNodeIDs.set(node.label, /* @__PURE__ */ new Set());
+          }
+          this.nodeIDOrLabelToNodeIDs.get(node.label).add(node.id);
+        }
+        if (!this.nodeIDOrLabelToNodeIDs.has(node.id)) {
+          this.nodeIDOrLabelToNodeIDs.set(node.id, /* @__PURE__ */ new Set());
+        }
+        this.nodeIDOrLabelToNodeIDs.get(node.id).add(node.id);
+        for (let prop of node.features) {
+          this.populateUniquePropGroups(prop);
+          if (!this.propToNodes.has(prop)) this.propToNodes.set(prop, /* @__PURE__ */ new Set());
+          if (!this.propToNodeIDs.has(prop)) this.propToNodeIDs.set(prop, /* @__PURE__ */ new Set());
+          this.propToNodes.get(prop).add(node);
+          this.propToNodeIDs.get(prop).add(node.id);
+          this.nodeExclusiveProps.add(prop);
+          this.propIDs.add(prop);
+          this.nodeIDToPropIDs.get(node.id).add(prop);
+        }
+      });
+    }
+    iterEdges() {
+      this.data.edges.forEach((edge) => {
+        const edgeClone = structuredClone(edge);
+        const edgeWithDefaults = this.style.getEdgeStyleOrDefaults(edge);
+        edgeClone.type = edgeWithDefaults.type;
+        edgeClone.style = structuredClone(edgeWithDefaults.style);
+        edgeClone.originalStyle = structuredClone(edgeWithDefaults.style);
+        edgeClone.originalType = edgeWithDefaults.type;
+        this.edgeRef.set(edge.id, edgeClone);
+        this.toolTips.set(edge.id, this.uiComponents.buildToolTipText(edge.id, true));
+        this.edgeIDToPropIDs.set(edge.id, /* @__PURE__ */ new Set());
+        if (edge.label) {
+          this.edgeLabels.push(edge.label);
+          if (!this.edgeLabelToEdgeIDs.has(edge.label)) {
+            this.edgeLabelToEdgeIDs.set(edge.label, /* @__PURE__ */ new Set());
+          }
+          this.edgeLabelToEdgeIDs.get(edge.label).add(edge.id);
+          if (!this.edgeIDOrLabelToEdgeIDs.has(edge.label)) {
+            this.edgeIDOrLabelToEdgeIDs.set(edge.label, /* @__PURE__ */ new Set());
+          }
+          this.edgeIDOrLabelToEdgeIDs.get(edge.label).add(edge.id);
+        }
+        if (!this.edgeIDOrLabelToEdgeIDs.has(edge.id)) {
+          this.edgeIDOrLabelToEdgeIDs.set(edge.id, /* @__PURE__ */ new Set());
+        }
+        this.edgeIDOrLabelToEdgeIDs.get(edge.id).add(edge.id);
+        for (let prop of edge.features) {
+          this.populateUniquePropGroups(prop);
+          if (!this.propToEdges.has(prop)) this.propToEdges.set(prop, /* @__PURE__ */ new Set());
+          if (!this.propToEdgeIDs.has(prop)) this.propToEdgeIDs.set(prop, /* @__PURE__ */ new Set());
+          this.propToEdges.get(prop).add(edge);
+          this.propToEdgeIDs.get(prop).add(edge.id);
+          if (this.nodeExclusiveProps.has(prop)) {
+            this.nodeExclusiveProps.delete(prop);
+            this.mixedProps.add(prop);
+          } else {
+            this.edgeExclusiveProps.add(prop);
+          }
+          this.propIDs.add(prop);
+          this.edgeIDToPropIDs.get(edge.id).add(prop);
+        }
+        if (!this.nodeIDToEdgeIDs.has(edge.source)) this.nodeIDToEdgeIDs.set(edge.source, /* @__PURE__ */ new Set());
+        if (!this.nodeIDToEdgeIDs.has(edge.target)) this.nodeIDToEdgeIDs.set(edge.target, /* @__PURE__ */ new Set());
+        if (!this.edgeIDToNodeIDs.has(edge.id)) this.edgeIDToNodeIDs.set(edge.id, /* @__PURE__ */ new Set());
+        this.nodeIDToEdgeIDs.get(edge.source).add(edge.id);
+        this.nodeIDToEdgeIDs.get(edge.target).add(edge.id);
+        this.edgeIDToNodeIDs.get(edge.id).add(edge.source);
+        this.edgeIDToNodeIDs.get(edge.id).add(edge.target);
+      });
+    }
+    populateUniquePropGroups(propHash) {
+      const [mainGroup, subGroup, prop] = StaticUtilities.decodePropHashId(propHash);
+      if (!this.uniquePropHierarchy[mainGroup]) {
+        this.uniquePropHierarchy[mainGroup] = {};
+      }
+      if (!this.uniquePropHierarchy[mainGroup][subGroup]) {
+        this.uniquePropHierarchy[mainGroup][subGroup] = /* @__PURE__ */ new Set();
+      }
+      this.uniquePropHierarchy[mainGroup][subGroup].add(prop);
+    }
+  };
+  var cache2 = new Cache();
+  async function loadDemoData() {
+    const formContent = document.createElement("div");
+    formContent.innerHTML = `
     <h3>Load STRING Demo Data</h3>
     <div style="margin-bottom: 10px;">
-      <label for="genes-input" style="display: block; margin-bottom: 5px;">Genes (comma-separated):</label>
+      <label for="genes-input" style="display: block; margin-bottom: 5px;">Genes (comma- or space-separated):</label>
       <input type="text" id="genes-input" value="TP53" style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
     </div>
     <div style="margin-bottom: 10px;">
@@ -483,4 +11058,145 @@ Confirm with Enter`;s(u,"Edge Label(s)",p);let y=l.edgeLabels.slice(0,2).join(",
       <button id="load-btn" class="p-button ml-1">Load</button>
       <button id="cancel-btn" class="p-button">Cancel</button>
     </div>
-  `,new Promise(e=>{let t=new Y(l,{width:"450px",showFullscreenButton:!1,closeOnClickOutside:!1,onClose:()=>e(!1)}),s=l.querySelector("#genes-input"),a=l.querySelector("#species-input"),i=l.querySelector("#nodes-input"),n=l.querySelector("#score-input"),o=l.querySelector("#load-btn"),c=l.querySelector("#cancel-btn"),r=async()=>{let h=s.value.trim();if(!h){X.ui.error("Please enter at least one gene");return}let m=h.split(",").map(L=>L.trim()).filter(L=>L),f=parseInt(a.value)||9606,E=parseInt(i.value)||50,C=parseInt(n.value)||400;if(m.length===0){X.ui.error("Please enter at least one valid gene");return}t.close();let D=await new Ee(X,m,f,E,C).loadNetwork();D?(await X.gcm.destroyGraphAndRollBackUI(),X.gcm.resetEventLocks(),X.io.preProcessData(D),X.buildDataTable(D),X.ui.buildUI(),await X.gcm.createGraphInstance(),await X.graph.render(),e(!0)):e(!1),await X.ui.hideLoading()},d=()=>{t.close(),e(!1)};o.addEventListener("click",r),c.addEventListener("click",d),[s,a,i,n].forEach(h=>{h.addEventListener("keypress",m=>{m.key==="Enter"&&r()})}),setTimeout(()=>s.focus(),100)})}window.loadDemoData=qe;window.cache=X;window.addEventListener("resize",()=>{if(window.graph!==void 0&&window.graph!==null&&window.cache.initialized){let l=document.getElementById("editBtn").classList.contains("active"),e=document.getElementById("sidebarContentContainer"),t=document.getElementById("sidebarStatusContainer");t.style.maxWidth=l?`${e.offsetWidth}px`:"360px"}});window.addEventListener("DOMContentLoaded",()=>{X.reset()});})();
+  `;
+    return new Promise((resolve) => {
+      const popup = new Popup(formContent, {
+        width: "450px",
+        showFullscreenButton: false,
+        closeOnClickOutside: false,
+        onClose: () => resolve(false)
+      });
+      const genesInput = formContent.querySelector("#genes-input");
+      const speciesInput = formContent.querySelector("#species-input");
+      const nodesInput = formContent.querySelector("#nodes-input");
+      const scoreInput = formContent.querySelector("#score-input");
+      const loadBtn = formContent.querySelector("#load-btn");
+      const cancelBtn = formContent.querySelector("#cancel-btn");
+      const handleLoad = async () => {
+        const genesText = genesInput.value.trim();
+        if (!genesText) {
+          cache2.ui.error("Please enter at least one gene");
+          return;
+        }
+        const genes = genesText.split(/[\s,]+/).map((g) => g.trim()).filter((g) => g);
+        const species = parseInt(speciesInput.value) || 9606;
+        const amountOfNodes = nodesInput.value !== "" ? parseInt(nodesInput.value) : 50;
+        const requiredScore = scoreInput.value !== "" ? parseInt(scoreInput.value) : 400;
+        if (genes.length === 0) {
+          cache2.ui.error("Please enter at least one valid gene");
+          return;
+        }
+        popup.close();
+        const stringDemoDataLoader = new StringDemoDataLoader(cache2, genes, species, amountOfNodes, requiredScore);
+        const data = await stringDemoDataLoader.loadNetwork();
+        if (data) {
+          await cache2.gcm.destroyGraphAndRollBackUI();
+          cache2.gcm.resetEventLocks();
+          cache2.io.preProcessData(data);
+          cache2.buildDataTable(data);
+          cache2.ui.buildUI();
+          await cache2.gcm.createGraphInstance();
+          await cache2.graph.render();
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+        await cache2.ui.hideLoading();
+      };
+      const handleCancel = () => {
+        popup.close();
+        resolve(false);
+      };
+      loadBtn.addEventListener("click", handleLoad);
+      cancelBtn.addEventListener("click", handleCancel);
+      [genesInput, speciesInput, nodesInput, scoreInput].forEach((input) => {
+        input.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") {
+            handleLoad();
+          }
+        });
+      });
+      setTimeout(() => genesInput.focus(), 100);
+    });
+  }
+  async function startTour() {
+    const data = generateTourData();
+    await cache2.gcm.destroyGraphAndRollBackUI();
+    cache2.gcm.resetEventLocks();
+    cache2.io.preProcessData(data);
+    cache2.buildDataTable(data);
+    cache2.ui.buildUI();
+    await cache2.gcm.createGraphInstance();
+    await cache2.graph.render();
+    await cache2.ui.hideLoading();
+    await new Promise((r) => setTimeout(r, 800));
+    const tour = new GuidedTour(cache2);
+    await tour.start();
+  }
+  window.loadDemoData = loadDemoData;
+  window.startTour = startTour;
+  window.cache = cache2;
+  window.addEventListener("resize", () => {
+    if (window.graph !== void 0 && window.graph !== null && window.cache.initialized) {
+      const editModeActive = document.getElementById("editBtn").classList.contains("active");
+      const sidebar = document.getElementById("sidebar");
+      const sidebarContentContainer = document.getElementById("sidebarContentContainer");
+      const status = document.getElementById("sidebarStatusContainer");
+      status.style.maxWidth = editModeActive ? `${sidebarContentContainer.offsetWidth}px` : `${sidebar.offsetWidth}px`;
+    }
+  });
+  window.addEventListener("DOMContentLoaded", () => {
+    cache2.reset();
+    const versionInfo = document.getElementById("versionInfo");
+    if (versionInfo) {
+      versionInfo.textContent = `v${VERSION}`;
+    }
+    const sidebar = document.getElementById("sidebar");
+    const resizeHandle = document.querySelector(".sidebar-resize-handle");
+    let isResizing = false;
+    let startX = 0;
+    let startWidth = 0;
+    let shadowBar = null;
+    resizeHandle.addEventListener("mousedown", (e) => {
+      isResizing = true;
+      startX = e.clientX;
+      startWidth = sidebar.offsetWidth;
+      shadowBar = document.createElement("div");
+      shadowBar.className = "sidebar-resize-shadow";
+      shadowBar.style.left = `${startWidth}px`;
+      shadowBar.style.width = "4px";
+      shadowBar.style.display = "block";
+      document.body.appendChild(shadowBar);
+      document.body.style.cursor = "ew-resize";
+      document.body.style.userSelect = "none";
+      e.preventDefault();
+    });
+    document.addEventListener("mousemove", (e) => {
+      if (!isResizing) return;
+      const deltaX = e.clientX - startX;
+      const newWidth = Math.max(200, startWidth + deltaX);
+      if (shadowBar) {
+        shadowBar.style.left = `${newWidth}px`;
+      }
+    });
+    document.addEventListener("mouseup", (e) => {
+      if (!isResizing) return;
+      const deltaX = e.clientX - startX;
+      const newWidth = Math.max(200, startWidth + deltaX);
+      sidebar.style.width = `${newWidth}px`;
+      const editModeActive = document.getElementById("editBtn")?.classList.contains("active");
+      const sidebarContentContainer = document.getElementById("sidebarContentContainer");
+      const status = document.getElementById("sidebarStatusContainer");
+      if (status && sidebarContentContainer) {
+        status.style.maxWidth = editModeActive ? `${sidebarContentContainer.offsetWidth}px` : `${newWidth}px`;
+      }
+      isResizing = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      if (shadowBar) {
+        shadowBar.remove();
+        shadowBar = null;
+      }
+    });
+  });
+})();

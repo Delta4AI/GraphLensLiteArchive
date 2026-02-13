@@ -33,6 +33,7 @@ import {DataTable, buildDataTable} from "./utilities/data_editor.js";
 import {StringDemoDataLoader} from "./utilities/demo_loader.js";
 import {Popup} from "./utilities/popup.js";
 import {StaticUtilities} from "./utilities/static.js";
+import {generateTourData, GuidedTour} from "./utilities/tour.js";
 
 
 // Stores all reference objects
@@ -429,7 +430,28 @@ async function loadDemoData() {
   });
 }
 
+async function startTour() {
+  const data = generateTourData();
+
+  await cache.gcm.destroyGraphAndRollBackUI();
+  cache.gcm.resetEventLocks();
+  cache.io.preProcessData(data);
+  cache.buildDataTable(data);
+  cache.ui.buildUI();
+
+  await cache.gcm.createGraphInstance();
+  await cache.graph.render();
+  await cache.ui.hideLoading();
+
+  // wait for layout to settle
+  await new Promise(r => setTimeout(r, 800));
+
+  const tour = new GuidedTour(cache);
+  await tour.start();
+}
+
 window.loadDemoData = loadDemoData;
+window.startTour = startTour;
 window.cache = cache;
 
 
