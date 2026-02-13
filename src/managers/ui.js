@@ -238,9 +238,9 @@ class UIManager {
     const dataEditor = document.getElementById("dataEditor");
     const queryButtons = document.querySelector(".query-buttons");
     const dataButtons = document.querySelector(".data-buttons");
-    const queryHelpIconDiv = document.getElementById("queryHelpIconDiv");
-    const dataHelpIconDiv = document.getElementById("dataHelpIconDiv");
     const queryToggleButtons = document.querySelectorAll('.add-to-query-button');
+    const headerText = document.getElementById("bottomBarHeaderText");
+    const helpBtn = document.getElementById("bottomBarHelpBtn");
 
     mainContent.style.height = "80%";
     bottomBar.style.height = "20%";
@@ -251,17 +251,19 @@ class UIManager {
       dataEditor.style.display = "none";
       queryButtons.style.display = "flex";
       dataButtons.style.display = "none";
-      queryHelpIconDiv.style.display = "flex";
-      dataHelpIconDiv.style.display = "none";
       queryToggleButtons.forEach(btn => btn.classList.add("show"));
+      headerText.textContent = "Query Editor";
+      helpBtn.onclick = () => this.cache.qm.showQueryHelp();
+      helpBtn.title = "Display query editor help";
     } else if (editorType === 'data') {
       queryEditor.style.display = "none";
       dataEditor.style.display = "block";
       queryButtons.style.display = "none";
       dataButtons.style.display = "flex";
-      queryHelpIconDiv.style.display = "none";
-      dataHelpIconDiv.style.display = "flex";
       queryToggleButtons.forEach(btn => btn.classList.remove("show"));
+      headerText.textContent = "Data Editor";
+      helpBtn.onclick = () => this.cache.dataTable.help();
+      helpBtn.title = "Display data editor help";
     }
   }
 
