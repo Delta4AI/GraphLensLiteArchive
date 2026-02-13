@@ -73,8 +73,14 @@ class DataTable {
       closeBtn.addEventListener('click', () => {
         if (this.warningBanner) {
           this.warningBanner.style.display = 'none';
+          localStorage.setItem('dataEditorWarningDismissed', 'true');
         }
       });
+    }
+
+    // Check if warning was previously dismissed
+    if (localStorage.getItem('dataEditorWarningDismissed') === 'true') {
+      this.warningBanner.style.display = 'none';
     }
   }
 
