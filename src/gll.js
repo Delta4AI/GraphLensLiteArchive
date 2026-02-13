@@ -435,14 +435,80 @@ window.cache = cache;
 window.addEventListener('resize', () => {
   if (window.graph !== undefined && window.graph !== null && window.cache.initialized) {
     const editModeActive = document.getElementById("editBtn").classList.contains("active");
+    const sidebar = document.getElementById("sidebar");
     const sidebarContentContainer = document.getElementById("sidebarContentContainer");
     const status = document.getElementById("sidebarStatusContainer");
 
-    status.style.maxWidth = editModeActive ? `${sidebarContentContainer.offsetWidth}px` : "360px";
+    status.style.maxWidth = editModeActive ? `${sidebarContentContainer.offsetWidth}px` : `${sidebar.offsetWidth}px`;
   }
 })
 
 window.addEventListener("DOMContentLoaded", () => {
   cache.reset();
   // cache.initialize();
+
+  // Setup sidebar resize functionality
+  const sidebar = document.getElementById('sidebar');
+  const resizeHandle = document.querySelector('.sidebar-resize-handle');
+  let isResizing = false;
+  let startX = 0;
+  let startWidth = 0;
+  let shadowBar = null;
+
+  resizeHandle.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    startX = e.clientX;
+    startWidth = sidebar.offsetWidth;
+
+    // Create shadow bar
+    shadowBar = document.createElement('div');
+    shadowBar.className = 'sidebar-resize-shadow';
+    shadowBar.style.left = `${startWidth}px`;
+    shadowBar.style.width = '4px';
+    shadowBar.style.display = 'block';
+    document.body.appendChild(shadowBar);
+
+    document.body.style.cursor = 'ew-resize';
+    document.body.style.userSelect = 'none';
+
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+
+    const deltaX = e.clientX - startX;
+    const newWidth = Math.max(200, startWidth + deltaX);
+
+    if (shadowBar) {
+      shadowBar.style.left = `${newWidth}px`;
+    }
+  });
+
+  document.addEventListener('mouseup', (e) => {
+    if (!isResizing) return;
+
+    const deltaX = e.clientX - startX;
+    const newWidth = Math.max(200, startWidth + deltaX);
+
+    sidebar.style.width = `${newWidth}px`;
+
+    // Update status container max-width if needed
+    const editModeActive = document.getElementById("editBtn")?.classList.contains("active");
+    const sidebarContentContainer = document.getElementById("sidebarContentContainer");
+    const status = document.getElementById("sidebarStatusContainer");
+
+    if (status && sidebarContentContainer) {
+      status.style.maxWidth = editModeActive ? `${sidebarContentContainer.offsetWidth}px` : `${newWidth}px`;
+    }
+
+    isResizing = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+
+    if (shadowBar) {
+      shadowBar.remove();
+      shadowBar = null;
+    }
+  });
 })
