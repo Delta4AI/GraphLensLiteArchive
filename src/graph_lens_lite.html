@@ -36,7 +36,6 @@
           <button id="metricsToggleBtn" class="showOnLoad medium-btn" title="Toggle network metrics panel (M)" onclick="cache.metrics.toggleUI()">📊</button>
           <button id="dataToggleBtn" class="showOnLoad medium-btn" title="Toggle data editor (D)" onclick="cache.ui.toggleDataEditor()">🔢</button>
           <button id="queryToggleBtn" class="showOnLoad medium-btn" title="Toggle query editor (Q)" onclick="cache.ui.toggleQueryEditor()">📝</button>
-          <button id="editBtn" class="showOnLoad medium-btn" title="Toggle Edit mode (E)" onclick="cache.ui.toggleEditMode()">⚙️</button>
         </div>
       </div>
       <div class="hideOnLoad">
@@ -66,7 +65,9 @@
         </h5>
         <hr>
         <div id="metricsContainer"></div>
-        <div id="filterContainer"></div>
+        <div id="filterContainer">
+          <button id="editBtn" class="showOnLoad medium-btn" title="Toggle Edit mode (E)" onclick="cache.ui.toggleEditMode()">⚙️</button>
+        </div>
       </div>
     </div>
     <div id="sidebarStatusContainer"></div>
