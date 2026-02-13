@@ -81,7 +81,6 @@
       <button id="deselectEdgesBtn" class="tiny-btn red disabled" title="Clear edge selection"
               onclick="cache.sm.toggleSelectionForAllEdges(false)">×</button>
       <hr>
-      <button id="styleToggleBtn" class="small-btn showOnLoad" title="Open styling panel (Y)" onclick="cache.ui.toggleStylingPanel()">🎨</button>
       <div id="lassoWrapper" class="showOnLoad small-btn"><button id="lassoToggleBtn" class="lasso-icon" title="Toggle lasso selection (L)" onclick="cache.ui.toggleLassoSelection()"></button></div>
       <div class="button-separator"></div>
       <button class="small-btn disabled" title="Reset style for selected elements" id="resetSelectedElementsStyleBtn"
@@ -92,6 +91,7 @@
       <button class="small-btn disabled" title="Redo Selection" id="redoSelectionBtn"
               onclick="cache.sm.redoSelection()">↪</button>
       <div class="button-separator"></div>
+      <button id="styleToggleBtn" class="small-btn showOnLoad" title="Open styling panel (Y)" onclick="cache.ui.toggleStylingPanel()">🎨</button>
       <button class="small-btn" title="Expand selection editor" id="selectionEditorToggleBtn"
               onclick="cache.ui.toggleSelectionEditor()">▾</button>
       <div id="manualGroupSeparator" class="button-separator" style="display: none;"></div>
@@ -103,14 +103,12 @@
     <div id="innerGraphContainer"></div>
   </div>
   <div id="rightSidebar">
-    <button id="rightSidebarCloseBtn" class="small-btn red panel-close-btn" title="Close styling panel"
-            onclick="cache.ui.toggleStylingPanel()">×</button>
+    <div class="panel-header panel-header-full-width">
+      <span class="panel-header-text">Styling Panel</span>
+      <button id="rightSidebarCloseBtn" class="panel-header-btn" title="Close styling panel"
+              onclick="cache.ui.toggleStylingPanel()">×</button>
+    </div>
     <div id="rightSidebarContentContainer">
-<!--      <div class="header-row">-->
-<!--        <h3>Styling Panel</h3>-->
-<!--        <button id="closeStylingPanelBtn" class="small-btn red" title="Close styling panel" onclick="cache.ui.toggleStylingPanel()">×</button>-->
-<!--      </div>-->
-<!--      <hr>-->
       <div id="stylingPanelContent">
         <!-- Styling controls will be populated here -->
       </div>
@@ -118,49 +116,50 @@
   </div>
 </div>
 <div id="bottomBar">
-  <button id="bottomBarCloseBtn" class="small-btn red panel-close-btn" title="Close bottom panel"
-          onclick="cache.ui.closeBottomBar()">×</button>
   <div class="resize-handle"></div>
-  <div id="queryEditor" class="editor-panel">
-    <div id="queryOverlay" aria-hidden="true"></div>
-    <div id="queryTextArea" contenteditable="true" spellcheck="false" oninput="cache.qm.handleQueryValidationEvent();"></div>
-    <div id="queryCaret" class="custom-caret"></div>
-  </div>
-  <div id="dataEditor" class="editor-panel" style="display: none;">
-    <div id="dataTableContainer">
-      <table id="dataTable" class="data-table">
-        <thead id="dataTableHead"></thead>
-        <tbody id="dataTableBody"></tbody>
-      </table>
+  <div class="panel-header panel-header-full-width">
+    <span id="bottomBarHeaderText" class="panel-header-text">Query Editor</span>
+    <div class="panel-header-center-buttons">
+      <div class="query-buttons">
+        <button id="queryUpdateBtn" class="purple disabled" onclick="cache.qm.handleQueryUpdateEvent()"
+                title="Apply the query to filter the graph">🔍 Filter</button>
+        <button id="querySelectBtn" class="blue disabled" onclick="cache.qm.handleQuerySelectEvent()"
+                title="Apply the query to select nodes in the graph without filtering">🎯 Select</button>
+        <button id="queryResetBtn" class="pink" onclick="cache.qm.resetQuery();" title="Reset query to match UI filters">⟳ Sync</button>
+        <button id="queryClearBtn" class="red" onclick="cache.qm.clearQuery();" title="Clear query">✗ Clear</button>
+      </div>
+      <div class="data-buttons" style="display: none;">
+        <button id="updateDataTableBtn" class="blue" onclick="cache.dataTable.update()"
+                title="Update the graph after modifying the data table">✔ Apply</button>
+        <button id="resetDataTableBtn" onclick="cache.dataTable.reset()" class="pink"
+                title="Reset the data table to current graph state">⟳ Reset</button>
+        <button onclick="cache.dataTable.addNode()" class="blue" title="Add a node"><strong>+</strong>&nbsp;Node</button>
+        <button onclick="cache.dataTable.addEdge()" class="blue" title="Add an edge"><strong>+</strong>&nbsp;Edge</button>
+        <button onclick="cache.dataTable.addColumn()" class="blue" title="Add a new property column"><strong>+</strong>&nbsp;Column</button>
+        <button id="exportDataTableBtn" onclick="cache.dataTable.exportToExcel()" class="green"
+                title="Export the data table and styling properties as Excel">⤓ Export</button>
+      </div>
+    </div>
+    <div class="panel-header-buttons">
+      <button id="bottomBarHelpBtn" class="panel-header-btn info-btn" title="Display query editor help" onclick="cache.qm.showQueryHelp();">🛈</button>
+      <button id="bottomBarCloseBtn" class="panel-header-btn" title="Close bottom panel"
+              onclick="cache.ui.closeBottomBar()">×</button>
     </div>
   </div>
-  <div class=query-buttons>
-    <div class="editor-help-icon" id="queryHelpIconDiv">
-      <button class="info-btn editor-help-btn" title="Display query editor help" onclick="cache.qm.showQueryHelp();">🛈</button>
+  <div class="bottom-bar-content">
+    <div id="queryEditor" class="editor-panel">
+      <div id="queryOverlay" aria-hidden="true"></div>
+      <div id="queryTextArea" contenteditable="true" spellcheck="false" oninput="cache.qm.handleQueryValidationEvent();"></div>
+      <div id="queryCaret" class="custom-caret"></div>
     </div>
-    <button id="queryUpdateBtn" class="purple disabled" onclick="cache.qm.handleQueryUpdateEvent()"
-            title="Apply the query to filter the graph">🔍 Filter</button>
-    <button id="querySelectBtn" class="blue disabled" onclick="cache.qm.handleQuerySelectEvent()"
-            title="Apply the query to select nodes in the graph without filtering">🎯 Select</button>
-    <button id="queryResetBtn" class="pink" onclick="cache.qm.resetQuery();" title="Reset query to match UI filters">⟳ Sync</button>
-    <button id="queryClearBtn" class="red" onclick="cache.qm.clearQuery();" title="Clear query">✗ Clear</button>
-  </div>
-
-  <div class="data-buttons" style="display: none;">
-    <div class="editor-help-icon" style="display: none;" id="dataHelpIconDiv">
-      <button class="info-btn editor-help-btn" title="Display data editor help" onclick="cache.dataTable.help();">🛈</button>
+    <div id="dataEditor" class="editor-panel" style="display: none;">
+      <div id="dataTableContainer">
+        <table id="dataTable" class="data-table">
+          <thead id="dataTableHead"></thead>
+          <tbody id="dataTableBody"></tbody>
+        </table>
+      </div>
     </div>
-    <button id="updateDataTableBtn" onclick="cache.dataTable.update()"
-            title="Update the graph after modifying the data table">✔ Apply
-    </button>
-    <button id="resetDataTableBtn" onclick="cache.dataTable.reset()" class="pink"
-            title="Reset the data table to current graph state">⟳ Reset</button>
-    <button onclick="cache.dataTable.addNode()" class="blue" title="Add a node"><strong>+</strong>&nbsp;Node</button>
-    <button onclick="cache.dataTable.addEdge()" class="blue" title="Add an edge"><strong>+</strong>&nbsp;Edge</button>
-    <button onclick="cache.dataTable.addColumn()" class="blue" title="Add a new property column"><strong>+</strong>&nbsp;Column</button>
-    <button id="exportDataTableBtn" onclick="cache.dataTable.exportToExcel()" class="green"
-            title="Export the data table and styling properties as Excel">⤓ Export
-    </button>
   </div>
 
 </div>

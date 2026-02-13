@@ -75,8 +75,6 @@ body, html {
 #rightSidebar.active {
     min-width: 360px;
     width: 360px;
-    padding-right: 10px;
-    padding-left: 10px;
     border-left: 1px solid #ccc;
 }
 
@@ -86,6 +84,7 @@ body, html {
     overflow-x: hidden;
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
+    padding: 0 10px;
 }
 
 #rightSidebar.active #rightSidebarContentContainer {
@@ -136,21 +135,117 @@ body, html {
 
 #bottomBar.active {
     background-color: #f4f4f4;
-    padding: 10px;
     border-top: 1px solid #403C53;
     display: flex;
-    align-items: center;
+    flex-direction: column;
     min-height: 50px;
     max-height: 50vh;
     height: auto;
     position: relative;
 }
 
-.panel-close-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    z-index: 1002;
+/* Panel headers */
+.panel-header {
+    background-color: #403C53;
+    color: white;
+    padding: 4px 8px;
+    user-select: none;
+    flex-shrink: 0;
+    font-weight: 500;
+    font-size: 13px;
+    border-bottom: 1px solid black;
+    line-height: 1.2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.panel-header-full-width {
+    padding: 4px 10px;
+    margin: 0;
+}
+
+/* Bottom bar header gets extra visual borders */
+#bottomBar .panel-header {
+    border-left: 1px solid #403C53;
+    border-right: 1px solid #403C53;
+    border-top: 1px solid #403C53;
+}
+
+.panel-header-text {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.panel-header-center-buttons {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 0;
+}
+
+.panel-header-buttons {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.panel-header-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: white;
+    cursor: pointer;
+    padding: 2px 6px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.panel-header-btn:hover {
+    background: #C33D35;
+    border-color: #C33D35;
+}
+
+.panel-header-btn.info-btn {
+    font-size: 16px;
+    font-weight: normal;
+    color: #8CA6D9;
+}
+
+.panel-header-btn.info-btn:hover {
+    background: #8CA6D9;
+    color: white;
+}
+
+/* Right sidebar header visibility */
+#rightSidebar .panel-header {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+#rightSidebar.active .panel-header {
+    opacity: 1;
+}
+
+/* Bottom bar content area */
+.bottom-bar-content {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    padding: 2px;
+    gap: 2px;
 }
 
 .resize-shadow-bar {
@@ -173,7 +268,7 @@ body, html {
     height: 4px;
     background: transparent;
     cursor: ns-resize;
-    z-index: 1000;
+    z-index: 1001;
 }
 
 .resize-handle:hover {
@@ -2550,13 +2645,9 @@ input:checked + .slider:before {
 
 #queryEditor {
     position: relative;
-    flex: 1 1 0;
-    min-width: 200px;
-    max-width: calc(100% - 100px);
+    flex: 1;
+    min-width: 0;
     height: 100%;
-    outline: 1px solid #403C53;
-    outline-offset: 4px;
-    border-radius: 5px;
     box-sizing: border-box;
 }
 
@@ -2619,52 +2710,16 @@ input:checked + .slider:before {
     align-items: center;
 }
 
-#queryUpdateBtn {
-}
-
-#queryUpdateBtn:hover {
-    border-color: #C33D35;
-    border-width: 2px;
-}
-
-#querySelectBtn {
-    margin-top: 0.2em;
-    color: black;
-}
-
-#querySelectBtn:hover {
-    border-color: #403C53;
-    border-width: 2px;
-}
-
-#queryResetBtn {
-    margin-top: 0.2em;
-}
-
-#queryResetBtn:hover {
-    border-color: black;
-    border-width: 2px;
-}
-
-#queryClearBtn {
-    margin-top: 0.2em;
-}
-
-#queryClearBtn:hover {
-    border-color: black;
-    border-width: 2px;
-}
 
 .editor-panel {
     position: relative;
-    flex: 1 1 0;
-    min-width: 200px;
-    max-width: calc(100% - 100px);
+    flex: 1;
+    min-width: 0;
     height: 100%;
-    outline: 1px solid #403C53;
-    outline-offset: 4px;
-    border-radius: 5px;
+    border: 1px solid #403C53;
+    border-radius: 3px;
     box-sizing: border-box;
+    background: white;
 }
 
 #dataTextArea {
@@ -2680,96 +2735,121 @@ input:checked + .slider:before {
     box-sizing: border-box;
 }
 
-.data-buttons,
-.query-buttons {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 80px;
-    margin-left: 10px;
-    margin-right: 4px;
-}
-
-.data-buttons button,
-.query-buttons button {
-    height: 50%;
-    max-height: 30px;
-    cursor: pointer;
-    border-radius: 5px;
-    color: #fff;
-    border: 1px solid black;
-    background-color: #403C53;
-    margin-bottom: 0.2em;
-    font-size: clamp(0.6rem, 1.5vw, 0.9rem);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    /*padding: 2px 4px;*/
+.panel-header-center-buttons .data-buttons,
+.panel-header-center-buttons .query-buttons {
     display: flex;
     flex-direction: row;
     align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
     justify-content: center;
 }
 
-.data-buttons button:disabled,
-.query-buttons button:disabled {
-    background-color: #2a2733;
+.panel-header-center-buttons .data-buttons button,
+.panel-header-center-buttons .query-buttons button {
+    height: 24px;
     cursor: pointer;
+    border-radius: 3px;
+    color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    background-color: #015C0C;
+    font-size: 11px;
+    white-space: nowrap;
+    padding: 2px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.panel-header-center-buttons .data-buttons button:hover,
+.panel-header-center-buttons .query-buttons button:hover {
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.panel-header-center-buttons .data-buttons button:active,
+.panel-header-center-buttons .query-buttons button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.panel-header-center-buttons .data-buttons button:disabled,
+.panel-header-center-buttons .query-buttons button:disabled {
+    background-color: #2a2733;
+    cursor: not-allowed;
     opacity: 0.5;
     color: #888;
+    box-shadow: none;
+    transform: none;
 }
 
-.data-buttons .editor-help-btn,
-.query-buttons .editor-help-btn {
-    height: 20px;
-    max-height: 20px;
-    width: 20px;
-    cursor: pointer;
-    border: none;
-    background: transparent;
-    padding: 0;
-    line-height: 20px;
-    font-size: 18px;
-    color: #588ae5;
-    transition: color 0.2s ease-in-out;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 0.4em;
+.panel-header-center-buttons .data-buttons button.red,
+.panel-header-center-buttons .query-buttons button.red {
+    background-color: #C33D35 !important;
+    color: white !important;
 }
 
-.data-buttons .editor-help-btn:hover,
-.query-buttons .editor-help-btn:hover {
-    color: #7aa3f7;
+.panel-header-center-buttons .data-buttons button.red:hover,
+.panel-header-center-buttons .query-buttons button.red:hover {
+    border-color: rgba(255, 255, 255, 0.6) !important;
 }
 
-.data-buttons button.red,
-.query-buttons button.red {
-    background-color: #C33D35;
+.panel-header-center-buttons .data-buttons button.pink,
+.panel-header-center-buttons .query-buttons button.pink {
+    background-color: #EFB0AA !important;
+    color: black !important;
 }
 
-.data-buttons button.pink,
-.query-buttons button.pink {
-    background-color: #EFB0AA;
-    color: black;
+.panel-header-center-buttons .data-buttons button.pink:hover,
+.panel-header-center-buttons .query-buttons button.pink:hover {
+    border-color: rgba(255, 255, 255, 0.6) !important;
 }
 
-.data-buttons button.blue,
-.query-buttons button.blue {
-    background-color: #8CA6D9;
-    color: black;
+.panel-header-center-buttons .data-buttons button.blue,
+.panel-header-center-buttons .query-buttons button.blue {
+    background-color: #8CA6D9 !important;
+    color: black !important;
 }
 
-.data-buttons button.grey,
-.query-buttons button.grey {
-    background-color: #9998AF;
-    color: black;
+.panel-header-center-buttons .data-buttons button.blue:hover,
+.panel-header-center-buttons .query-buttons button.blue:hover {
+    border-color: rgba(255, 255, 255, 0.6) !important;
 }
 
-.data-buttons button.green,
-.query-buttons button.green {
-    background-color: #015C0C;
-    color: white;
+.panel-header-center-buttons .data-buttons button.grey,
+.panel-header-center-buttons .query-buttons button.grey {
+    background-color: #9998AF !important;
+    color: black !important;
+}
+
+.panel-header-center-buttons .data-buttons button.grey:hover,
+.panel-header-center-buttons .query-buttons button.grey:hover {
+    border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.panel-header-center-buttons .data-buttons button.green,
+.panel-header-center-buttons .query-buttons button.green {
+    background-color: #015C0C !important;
+    color: white !important;
+}
+
+.panel-header-center-buttons .data-buttons button.green:hover,
+.panel-header-center-buttons .query-buttons button.green:hover {
+    border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.panel-header-center-buttons .data-buttons button.purple,
+.panel-header-center-buttons .query-buttons button.purple {
+    background-color: #015C0C !important;
+    color: white !important;
+}
+
+.panel-header-center-buttons .data-buttons button.purple:hover,
+.panel-header-center-buttons .query-buttons button.purple:hover {
+    border-color: rgba(255, 255, 255, 0.6) !important;
 }
 
 #dataTableContainer {

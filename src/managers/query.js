@@ -781,12 +781,16 @@ class QueryManager {
 </div>
 
 <h3>Available Actions</h3>
+<p><strong>Header buttons:</strong></p>
 <ul>
-  <li><span class="tooltip-dummy-buttons">🔍 Filter</span> — Apply the query to filter the graph</li>
+  <li><span class="tooltip-dummy-buttons green">🔍 Filter</span> — Apply the query to filter the graph</li>
   <li><span class="tooltip-dummy-buttons blue">🎯 Select</span> — Select all matching elements (without filtering)</li>
   <li><span class="tooltip-dummy-buttons pink">⟳ Sync</span> — Sync query with current UI panel settings</li>
   <li><span class="tooltip-dummy-buttons red">✗ Clear</span> — Remove all query conditions</li>
-  <li><span class="add-to-query-button show tt">📝</span> (filtering panel) — Add a single parameter to the query</li>
+</ul>
+<p><strong>Filtering panel:</strong></p>
+<ul>
+  <li><span class="add-to-query-button show tt">📝</span> — Add a single parameter to the query</li>
 </ul>
 
 <hr>
