@@ -1117,6 +1117,7 @@ class IOManager {
         isCustom: layout.isCustom || false,
         query: layout["query"] || undefined,
         // Per-view styles - check if already Maps
+        hideDisconnectedNodes: layout.hideDisconnectedNodes || false,
         nodeStyles: layout.nodeStyles instanceof Map ? layout.nodeStyles : new Map(Object.entries(layout.nodeStyles || {})),
         edgeStyles: layout.edgeStyles instanceof Map ? layout.edgeStyles : new Map(Object.entries(layout.edgeStyles || {})),
         bubbleSetStyle: layout.bubbleSetStyle || structuredClone(this.cache.DEFAULTS.BUBBLE_GROUP_STYLE),

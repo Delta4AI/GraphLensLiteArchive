@@ -189,8 +189,8 @@ class GraphCoreManager {
         autoResize: true,
         padding: 10,
         data: this.createSimplifiedDataForGraphObject(),
-        node: {state: {highlight: {fill: '#C33D35', halo: true, lineWidth: 0,}, dim: {fill: '#E4E3EA',},},},
-        edge: {state: {highlight: {stroke: '#C33D35',}, selected: {stroke: '#C33D35',}},},
+        node: {state: {selected: {stroke: '#C33D35', lineWidth: 2, halo: true, haloStroke: '#C33D35',}, highlight: {fill: '#C33D35', halo: true, lineWidth: 0,}, dim: {fill: '#E4E3EA',},},},
+        edge: {state: {highlight: {stroke: '#C33D35',}, selected: {halo: true, haloStroke: '#C33D35', haloLineWidth: 6,}},},
         behaviors: behaviors,
         plugins: plugins,
       })
@@ -350,6 +350,8 @@ class GraphCoreManager {
         await this.cache.lm.persistNodePositions();
         this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = false;
       }
+
+      await this.applyHideDisconnectedState();
     } catch (errorMsg) {
       this.cache.ui.error(`Error in initial AFTER_RENDER: ${errorMsg}`);
       this.cache.ui.error("Graph setup failed. Please check your input data.");
@@ -361,18 +363,21 @@ class GraphCoreManager {
 
   async toggleCleanUpDanglingElements(btn) {
     const shouldEnable = btn.classList.contains("red");
+    const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
 
     if (shouldEnable) {
       btn.classList.remove("red");
       btn.classList.add("green", "highlight");
       btn.title = "Show all nodes and edges, irrespectively of their connectedness.";
       btn.textContent = "👁";
+      currentLayout.hideDisconnectedNodes = true;
       await this.hideDanglingElements();
     } else {
       btn.classList.remove("green", "highlight");
       btn.classList.add("red");
       btn.title = "Hide all nodes and edges that are not connected to any other node or edge.";
       btn.textContent = "🚫";
+      currentLayout.hideDisconnectedNodes = false;
       await this.showDanglingElements();
     }
   }
@@ -442,6 +447,33 @@ class GraphCoreManager {
       null,
       false
     );
+  }
+
+  updateHideDisconnectedButtonState() {
+    const btn = document.getElementById("hideDisconnectedBtn");
+    if (!btn) return;
+    const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+    if (currentLayout && currentLayout.hideDisconnectedNodes) {
+      btn.classList.remove("red");
+      btn.classList.add("green", "highlight");
+      btn.title = "Show all nodes and edges, irrespectively of their connectedness.";
+      btn.textContent = "👁";
+    } else {
+      btn.classList.remove("green", "highlight");
+      btn.classList.add("red");
+      btn.title = "Hide all nodes and edges that are not connected to any other node or edge.";
+      btn.textContent = "🚫";
+    }
+  }
+
+  async applyHideDisconnectedState() {
+    const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+    this.cache.hiddenDanglingNodeIDs.clear();
+    this.cache.hiddenDanglingEdgeIDs.clear();
+    this.updateHideDisconnectedButtonState();
+    if (currentLayout && currentLayout.hideDisconnectedNodes) {
+      await this.hideDanglingElements();
+    }
   }
 
   async focusNodes(nodeIDs = undefined) {
@@ -672,8 +704,8 @@ class GraphCoreManager {
           filteredNode.states = currentGraphNode.states;
         }
 
-        // Preserve visibility from loaded data before applying styles
-        const savedVisibility = node.style?.visibility;
+        // Preserve visibility from current graph state or loaded data
+        const savedVisibility = currentGraphNode?.style?.visibility || node.style?.visibility;
 
         // load positions from the layouts position Map
         const position = this.cache.data.layouts[this.cache.data.selectedLayout].positions.get(node.id);
@@ -735,8 +767,8 @@ class GraphCoreManager {
           filteredEdge.states = currentGraphEdge.states;
         }
 
-        // Preserve visibility from loaded data before applying styles
-        const savedVisibility = edge.style?.visibility;
+        // Preserve visibility from current graph state or loaded data
+        const savedVisibility = currentGraphEdge?.style?.visibility || edge.style?.visibility;
 
         // Check if current layout has custom style for this edge
         const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];

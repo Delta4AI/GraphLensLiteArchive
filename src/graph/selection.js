@@ -38,17 +38,14 @@ class GraphSelectionManager {
     await this.cache.ui.showLoading(enable ? "Selecting" : "Deselecting", `Modifying selection of ${elemData.length} elements`);
     await new Promise(resolve => requestAnimationFrame(resolve));
 
-    // faster routine than setting each individual setElementState
-    const updatedData = [];
+    const stateMap = {};
     for (const item of elemData) {
-      const elem = this.cache.graph.getElementData(item.id);
-      this.updateElementSelectedState(elem, enable);
-      updatedData.push(elem);
+      const states = await this.cache.graph.getElementState(item.id);
+      if (enable && !states.includes("selected")) states.push("selected");
+      if (!enable && states.includes("selected")) states.splice(states.indexOf("selected"), 1);
+      stateMap[item.id] = states;
     }
-    await this.cache.graph.updateData(updatedData);
-    await this.cache.graph.render();
-    // Force a visual update by also calling draw()
-    await this.cache.graph.draw();
+    await this.cache.graph.setElementState(stateMap);
 
     // Update manual bubble group button state when selection changes
     this.cache.bs.updateManualGroupButtonState();
@@ -89,13 +86,22 @@ class GraphSelectionManager {
     this.cache.selectedNodes = snapshot.nodes;
     this.cache.selectedEdges = snapshot.edges;
 
+    const stateMap = {};
     for (const node of this.cache.graph.getNodeData()) {
-      this.updateElementSelectedState(node, snapshot.nodes.includes(node.id));
+      const states = await this.cache.graph.getElementState(node.id);
+      const shouldSelect = snapshot.nodes.includes(node.id);
+      if (shouldSelect && !states.includes("selected")) states.push("selected");
+      if (!shouldSelect && states.includes("selected")) states.splice(states.indexOf("selected"), 1);
+      stateMap[node.id] = states;
     }
     for (const edge of this.cache.graph.getEdgeData()) {
-      this.updateElementSelectedState(edge, snapshot.edges.includes(edge.id));
+      const states = await this.cache.graph.getElementState(edge.id);
+      const shouldSelect = snapshot.edges.includes(edge.id);
+      if (shouldSelect && !states.includes("selected")) states.push("selected");
+      if (!shouldSelect && states.includes("selected")) states.splice(states.indexOf("selected"), 1);
+      stateMap[edge.id] = states;
     }
-    await this.cache.graph.render();
+    await this.cache.graph.setElementState(stateMap);
 
     // Update manual bubble group button state when selection is synced (undo/redo)
     this.cache.bs.updateManualGroupButtonState();
