@@ -189,8 +189,8 @@ class GraphCoreManager {
         autoResize: true,
         padding: 10,
         data: this.createSimplifiedDataForGraphObject(),
-        node: {state: {highlight: {fill: '#C33D35', halo: true, lineWidth: 0,}, dim: {fill: '#E4E3EA',},},},
-        edge: {state: {highlight: {stroke: '#C33D35',}, selected: {stroke: '#C33D35',}},},
+        node: {state: {selected: {stroke: '#C33D35', lineWidth: 2, halo: true, haloStroke: '#C33D35',}, highlight: {fill: '#C33D35', halo: true, lineWidth: 0,}, dim: {fill: '#E4E3EA',},},},
+        edge: {state: {highlight: {stroke: '#C33D35',}, selected: {halo: true, haloStroke: '#C33D35', haloLineWidth: 6,}},},
         behaviors: behaviors,
         plugins: plugins,
       })
@@ -672,8 +672,8 @@ class GraphCoreManager {
           filteredNode.states = currentGraphNode.states;
         }
 
-        // Preserve visibility from loaded data before applying styles
-        const savedVisibility = node.style?.visibility;
+        // Preserve visibility from current graph state or loaded data
+        const savedVisibility = currentGraphNode?.style?.visibility || node.style?.visibility;
 
         // load positions from the layouts position Map
         const position = this.cache.data.layouts[this.cache.data.selectedLayout].positions.get(node.id);
@@ -735,8 +735,8 @@ class GraphCoreManager {
           filteredEdge.states = currentGraphEdge.states;
         }
 
-        // Preserve visibility from loaded data before applying styles
-        const savedVisibility = edge.style?.visibility;
+        // Preserve visibility from current graph state or loaded data
+        const savedVisibility = currentGraphEdge?.style?.visibility || edge.style?.visibility;
 
         // Check if current layout has custom style for this edge
         const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
