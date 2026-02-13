@@ -59,7 +59,7 @@ class Cache {
       editorDiv: null,
       lastGoodWidth: 0,
       sizeObserver: null,
-      sizeChangeLocked: false,
+
       textCache: null,
     }
 
