@@ -12,7 +12,7 @@ const {
   register
 } = G6;
 
-import {DEFAULTS, CFG} from './config.js';
+import {VERSION, DEFAULTS, CFG} from './config.js';
 
 import {GraphCoreManager} from './graph/core.js';
 import {GraphBubbleSetManager} from './graph/bubble_sets.js';
@@ -63,6 +63,7 @@ class Cache {
       textCache: null,
     }
 
+    this.VERSION = VERSION;
     this.DEFAULTS = DEFAULTS;
     this.CFG = CFG;
 
@@ -446,6 +447,12 @@ window.addEventListener('resize', () => {
 window.addEventListener("DOMContentLoaded", () => {
   cache.reset();
   // cache.initialize();
+
+  // Display version info
+  const versionInfo = document.getElementById('versionInfo');
+  if (versionInfo) {
+    versionInfo.textContent = `v${VERSION}`;
+  }
 
   // Setup sidebar resize functionality
   const sidebar = document.getElementById('sidebar');
