@@ -733,6 +733,19 @@ h5 {
     align-items: center;
 }
 
+#filterContainer {
+    position: relative;
+    margin-right: 6px;
+}
+
+#filterContainer #editBtn {
+    position: absolute;
+    right: 0;
+    z-index: 10;
+    border: 1px solid black;
+    border-radius: 6px;
+}
+
 .filter-row {
     display: flex;
     align-items: center;
@@ -954,6 +967,10 @@ h5 {
 
 .tooltip-content * {
     pointer-events: auto;
+}
+
+hr {
+    color: #E3E3EA;
 }
 
 .tooltip hr {
