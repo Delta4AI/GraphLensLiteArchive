@@ -350,6 +350,8 @@ class GraphCoreManager {
         await this.cache.lm.persistNodePositions();
         this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = false;
       }
+
+      await this.applyHideDisconnectedState();
     } catch (errorMsg) {
       this.cache.ui.error(`Error in initial AFTER_RENDER: ${errorMsg}`);
       this.cache.ui.error("Graph setup failed. Please check your input data.");
@@ -361,18 +363,21 @@ class GraphCoreManager {
 
   async toggleCleanUpDanglingElements(btn) {
     const shouldEnable = btn.classList.contains("red");
+    const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
 
     if (shouldEnable) {
       btn.classList.remove("red");
       btn.classList.add("green", "highlight");
       btn.title = "Show all nodes and edges, irrespectively of their connectedness.";
       btn.textContent = "👁";
+      currentLayout.hideDisconnectedNodes = true;
       await this.hideDanglingElements();
     } else {
       btn.classList.remove("green", "highlight");
       btn.classList.add("red");
       btn.title = "Hide all nodes and edges that are not connected to any other node or edge.";
       btn.textContent = "🚫";
+      currentLayout.hideDisconnectedNodes = false;
       await this.showDanglingElements();
     }
   }
@@ -442,6 +447,33 @@ class GraphCoreManager {
       null,
       false
     );
+  }
+
+  updateHideDisconnectedButtonState() {
+    const btn = document.getElementById("hideDisconnectedBtn");
+    if (!btn) return;
+    const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+    if (currentLayout && currentLayout.hideDisconnectedNodes) {
+      btn.classList.remove("red");
+      btn.classList.add("green", "highlight");
+      btn.title = "Show all nodes and edges, irrespectively of their connectedness.";
+      btn.textContent = "👁";
+    } else {
+      btn.classList.remove("green", "highlight");
+      btn.classList.add("red");
+      btn.title = "Hide all nodes and edges that are not connected to any other node or edge.";
+      btn.textContent = "🚫";
+    }
+  }
+
+  async applyHideDisconnectedState() {
+    const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+    this.cache.hiddenDanglingNodeIDs.clear();
+    this.cache.hiddenDanglingEdgeIDs.clear();
+    this.updateHideDisconnectedButtonState();
+    if (currentLayout && currentLayout.hideDisconnectedNodes) {
+      await this.hideDanglingElements();
+    }
   }
 
   async focusNodes(nodeIDs = undefined) {

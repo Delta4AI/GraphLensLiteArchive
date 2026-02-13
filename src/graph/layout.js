@@ -41,6 +41,9 @@ class GraphLayoutManager {
 
     await this.cache.gcm.decideToRenderOrDraw(true);
 
+    // Restore hide disconnected nodes state for this workspace
+    await this.cache.gcm.applyHideDisconnectedState();
+
     // Force bubble group sync - recalculate which nodes should be in groups for this view
     this.cache.bubbleSetChanged = true;
     await this.cache.bs.updateBubbleSetIfChanged();
@@ -175,6 +178,7 @@ class GraphLayoutManager {
         positions: structuredClone(currentLayout.positions),
         filters: structuredClone(currentLayout.filters),
         isCustom: true,
+        hideDisconnectedNodes: currentLayout.hideDisconnectedNodes || false,
         // Capture complete current visual state
         nodeStyles: nodeStyles,
         edgeStyles: edgeStyles,
@@ -211,6 +215,7 @@ class GraphLayoutManager {
         filters: structuredClone(this.cache.data.filterDefaults),  // Reset to defaults
         isCustom: true,  // All layouts are custom (position-based)
         query: undefined,  // No query
+        hideDisconnectedNodes: false,
         // Start with default styles
         nodeStyles: new Map(),
         edgeStyles: new Map(),
@@ -263,6 +268,9 @@ class GraphLayoutManager {
       // Render with the full pipeline
       this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED = false;
       await this.cache.gcm.decideToRenderOrDraw(true);
+
+      // Reset hide disconnected state for new workspace
+      await this.cache.gcm.applyHideDisconnectedState();
 
       // Ensure bubble groups are properly cleared and synced for this new view
       this.cache.bubbleSetChanged = true;
@@ -580,6 +588,7 @@ class GraphLayoutManager {
       filters: structuredClone(this.cache.data.filterDefaults),
       isCustom: true,  // All layouts are position-based
       query: undefined,
+      hideDisconnectedNodes: false,
       // Per-view styles
       nodeStyles: new Map(),
       edgeStyles: new Map(),
