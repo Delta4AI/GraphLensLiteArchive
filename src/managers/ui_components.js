@@ -649,10 +649,14 @@ class UIComponentManager {
         ? `${item.label}<br><small>${idFormatted}</small>`
         : idFormatted;
 
-      return `<h3>
-      <span class="purple">${isEdge ? "Edge" : "Node"}</span> 
-      <span class="red">${label}</span>
-    </h3>`;
+      return `<div class="tooltip-header">
+      <div class="tooltip-header-text">
+        <span class="purple">${isEdge ? "Edge" : "Node"}</span>
+        <span class="red">${label}</span>
+      </div>
+      <button class="tooltip-expand-btn" onclick="window.toggleTooltipExpand(this)">⤢</button>
+    </div>
+    <div class="tooltip-content">`;
     }
 
     function addDescription() {
@@ -807,6 +811,7 @@ class UIComponentManager {
     }
 
     buildColumns();
+    tooltip += '</div>';
     return tooltip;
   }
 
