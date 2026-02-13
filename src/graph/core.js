@@ -930,7 +930,96 @@ class GraphCoreManager {
     );
 
     this.cache.ui.makeBottomBarResizable();
+    this.registerTooltipWheelHandler();
+    this.registerTooltipExpandToggle();
     this.cache.EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED = true;
+  }
+
+  registerTooltipExpandToggle() {
+    window.toggleTooltipExpand = function(button) {
+      const tooltip = button.closest('.tooltip');
+      if (!tooltip) return;
+
+      const isExpanded = tooltip.classList.contains('expanded');
+
+      if (isExpanded) {
+        tooltip.classList.remove('expanded');
+        button.textContent = '⤢';
+        button.title = 'Expand to full size';
+      } else {
+        tooltip.classList.add('expanded');
+        button.textContent = '⤡';
+        button.title = 'Return to default size';
+      }
+    };
+  }
+
+  registerTooltipWheelHandler() {
+    const graphContainer = document.getElementById('innerGraphContainer');
+    if (!graphContainer) return;
+
+    graphContainer.addEventListener('wheel', (event) => {
+      const target = event.target;
+      const tooltip = target.closest('.tooltip');
+
+      if (tooltip) {
+        event.stopPropagation();
+      }
+    }, { passive: false, capture: true });
+
+    this.makeTooltipDraggable(graphContainer);
+  }
+
+  makeTooltipDraggable(graphContainer) {
+    let isDragging = false;
+    let currentTooltip = null;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    graphContainer.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.tooltip-expand-btn')) return;
+
+      const header = e.target.closest('.tooltip-header');
+      if (!header) return;
+
+      const tooltip = header.closest('.tooltip');
+      if (!tooltip) return;
+
+      isDragging = true;
+      currentTooltip = tooltip;
+
+      const rect = tooltip.getBoundingClientRect();
+      offsetX = e.clientX - rect.left;
+      offsetY = e.clientY - rect.top;
+
+      header.style.cursor = 'grabbing';
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging || !currentTooltip) return;
+
+      const newLeft = e.clientX - offsetX;
+      const newTop = e.clientY - offsetY;
+
+      currentTooltip.style.left = `${newLeft}px`;
+      currentTooltip.style.top = `${newTop}px`;
+      currentTooltip.style.position = 'fixed';
+
+      e.preventDefault();
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isDragging && currentTooltip) {
+        const header = currentTooltip.querySelector('.tooltip-header');
+        if (header) {
+          header.style.cursor = 'move';
+        }
+      }
+      isDragging = false;
+      currentTooltip = null;
+    });
   }
 
   async registerPluginStates() {
