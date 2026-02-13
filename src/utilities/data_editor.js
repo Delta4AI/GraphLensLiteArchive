@@ -1297,16 +1297,18 @@ class DataTable {
 </div>
 
 <div class="alert-info">
-  <strong>💡 Tip:</strong> All changes are staged until you click <span class="tooltip-dummy-buttons">✔ Apply</span>
+  <strong>💡 Tip:</strong> All changes are staged until you click <span class="tooltip-dummy-buttons blue">✔ Apply</span>
 </div>
 
 <h3>Available Actions</h3>
+<p><strong>Header buttons:</strong></p>
 <ul>
-  <li><span class="tooltip-dummy-buttons">✔ Apply</span> — Apply the changes to the graph</li>
+  <li><span class="tooltip-dummy-buttons blue">✔ Apply</span> — Apply the changes to the graph</li>
   <li><span class="tooltip-dummy-buttons pink">⟳ Reset</span> — Discard all changes and restore original data</li>
   <li><span class="tooltip-dummy-buttons blue"><strong>+</strong>&nbsp;Node</span> — Create a new node in the graph</li>
   <li><span class="tooltip-dummy-buttons blue"><strong>+</strong>&nbsp;Edge</span> — Create a new edge between existing nodes</li>
-  <li><span class="tooltip-dummy-buttons green">⤓ Export</span> — Save current view as an Excel file (disabled when no data is shown)</li>
+  <li><span class="tooltip-dummy-buttons blue"><strong>+</strong>&nbsp;Column</span> — Add a new property column to the table</li>
+  <li><span class="tooltip-dummy-buttons green">⤓ Export</span> — Save current view as an Excel file</li>
 </ul>
 
 <h3>Working with the Editor</h3>
