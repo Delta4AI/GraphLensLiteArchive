@@ -919,7 +919,7 @@ class UIComponentManager {
       }
 
       if (this.cache.data.layouts[this.cache.data.selectedLayout]["query"] === undefined) {
-        this.cache.qm.handleQueryValidationEvent();
+        this.cache.qm.handleQueryValidationEvent(true);
       }
 
       if (!this.cache.query.text.textContent.trim()) {

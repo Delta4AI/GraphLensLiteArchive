@@ -957,9 +957,16 @@ class GraphCoreManager {
   registerGlobalEventListeners() {
     if (this.cache.EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED) return;
 
-    ['input', 'keydown', 'keyup', 'mousedown', 'mouseup', 'focus', 'blur', 'scroll', 'selectionchange'].forEach(evt =>
+    ['input', 'keydown', 'keyup', 'mousedown', 'mouseup', 'focus', 'blur', 'scroll'].forEach(evt =>
       this.cache.query.text.addEventListener(evt, () => this.cache.qm.moveCaret())
     );
+
+    document.addEventListener('selectionchange', () => {
+      const sel = window.getSelection();
+      if (sel.rangeCount && this.cache.query.text.contains(sel.getRangeAt(0).startContainer)) {
+        this.cache.qm.moveCaret();
+      }
+    });
 
     this.cache.ui.makeBottomBarResizable();
     this.registerTooltipWheelHandler();
