@@ -642,9 +642,11 @@ class UIManager {
     if (appHeader) {
       if (show) {
         appHeader.classList.remove('disabled-header');
+        appHeader.classList.add('compact-header');
         appHeader.title = 'Click to reload application';
       } else {
         appHeader.classList.add('disabled-header');
+        appHeader.classList.remove('compact-header');
         appHeader.title = '';
       }
     }

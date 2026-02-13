@@ -1282,6 +1282,10 @@ h5 {
     cursor: pointer;
 }
 
+#appHeader.compact-header {
+    font-size: 1.0em;
+}
+
 /*************************
  custom checkbox style
  **************************/
