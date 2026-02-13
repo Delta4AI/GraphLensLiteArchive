@@ -930,6 +930,12 @@ class DataTable {
 
       await this.cache.gcm.destroyGraphAndRollBackUI();
       this.cache.gcm.resetEventLocks();
+
+      // Reset lasso wrapper visual state to match default behavior (no lasso mode)
+      const lassoWrapper = document.getElementById("lassoWrapper");
+      if (lassoWrapper) {
+        lassoWrapper.classList.remove("active");
+      }
       this.cache.io.preProcessData(updatedFileData);
 
       // Clear any saved query to prevent filtering issues with new columns
