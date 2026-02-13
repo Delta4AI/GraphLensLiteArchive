@@ -778,10 +778,87 @@ h5 {
 
 .tooltip {
     font-family: sans-serif !important;
-    max-width: 360px !important;
-    max-height: 400px !important;
+    width: 360px !important;
+    height: 400px !important;
     overflow: auto !important;
-    border: 1px solid black;
+    border: 1px solid black !important;
+    pointer-events: auto !important;
+    min-width: 150px !important;
+    min-height: 100px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 !important;
+    position: fixed !important;
+    box-sizing: border-box !important;
+    transition: width 0.2s ease, height 0.2s ease !important;
+}
+
+.tooltip.expanded {
+    width: auto !important;
+    height: auto !important;
+    max-width: 90vw !important;
+    max-height: 90vh !important;
+}
+
+.tooltip-header {
+    background-color: #403C53;
+    color: white;
+    padding: 4px 8px;
+    cursor: move;
+    user-select: none;
+    flex-shrink: 0;
+    font-weight: 500;
+    font-size: 13px;
+    border-bottom: 1px solid black;
+    line-height: 1.2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tooltip-header-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.tooltip-expand-btn {
+    background: transparent;
+    border: 1px solid #E4E3EA;
+    color: white;
+    cursor: pointer;
+    padding: 2px 6px;
+    font-size: 12px;
+    border-radius: 3px;
+    margin-left: 8px;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+}
+
+.tooltip-expand-btn:hover {
+    background: #C33D35;
+    border-color: white;
+}
+
+.tooltip-header .purple {
+    color: #E4E3EA;
+}
+
+.tooltip-header .red {
+    color: #EFB0AA;
+}
+
+.tooltip-content {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: auto;
+    padding: 8px;
+    min-height: 0;
+    min-width: 0;
+    pointer-events: auto;
+}
+
+.tooltip-content * {
+    pointer-events: auto;
 }
 
 .tooltip hr {
