@@ -777,6 +777,7 @@ h5 {
     border-radius: 3px;
     padding: 8px 10px;
     margin-bottom: 8px;
+    margin-right: 28px;
     display: flex;
     justify-content: space-between;
     align-items: center;
