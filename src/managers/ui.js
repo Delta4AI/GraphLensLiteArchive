@@ -1,6 +1,7 @@
 import {StaticUtilities} from "../utilities/static.js";
 import {DropdownChecklist, InvertibleRangeSlider} from "./ui_components.js";
 import {createStyleDiv} from "./ui_style_div.js";
+import {Popup} from "../utilities/popup.js";
 
 class UIManager {
   constructor(cache, debugEnabled = false) {
@@ -229,6 +230,15 @@ class UIManager {
         this.cache.graph.resize();
       }
     }, 300);
+  }
+
+  async reloadApp() {
+    if (!this.cache.initialized) return;
+
+    const confirmed = await Popup.confirm('Reload the application and start from scratch?');
+    if (confirmed) {
+      location.reload();
+    }
   }
 
   showEditor(editorType) {
@@ -627,6 +637,17 @@ class UIManager {
       element.style.pointerEvents = show ? "none" : "auto";
       element.style.height = show ? "0" : "auto";
     });
+
+    const appHeader = document.getElementById('appHeader');
+    if (appHeader) {
+      if (show) {
+        appHeader.classList.remove('disabled-header');
+        appHeader.title = 'Click to reload application';
+      } else {
+        appHeader.classList.add('disabled-header');
+        appHeader.title = '';
+      }
+    }
   }
 
   uncheckAllCheckboxes() {

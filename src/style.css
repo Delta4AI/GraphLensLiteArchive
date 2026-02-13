@@ -1273,6 +1273,15 @@ h5 {
     height: auto;
 }
 
+.disabled-header {
+    cursor: default !important;
+    pointer-events: none;
+}
+
+#appHeader:not(.disabled-header) {
+    cursor: pointer;
+}
+
 /*************************
  custom checkbox style
  **************************/
