@@ -379,6 +379,7 @@ class UIManager {
 
   async toggleEditMode() {
     const editBtn = document.getElementById("editBtn");
+    if (!editBtn) return;
     let editModeActive = editBtn.classList.contains("active");
     editModeActive ? editBtn.classList.remove("active") : editBtn.classList.add("active");
 
@@ -457,6 +458,7 @@ class UIManager {
 
   handleEditModeUIChanges() {
     const editBtn = document.getElementById("editBtn");
+    if (!editBtn) return;
     const editModeActive = editBtn.classList.contains("active");
 
     editModeActive ? editBtn.classList.add("highlight") : editBtn.classList.remove("highlight");
@@ -539,7 +541,13 @@ class UIManager {
 
   buildFilterUI() {
     const div = document.getElementById("filterContainer");
+    const editBtn = document.getElementById("editBtn");
     div.innerHTML = "";
+
+    // Re-append editBtn if it exists
+    if (editBtn) {
+      div.appendChild(editBtn);
+    }
 
     // Always create lock status bar, show/hide based on lock state
     const statusBar = this.createFilterLockStatusBar();
