@@ -139,80 +139,234 @@ const TOUR_STEPS = [
            Use the <strong class="tour-green">✚</strong> button to create a new workspace (clone or template-based), and the <strong class="tour-red">✗</strong> button to delete the current one.
            <br><br>
            The <strong>⛶</strong> button fits the graph to the screen, and <strong>🚫</strong> hides disconnected nodes.`,
-    target: "#selectView",
+    target: "#workspaceContainer",
     position: "below",
   },
   {
     title: "Filtering Panel",
-    text: `This is the core of the app. Every property from your data becomes a <strong>filter</strong>.
-           <br><br>
-           • <strong>Numeric properties</strong> get range sliders — drag to set thresholds
+    text: `Every property from your data becomes a <strong>filter</strong>.
+           <div style="margin:8px 0;padding:8px 10px;background:#f8f7fb;border-radius:6px;border:1px solid #dddbe2;">
+             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+               <span style="display:inline-block;width:14px;height:14px;border:1px solid #015C0C;border-radius:3px;box-sizing:border-box;text-align:center;line-height:12px;font-size:12px;color:#015C0C;flex-shrink:0;">✔</span>
+               <span style="font-size:12px;color:#403C53;font-weight:600;">Expression Level</span>
+               <div style="flex:1;position:relative;height:8px;border-radius:10px;background:#CCC;">
+                 <div style="position:absolute;left:20%;right:30%;height:100%;border-radius:10px;background:#403C53;"></div>
+                 <div style="position:absolute;left:calc(20% - 7px);top:-3px;width:14px;height:14px;border-radius:50%;background:#EEE;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>
+                 <div style="position:absolute;left:calc(70% - 7px);top:-3px;width:14px;height:14px;border-radius:50%;background:#EEE;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>
+               </div>
+               <span style="display:inline-block;width:16px;height:16px;border-radius:50%;overflow:hidden;position:relative;flex-shrink:0;background:#E4E3EA;"><span style="position:absolute;width:50%;height:50%;top:0;left:0;border-top:2px solid var(--groupOne-color);border-left:2px solid var(--groupOne-color);box-sizing:border-box;border-top-left-radius:100%;"></span><span style="position:absolute;width:50%;height:50%;top:0;left:50%;border-top:2px solid var(--groupTwo-color);border-right:2px solid var(--groupTwo-color);box-sizing:border-box;border-top-right-radius:100%;"></span><span style="position:absolute;width:50%;height:50%;top:50%;left:0;border-bottom:2px solid var(--groupThree-color);border-left:2px solid var(--groupThree-color);box-sizing:border-box;border-bottom-left-radius:100%;"></span><span style="position:absolute;width:50%;height:50%;top:50%;left:50%;border-bottom:2px solid var(--groupFour-color);border-right:2px solid var(--groupFour-color);box-sizing:border-box;border-bottom-right-radius:100%;"></span></span>
+               <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1px solid black;border-radius:50%;font-size:11px;background:#E4E3EA;flex-shrink:0;"><span style="flex:1;text-align:center;">+</span><span style="flex:1;text-align:center;border-left:1px solid #403C53;">−</span></span>
+             </div>
+             <div style="display:flex;align-items:center;gap:8px;">
+               <span style="display:inline-block;width:14px;height:14px;border:1px solid #C33D35;border-radius:3px;box-sizing:border-box;flex-shrink:0;"></span>
+               <span style="font-size:12px;color:#403C53;font-weight:600;">Type</span>
+               <select disabled style="flex:1;font-size:11px;padding:1px 4px;border:1px solid #aaa;border-radius:3px;background:white;">
+                 <option>Enzyme ✓, Receptor ✓, ...</option>
+               </select>
+               <span style="display:inline-block;width:16px;height:16px;border-radius:50%;overflow:hidden;position:relative;flex-shrink:0;background:#E4E3EA;"><span style="position:absolute;width:50%;height:50%;top:0;left:0;border-top:2px solid var(--groupOne-color);border-left:2px solid var(--groupOne-color);box-sizing:border-box;border-top-left-radius:100%;"></span><span style="position:absolute;width:50%;height:50%;top:0;left:50%;border-top:2px solid var(--groupTwo-color);border-right:2px solid var(--groupTwo-color);box-sizing:border-box;border-top-right-radius:100%;"></span><span style="position:absolute;width:50%;height:50%;top:50%;left:0;border-bottom:2px solid var(--groupThree-color);border-left:2px solid var(--groupThree-color);box-sizing:border-box;border-bottom-left-radius:100%;"></span><span style="position:absolute;width:50%;height:50%;top:50%;left:50%;border-bottom:2px solid var(--groupFour-color);border-right:2px solid var(--groupFour-color);box-sizing:border-box;border-bottom-right-radius:100%;"></span></span>
+               <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1px solid black;border-radius:50%;font-size:11px;background:#E4E3EA;flex-shrink:0;"><span style="flex:1;text-align:center;">+</span><span style="flex:1;text-align:center;border-left:1px solid #403C53;">−</span></span>
+             </div>
+           </div>
+           • <strong>Numeric properties</strong> get two-thumbed range sliders — drag the left thumb to set
+           a minimum threshold (≥), the right thumb for a maximum (≤), double-click to reset
            <br>• <strong>Categorical properties</strong> get dropdown checklists — check/uncheck values
+           <br>• The <strong>checkbox</strong> toggles whether that filter is active.
+           Active filters are combined with <strong>OR</strong> logic by default — nodes/edges matching <em>any</em> active filter are shown.
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           <span style="display:inline-block;width:16px;height:16px;border-radius:50%;overflow:hidden;position:relative;vertical-align:middle;background:#E4E3EA;"><span style="position:absolute;width:50%;height:50%;top:0;left:0;border-top:2px solid var(--groupOne-color);border-left:2px solid var(--groupOne-color);box-sizing:border-box;border-top-left-radius:100%;"></span><span style="position:absolute;width:50%;height:50%;top:0;left:50%;border-top:2px solid var(--groupTwo-color);border-right:2px solid var(--groupTwo-color);box-sizing:border-box;border-top-right-radius:100%;"></span><span style="position:absolute;width:50%;height:50%;top:50%;left:0;border-bottom:2px solid var(--groupThree-color);border-left:2px solid var(--groupThree-color);box-sizing:border-box;border-bottom-left-radius:100%;"></span><span style="position:absolute;width:50%;height:50%;top:50%;left:50%;border-bottom:2px solid var(--groupFour-color);border-right:2px solid var(--groupFour-color);box-sizing:border-box;border-bottom-right-radius:100%;"></span></span>
+           <strong>Bubble group button</strong> — click a quadrant to assign that filter's matching nodes to one of four colored <strong>bubble set</strong> groups. These are <em>filter-driven</em> and update automatically as filters change (unlike the <em>manual</em> bubble groups in the selection panel).
            <br><br>
-           The <strong>checkbox</strong> next to each filter toggles whether that property is active.
-           Only nodes/edges matching <em>all active filters</em> are shown (AND logic by default).
-           <br><br>
-           The ⚙️ <strong>Edit Mode</strong> button reveals advanced filter controls including
-           bubble set group assignment and query builder buttons.`,
+           <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1px solid black;border-radius:50%;font-size:11px;vertical-align:middle;background:#E4E3EA;"><span style="flex:1;text-align:center;">+</span><span style="flex:1;text-align:center;border-left:1px solid #403C53;">−</span></span>
+           <strong>Selection button</strong> — <strong>+</strong> add or <strong>−</strong> remove all nodes matching that filter property to/from the current selection.
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           ⚙️ <strong>Edit Mode</strong> — reveals more fine-grained configuration for numeric properties.`,
     target: "#filterContainer",
     position: "right",
   },
   {
-    title: "Query Editor — Filter & Select by Code",
-    text: `The query editor uses a <strong>custom DSL</strong> (domain-specific language) for filtering.
+    title: "Graph Canvas",
+    text: `This is the main graph visualization area.
            <br><br>
-           Syntax examples:
-           <br><code>property BETWEEN 0.5 AND 1.0</code>
-           <br><code>property IN (value1, value2)</code>
-           <br><code>property LOWER THAN 50</code>
-           <br><code>expr1 AND expr2</code>
-           <br><code>expr1 OR expr2</code>
-           <br><code>NOT expr</code>
+           • <strong>Click + drag on canvas</strong> — pan/navigate the network
+           <br>• <strong>Scroll</strong> — zoom in/out
+           <br>• <strong>Click on a node/edge</strong> — opens a tooltip with details
+           <br>• <strong>Click + drag a node</strong> — moves that node
+           <br>• <strong>Click + drag selected nodes</strong> — moves the entire selection
            <br><br>
-           The query <strong>syncs with the filter panel</strong> — changing filters updates the query text, and vice versa.
-           When you manually edit the query, filters get <strong>locked</strong> (🔒) to prevent conflicts.
+           The <strong>lasso tool</strong> <span class="lasso-icon" style="display:inline-block;vertical-align:middle;--size:16px;--color:#000"></span> (highlighted above) lets you draw a freeform selection area to select multiple nodes and edges at once. While in lasso mode, <strong>Shift+click</strong> adds individual nodes/edges to the selection.
            <br><br>
-           Use <strong>🔍 Filter</strong> to filter the graph, or <strong>🎯 Select</strong> to select matching nodes without hiding others.`,
-    target: null,
-    action: "openQueryEditor",
+           The <strong>minimap</strong> (bottom-right corner) shows an overview of the entire graph. Click or drag inside it to quickly navigate to different parts of the network.`,
+    targets: [
+      {selector: "#innerGraphContainer"},
+      {selector: "#lassoWrapper"},
+      {selector: ".g6-minimap"},
+    ],
+    position: "left",
   },
   {
-    title: "Data Editor — Edit Your Graph",
+    title: "Network Metrics 📊",
+    text: `The metrics panel computes graph-theoretic measures for all visible nodes.
+           <br><br>
+           Select a metric from the dropdown:
+           <br>• <strong>Degree Centrality</strong> — number of connections per node
+           <br>• <strong>Betweenness Centrality</strong> — how often a node lies on shortest paths
+           <br>• <strong>Closeness Centrality</strong> — average distance to all other nodes
+           <br>• <strong>Eigenvector Centrality</strong> — influence based on neighbor importance
+           <br>• <strong>PageRank</strong> — iterative ranking algorithm
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           Results appear as a <strong>ranked node list</strong> — select entries and use
+           <strong>Add to Selection</strong> / <strong>Remove from Selection</strong> to update the graph selection.
+           <br><br>
+           Below the list, <strong>graph-level metrics</strong> (density, avg degree, etc.) are shown in a summary table.
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           Computed metrics become available as mapping sources in the styling panel's
+           <span style="display:inline-block;width:20px;height:16px;border:1px solid black;border-radius:3px;text-align:center;line-height:16px;font-size:12px;vertical-align:middle;">∿</span> numeric scale and
+           <span style="display:inline-block;width:24px;height:16px;border:1px solid black;border-radius:3px;background:linear-gradient(to right,#403C53,#C33D35,#8CA6D9,#EFB0AA,#FFF);vertical-align:middle;"></span> color scale tools.
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           Click the <strong style="color:#8CA6D9">🛈</strong> button next to the metric dropdown for a detailed explanation of the selected metric.`,
+    targets: [
+      {selector: "#metricsContainer"},
+      {selector: "#metricsToggleBtn"},
+    ],
+    position: "right",
+    action: "openMetricsPanel",
+  },
+  {
+    title: "Data Editor 🔢",
     text: `The data editor is a <strong>spreadsheet view</strong> of all nodes and edges.
-           <br><br>
-           You can:
-           <br>• Edit property values directly in cells
-           <br>• Add new nodes, edges, or property columns
-           <br>• Export the data as Excel
-           <br><br>
-           Click <strong>✔ Apply</strong> to push changes to the graph, or <strong>⟳ Reset</strong> to revert.`,
-    target: null,
+           You can edit property values directly in cells, add new elements, or export the data.
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           <span style="display:inline-block;padding:2px 6px;border-radius:3px;font-size:11px;color:#000;background:#8CA6D9;border:1px solid rgba(0,0,0,0.3);">✔ Apply</span> — push all changes to the graph
+           <br>
+           <span style="display:inline-block;padding:2px 6px;border-radius:3px;font-size:11px;color:#000;background:#EFB0AA;border:1px solid rgba(0,0,0,0.3);">⟳ Reset</span> — discard changes and revert to current graph state
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           <span style="display:inline-block;padding:2px 6px;border-radius:3px;font-size:11px;color:#000;background:#8CA6D9;border:1px solid rgba(0,0,0,0.3);"><strong>+</strong> Node</span>
+           <span style="display:inline-block;padding:2px 6px;border-radius:3px;font-size:11px;color:#000;background:#8CA6D9;border:1px solid rgba(0,0,0,0.3);"><strong>+</strong> Edge</span>
+           <span style="display:inline-block;padding:2px 6px;border-radius:3px;font-size:11px;color:#000;background:#8CA6D9;border:1px solid rgba(0,0,0,0.3);"><strong>+</strong> Column</span> — add new nodes, edges, or property columns to the table
+           <br>
+           <span style="display:inline-block;padding:2px 6px;border-radius:3px;font-size:11px;color:#fff;background:#015C0C;border:1px solid rgba(0,0,0,0.3);">⤓ Export</span> — export the data table and styling properties as Excel
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           Click the <strong style="color:#8CA6D9">🛈</strong> button in the header for usage details.`,
+    targets: [
+      {selector: "#bottomBar"},
+      {selector: "#dataToggleBtn"},
+    ],
+    position: "above-lower-left",
     action: "openDataEditor",
   },
   {
+    title: "Query Editor 📝",
+    text: `The query editor uses a custom query language that goes beyond what the filter panel can do.
+           While the filter panel combines active filters with <strong>OR</strong> logic only, the query editor
+           supports <span class="q-connector-and">&nbsp;AND&nbsp;</span> <span class="q-connector-or">&nbsp;OR&nbsp;</span> and <span class="q-connector-not">&nbsp;NOT&nbsp;</span> operators, nested parentheses, and conditional operators:
+           <br>
+           <div class="tour-query-example">
+             <span class="q-property-wrapper"><span class="q-subgroup">group</span><span class="q-prop-group-separator">::</span><span class="q-property">prop</span></span>
+             <span class="q-kw-between">BETWEEN</span> <span class="q-number">0.5</span>
+             <span class="q-kw-between-and">AND</span> <span class="q-number">1.0</span>
+             <br>
+             <span class="q-property-wrapper"><span class="q-subgroup">group</span><span class="q-prop-group-separator">::</span><span class="q-property">prop</span></span>
+             <span class="q-in-cat-bracket-open">IN [</span><span class="q-string">foo</span><span class="q-comma">,</span> <span class="q-string">bar</span><span class="q-cat-bracket-close">]</span>
+             <br>
+             <span class="q-property-wrapper"><span class="q-subgroup">group</span><span class="q-prop-group-separator">::</span><span class="q-property">prop</span></span>
+             <span class="q-lower-than">LOWER THAN</span> <span class="q-number">50</span>
+           </div>
+           The query <strong>syncs with the filter panel</strong> — changing filters updates the query text, and vice versa.
+           When you manually edit the query, filters get <strong>locked</strong> (🔒) to prevent conflicts.
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           <span style="display:inline-block;padding:2px 6px;border-radius:3px;font-size:11px;color:#fff;background:#015C0C;border:1px solid rgba(0,0,0,0.3);">🔍 Filter</span> — apply the query to filter the graph (hide non-matching elements)
+           <br>
+           <span style="display:inline-block;padding:2px 6px;border-radius:3px;font-size:11px;color:#000;background:#8CA6D9;border:1px solid rgba(0,0,0,0.3);">🎯 Select</span> — apply the query to select matching elements without filtering
+           <br>
+           <span style="display:inline-block;padding:2px 6px;border-radius:3px;font-size:11px;color:#000;background:#EFB0AA;border:1px solid rgba(0,0,0,0.3);">⟳ Sync</span> — reset the query to match the current filter panel state
+           <br>
+           <span style="display:inline-block;padding:2px 6px;border-radius:3px;font-size:11px;color:#fff;background:#C33D35;border:1px solid rgba(0,0,0,0.3);">✗ Clear</span> — clear the query entirely
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           When the query editor is open, a <span class="add-to-query-button show tt">📝</span> button appears next to each filter checkbox in the filtering panel. Click it to <strong>append</strong> that filter's current range or category selection as a query fragment — a quick way to build complex queries from existing filters.
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           Click the <strong style="color:#8CA6D9">🛈</strong> button in the query editor header for a full syntax reference.`,
+    targets: [
+      {selector: "#bottomBar"},
+      {selector: "#queryToggleBtn"},
+    ],
+    position: "above-center-left",
+    action: "openQueryEditor",
+  },
+  {
     title: "Selection Panel",
-    text: `The selection panel sits above the graph canvas. It shows how many nodes and edges are currently selected.
+    text: `The selection panel sits above the graph canvas.
            <br><br>
-           • Use <strong>click</strong> to select individual elements (hold Shift for multi-select)
-           <br>• Toggle the <strong>lasso tool</strong> to draw a selection area
-           <br>• <strong>↩/↪</strong> undo/redo selections (up to 25 states)
-           <br>• <strong>⟳</strong> resets styles for selected elements
-           <br><br>
-           Expand the panel with <strong>▾</strong> to see focus, selection-by-ID, and arrangement tools.`,
+           Selected <strong>node</strong> and <strong>edge</strong> counts are shown, each with:
+           <br>• <strong>🔍</strong> — zoom the viewport to fit the selected elements
+           <br>• <strong class="tour-red">×</strong> — clear that selection
+           <br>
+           Next to selected nodes, a <strong>bubble group button</strong>
+           <span style="display:inline-block;width:14px;height:14px;border-radius:50%;overflow:hidden;position:relative;vertical-align:middle;background:#E4E3EA;border:1px solid black;box-sizing:border-box;"><span style="position:absolute;width:50%;height:50%;top:0;left:0;border-top:2px solid var(--groupOne-color);border-left:2px solid var(--groupOne-color);box-sizing:border-box;border-top-left-radius:100%;"></span><span style="position:absolute;width:50%;height:50%;top:0;left:50%;border-top:2px solid var(--groupTwo-color);border-right:2px solid var(--groupTwo-color);box-sizing:border-box;border-top-right-radius:100%;"></span><span style="position:absolute;width:50%;height:50%;top:50%;left:0;border-bottom:2px solid var(--groupThree-color);border-left:2px solid var(--groupThree-color);box-sizing:border-box;border-bottom-left-radius:100%;"></span><span style="position:absolute;width:50%;height:50%;top:50%;left:50%;border-bottom:2px solid var(--groupFour-color);border-right:2px solid var(--groupFour-color);box-sizing:border-box;border-bottom-right-radius:100%;"></span></span>
+           appears — click a quadrant to assign/remove selected nodes to/from one of four colored groups. These create visual <strong>bubble set</strong> overlays on the canvas.
+           When manual groups are active, a status indicator (e.g. <span style="color:var(--groupOne-color);font-weight:bold;">●3</span> <span style="color:var(--groupTwo-color);font-weight:bold;">●2</span>) and a <strong class="tour-red">×</strong> clear button appear.
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           • <span class="lasso-icon" style="display:inline-block;vertical-align:middle;--size:16px;--color:#000"></span> — toggle the <strong>lasso tool</strong> for freeform multi-select
+           <br>• <strong>⟳</strong> — reset styles for selected elements to defaults
+           <br>• <strong>↩</strong>/<strong>↪</strong> — undo/redo selections (up to 25 states)
+           <br>• <strong>🎨</strong> — open the <strong>styling panel</strong> to style selected elements
+           <br>• <strong>▾</strong> — expand the panel for advanced tools (next step)`,
     target: "#selectedElementsContainer",
     position: "below",
   },
   {
+    title: "Selection Panel — Advanced Tools",
+    text: `Expand the selection panel with <strong>▾</strong> to reveal three tool sections:
+           <br><br>
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           <strong>Focus Elements</strong> — search for a node or edge by ID/label and zoom to it.
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           <strong>Select Elements</strong> — bulk selection controls:
+           <br>• Select/deselect all nodes or edges
+           <br>• <strong>Expand/Reduce Edges</strong> — add or remove edges connected to selected nodes
+           <br>• <strong>Expand/Reduce Neighbors</strong> — grow or shrink the selection by one hop
+           <br>• Select by <strong>Node/Edge IDs</strong> or <strong>Labels</strong> with include/exclude toggle
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           <strong>Arrange Selection</strong> — reposition selected nodes:
+           <br>• <strong>Shrink/Expand</strong> — pull nodes closer or push them apart
+           <br>• <strong>Circle/Force/Grid/Random</strong> — apply a sub-layout to the selection only`,
+    targets: [
+      {selector: "#selectedElementsContainer"},
+      {selector: "#selectionEditorToggleBtn"},
+    ],
+    position: "below",
+    action: "expandSelectionEditor",
+  },
+  {
     title: "Styling Panel 🎨",
-    text: `The styling panel (right sidebar) lets you customize the visual appearance of your graph.
-           <br><br>
-           • <strong>Global styles</strong> — change defaults for all nodes/edges
-           <br>• <strong>Selection styles</strong> — style only the selected elements
-           <br>• <strong>Color scales</strong> — map numeric properties to color gradients
-           <br>• <strong>Size scales</strong> — map numeric properties to node sizes
-           <br><br>
-           Styles are <strong>per-workspace</strong>, so you can have different visual configurations in each workspace.`,
-    target: null,
+    text: `The styling panel lets you customize the visual appearance of your graph.
+           Styles are applied <strong>only to selected elements</strong> — select nodes/edges first, then adjust.
+           All styles are <strong>per-workspace</strong>.
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           <strong>Node Configuration</strong>
+           <br>• Shape, size, fill color, border size &amp; color
+           <br>• Label text, font size, placement, color &amp; background
+           <br>• <strong>Badges</strong> — small text markers at any corner of a node
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           <strong>Edge Configuration</strong>
+           <br>• Type (line/quadratic/cubic), width, dash pattern, color
+           <br>• Label text, font size, placement, rotation, offset &amp; color
+           <br>• <strong>Arrows</strong> — start/end arrows with configurable size and type
+           <br>• <strong>Halos</strong> — colored glow around edges with adjustable width
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           <strong>Bubble Set Configuration</strong>
+           <br>Each of the four groups has fill/stroke color &amp; opacity, plus optional labels.
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           <strong>Scale tools</strong> — map any data property or computed network metric to a visual property:
+           <br>• <span style="display:inline-block;width:20px;height:16px;border:1px solid black;border-radius:3px;text-align:center;line-height:16px;font-size:12px;vertical-align:middle;">∿</span> <strong>Numeric scale</strong> — e.g. scale node size by PageRank
+           <br>• <span style="display:inline-block;width:24px;height:16px;border:1px solid black;border-radius:3px;background:linear-gradient(to right,#403C53,#C33D35,#8CA6D9,#EFB0AA,#FFF);vertical-align:middle;"></span> <strong>Color scale</strong> — continuous gradient or discrete colors per category
+           <hr style="margin:6px 0;border-color:#dddbe2;">
+           💡 Color inputs accept any hex code — type it in the text field and press <strong>Enter</strong> to apply.`,
+    targets: [
+      {selector: "#rightSidebar"},
+      {selector: "#styleToggleBtn"},
+    ],
+    position: "left",
+    positionOffset: {y: 120},
     action: "openStylingPanel",
   },
   {
@@ -241,9 +395,9 @@ class GuidedTour {
   constructor(cache) {
     this.cache = cache
     this.currentStep = 0
-    this.highlightEl = null
+    this.highlightEls = []
+    this.overlayEl = null
     this.popup = null
-    this.overlay = null
   }
 
   async start() {
@@ -266,31 +420,47 @@ class GuidedTour {
       await this.executeAction(step.action)
     }
 
-    // create highlight if target exists
-    if (step.target) {
-      this.highlight(step.target, step.position || "below")
+    // create overlay + highlights
+    const targets = step.targets || (step.target ? [{selector: step.target}] : [])
+    const selectors = targets.map(t => t.selector)
+    this.createOverlay(selectors)
+    for (const t of targets) {
+      this.addHighlight(t.selector)
     }
+
+    const isLast = this.currentStep === TOUR_STEPS.length - 1
 
     const content = document.createElement("div")
     content.className = "tour-popup-content"
 
-    const stepIndicator = document.createElement("div")
+    // --- header ---
+    const header = document.createElement("div")
+    header.className = "tour-header"
+
+    const stepIndicator = document.createElement("span")
     stepIndicator.className = "tour-step-indicator"
     stepIndicator.textContent = `Step ${this.currentStep + 1} of ${TOUR_STEPS.length}`
-    content.appendChild(stepIndicator)
+    header.appendChild(stepIndicator)
 
-    const title = document.createElement("h3")
+    const title = document.createElement("span")
     title.className = "tour-title"
     title.textContent = step.title
-    content.appendChild(title)
+    header.appendChild(title)
 
-    const text = document.createElement("div")
-    text.className = "tour-text"
-    text.innerHTML = step.text
-    content.appendChild(text)
+    content.appendChild(header)
 
-    const buttons = document.createElement("div")
-    buttons.className = "tour-buttons"
+    // --- body ---
+    const body = document.createElement("div")
+    body.className = "tour-body"
+    body.innerHTML = step.text
+    content.appendChild(body)
+
+    // --- footer ---
+    const footer = document.createElement("div")
+    footer.className = "tour-footer"
+
+    const leftGroup = document.createElement("div")
+    leftGroup.className = "tour-footer-left"
 
     if (this.currentStep > 0) {
       const prevBtn = document.createElement("button")
@@ -300,10 +470,8 @@ class GuidedTour {
         this.currentStep--
         this.showStep()
       })
-      buttons.appendChild(prevBtn)
+      leftGroup.appendChild(prevBtn)
     }
-
-    const isLast = this.currentStep === TOUR_STEPS.length - 1
 
     const nextBtn = document.createElement("button")
     nextBtn.className = "p-button tour-btn-next"
@@ -312,18 +480,11 @@ class GuidedTour {
       this.currentStep++
       this.showStep()
     })
-    buttons.appendChild(nextBtn)
+    leftGroup.appendChild(nextBtn)
 
-    const skipBtn = document.createElement("button")
-    skipBtn.className = "tour-btn-skip"
-    skipBtn.textContent = "Skip tour"
-    skipBtn.addEventListener("click", () => {
-      this.cleanup()
-      this.finish()
-    })
-    if (!isLast) buttons.appendChild(skipBtn)
+    footer.appendChild(leftGroup)
 
-    content.appendChild(buttons)
+    content.appendChild(footer)
 
     // compute position near highlighted element
     let popupOpts = {
@@ -336,19 +497,28 @@ class GuidedTour {
       }
     }
 
-    if (step.target && this.highlightEl) {
-      const rect = document.querySelector(step.target)?.getBoundingClientRect()
+    const primaryTarget = targets[0]
+    if (primaryTarget && this.highlightEls.length) {
+      const el = document.querySelector(primaryTarget.selector)
+      const rect = el ? this.getClippedRect(el) : null
       if (rect) {
         const pos = this.computePopupPosition(rect, step.position || "below")
+        if (step.positionOffset) {
+          pos.x += step.positionOffset.x || 0
+          pos.y += step.positionOffset.y || 0
+        }
         popupOpts.position = pos
       }
     }
 
     this.popup = new Popup(content, popupOpts)
+    if (this.popup.overlay) {
+      this.popup.overlay.style.background = "transparent"
+    }
   }
 
   computePopupPosition(targetRect, position) {
-    const popupWidth = 460
+    const popupWidth = 504
     const margin = 16
     const vw = window.innerWidth
     const vh = window.innerHeight
@@ -364,6 +534,15 @@ class GuidedTour {
     } else if (position === "above") {
       x = targetRect.left
       y = targetRect.top - margin - 300
+    } else if (position === "above-center-left") {
+      x = margin
+      y = (vh - 400) / 2
+    } else if (position === "above-lower-left") {
+      x = margin
+      y = (vh - 400) / 2 + 100
+    } else if (position === "left") {
+      x = targetRect.left - margin - popupWidth
+      y = targetRect.top
     }
 
     // clamp to viewport
@@ -373,25 +552,120 @@ class GuidedTour {
     return {x, y}
   }
 
-  highlight(selector, position) {
+  createOverlay(selectors) {
+    this.overlayEl = document.createElement("div")
+    this.overlayEl.className = "tour-overlay"
+
+    const cutouts = []
+    const padding = 6
+    for (const selector of selectors) {
+      const el = document.querySelector(selector)
+      if (!el) continue
+      const rect = this.getClippedRect(el)
+      const padded = this.getPaddedRect(rect, padding)
+      cutouts.push(padded)
+    }
+
+    // remove cutouts fully contained in another to avoid evenodd overlap artifacts
+    const filtered = cutouts.filter((c, i) =>
+      !cutouts.some((other, j) => i !== j &&
+        other.left <= c.left && other.top <= c.top &&
+        other.right >= c.right && other.bottom >= c.bottom)
+    )
+
+    if (filtered.length) {
+      const holes = filtered.map(c =>
+        `${c.left}px ${c.top}px, ${c.right}px ${c.top}px, ${c.right}px ${c.bottom}px, ${c.left}px ${c.bottom}px, ${c.left}px ${c.top}px`
+      ).join(", 0 0, ")
+      this.overlayEl.style.clipPath = `polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, ${holes})`
+    }
+
+    document.body.appendChild(this.overlayEl)
+  }
+
+  getClippedRect(el) {
+    const rect = el.getBoundingClientRect()
+    let clipped = {top: rect.top, left: rect.left, right: rect.right, bottom: rect.bottom}
+    let parent = el.parentElement
+    while (parent && parent !== document.body) {
+      const style = getComputedStyle(parent)
+      const ox = style.overflowX
+      const oy = style.overflowY
+      if (ox === "hidden" || ox === "auto" || ox === "scroll" ||
+          oy === "hidden" || oy === "auto" || oy === "scroll") {
+        const pr = parent.getBoundingClientRect()
+        if (ox === "hidden" || ox === "auto" || ox === "scroll") {
+          clipped.left = Math.max(clipped.left, pr.left)
+          clipped.right = Math.min(clipped.right, pr.right)
+        }
+        if (oy === "hidden" || oy === "auto" || oy === "scroll") {
+          clipped.top = Math.max(clipped.top, pr.top)
+          clipped.bottom = Math.min(clipped.bottom, pr.bottom)
+        }
+      }
+      parent = parent.parentElement
+    }
+    return {
+      top: clipped.top,
+      left: clipped.left,
+      right: clipped.right,
+      bottom: clipped.bottom,
+      width: Math.max(0, clipped.right - clipped.left),
+      height: Math.max(0, clipped.bottom - clipped.top),
+    }
+  }
+
+  getPaddedRect(rect, padding) {
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    const top = Math.max(0, rect.top - padding)
+    const left = Math.max(0, rect.left - padding)
+    const right = Math.min(vw, rect.left + rect.width + padding)
+    const bottom = Math.min(vh, rect.top + rect.height + padding)
+    return {top, left, right, bottom, width: right - left, height: bottom - top}
+  }
+
+  addHighlight(selector) {
     const el = document.querySelector(selector)
     if (!el) return
 
-    const rect = el.getBoundingClientRect()
-    const padding = 6
+    const rect = this.getClippedRect(el)
+    const padded = this.getPaddedRect(rect, 6)
 
-    this.highlightEl = document.createElement("div")
-    this.highlightEl.className = "tour-highlight"
-    this.highlightEl.style.top = `${rect.top - padding}px`
-    this.highlightEl.style.left = `${rect.left - padding}px`
-    this.highlightEl.style.width = `${rect.width + padding * 2}px`
-    this.highlightEl.style.height = `${rect.height + padding * 2}px`
-    document.body.appendChild(this.highlightEl)
+    const div = document.createElement("div")
+    div.className = "tour-highlight"
+    div.style.top = `${padded.top}px`
+    div.style.left = `${padded.left}px`
+    div.style.width = `${padded.width}px`
+    div.style.height = `${padded.height}px`
+    document.body.appendChild(div)
+    this.highlightEls.push(div)
   }
 
   async executeAction(action) {
     switch (action) {
+      case "openMetricsPanel": {
+        const metricsBtn = document.getElementById("metricsToggleBtn")
+        const metricsPanel = document.getElementById("networkMetricsContainer")
+        if (metricsPanel && !metricsPanel.classList.contains("open")) {
+          this.cache.metrics.toggleUI()
+        }
+        await this.sleep(350)
+        break
+      }
       case "openQueryEditor": {
+        // close metrics panel if open
+        const metricsPanel2 = document.getElementById("networkMetricsContainer")
+        if (metricsPanel2 && metricsPanel2.classList.contains("open")) {
+          this.cache.metrics.toggleUI()
+          await this.sleep(350)
+        }
+        // close data editor first if open
+        const dataBtn = document.getElementById("dataToggleBtn")
+        if (dataBtn && dataBtn.classList.contains("highlight")) {
+          await this.cache.ui.toggleDataEditor()
+          await this.sleep(350)
+        }
         const queryBtn = document.getElementById("queryToggleBtn")
         if (queryBtn && !queryBtn.classList.contains("highlight")) {
           this.cache.ui.toggleQueryEditor()
@@ -400,6 +674,12 @@ class GuidedTour {
         break
       }
       case "openDataEditor": {
+        // close metrics panel if open
+        const metricsPanel3 = document.getElementById("networkMetricsContainer")
+        if (metricsPanel3 && metricsPanel3.classList.contains("open")) {
+          this.cache.metrics.toggleUI()
+          await this.sleep(350)
+        }
         // close query editor first if open
         const queryBtn = document.getElementById("queryToggleBtn")
         if (queryBtn && queryBtn.classList.contains("highlight")) {
@@ -413,7 +693,21 @@ class GuidedTour {
         await this.sleep(350)
         break
       }
+      case "expandSelectionEditor": {
+        const container = document.getElementById("selectedElementsContainer")
+        if (container && !container.classList.contains("expanded")) {
+          this.cache.ui.toggleSelectionEditor()
+        }
+        await this.sleep(350)
+        break
+      }
       case "openStylingPanel": {
+        // collapse selection editor if open
+        const selContainer = document.getElementById("selectedElementsContainer")
+        if (selContainer && selContainer.classList.contains("expanded")) {
+          this.cache.ui.toggleSelectionEditor()
+          await this.sleep(350)
+        }
         // close data editor first if open
         const dataBtn = document.getElementById("dataToggleBtn")
         if (dataBtn && dataBtn.classList.contains("highlight")) {
@@ -436,10 +730,14 @@ class GuidedTour {
   }
 
   cleanup() {
-    if (this.highlightEl) {
-      this.highlightEl.remove()
-      this.highlightEl = null
+    if (this.overlayEl) {
+      this.overlayEl.remove()
+      this.overlayEl = null
     }
+    for (const el of this.highlightEls) {
+      el.remove()
+    }
+    this.highlightEls = []
     if (this.popup) {
       const p = this.popup
       this.popup = null
@@ -451,6 +749,10 @@ class GuidedTour {
     this.cleanup()
 
     // close any open panels
+    const metricsPanel = document.getElementById("networkMetricsContainer")
+    if (metricsPanel && metricsPanel.classList.contains("open")) {
+      this.cache.metrics.toggleUI()
+    }
     const dataBtn = document.getElementById("dataToggleBtn")
     if (dataBtn && dataBtn.classList.contains("highlight")) {
       this.cache.ui.toggleDataEditor()
@@ -462,6 +764,10 @@ class GuidedTour {
     const rightSidebar = document.getElementById("rightSidebar")
     if (rightSidebar && rightSidebar.classList.contains("active")) {
       this.cache.ui.toggleStylingPanel()
+    }
+    const selContainer = document.getElementById("selectedElementsContainer")
+    if (selContainer && selContainer.classList.contains("expanded")) {
+      this.cache.ui.toggleSelectionEditor()
     }
   }
 }

@@ -52,19 +52,21 @@
       </div>
       <div class="showOnLoad">
         <hr>
-        <label for="selectView">Workspace:</label>
-        <select name="selectView" id="selectView" onchange="cache.lm.changeLayout()"></select>
-        <button class="small-btn red disabled" id="removeSelectedLayoutButton" title="Delete current workspace" onclick="cache.lm.removeSelectedLayout()">&nbsp;✗&nbsp;</button>
-        <button class="small-btn green" title="Create new workspace" onclick="cache.lm.addLayout()" >&nbsp;✚&nbsp;</button>
-        <div class="button-separator"></div>
-        <button class="small-btn" title="Fit graph to screen (F)" onclick="cache.graph.fitView()">⛶</button>
-        <button id="hideDisconnectedBtn" class="small-btn red" title="Hide all nodes and edges that are not connected to any other node or edge" onclick="cache.gcm.toggleCleanUpDanglingElements(this)">🚫</button>
-        <div id="debugDiv" class="inline"></div>
-        <br>
-        <h5 class="purple">Shown:
-          <span id="visibleNodes" class="red">0</span>/<span id="totalNodes">0</span> nodes,
-          <span id="visibleEdges" class="red">0</span>/<span id="totalEdges">0</span> edges
-        </h5>
+        <div id="workspaceContainer">
+          <label for="selectView">Workspace:</label>
+          <select name="selectView" id="selectView" onchange="cache.lm.changeLayout()"></select>
+          <button class="small-btn red disabled" id="removeSelectedLayoutButton" title="Delete current workspace" onclick="cache.lm.removeSelectedLayout()">&nbsp;✗&nbsp;</button>
+          <button class="small-btn green" title="Create new workspace" onclick="cache.lm.addLayout()" >&nbsp;✚&nbsp;</button>
+          <div class="button-separator"></div>
+          <button class="small-btn" title="Fit graph to screen (F)" onclick="cache.graph.fitView()">⛶</button>
+          <button id="hideDisconnectedBtn" class="small-btn red" title="Hide all nodes and edges that are not connected to any other node or edge" onclick="cache.gcm.toggleCleanUpDanglingElements(this)">🚫</button>
+          <div id="debugDiv" class="inline"></div>
+          <br>
+          <h5 class="purple">Shown:
+            <span id="visibleNodes" class="red">0</span>/<span id="totalNodes">0</span> nodes,
+            <span id="visibleEdges" class="red">0</span>/<span id="totalEdges">0</span> edges
+          </h5>
+        </div>
         <hr>
         <div id="metricsContainer"></div>
         <div id="filterContainer">
