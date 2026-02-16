@@ -31,6 +31,7 @@ Central `Cache` singleton (defined in `gll.js`) holds all state and manager inst
 - `popup.js` — modal dialog system
 - `demo_loader.js` — STRING DB protein interaction demo data
 - `data_editor.js` — spreadsheet-like data editor (DataTable)
+- `tour.js` — guided tour with sample dataset and step-by-step walkthrough
 - `color_scale_picker.js` / `numeric_scale_picker.js` — scale UIs for styling
 
 ### Key Files
@@ -73,7 +74,7 @@ src/
 ├── lib/                    # vendored libs (g6.min.js, exceljs.min.js)
 ├── graph/                  # graph managers (6 files)
 ├── managers/               # business logic managers (6 files)
-├── utilities/              # helpers (6 files)
+├── utilities/              # helpers (7 files)
 └── package/                # electron + build scripts
 templates/                  # Excel input template
 static/                     # icons, screenshots
@@ -89,4 +90,4 @@ tests/                      # manual bug reproduction HTML files
 - No docstrings, no type annotations unless already present.
 - No unnecessary abstractions or over-engineering.
 - Follow existing code style (no semicolons in some files, semicolons in others — match the file you're editing).
-- Git commits: under 30 words, lowercase start, no `Co-Authored-By` line. Match existing commit style (see `git log --oneline`).
+- Git commits: Conventional Commits format `<type>(<scope>): <summary>`, ≤ 72 chars, imperative mood, no sign-offs. See CONTRIBUTING.md.
