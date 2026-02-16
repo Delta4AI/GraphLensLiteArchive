@@ -19,23 +19,32 @@
 ---
 
 ## Screenshots
-### Home screen
-![Home Screen with active Popup](./static/screenshots/main_view_with_popup.png)
 
-### View & layout management
-![View Management](./static/screenshots/create_new_view.png)
+![Launch screen with options to open a file, download a template, explore a STRING database demo, or take a guided tour](./static/screenshots/launch_screen.png)
 
-### Query editor & visual grouping
-![Query Editor](./static/screenshots/query_editor_and_active_clusters.png)
+### Graph canvas with filters and node details
+![Graph canvas showing protein interaction network with property filter sidebar, node details popup for USP7 displaying centrality metrics and ontology annotations, and minimap](./static/screenshots/main_view_with_popup.png)
 
-### Network metrics & data editor
-![Network Metrics](./static/screenshots/network_metrics_and_data_editor.png)
+### Query editor
+![Query editor with boolean DSL combining IN, BETWEEN, AND, and OR operators to filter nodes and edges by subcellular localization, biological process, combined score, and database score](./static/screenshots/query_editor.png)
 
-### Rich styling
-![Rich Styling](./static/screenshots/rich_styling.png)
+### Selection tools and bubble set groupings
+![Grid layout with three selected nodes, selection panel offering focus, expand, and arrange tools, and two labeled bubble set groups overlaid on the canvas](./static/screenshots/selection_panel_and_active_clusters.png)
 
-### Property based color & value mapping (discrete, continuous, numerical)
-![Property based color & name mapping](./static/screenshots/property_based_categorical_color_mapping.png)
+### Network metrics and data editor
+![Left panel showing degree centrality rankings and graph-level metrics, bottom panel showing an editable spreadsheet view of all node properties](./static/screenshots/network_metrics_and_data_editor.png)
+
+### Styling panel
+![Styling panel with per-element node and edge configuration for shape, size, color, labels, halos, badges, arrows, and bubble set appearance, applied to a graph with mixed node shapes](./static/screenshots/rich_styling.png)
+
+### Workspace management
+![Create New Workspace dialog with options to clone current workspace or create from a layout template](./static/screenshots/workspace_management.png)
+
+### Property-based color mapping
+<p>
+  <img src="./static/screenshots/property_based_categorical_color_mapping.png" alt="Categorical color mapping dialog assigning distinct colors to Reactome pathway categories" width="49%">
+  <img src="./static/screenshots/property_based_numerical_color_mapping.png" alt="Numerical color mapping dialog with a continuous gradient from dark to red for closeness centrality scores" width="46.75%">
+</p>
 
 ---
 ## Development
