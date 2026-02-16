@@ -644,15 +644,17 @@ class UIComponentManager {
 
   buildToolTipText(nodeOrEdgeID, isEdge) {
     function initAndAddHeader() {
-      const idFormatted = `<span class='purple'>ID: </span>${item.id}`;
-      const label = item.label && item.label !== item.id
-        ? `${item.label}<br><small>${idFormatted}</small>`
-        : idFormatted;
+      const hasLabel = item.label && item.label !== item.id;
+      const title = hasLabel ? item.label : item.id;
+      const subtitle = hasLabel ? `<div class="tooltip-header-id">ID: ${item.id}</div>` : '';
 
       return `<div class="tooltip-header">
       <div class="tooltip-header-text">
         <span class="purple">${isEdge ? "Edge" : "Node"}</span>
-        <span class="red">${label}</span>
+        <div class="tooltip-header-label">
+          <div class="tooltip-header-title">${title}</div>
+          ${subtitle}
+        </div>
       </div>
       <button class="tooltip-expand-btn" onclick="window.toggleTooltipExpand(this)">⤢</button>
     </div>
