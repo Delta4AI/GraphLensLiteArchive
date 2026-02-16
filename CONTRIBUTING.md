@@ -43,6 +43,46 @@ git tag "v$(node -p "require('./package.json').version")"
 git push origin main --tags
 ```
 
+## Python Scripts (uv)
+
+The repository includes Python helper scripts in `scripts/` (e.g. the screenshot tool).
+These are **not** part of the main app — they are side utilities for development.
+
+Dependencies are managed with [uv](https://docs.astral.sh/uv/) and tracked in
+`pyproject.toml` / `uv.lock`.
+
+### First-time setup
+
+```bash
+uv sync
+uv run playwright install chromium
+```
+
+### Screenshot Tool
+
+Takes screenshots of the running app via a Chromium instance. Three quality presets:
+
+| Preset | Resolution | Scale | Use case |
+|---|---|---|---|
+| `normal` | ~1920×1080 | 1× | Quick captures |
+| `hq` | ~5760×3240 | 3× | Default, good for docs |
+| `ultrahq` | ~7680×4320 | 4× | Print / high-DPI assets |
+
+1. Start the dev server:
+   ```bash
+   npm run bundle:serve   # or npm run serve
+   ```
+2. Run the tool with a quality preset:
+   ```bash
+   uv run python scripts/screenshot_tool.py           # defaults to hq
+   uv run python scripts/screenshot_tool.py normal     # quick low-res
+   uv run python scripts/screenshot_tool.py ultrahq    # maximum quality
+   ```
+3. A Chromium window opens. Navigate to the desired view, then press **Enter**
+   to capture. Type `quit` to exit.
+
+Screenshots are saved to `static/screenshots/`.
+
 ## Code Style
 
 - Follow the style of the file you're editing
