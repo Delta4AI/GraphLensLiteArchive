@@ -635,6 +635,12 @@ class UIManager {
   }
 
   showUI(show) {
+    const landing = document.getElementById('landingPage');
+    if (landing) {
+      if (show) landing.classList.add('hidden');
+      else landing.classList.remove('hidden');
+    }
+
     document.querySelectorAll('.showOnLoad').forEach((element) => {
       element.style.opacity = show ? "1" : "0";
       element.style.pointerEvents = show ? "auto" : "none";

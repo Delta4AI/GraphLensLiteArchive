@@ -475,6 +475,10 @@ window.addEventListener("DOMContentLoaded", () => {
   if (versionInfo) {
     versionInfo.textContent = `v${VERSION}`;
   }
+  const landingVersion = document.getElementById('landingVersion');
+  if (landingVersion) {
+    landingVersion.textContent = `v${VERSION}`;
+  }
 
   // Setup sidebar resize functionality
   const sidebar = document.getElementById('sidebar');
