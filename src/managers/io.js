@@ -1226,7 +1226,7 @@ class IOManager {
           return;
         }
         await this.cache.graph.render();
-        await this.cache.graph.fitView();
+        await this.cache.gcm.fitViewToVisibleNodes();
         this.cache.ui.debug("Initial graph rendered.");
 
         // Update UI lock state if query was applied

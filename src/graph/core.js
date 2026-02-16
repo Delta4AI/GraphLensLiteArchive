@@ -504,6 +504,54 @@ class GraphCoreManager {
     }, 2500);
   }
 
+  async fitViewToVisibleNodes() {
+    const visibleNodeIDs = [...this.cache.nodeIDsToBeShown]
+      .filter(id => !this.cache.hiddenDanglingNodeIDs.has(id))
+
+    if (visibleNodeIDs.length === 0) {
+      await this.cache.graph.fitView()
+      return
+    }
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+
+    for (const id of visibleNodeIDs) {
+      const [x, y] = this.cache.graph.getElementPosition(id)
+      if (x < minX) minX = x
+      if (x > maxX) maxX = x
+      if (y < minY) minY = y
+      if (y > maxY) maxY = y
+    }
+
+    if (!isFinite(minX)) {
+      await this.cache.graph.fitView()
+      return
+    }
+
+    // all measurements at zoom 1 to avoid G6 translateTo bug at non-1 zoom
+    // see: https://github.com/antvis/G6/issues/6373#issuecomment-3615152579
+    await this.cache.graph.zoomTo(1)
+
+    const canvasMin = this.cache.graph.getViewportByCanvas([minX, minY])
+    const canvasMax = this.cache.graph.getViewportByCanvas([maxX, maxY])
+    const bboxWidth = Math.abs(canvasMax[0] - canvasMin[0]) || 1
+    const bboxHeight = Math.abs(canvasMax[1] - canvasMin[1]) || 1
+
+    const [viewportWidth, viewportHeight] = this.cache.graph.getSize()
+    const padding = 80
+    const zoom = Math.min(
+      (viewportWidth - padding * 2) / bboxWidth,
+      (viewportHeight - padding * 2) / bboxHeight
+    )
+
+    // translateTo at zoom 1, then restore target zoom (G6 bug workaround)
+    const viewportCenter = [viewportWidth / 2, viewportHeight / 2]
+    const bboxCenter = this.cache.graph.getViewportByCanvas([(minX + maxX) / 2, (minY + maxY) / 2])
+    const offset = [viewportCenter[0] - bboxCenter[0], viewportCenter[1] - bboxCenter[1]]
+    await this.cache.graph.translateBy(offset)
+    await this.cache.graph.zoomTo(zoom)
+  }
+
   async updateEdges(overrides = {}, commands = []) {
     let colorMap = null;
     if (commands.includes("set_continuous_color_scale")) {
@@ -926,7 +974,7 @@ class GraphCoreManager {
           await this.cache.io.exportGraphAsJSON();
           break;
         case "f":
-          await this.cache.graph.fitView();
+          await this.fitViewToVisibleNodes();
           break;
         case "e":
           await this.cache.ui.toggleEditMode();
