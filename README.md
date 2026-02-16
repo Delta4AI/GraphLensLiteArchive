@@ -40,24 +40,20 @@
 ---
 ## Development
 ```bash
-# Install dependencies
-npm install                                                     # runtime dependencies
-dnf install libxcrypt-compat wine                               # build dependencies
-npm install --save-dev electron@latest electron-builder@latest  # update electron dependencies
-
-# Run
-npm run serve   # Start http-server
-npm start       # Start electron app
-
-# Build
-npm run dist-linux     # Linux build
-npm run dist-windows   # Windows build
+npm install              # install dependencies
+npm run bundle:serve     # dev server with watch + sourcemaps
+npm run serve            # static http-server on :8000
+npm start                # electron app
+npm run dist-linux       # Linux build
+npm run dist-windows     # Windows build
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full list of npm scripts, version management, code style, and commit guidelines.
 
 ---
 
 ## Contributing
-Contributions are welcome! Please file issues or submit pull requests on GitHub.
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) before filing issues or submitting pull requests.
 
 ---
 
