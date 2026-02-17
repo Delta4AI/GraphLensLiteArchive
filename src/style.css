@@ -1342,11 +1342,22 @@ hr {
  custom checkbox style
  **************************/
 
+.hidden-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
+}
+
 .checkboxWrapper {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     cursor: pointer;
+    position: relative;
 }
 
 .checkboxContainer {
@@ -1369,6 +1380,7 @@ hr {
     text-align: center;
     line-height: 12px;
     font-size: 12px;
+    cursor: pointer;
     font-family: sans-serif;
     flex-shrink: 0;
     box-sizing: border-box;
@@ -2225,11 +2237,11 @@ input:checked + .slider:before {
     border: 1px solid #ccc;
     border-radius: 3px;
     border-top: none;
-    /*position: absolute;*/
     background-color: white;
     z-index: 1000;
     width: auto;
     list-style: none;
+    text-align: left;
     box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5)
 
 }
@@ -2240,23 +2252,33 @@ input:checked + .slider:before {
 }
 
 .dropdown-check-list ul.items li label {
-    cursor: pointer;
+    position: relative;
+    display: flex;
     align-items: center;
+    cursor: pointer;
 }
 
 .dropdown-check-list ul.items li input[type="checkbox"] {
-    display: none;
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
 }
 
 .custom-checkbox {
     display: inline-block;
     width: 14px;
     height: 14px;
+    flex-shrink: 0;
     margin-right: 10px;
     border: 1px solid #C33D35;
     border-radius: 3px;
     background-color: white;
     vertical-align: middle;
+    cursor: pointer;
     transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
@@ -3226,16 +3248,6 @@ input:checked + .slider:before {
 
 .data-table th:hover {
   background-color: #e6e6e6;
-}
-
-.data-table td.readonly {
-  background-color: #f8f8f8;
-  color: #666;
-  cursor: not-allowed;
-}
-
-.data-table td.readonly:hover {
-  background-color: #f8f8f8;
 }
 
 .data-table th.data-table-delete-row-column {

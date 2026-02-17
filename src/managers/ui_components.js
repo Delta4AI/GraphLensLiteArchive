@@ -78,7 +78,7 @@ class DropdownChecklist {
       checkbox.type = "checkbox";
       checkbox.value = option;
       checkbox.checked = this.selectedCategories.has(option);
-      checkbox.style.display = "none";
+      checkbox.className = "hidden-checkbox";
       checkbox.addEventListener("change", async (ev) => await this.handleSelection(ev));
 
       const customCheckbox = document.createElement("span");
@@ -880,7 +880,7 @@ class UIComponentManager {
     input.id = `filter-${propID}-checkbox`;
     input.type = 'checkbox';
     input.checked = initialState;
-    input.style.display = 'none';
+    input.className = 'hidden-checkbox';
     return input;
   }
 
