@@ -26,7 +26,9 @@
     "dist-linux": "npm run dist:prep:linux && electron-builder --linux --publish=never && npm run substitute-gll end",
     "dist-mac": "npm run dist:prep && electron-builder --mac --publish=never && npm run substitute-gll end",
     "dist": "npm run dist-linux && npm run dist-windows",
-    "serve": "npx http-server src -p 8000 --cors -o /graph_lens_lite.html "
+    "serve": "npx http-server src -p 8000 --cors -o /graph_lens_lite.html ",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "build": {
     "appId": "com.delta4ai.graphlenslite",
@@ -66,6 +68,7 @@
     "exceljs": "^4.4.0",
     "inline-source": "^8.0.3",
     "inline-source-cli": "^1.2.0",
-    "rimraf": "^6.0.1"
+    "rimraf": "^6.0.1",
+    "vitest": "^4.0.18"
   }
 }
