@@ -949,4 +949,11 @@ A node is important if it receives many links from other important nodes.
   };
 }
 
-export { NetworkMetrics };
+export {
+  NetworkMetrics,
+  calculateDegreeCentrality,
+  calculateBetweennessCentrality,
+  calculateClosenessCentrality,
+  calculateEigenvectorCentrality,
+  calculatePageRank,
+};
