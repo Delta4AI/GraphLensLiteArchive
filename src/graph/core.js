@@ -1031,12 +1031,12 @@ class GraphCoreManager {
 
       if (isExpanded) {
         tooltip.classList.remove('expanded');
-        button.textContent = '⤢';
-        button.title = 'Expand to full size';
+        button.textContent = '⛶';
+        button.title = 'Expand to fit content';
       } else {
         tooltip.classList.add('expanded');
         button.textContent = '⤡';
-        button.title = 'Return to default size';
+        button.title = 'Restore size';
       }
     };
   }

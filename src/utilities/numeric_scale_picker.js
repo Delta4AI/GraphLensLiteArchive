@@ -23,22 +23,28 @@ class NumericScalePicker {
     content.className = 'picker-content numeric-scale-picker';
     this.dom.content = content;
 
-    const title = document.createElement('h3');
+    const header = document.createElement('div');
+    header.className = 'picker-header';
+    const title = document.createElement('span');
+    title.className = 'picker-title';
     title.textContent = 'Map Property to Numeric Scale';
-    title.style.marginBottom = '20px';
-    title.style.textAlign = 'center';
-    content.appendChild(title);
+    header.appendChild(title);
+    content.appendChild(header);
+
+    const body = document.createElement('div');
+    body.className = 'picker-body';
+    this.dom.body = body;
 
     const dropdownLabel = document.createElement('div');
     dropdownLabel.textContent = 'Select Property to Map:';
     dropdownLabel.style.fontWeight = 'bold';
     dropdownLabel.style.marginBottom = '8px';
-    content.appendChild(dropdownLabel);
+    body.appendChild(dropdownLabel);
 
     const dropdown = document.createElement('select');
     dropdown.className = 'picker-dropdown';
     this.dom.dropdown = dropdown;
-    content.appendChild(dropdown);
+    body.appendChild(dropdown);
 
     const rangeConfig = document.createElement('div');
     rangeConfig.className = 'numeric-scale-config';
@@ -105,12 +111,11 @@ class NumericScalePicker {
     outputRow.appendChild(maxOutputInput);
 
     rangeConfig.appendChild(outputRow);
-    content.appendChild(rangeConfig);
+    body.appendChild(rangeConfig);
 
     // Buttons
     const buttons = document.createElement('div');
     buttons.className = 'picker-button-container';
-    buttons.style.marginTop = '20px';
 
     const cancelButton = document.createElement('button');
     cancelButton.className = 'picker-button secondary';
@@ -124,7 +129,7 @@ class NumericScalePicker {
     this.dom.applyButton = applyButton;
 
     buttons.append(cancelButton, applyButton);
-    content.appendChild(buttons);
+    content.append(body, buttons);
 
     overlay.appendChild(content);
     this.element = overlay;
