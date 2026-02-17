@@ -423,6 +423,7 @@ class GuidedTour {
     // create overlay + highlights
     const targets = step.targets || (step.target ? [{selector: step.target}] : [])
     const selectors = targets.map(t => t.selector)
+
     this.createOverlay(selectors)
     for (const t of targets) {
       this.addHighlight(t.selector)
