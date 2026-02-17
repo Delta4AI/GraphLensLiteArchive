@@ -59,8 +59,11 @@ Central `Cache` singleton (defined in `gll.js`) holds all state and manager inst
 npm run bundle:serve    # dev server with watch + sourcemaps
 npm run serve           # static http server on :8000
 npm start               # electron app
+npm test                # run vitest unit tests
+npm run test:watch      # vitest in watch mode
 npm run dist-linux      # build Linux packages
 npm run dist-windows    # build Windows packages
+npm run dist-mac        # build macOS packages
 ```
 
 ## File Structure
@@ -76,9 +79,10 @@ src/
 ├── managers/               # business logic managers (6 files)
 ├── utilities/              # helpers (7 files)
 └── package/                # electron + build scripts
-templates/                  # Excel input template
+templates/                  # Excel input templates
 static/                     # icons, screenshots
-tests/                      # manual bug reproduction HTML files
+scripts/                    # dev helpers (Excel→JSON converter, template generator, screenshots)
+tests/                      # vitest unit tests + manual bug reproduction HTML files
 ```
 
 ## Session Rules
