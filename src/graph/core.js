@@ -1063,7 +1063,12 @@ class GraphCoreManager {
     let offsetX = 0;
     let offsetY = 0;
 
-    graphContainer.addEventListener('mousedown', (e) => {
+    const stopEvent = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    graphContainer.addEventListener('pointerdown', (e) => {
       if (e.target.closest('.tooltip-expand-btn')) return;
 
       const header = e.target.closest('.tooltip-header');
@@ -1075,37 +1080,35 @@ class GraphCoreManager {
       isDragging = true;
       currentTooltip = tooltip;
 
-      const rect = tooltip.getBoundingClientRect();
-      offsetX = e.clientX - rect.left;
-      offsetY = e.clientY - rect.top;
+      const tooltipRect = tooltip.getBoundingClientRect();
+      const parentRect = graphContainer.getBoundingClientRect();
+      offsetX = e.clientX - tooltipRect.left + parentRect.left;
+      offsetY = e.clientY - tooltipRect.top + parentRect.top;
 
       header.style.cursor = 'grabbing';
-      e.preventDefault();
-      e.stopPropagation();
+      stopEvent(e);
     });
 
-    document.addEventListener('mousemove', (e) => {
+    document.addEventListener('pointermove', (e) => {
       if (!isDragging || !currentTooltip) return;
 
-      const newLeft = e.clientX - offsetX;
-      const newTop = e.clientY - offsetY;
-
-      currentTooltip.style.left = `${newLeft}px`;
-      currentTooltip.style.top = `${newTop}px`;
-      currentTooltip.style.position = 'fixed';
-
-      e.preventDefault();
+      currentTooltip.style.left = `${e.clientX - offsetX}px`;
+      currentTooltip.style.top = `${e.clientY - offsetY}px`;
+      stopEvent(e);
     });
 
-    document.addEventListener('mouseup', () => {
-      if (isDragging && currentTooltip) {
+    document.addEventListener('pointerup', (e) => {
+      if (!isDragging) return;
+
+      if (currentTooltip) {
         const header = currentTooltip.querySelector('.tooltip-header');
-        if (header) {
-          header.style.cursor = 'move';
-        }
+        if (header) header.style.cursor = 'move';
       }
       isDragging = false;
       currentTooltip = null;
+      stopEvent(e);
+
+      window.addEventListener('click', stopEvent, { capture: true, once: true });
     });
   }
 
