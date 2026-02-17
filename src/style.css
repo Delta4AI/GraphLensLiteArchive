@@ -316,7 +316,7 @@ body, html {
     left: auto !important;
     border: 1px solid #403C53;
     border-radius: 5px;
-    background-color: #E4E3EA80;
+    background-color: #f4f4f4;
     transition: opacity 0.1s ease-in-out, right 0.3s ease-in-out, width 0.25s ease-in-out, max-width 0.25s ease-in-out, box-shadow 0.25s ease-in-out;
     text-align: center;
     padding: 2px;
@@ -1188,6 +1188,7 @@ hr {
     border-radius: 3px;
     cursor: pointer;
     padding: 0;
+    vertical-align: middle;
 }
 
 .small-btn {
@@ -2076,8 +2077,9 @@ input:checked + .slider:before {
 
 .manual-group-container {
     display: inline-block;
-    vertical-align: top;
+    vertical-align: middle;
     line-height: 0;
+    margin-left: 2px;
 }
 
 .manual-group-status {
