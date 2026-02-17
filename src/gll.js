@@ -366,8 +366,8 @@ async function loadDemoData() {
     const speciesInput = formContent.querySelector('#species-input');
     const nodesInput = formContent.querySelector('#nodes-input');
     const scoreInput = formContent.querySelector('#score-input');
-    const loadBtn = formContent.querySelector('#load-btn');
-    const cancelBtn = formContent.querySelector('#cancel-btn');
+    const loadBtn = document.getElementById('load-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
 
     const handleLoad = async () => {
       const genesText = genesInput.value.trim();
