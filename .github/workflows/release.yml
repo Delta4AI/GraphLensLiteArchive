@@ -121,11 +121,30 @@ jobs:
             echo "tag=${{ steps.package_version.outputs.version }}" >> $GITHUB_OUTPUT
           fi
 
+      - name: Extract changelog for version
+        id: changelog
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          VERSION="${TAG#v}"
+          # Extract the section between this version's heading and the next ## heading
+          # Falls back to the "Unreleased" section if the version isn't found
+          NOTES=$(awk -v ver="$VERSION" '
+            /^## / {
+              if (found) exit
+              if ($0 ~ ver || $0 ~ /Unreleased/) { found=1; next }
+            }
+            found { print }
+          ' CHANGELOG.md)
+          # Write to multiline output
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
-          generate_release_notes: true
+          body: ${{ steps.changelog.outputs.notes }}
           files: |
             dist/*.zip
             dist/*.exe
