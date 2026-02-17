@@ -971,7 +971,14 @@ h5 {
     margin-top: 1px;
 }
 
-.tooltip-expand-btn {
+.tooltip-header-actions {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.tooltip-expand-btn,
+.tooltip-close-btn {
     background: rgba(255, 255, 255, 0.1);
     border: none;
     color: #E4E3EA;
@@ -985,7 +992,13 @@ h5 {
     line-height: 1;
 }
 
-.tooltip-expand-btn:hover {
+.tooltip-close-btn {
+    font-size: 16px;
+    padding: 0 5px;
+}
+
+.tooltip-expand-btn:hover,
+.tooltip-close-btn:hover {
     background: rgba(255, 255, 255, 0.2);
     color: white;
 }
