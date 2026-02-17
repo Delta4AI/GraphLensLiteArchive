@@ -30,11 +30,17 @@ class ColorScalePicker {
     content.className = 'picker-content';
     this.dom.content = content;
 
-    const title = document.createElement('h3');
+    const header = document.createElement('div');
+    header.className = 'picker-header';
+    const title = document.createElement('span');
+    title.className = 'picker-title';
     title.textContent = 'Map Property to Color Scale';
-    title.style.marginBottom = '20px';
-    title.style.textAlign = 'center';
-    content.appendChild(title);
+    header.appendChild(title);
+    content.appendChild(header);
+
+    const body = document.createElement('div');
+    body.className = 'picker-body';
+    this.dom.body = body;
 
     const dropdownLabel = document.createElement('div');
     dropdownLabel.textContent = 'Select Property to Map:';
@@ -45,7 +51,7 @@ class ColorScalePicker {
     const dropdown = document.createElement('select');
     dropdown.className = 'picker-dropdown';
     this.dom.dropdown = dropdown;
-    content.appendChild(dropdown);
+    body.appendChild(dropdown);
 
     const gradient = document.createElement('div');
     gradient.className = 'picker-gradient disabled';
@@ -114,7 +120,8 @@ class ColorScalePicker {
     this.dom.applyButton = applyButton;
 
     buttons.append(cancelButton, defaultColorContainer, applyButton);
-    content.append(gradient, handleContainer, controls, categoryContainer, buttons);
+    body.append(gradient, handleContainer, controls, categoryContainer);
+    content.append(body, buttons);
     overlay.appendChild(content);
 
     this.element = overlay;
@@ -248,7 +255,7 @@ class ColorScalePicker {
     counterEl.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
     counterEl.style.borderRadius = '4px';
     counterEl.style.marginTop = '15px';
-    this.element.querySelector('.picker-content').insertBefore(
+    this.element.querySelector('.picker-body').insertBefore(
       counterEl,
       this.element.querySelector('.picker-gradient')
     );

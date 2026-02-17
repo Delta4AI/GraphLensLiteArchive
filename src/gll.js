@@ -325,7 +325,6 @@ let cache = new Cache();
 async function loadDemoData() {
   const formContent = document.createElement('div');
   formContent.innerHTML = `
-    <h3>Load STRING Demo Data</h3>
     <div style="margin-bottom: 10px;">
       <label for="genes-input" style="display: block; margin-bottom: 5px;">Genes (comma- or space-separated):</label>
       <input type="text" id="genes-input" value="TP53" style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
@@ -348,14 +347,15 @@ async function loadDemoData() {
       <a href="https://doi.org/10.1093/nar/gkac1000" target="_blank" style="color: #0066cc;">📄 Citation</a><br>
       <em>Szklarczyk D, Gable AL, Nastou KC, et al. The STRING database in 2023: protein-protein association networks and functional enrichment analyses for any sequenced genome of interest. Nucleic Acids Res. 2023.</em>
     </div>
-    <div style="text-align: right;">
-      <button id="load-btn" class="p-button ml-1">Load</button>
-      <button id="cancel-btn" class="p-button">Cancel</button>
+    <div class="p-footer">
+      <button id="cancel-btn" class="p-button p-button-secondary">Cancel</button>
+      <button id="load-btn" class="p-button p-button-primary">Load</button>
     </div>
   `;
 
   return new Promise((resolve) => {
     const popup = new Popup(formContent, {
+      title: 'Load STRING Demo Data',
       width: '450px',
       showFullscreenButton: false,
       closeOnClickOutside: false,

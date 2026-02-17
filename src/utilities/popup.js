@@ -3,15 +3,12 @@ class Popup {
    * // Simple text popup
    * const popup1 = new Popup("Hello, I'm a simple popup!");
    *
-   * // Popup with HTML content
-   * const popup2 = new Popup(`
-   *     <h2>Welcome!</h2>
-   *     <p>This is a popup with <strong>HTML</strong> content.</p>
-   *     <button onclick="ui.error('Button clicked!')">Click me</button>
-   * `);
+   * // Popup with title
+   * const popup2 = new Popup("<p>Content here</p>", { title: "My Popup" });
    *
    * // Popup with custom options
    * const popup3 = new Popup("Custom positioned popup!", {
+   *     title: 'Settings',
    *     width: '400px',
    *     position: { x: 100, y: 100 },
    *     closeOnClickOutside: false,
@@ -20,6 +17,7 @@ class Popup {
    */
   constructor(content, options = {}) {
     this.options = {
+      title: null,
       width: '300px',
       height: 'auto',
       position: 'center',
@@ -34,7 +32,7 @@ class Popup {
     this.overlay = null;
     this.closeBtn = null;
     this.fullscreenBtn = null;
-    this.isFullscreen = false;
+    this.isExpanded = false;
     this.originalStyles = null;
 
     this.init(content);
@@ -50,10 +48,14 @@ static async prompt(message) {
       content.innerHTML = `<div>${message}</div>`;
       content.appendChild(inputField);
 
+      const buttonContainer = document.createElement('div');
+      buttonContainer.className = 'p-footer';
+
       const confirmBtn = document.createElement('button');
       confirmBtn.textContent = 'OK';
-      confirmBtn.className = "p-button";
-      content.appendChild(confirmBtn);
+      confirmBtn.className = "p-button p-button-primary";
+      buttonContainer.appendChild(confirmBtn);
+      content.appendChild(buttonContainer);
 
       let isConfirmed = false;
 
@@ -65,6 +67,7 @@ static async prompt(message) {
       };
 
       const popup = new Popup(content, {
+        title: 'Input',
         width: '300px',
         showFullscreenButton: false,
         closeOnClickOutside: false,
@@ -92,20 +95,25 @@ static async prompt(message) {
       const content = document.createElement('div');
       content.innerHTML = `<div>${message}</div>`;
 
-      const confirmBtn = document.createElement('button');
-      confirmBtn.textContent = 'OK';
-      confirmBtn.className="p-button ml-1";
+      const buttonContainer = document.createElement('div');
+      buttonContainer.className = 'p-footer';
 
       const cancelBtn = document.createElement('button');
       cancelBtn.textContent = 'Cancel';
-      cancelBtn.className="p-button";
+      cancelBtn.className = "p-button p-button-secondary";
 
-      content.appendChild(confirmBtn);
-      content.appendChild(cancelBtn);
+      const confirmBtn = document.createElement('button');
+      confirmBtn.textContent = 'OK';
+      confirmBtn.className = "p-button p-button-primary";
+
+      buttonContainer.appendChild(cancelBtn);
+      buttonContainer.appendChild(confirmBtn);
+      content.appendChild(buttonContainer);
 
       let isResolved = false;
 
       const popup = new Popup(content, {
+        title: 'Confirm',
         width: '300px',
         showFullscreenButton: false,
         closeOnClickOutside: false,
@@ -134,16 +142,7 @@ static async prompt(message) {
 
   static async layoutCreationDialog(layoutInternals) {
     return new Promise((resolve) => {
-      // Create container
       const container = document.createElement('div');
-      container.style.padding = '10px';
-
-      // Title
-      const title = document.createElement('h3');
-      title.textContent = 'Create New Workspace';
-      title.style.marginTop = '0';
-      title.style.textAlign = 'center';
-      container.appendChild(title);
 
       // Name input
       const nameInput = document.createElement('input');
@@ -244,22 +243,16 @@ static async prompt(message) {
 
       // Buttons
       const buttonContainer = document.createElement('div');
-      buttonContainer.style.display = 'flex';
-      buttonContainer.style.justifyContent = 'flex-end';
-      buttonContainer.style.gap = '10px';
-      buttonContainer.style.marginTop = '25px';
+      buttonContainer.className = 'p-footer';
 
       const cancelBtn = document.createElement('button');
       cancelBtn.textContent = 'Cancel';
-      cancelBtn.className = 'p-button';
-      cancelBtn.style.backgroundColor = '#878996';
-      cancelBtn.style.color = 'white';
+      cancelBtn.className = 'p-button p-button-secondary';
 
       const createBtn = document.createElement('button');
       createBtn.textContent = 'Create';
-      createBtn.className = 'p-button';
+      createBtn.className = 'p-button p-button-primary';
       createBtn.style.backgroundColor = '#015C0C';
-      createBtn.style.color = 'white';
 
       buttonContainer.appendChild(cancelBtn);
       buttonContainer.appendChild(createBtn);
@@ -268,6 +261,7 @@ static async prompt(message) {
       let isResolved = false;
 
       const popup = new Popup(container, {
+        title: 'Create New Workspace',
         width: '400px',
         showFullscreenButton: false,
         closeOnClickOutside: false,
@@ -322,32 +316,61 @@ static async prompt(message) {
       this.setupFullscreenButton();
     }
     this.show();
+    requestAnimationFrame(() => this.updateExpandButtonVisibility());
+    this._resizeHandler = () => {
+      if (this.isExpanded) {
+        this.popup.style.transition = 'none';
+        this.applyExpandedSize();
+        this.popup.offsetHeight;
+        this.popup.style.transition = '';
+      } else {
+        this.updateExpandButtonVisibility();
+      }
+    };
+    window.addEventListener('resize', this._resizeHandler);
   }
 
   createPopup(content) {
     this.popup = document.createElement('div');
     this.popup.className = 'p-custom';
 
+    // Header bar
     const headerDiv = document.createElement('div');
     headerDiv.className = 'p-header';
+
+    if (this.options.title) {
+      const titleEl = document.createElement('span');
+      titleEl.className = 'p-title';
+      if (typeof this.options.title === 'string') {
+        titleEl.textContent = this.options.title;
+      } else {
+        titleEl.appendChild(this.options.title);
+      }
+      headerDiv.appendChild(titleEl);
+    }
+
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'p-header-actions';
 
     if (this.options.showFullscreenButton) {
       this.fullscreenBtn = document.createElement('button');
       this.fullscreenBtn.className = 'p-icon';
       this.fullscreenBtn.innerHTML = '⛶';
-      this.fullscreenBtn.title = 'Toggle fullscreen';
-      headerDiv.appendChild(this.fullscreenBtn);
+      this.fullscreenBtn.title = 'Expand to fit content';
+      actionsDiv.appendChild(this.fullscreenBtn);
     }
 
     this.closeBtn = document.createElement('button');
     this.closeBtn.className = 'p-icon';
     this.closeBtn.innerHTML = '×';
     this.closeBtn.title = 'Close popup';
-    headerDiv.appendChild(this.closeBtn);
+    actionsDiv.appendChild(this.closeBtn);
 
+    headerDiv.appendChild(actionsDiv);
+
+    // Body
     const popupContent = document.createElement('div');
-    popupContent.className = 'popup-content';
-    popupContent.style.marginTop = '20px';
+    popupContent.className = 'p-body';
 
     if (typeof content === 'string') {
       popupContent.innerHTML = content;
@@ -370,7 +393,7 @@ static async prompt(message) {
     }
 
     if (this.options.lineHeight !== 'normal') {
-      this.popup.style.lineHeight = this.options.lineHeight;
+      popupContent.style.lineHeight = this.options.lineHeight;
     }
 
     this.setPosition();
@@ -381,6 +404,8 @@ static async prompt(message) {
     this.originalStyles = {
       width: this.popup.style.width,
       height: this.popup.style.height,
+      maxWidth: this.popup.style.maxWidth,
+      maxHeight: this.popup.style.maxHeight,
       top: this.popup.style.top,
       left: this.popup.style.left,
       transform: this.popup.style.transform,
@@ -391,32 +416,84 @@ static async prompt(message) {
   }
 
   setupFullscreenButton() {
-    this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+    this.fullscreenBtn.addEventListener('click', () => this.toggleExpand());
   }
 
-  toggleFullscreen() {
-    this.isFullscreen = !this.isFullscreen;
+  updateExpandButtonVisibility() {
+    if (!this.fullscreenBtn) return;
+    if (this.isExpanded) {
+      this.fullscreenBtn.style.display = '';
+      return;
+    }
+    const body = this.popup.querySelector('.p-body');
+    if (!body) return;
+    const isClipped = body.scrollHeight > body.clientHeight + 1 || body.scrollWidth > body.clientWidth + 1;
+    this.fullscreenBtn.style.display = isClipped ? '' : 'none';
+  }
 
-    if (this.isFullscreen) {
-      this.popup.style.width = '100%';
-      this.popup.style.height = '100%';
-      this.popup.style.top = '0';
-      this.popup.style.left = '0';
-      this.popup.style.transform = 'none';
-      this.popup.style.position = 'fixed';
+  measureNaturalSize() {
+    const savedTransition = this.popup.style.transition;
+    this.popup.style.transition = 'none';
+    const saved = {
+      w: this.popup.style.width, h: this.popup.style.height,
+      mw: this.popup.style.maxWidth, mh: this.popup.style.maxHeight
+    };
+    this.popup.style.width = 'auto';
+    this.popup.style.height = 'auto';
+    this.popup.style.maxWidth = 'none';
+    this.popup.style.maxHeight = 'none';
+    const naturalW = this.popup.offsetWidth;
+    const naturalH = this.popup.offsetHeight;
+    Object.assign(this.popup.style, {
+      width: saved.w, height: saved.h,
+      maxWidth: saved.mw, maxHeight: saved.mh
+    });
+    this.popup.offsetHeight; // force reflow before re-enabling transitions
+    this.popup.style.transition = savedTransition;
+    return { w: naturalW, h: naturalH };
+  }
 
-      this.fullscreenBtn.innerHTML = '⧉';
-      this.fullscreenBtn.title = 'Exit fullscreen';
+  applyExpandedSize() {
+    const currentW = this.popup.offsetWidth;
+    const currentH = this.popup.offsetHeight;
+    const { w: naturalW, h: naturalH } = this.measureNaturalSize();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const fitW = Math.min(Math.max(naturalW, currentW), vw);
+    const fitH = Math.min(Math.max(naturalH, currentH), vh);
+
+    this.popup.style.width = fitW + 'px';
+    this.popup.style.height = fitH + 'px';
+    this.popup.style.maxWidth = '100vw';
+    this.popup.style.maxHeight = '100vh';
+    this.popup.style.top = '50%';
+    this.popup.style.left = '50%';
+    this.popup.style.transform = 'translate(-50%, -50%)';
+    this.popup.style.borderRadius = (fitW >= vw || fitH >= vh) ? '0' : '';
+  }
+
+  toggleExpand() {
+    if (!this.isExpanded) {
+      this.isExpanded = true;
+      this.applyExpandedSize();
+      this.fullscreenBtn.innerHTML = '⤡';
+      this.fullscreenBtn.title = 'Restore size';
     } else {
+      this.isExpanded = false;
       Object.assign(this.popup.style, this.originalStyles);
-
       this.fullscreenBtn.innerHTML = '⛶';
-      this.fullscreenBtn.title = 'Fullscreen';
+      this.fullscreenBtn.title = 'Expand to fit content';
+      const onDone = (e) => {
+        if (e.target !== this.popup) return;
+        this.popup.removeEventListener('transitionend', onDone);
+        this.updateExpandButtonVisibility();
+      };
+      this.popup.addEventListener('transitionend', onDone);
     }
   }
 
   setPosition() {
-    if (!this.isFullscreen) {
+    if (!this.isExpanded) {
       if (this.options.position === 'center') {
         this.popup.style.top = '50%';
         this.popup.style.left = '50%';
@@ -438,17 +515,19 @@ static async prompt(message) {
   }
 
   show() {
-    this.popup.style.display = 'block';
+    this.popup.style.display = 'flex';
     this.overlay.style.display = 'block';
   }
 
   close() {
+    if (this._resizeHandler) {
+      window.removeEventListener('resize', this._resizeHandler);
+    }
     if (this.options.onClose) {
       this.options.onClose();
     }
     this.popup.remove();
     this.overlay.remove();
-    // this.cache.popup = null;
   }
 }
 

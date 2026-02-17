@@ -433,22 +433,6 @@ class GuidedTour {
     const content = document.createElement("div")
     content.className = "tour-popup-content"
 
-    // --- header ---
-    const header = document.createElement("div")
-    header.className = "tour-header"
-
-    const stepIndicator = document.createElement("span")
-    stepIndicator.className = "tour-step-indicator"
-    stepIndicator.textContent = `Step ${this.currentStep + 1} of ${TOUR_STEPS.length}`
-    header.appendChild(stepIndicator)
-
-    const title = document.createElement("span")
-    title.className = "tour-title"
-    title.textContent = step.title
-    header.appendChild(title)
-
-    content.appendChild(header)
-
     // --- body ---
     const body = document.createElement("div")
     body.className = "tour-body"
@@ -486,6 +470,20 @@ class GuidedTour {
 
     content.appendChild(footer)
 
+    // Build title with step indicator
+    const titleEl = document.createElement("span")
+    titleEl.style.display = "flex"
+    titleEl.style.alignItems = "center"
+    titleEl.style.gap = "10px"
+
+    const stepIndicator = document.createElement("span")
+    stepIndicator.className = "tour-step-indicator"
+    stepIndicator.textContent = `Step ${this.currentStep + 1} of ${TOUR_STEPS.length}`
+    titleEl.appendChild(stepIndicator)
+
+    const titleText = document.createTextNode(step.title)
+    titleEl.appendChild(titleText)
+
     // compute position near highlighted element
     let popupOpts = {
       width: "460px",
@@ -496,6 +494,8 @@ class GuidedTour {
         this.finish()
       }
     }
+
+    popupOpts.title = titleEl
 
     const primaryTarget = targets[0]
     if (primaryTarget && this.highlightEls.length) {

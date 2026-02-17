@@ -755,8 +755,7 @@ class DataTable {
 
     // Create a custom form popup
     const formHtml = `
-      <h2>Add Property Column</h2>
-      <div style="display: flex; flex-direction: column; gap: 15px; margin: 20px 0;">
+      <div style="display: flex; flex-direction: column; gap: 15px; margin: 10px 0;">
         <div>
           <label style="display: block; margin-bottom: 5px; font-weight: bold;">Property Type:</label>
           <div style="display: flex; gap: 20px;">
@@ -791,7 +790,7 @@ class DataTable {
     `;
 
     return new Promise((resolve) => {
-      this.cache.popup = new Popup(formHtml);
+      this.cache.popup = new Popup(formHtml, {title: 'Add Property Column', showFullscreenButton: false});
 
       // Store resolve function globally for button handlers
       window.addColumnConfirm = () => {
@@ -1289,8 +1288,7 @@ class DataTable {
   }
 
   help() {
-    this.cache.popup = new Popup(`<h2>Data Editor</h2>
-<p>Explore and directly modify graph data through an interactive spreadsheet interface.</p>
+    this.cache.popup = new Popup(`<p>Explore and directly modify graph data through an interactive spreadsheet interface.</p>
 
 <div class="alert-warning">
   <strong>⚠️ Important:</strong> Data modifications affect ALL views globally. Changing node/edge properties here will update them across all view presets. Only view-specific settings (positions, filters, styles, queries) are preserved per view.
@@ -1325,7 +1323,7 @@ class DataTable {
   </li>
   <li><strong>Tabs:</strong> Switch between different views (selected elements vs. all existing data)</li>
 </ul>
-`, {width: '50vw', height: '60vh', lineHeight: '1.5em'});
+`, {title: 'Data Editor', width: '50vw', height: '60vh', lineHeight: '1.5em'});
   }
 
 }

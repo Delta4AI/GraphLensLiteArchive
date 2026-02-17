@@ -656,7 +656,7 @@ class UIComponentManager {
           ${subtitle}
         </div>
       </div>
-      <button class="tooltip-expand-btn" onclick="window.toggleTooltipExpand(this)">⤢</button>
+      <button class="tooltip-expand-btn" onclick="window.toggleTooltipExpand(this)">⛶</button>
     </div>
     <div class="tooltip-content">`;
     }

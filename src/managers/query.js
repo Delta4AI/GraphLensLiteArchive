@@ -787,7 +787,6 @@ class QueryManager {
 
   showQueryHelp() {
     this.cache.popup = new Popup(`
-<h2>Query Editor</h2>
 <p>Build complex filters using nested AND, OR and NOT expressions.</p>
 
 <div class="alert-warning">
@@ -875,7 +874,7 @@ class QueryManager {
   <li>Invalid syntax is <span class="q-error-unrecognized">highlighted like this</span></li>
 </ul>
 
-`, {width: '80vw', height: '75vh', lineHeight: '1.5em'});
+`, {title: 'Query Editor', width: '80vw', height: '75vh', lineHeight: '1.5em'});
   }
 
   decodeQueryAndBuildAST() {
