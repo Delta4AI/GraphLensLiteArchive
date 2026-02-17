@@ -162,7 +162,24 @@ class GraphCoreManager {
           type: "tooltip",
           trigger: "click",
           enterable: true,
-          getContent: (e, items) => this.cache.toolTips.get(items[0].id),
+          getContent: (e, items) => {
+            const content = this.cache.toolTips.get(items[0].id);
+            requestAnimationFrame(() => {
+              const graphContainer = document.getElementById('innerGraphContainer');
+              if (!graphContainer) return;
+              const tooltip = graphContainer.querySelector('.tooltip');
+              if (!tooltip) return;
+              const body = tooltip.querySelector('.tooltip-content');
+              const btn = tooltip.querySelector('.tooltip-expand-btn');
+              if (!body || !btn) return;
+              tooltip.classList.remove('expanded');
+              btn.textContent = '⛶';
+              const isClipped = body.scrollHeight > body.clientHeight + 1
+                || body.scrollWidth > body.clientWidth + 1;
+              btn.style.display = isClipped ? '' : 'none';
+            });
+            return content;
+          },
         },
         {
           key: "minimap",
@@ -1039,6 +1056,12 @@ class GraphCoreManager {
         button.title = 'Restore size';
       }
     };
+
+    window.closeTooltip = function(button) {
+      const tooltip = button.closest('.tooltip');
+      if (!tooltip) return;
+      tooltip.style.visibility = 'hidden';
+    };
   }
 
   registerTooltipWheelHandler() {
@@ -1069,7 +1092,7 @@ class GraphCoreManager {
     };
 
     graphContainer.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('.tooltip-expand-btn')) return;
+      if (e.target.closest('.tooltip-expand-btn') || e.target.closest('.tooltip-close-btn')) return;
 
       const header = e.target.closest('.tooltip-header');
       if (!header) return;
