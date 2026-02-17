@@ -7,6 +7,7 @@ class UIManager {
   constructor(cache, debugEnabled = false) {
     this.cache = cache;
     this.debugEnabled = debugEnabled;
+    this.bottomBarHeight = null;
   }
 
   async showLoading(header, text = "") {
@@ -252,8 +253,14 @@ class UIManager {
     const headerText = document.getElementById("bottomBarHeaderText");
     const helpBtn = document.getElementById("bottomBarHelpBtn");
 
-    mainContent.style.height = "80%";
-    bottomBar.style.height = "20%";
+    if (this.bottomBarHeight) {
+      const mainHeight = window.innerHeight - this.bottomBarHeight;
+      bottomBar.style.height = this.bottomBarHeight + 'px';
+      mainContent.style.height = mainHeight + 'px';
+    } else {
+      mainContent.style.height = "65%";
+      bottomBar.style.height = "35%";
+    }
     bottomBar.classList.add("active");
 
     if (editorType === 'query') {
@@ -358,6 +365,7 @@ class UIManager {
 
         bottomBar.style.height = finalHeight + 'px';
         mainContent.style.height = newMainHeight + 'px';
+        this.bottomBarHeight = finalHeight;
 
         // Resize graph canvas after manual resize (no transition, resize immediately)
         if (this.cache.graph) {
