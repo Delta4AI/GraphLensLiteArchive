@@ -324,6 +324,10 @@ static async prompt(message) {
         this.popup.offsetHeight;
         this.popup.style.transition = '';
       } else {
+        if (this.options.position !== 'center') {
+          const margin = 8;
+          this.popup.style.maxHeight = (window.innerHeight - this.options.position.y - margin) + 'px';
+        }
         this.updateExpandButtonVisibility();
       }
     };
@@ -380,6 +384,12 @@ static async prompt(message) {
 
     this.popup.appendChild(headerDiv);
     this.popup.appendChild(popupContent);
+
+    const footer = popupContent.querySelector('.p-footer, .tour-footer');
+    if (footer) {
+      footer.remove();
+      this.popup.appendChild(footer);
+    }
 
     this.overlay = document.createElement('div');
     this.overlay.className = 'p-overlay';
@@ -499,9 +509,12 @@ static async prompt(message) {
         this.popup.style.left = '50%';
         this.popup.style.transform = 'translate(-50%, -50%)';
       } else {
-        this.popup.style.top = `${this.options.position.y}px`;
+        const margin = 8;
+        const y = this.options.position.y;
+        this.popup.style.top = `${y}px`;
         this.popup.style.left = `${this.options.position.x}px`;
         this.popup.style.transform = 'none';
+        this.popup.style.maxHeight = (window.innerHeight - y - margin) + 'px';
       }
     }
   }
