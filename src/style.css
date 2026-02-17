@@ -2489,7 +2489,7 @@ input:checked + .slider:before {
     background: #f0eff4;
     border-top: 1px solid #dddbe2;
     border-radius: 0 0 6px 6px;
-    margin: 8px -20px -16px -20px;
+    flex-shrink: 0;
 }
 
 .p-overlay {
@@ -3357,7 +3357,7 @@ input:checked + .slider:before {
     line-height: 1.5;
     display: flex;
     flex-direction: column;
-    margin: -16px -20px;
+    margin: -16px -20px 0 -20px;
 }
 
 .tour-step-indicator {
@@ -3406,6 +3406,7 @@ input:checked + .slider:before {
     background: #f0eff4;
     border-top: 1px solid #dddbe2;
     border-radius: 0 0 6px 6px;
+    flex-shrink: 0;
 }
 
 .tour-footer-left {
