@@ -236,7 +236,8 @@ class InvertibleRangeSlider {
     this.readCurrentFilterSettings();
     this.sliderMin = defaultFilterData.lowerThreshold;
     this.sliderMax = defaultFilterData.upperThreshold;
-    this.stepSize = StaticUtilities.isInteger(this.sliderMin) && StaticUtilities.isInteger(this.sliderMax)
+    const allInteger = StaticUtilities.isInteger(this.sliderMin) && StaticUtilities.isInteger(this.sliderMax) && !defaultFilterData.hasFloatValues;
+    this.stepSize = allInteger
       ? this.cache.CFG.FILTER_STEP_SIZE_INTEGER
       : this.cache.CFG.FILTER_STEP_SIZE_FLOAT;
     this.initializeIds();
