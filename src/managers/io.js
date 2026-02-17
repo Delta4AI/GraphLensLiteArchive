@@ -956,6 +956,7 @@ class IOManager {
       upperThreshold: -Infinity,
       isInverted: false,
       isCategory: false,
+      hasFloatValues: false,
       categories: new Set(),
     };
     for (let group of this.cache.bs.traverseBubbleSets()) {
@@ -989,6 +990,9 @@ class IOManager {
       return
     }
 
+    if (!this.cache.data.filterDefaults.get(propHash).hasFloatValues && !StaticUtilities.isInteger(nodeOrEdgeValue)) {
+      this.cache.data.filterDefaults.get(propHash).hasFloatValues = true;
+    }
     this.cache.data.filterDefaults.get(propHash).lowerThreshold = Math.min(nodeOrEdgeValue, this.cache.data.filterDefaults.get(propHash).lowerThreshold);
     this.cache.data.filterDefaults.get(propHash).upperThreshold = Math.max(nodeOrEdgeValue, this.cache.data.filterDefaults.get(propHash).upperThreshold);
   };
