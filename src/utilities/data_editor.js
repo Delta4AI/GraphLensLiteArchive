@@ -1183,16 +1183,22 @@ class DataTable {
           break;
       }
 
+      const positions = this.cache.data.layouts[this.cache.data.selectedLayout]?.positions;
+
       if (nodesToExport.length > 0) {
         const nodesSheet = workbook.addWorksheet('nodes');
         const nodesHeader = [...EXCEL_NODE_PROPERTIES.map(p => p.column), ...this.cache.nodeExclusiveProps];
         nodesSheet.addRow(nodesHeader);
 
         for (const node of nodesToExport) {
+          const pos = positions?.get(node.id);
+          const exportNode = pos
+            ? {...node, style: {...node.style, x: pos.style.x, y: pos.style.y}}
+            : node;
           const row = [];
 
           for (const prop of EXCEL_NODE_PROPERTIES) {
-            const value = prop.get ? prop.get(node) : '';
+            const value = prop.get ? prop.get(exportNode) : '';
             row.push(value);
           }
 
