@@ -14,6 +14,56 @@
   <link inline rel="stylesheet" href="style.css?v=1" />
 </head>
 <body>
+<div id="landingPage">
+  <div class="landing-bg-pattern"></div>
+  <div class="landing-content">
+    <div class="landing-hero">
+      <img inline src="delta-4-icon.png" alt="Delta4 Icon" class="landing-logo">
+      <h1 class="landing-title">Graph Lens Lite</h1>
+      <span class="landing-version" id="landingVersion"></span>
+      <p class="landing-subtitle">From spreadsheet to graph visualization in seconds</p>
+    </div>
+
+    <div class="landing-primary-action">
+      <button class="landing-browse-btn" onclick="document.getElementById('fileInput').click()">
+        <span class="landing-browse-icon">📂</span>
+        <span class="landing-browse-label">Open Graph File</span>
+        <span class="landing-browse-desc">Load from Excel (.xlsx, .xls) or a saved model (.json)</span>
+      </button>
+    </div>
+
+    <div class="landing-secondary-actions">
+      <button class="landing-card" onclick="cache.io.downloadExcelTemplate()">
+        <span class="landing-card-icon">📥</span>
+        <span class="landing-card-title">Download Template</span>
+        <span class="landing-card-desc">Get a pre-filled Excel template showing how to structure your graph data</span>
+      </button>
+      <button class="landing-card" onclick="loadDemoData()">
+        <span class="landing-card-icon">🔍</span>
+        <span class="landing-card-title">STRING Database</span>
+        <span class="landing-card-desc">Explore protein-protein interaction networks from the STRING database</span>
+      </button>
+      <button class="landing-card" onclick="startTour()">
+        <span class="landing-card-icon">🗺️</span>
+        <span class="landing-card-title">Take a Tour</span>
+        <span class="landing-card-desc">A guided walkthrough of the app's features and interface</span>
+      </button>
+    </div>
+
+    <div class="landing-footer">
+      <div class="landing-citation">
+        <em>Ley M, Kęska-Izworska K, Fillinger L, Walter SM, Baumgärtel F, Bono E, Galou L, Andorfer P, Hauser P, Leierer J, Kratochwill K, Perco P. Graph Lens Lite: An interactive biological network viewer for displaying, exploring, and sharing disease pathobiology and drug mechanism of action models. (manuscript in preparation)</em>
+      </div>
+      <div class="landing-links">
+        <a href="https://github.com/Delta4AI/GraphLensLite" target="_blank" class="landing-github" title="View on GitHub">
+          <svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="loadingOverlay" class="container">
   <div id="loadingInnerContent">
     <div class="loader"></div>
@@ -23,44 +73,55 @@
 </div>
 <div id="mainContent">
   <div id="sidebar">
+    <div class="sidebar-resize-handle"></div>
     <div id="sidebarContentContainer">
       <div class="header-row">
-        <h3>Graph Lens Lite</h3>
+        <h3 id="appHeader" class="disabled-header" onclick="cache.ui.reloadApp()">
+          <img inline src="delta-4-icon.png" alt="Delta4 Icon" style="height: 1em; vertical-align: middle; margin-right: 0.3em;">
+          Graph Lens Lite <span id="versionInfo" style="font-size: 0.6em; color: #666; font-weight: normal;"></span>
+        </h3>
         <div class="showOnLoad button-group">
-          <button id="exportModel" class="showOnLoad medium-btn" onclick="cache.io.exportGraphAsJSON()" title="Save Model (S)">💾</button>
-          <button id="exportImage" class="showOnLoad medium-btn" onclick="cache.io.exportPNG()" title="Save Image (P)">📷️</button>
           <button id="metricsToggleBtn" class="showOnLoad medium-btn" title="Toggle network metrics panel (M)" onclick="cache.metrics.toggleUI()">📊</button>
           <button id="dataToggleBtn" class="showOnLoad medium-btn" title="Toggle data editor (D)" onclick="cache.ui.toggleDataEditor()">🔢</button>
           <button id="queryToggleBtn" class="showOnLoad medium-btn" title="Toggle query editor (Q)" onclick="cache.ui.toggleQueryEditor()">📝</button>
-          <button id="editBtn" class="showOnLoad medium-btn" title="Toggle Edit mode (E)" onclick="cache.ui.toggleEditMode()">⚙️</button>
+          <button id="exportImage" class="showOnLoad medium-btn" onclick="cache.io.exportPNG()" title="Save Image (P)">📷️</button>
+          <button id="exportModel" class="showOnLoad medium-btn" onclick="cache.io.exportGraphAsJSON()" title="Save Model (S)">💾</button>
         </div>
       </div>
-      <input type="file" id="fileInput" name="fileInput" onchange="cache.io.loadFileWrapper(event);"
-             title="Load graph data from Excel (.xlsx, .xls) or Graph Lens Lite exports (.json)"
-             accept=".json, .xls, .xlsx"/>
+      <div class="hideOnLoad">
+        <input type="file" id="fileInput" name="fileInput" onchange="cache.io.loadFileWrapper(event);"
+               title="Load graph data from Excel (.xlsx, .xls) or Graph Lens Lite exports (.json)"
+               accept=".json, .xls, .xlsx"/>
+      </div>
       <div class="hideOnLoad">
         <button onclick="cache.io.downloadExcelTemplate()" class="mt-2">📥 Download Excel Template</button>
         <br>
         <button onclick="loadDemoData()" class="mt-2">🔍 Load from STRING Database</button>
+        <br>
+        <button onclick="startTour()" class="mt-2">🗺️ Take a Tour</button>
       </div>
       <div class="showOnLoad">
         <hr>
-        <label for="selectView">Workspace:</label>
-        <select name="selectView" id="selectView" onchange="cache.lm.changeLayout()"></select>
-        <button class="small-btn red disabled" id="removeSelectedLayoutButton" title="Delete current workspace" onclick="cache.lm.removeSelectedLayout()">&nbsp;✗&nbsp;</button>
-        <button class="small-btn green" title="Create new workspace" onclick="cache.lm.addLayout()" >&nbsp;✚&nbsp;</button>
-        <div class="button-separator"></div>
-        <button class="small-btn" title="Fit graph to screen (F)" onclick="cache.graph.fitView()">⛶</button>
-        <button class="small-btn red" title="Hide all nodes and edges that are not connected to any other node or edge" onclick="cache.gcm.toggleCleanUpDanglingElements(this)">🚫</button>
-        <div id="debugDiv" class="inline"></div>
-        <br>
-        <h5 class="purple">Shown:
-          <span id="visibleNodes" class="red">0</span>/<span id="totalNodes">0</span> nodes,
-          <span id="visibleEdges" class="red">0</span>/<span id="totalEdges">0</span> edges
-        </h5>
+        <div id="workspaceContainer">
+          <label for="selectView">Workspace:</label>
+          <select name="selectView" id="selectView" onchange="cache.lm.changeLayout()"></select>
+          <button class="small-btn red disabled" id="removeSelectedLayoutButton" title="Delete current workspace" onclick="cache.lm.removeSelectedLayout()">&nbsp;✗&nbsp;</button>
+          <button class="small-btn green" title="Create new workspace" onclick="cache.lm.addLayout()" >&nbsp;✚&nbsp;</button>
+          <div class="button-separator"></div>
+          <button class="small-btn" title="Fit graph to screen (F)" onclick="cache.gcm.fitViewToVisibleNodes()">⛶</button>
+          <button id="hideDisconnectedBtn" class="small-btn red" title="Hide all nodes and edges that are not connected to any other node or edge" onclick="cache.gcm.toggleCleanUpDanglingElements(this)">🚫</button>
+          <div id="debugDiv" class="inline"></div>
+          <br>
+          <h5 class="purple">Shown:
+            <span id="visibleNodes" class="red">0</span>/<span id="totalNodes">0</span> nodes,
+            <span id="visibleEdges" class="red">0</span>/<span id="totalEdges">0</span> edges
+          </h5>
+        </div>
         <hr>
         <div id="metricsContainer"></div>
-        <div id="filterContainer"></div>
+        <div id="filterContainer">
+          <button id="editBtn" class="showOnLoad medium-btn" title="Toggle Edit mode (E)" onclick="cache.ui.toggleEditMode()">⚙️</button>
+        </div>
       </div>
     </div>
     <div id="sidebarStatusContainer"></div>
@@ -80,7 +141,6 @@
       <button id="deselectEdgesBtn" class="tiny-btn red disabled" title="Clear edge selection"
               onclick="cache.sm.toggleSelectionForAllEdges(false)">×</button>
       <hr>
-      <button id="styleToggleBtn" class="small-btn showOnLoad" title="Open styling panel (Y)" onclick="cache.ui.toggleStylingPanel()">🎨</button>
       <div id="lassoWrapper" class="showOnLoad small-btn"><button id="lassoToggleBtn" class="lasso-icon" title="Toggle lasso selection (L)" onclick="cache.ui.toggleLassoSelection()"></button></div>
       <div class="button-separator"></div>
       <button class="small-btn disabled" title="Reset style for selected elements" id="resetSelectedElementsStyleBtn"
@@ -91,6 +151,7 @@
       <button class="small-btn disabled" title="Redo Selection" id="redoSelectionBtn"
               onclick="cache.sm.redoSelection()">↪</button>
       <div class="button-separator"></div>
+      <button id="styleToggleBtn" class="small-btn showOnLoad" title="Open styling panel (Y)" onclick="cache.ui.toggleStylingPanel()">🎨</button>
       <button class="small-btn" title="Expand selection editor" id="selectionEditorToggleBtn"
               onclick="cache.ui.toggleSelectionEditor()">▾</button>
       <div id="manualGroupSeparator" class="button-separator" style="display: none;"></div>
@@ -102,14 +163,12 @@
     <div id="innerGraphContainer"></div>
   </div>
   <div id="rightSidebar">
-    <button id="rightSidebarCloseBtn" class="small-btn red panel-close-btn" title="Close styling panel"
-            onclick="cache.ui.toggleStylingPanel()">×</button>
+    <div class="panel-header panel-header-full-width">
+      <span class="panel-header-text">Styling Panel</span>
+      <button id="rightSidebarCloseBtn" class="panel-header-btn" title="Close styling panel"
+              onclick="cache.ui.toggleStylingPanel()">×</button>
+    </div>
     <div id="rightSidebarContentContainer">
-<!--      <div class="header-row">-->
-<!--        <h3>Styling Panel</h3>-->
-<!--        <button id="closeStylingPanelBtn" class="small-btn red" title="Close styling panel" onclick="cache.ui.toggleStylingPanel()">×</button>-->
-<!--      </div>-->
-<!--      <hr>-->
       <div id="stylingPanelContent">
         <!-- Styling controls will be populated here -->
       </div>
@@ -117,49 +176,50 @@
   </div>
 </div>
 <div id="bottomBar">
-  <button id="bottomBarCloseBtn" class="small-btn red panel-close-btn" title="Close bottom panel"
-          onclick="cache.ui.closeBottomBar()">×</button>
   <div class="resize-handle"></div>
-  <div id="queryEditor" class="editor-panel">
-    <div id="queryOverlay" aria-hidden="true"></div>
-    <div id="queryTextArea" contenteditable="true" spellcheck="false" oninput="cache.qm.handleQueryValidationEvent();"></div>
-    <div id="queryCaret" class="custom-caret"></div>
-  </div>
-  <div id="dataEditor" class="editor-panel" style="display: none;">
-    <div id="dataTableContainer">
-      <table id="dataTable" class="data-table">
-        <thead id="dataTableHead"></thead>
-        <tbody id="dataTableBody"></tbody>
-      </table>
+  <div class="panel-header panel-header-full-width">
+    <span id="bottomBarHeaderText" class="panel-header-text">Query Editor</span>
+    <div class="panel-header-center-buttons">
+      <div class="query-buttons">
+        <button id="queryUpdateBtn" class="purple disabled" onclick="cache.qm.handleQueryUpdateEvent()"
+                title="Apply the query to filter the graph">🔍 Filter</button>
+        <button id="querySelectBtn" class="blue disabled" onclick="cache.qm.handleQuerySelectEvent()"
+                title="Apply the query to select nodes in the graph without filtering">🎯 Select</button>
+        <button id="queryResetBtn" class="pink" onclick="cache.qm.resetQuery();" title="Reset query to match UI filters">⟳ Sync</button>
+        <button id="queryClearBtn" class="red" onclick="cache.qm.clearQuery();" title="Clear query">✗ Clear</button>
+      </div>
+      <div class="data-buttons" style="display: none;">
+        <button id="updateDataTableBtn" class="blue" onclick="cache.dataTable.update()"
+                title="Update the graph after modifying the data table">✔ Apply</button>
+        <button id="resetDataTableBtn" onclick="cache.dataTable.reset()" class="pink"
+                title="Reset the data table to current graph state">⟳ Reset</button>
+        <button onclick="cache.dataTable.addNode()" class="blue" title="Add a node"><strong>+</strong>&nbsp;Node</button>
+        <button onclick="cache.dataTable.addEdge()" class="blue" title="Add an edge"><strong>+</strong>&nbsp;Edge</button>
+        <button onclick="cache.dataTable.addColumn()" class="blue" title="Add a new property column"><strong>+</strong>&nbsp;Column</button>
+        <button id="exportDataTableBtn" onclick="cache.dataTable.exportToExcel()" class="green"
+                title="Export the data table and styling properties as Excel">⤓ Export</button>
+      </div>
+    </div>
+    <div class="panel-header-buttons">
+      <button id="bottomBarHelpBtn" class="panel-header-btn info-btn" title="Display query editor help" onclick="cache.qm.showQueryHelp();">🛈</button>
+      <button id="bottomBarCloseBtn" class="panel-header-btn" title="Close bottom panel"
+              onclick="cache.ui.closeBottomBar()">×</button>
     </div>
   </div>
-  <div class=query-buttons>
-    <div class="editor-help-icon" id="queryHelpIconDiv">
-      <button class="info-btn editor-help-btn" title="Display query editor help" onclick="cache.qm.showQueryHelp();">🛈</button>
+  <div class="bottom-bar-content">
+    <div id="queryEditor" class="editor-panel">
+      <div id="queryOverlay" aria-hidden="true"></div>
+      <div id="queryTextArea" contenteditable="true" spellcheck="false" oninput="cache.qm.handleQueryValidationEvent();"></div>
+      <div id="queryCaret" class="custom-caret"></div>
     </div>
-    <button id="queryUpdateBtn" class="purple disabled" onclick="cache.qm.handleQueryUpdateEvent()"
-            title="Apply the query to filter the graph">🔍 Filter</button>
-    <button id="querySelectBtn" class="blue disabled" onclick="cache.qm.handleQuerySelectEvent()"
-            title="Apply the query to select nodes in the graph without filtering">🎯 Select</button>
-    <button id="queryResetBtn" class="pink" onclick="cache.qm.resetQuery();" title="Reset query to match UI filters">⟳ Sync</button>
-    <button id="queryClearBtn" class="red" onclick="cache.qm.clearQuery();" title="Clear query">✗ Clear</button>
-  </div>
-
-  <div class="data-buttons" style="display: none;">
-    <div class="editor-help-icon" style="display: none;" id="dataHelpIconDiv">
-      <button class="info-btn editor-help-btn" title="Display data editor help" onclick="cache.dataTable.help();">🛈</button>
+    <div id="dataEditor" class="editor-panel" style="display: none;">
+      <div id="dataTableContainer">
+        <table id="dataTable" class="data-table">
+          <thead id="dataTableHead"></thead>
+          <tbody id="dataTableBody"></tbody>
+        </table>
+      </div>
     </div>
-    <button id="updateDataTableBtn" onclick="cache.dataTable.update()"
-            title="Update the graph after modifying the data table">✔ Apply
-    </button>
-    <button id="resetDataTableBtn" onclick="cache.dataTable.reset()" class="pink"
-            title="Reset the data table to current graph state">⟳ Reset</button>
-    <button onclick="cache.dataTable.addNode()" class="blue" title="Add a node"><strong>+</strong>&nbsp;Node</button>
-    <button onclick="cache.dataTable.addEdge()" class="blue" title="Add an edge"><strong>+</strong>&nbsp;Edge</button>
-    <button onclick="cache.dataTable.addColumn()" class="blue" title="Add a new property column"><strong>+</strong>&nbsp;Column</button>
-    <button id="exportDataTableBtn" onclick="cache.dataTable.exportToExcel()" class="green"
-            title="Export the data table and styling properties as Excel">⤓ Export
-    </button>
   </div>
 
 </div>

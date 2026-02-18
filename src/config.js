@@ -1,6 +1,8 @@
 /**
  * Defaults for the graph, layouts and UI
  */
+const VERSION = "1.11.0";
+
 const DEFAULTS = {
   NODE: {
     FILL_COLOR: "#C33D35", SIZE: 20, LINE_WIDTH: 1, TYPE: "hexagon", STROKE_COLOR: null,
@@ -218,4 +220,4 @@ const CFG = {
   INVISIBLE_CHAR: "\u200B",
 }
 
-export {DEFAULTS, CFG}
+export {VERSION, DEFAULTS, CFG}

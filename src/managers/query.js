@@ -18,7 +18,7 @@ class QueryAST {
   /* ===== internal helpers ============================================ */
   /**
    * Recursively evaluate any sub-expression.
-   * Implements “left-before-right” for chains of arbitrary length.
+   * Implements "left-before-right" for chains of arbitrary length.
    */
   #evalExpr(expr, element, requestedMainGroup) {
     if (!Array.isArray(expr)) return false;
@@ -57,7 +57,7 @@ class QueryAST {
             acc = acc || rhs;
             break;
           case 'NOT':
-            // “lhs NOT rhs”  :=  lhs && !rhs   (specification)
+            // "lhs NOT rhs"  :=  lhs && !rhs   (specification)
             acc = acc && !rhs;
             break;
           default:
@@ -69,7 +69,7 @@ class QueryAST {
     }
 
     /* ---------- 4. nothing matched  ------------------------------------ */
-    return false;   // fallback – shouldn’t be reached with valid input
+    return false;   // fallback - shouldn't be reached with valid input
   }
 
 
@@ -135,6 +135,8 @@ class QueryAST {
 
 
 class QueryManager {
+  #validationTimer = 0;
+
   constructor(cache) {
     this.cache = cache;
   }
@@ -264,46 +266,54 @@ class QueryManager {
     );
 
     /* ------------------------------------------------------------------ */
-    /* 7. Brackets with depth tracking                                    */
-
+    /* 7. Brackets with depth tracking (plain-text chunks only)           */
     /* ------------------------------------------------------------------ */
-    function findUnmatchedBracketIndices(str) {
-      const stack = [];
-      const unmatched = new Set();
+    const bracketChunks = asciiStr.split(/(<span\b[^>]*data-encoded[^>]*>[\s\S]*?<\/span>)/g);
 
-      for (let i = 0; i < str.length; ++i) {
-        const ch = str[i];
-        if (ch === '(') {
-          stack.push(i);
-        } else if (ch === ')') {
-          if (stack.length) {
-            stack.pop();
-          } else {
-            // “)” without a matching “(”
-            unmatched.add(i);
-          }
+    // collect bracket positions from plain-text chunks only
+    const plainBrackets = [];
+    bracketChunks.forEach((chunk, ci) => {
+      if (chunk.startsWith('<span') && chunk.includes('data-encoded')) return;
+      for (let i = 0; i < chunk.length; i++) {
+        if (chunk[i] === '(' || chunk[i] === ')') {
+          plainBrackets.push({ chunkIdx: ci, charIdx: i, char: chunk[i] });
         }
       }
+    });
 
-      stack.forEach(idx => unmatched.add(idx));
-      return unmatched;
-    }
+    // find unmatched brackets among plain-text brackets
+    const unmatchedSet = new Set();
+    const stack = [];
+    plainBrackets.forEach((b, idx) => {
+      if (b.char === '(') {
+        stack.push(idx);
+      } else {
+        if (stack.length) stack.pop();
+        else unmatchedSet.add(idx);
+      }
+    });
+    stack.forEach(idx => unmatchedSet.add(idx));
 
-    let bracketLevel = 0;
-    const unmatched = findUnmatchedBracketIndices(asciiStr);
-    if (unmatched.size) {
+    if (unmatchedSet.size) {
       this.cache.query.valid = false;
     }
 
-    asciiStr = [...asciiStr]
-      .map((ch, i) => {
+    // wrap brackets in plain-text chunks with depth-aware coloring
+    let bracketLevel = 0;
+    let bracketIdx = 0;
+
+    asciiStr = bracketChunks.map(chunk => {
+      if (chunk.startsWith('<span') && chunk.includes('data-encoded')) return chunk;
+
+      return [...chunk].map(ch => {
         if (ch === '(') {
           bracketLevel++;
           const lvl = Math.min(bracketLevel, 5);
           const cls = [
             `q-bracket-open-lvl-${lvl}`,
-            unmatched.has(i) ? 'q-error-unmatched-opening-bracket' : ''
+            unmatchedSet.has(bracketIdx) ? 'q-error-unmatched-opening-bracket' : ''
           ].join(' ');
+          bracketIdx++;
           return `<span class='${cls.trim()}' data-encoded>(</span>`;
         }
 
@@ -311,29 +321,30 @@ class QueryManager {
           const lvl = Math.min(bracketLevel, 5);
           const cls = [
             `q-bracket-close-lvl-${lvl}`,
-            unmatched.has(i) ? 'q-error-unmatched-closing-bracket' : ''
+            unmatchedSet.has(bracketIdx) ? 'q-error-unmatched-closing-bracket' : ''
           ].join(' ');
+          bracketIdx++;
           const html = `<span class='${cls.trim()}' data-encoded>)</span>`;
           bracketLevel = Math.max(bracketLevel - 1, 0);
           return html;
         }
 
         return ch;
-      })
-      .join('');
+      }).join('');
+    }).join('');
 
     // ------------------------------------------------------------------
     // 8. substitute &nbsp; with space span (important for copy/paste)
     // ------------------------------------------------------------------
     asciiStr = asciiStr
-      // split into “already encoded” vs “plain” parts
+      // split into "already encoded" vs "plain" parts
       .split(/(<span\b[^>]*data-encoded[^>]*>[\s\S]*?<\/span>)/g)
       .map(chunk => {
         // keep every part that is already marked as encoded
         if (chunk.startsWith('<span') && chunk.includes('data-encoded')) {
           return chunk;
         }
-        // in all other chunks replace real blanks, NBSP (char 160) and “&nbsp;”
+        // in all other chunks replace real blanks, NBSP (char 160) and "&nbsp;"
         // with the standard encoded-space element
         return chunk
           .replace(/&nbsp;|\u00a0| /g, space);
@@ -357,10 +368,10 @@ class QueryManager {
     // 10. wrap everything not already in a <span class='q-…'>…</span> as an error
     // ------------------------------------------------------------------
     asciiStr = asciiStr
-      // split out only the already‐encoded chunks vs everything else
+      // split out only the already-encoded chunks vs everything else
       .split(/(<span\b[^>]*data-encoded[^>]*>[\s\S]*?<\/span>)/g)
       .map(chunk => {
-        // if it’s one of our data-encoded spans, keep it
+        // if it's one of our data-encoded spans, keep it
         if ((chunk.startsWith('<span') && chunk.includes('data-encoded'))
           || chunk === "" || chunk === "</span> " || chunk === "</span>" || chunk === "[</span>") {
           return chunk;
@@ -414,7 +425,7 @@ class QueryManager {
 
   clearQuery() {
     this.cache.query.text.textContent = "";
-    this.handleQueryValidationEvent();
+    this.handleQueryValidationEvent(true);
     this.cache.query.caret.style.display = "none";
   }
 
@@ -479,7 +490,6 @@ class QueryManager {
     const parentRect = tmpQuery.text.getBoundingClientRect();
 
     if (!rect || !rect.height) {
-      tmpQuery.caret.style.display = 'none';
       return;
     }
 
@@ -497,8 +507,19 @@ class QueryManager {
     tmpQuery.caret.style.height = `${rect.height}px`;
   }
 
-  handleQueryValidationEvent() {
-    const caretPosition = this.getCursorPosition();
+  handleQueryValidationEvent(immediate) {
+    if (immediate) {
+      clearTimeout(this.#validationTimer);
+      this.#runValidation();
+      return;
+    }
+    clearTimeout(this.#validationTimer);
+    this.#validationTimer = setTimeout(() => this.#runValidation(), 40);
+  }
+
+  #runValidation() {
+    // proactively sync overlay width before rebuilding HTML
+    this.cache.query.overlay.style.width = `${this.cache.query.text.offsetWidth}px`;
 
     this.cache.query.overlay.innerHTML = this.encodeQuery(this.cache.query.text.textContent);
     this.cache.query.overlay.scrollTop = this.cache.query.text.scrollTop;
@@ -509,10 +530,6 @@ class QueryManager {
     } else {
       this.cache.data.layouts[this.cache.data.selectedLayout]["query"] = undefined;
     }
-
-    requestAnimationFrame(() => {
-      this.setCursorPosition(caretPosition);
-    });
   }
 
   async handleQueryUpdateEvent() {
@@ -586,7 +603,7 @@ class QueryManager {
       'q-connector-and': () => 'AND',
       'q-connector-not': () => 'NOT',
 
-      // brackets
+      // brackets (depth-colored and connector-adjacent)
       'q-bracket-open-lvl-1': () => ({type: '(', value: '('}),
       'q-bracket-open-lvl-2': () => ({type: '(', value: '('}),
       'q-bracket-open-lvl-3': () => ({type: '(', value: '('}),
@@ -597,6 +614,8 @@ class QueryManager {
       'q-bracket-close-lvl-3': () => ({type: ')', value: ')'}),
       'q-bracket-close-lvl-4': () => ({type: ')', value: ')'}),
       'q-bracket-close-lvl-5': () => ({type: ')', value: ')'}),
+      'q-connector-opening-bracket': () => ({type: '(', value: '('}),
+      'q-connector-closing': () => ({type: ')', value: ')'}),
 
       // numbers & keywords
       'q-number': el => ({type: 'NUM', value: Number(el.textContent)}),
@@ -609,7 +628,7 @@ class QueryManager {
       // category strings
       'q-string': el => ({type: 'STR', value: el.textContent}),
 
-      // whole property path (“A::B::C”)
+      // whole property path ("A::B::C")
       'q-property-wrapper': el => {
         const [main, sub, prop] = el.textContent.split('::');
         return {type: 'property', main, sub, prop, propID: el.textContent};
@@ -768,12 +787,11 @@ class QueryManager {
 
   showQueryHelp() {
     this.cache.popup = new Popup(`
-<h2>Query Editor</h2>
 <p>Build complex filters using nested AND, OR and NOT expressions.</p>
 
 <div class="alert-warning">
-  <strong>⚠️ Important:</strong> Using the filtering UI panel or adding/modifying bubble groups will automatically 
-  overwrite the this.cache.query. Any custom logic (AND/NOT operators, nested brackets) will be cleared and replaced 
+  <strong>⚠️ Important:</strong> Using the filtering UI panel or adding/modifying bubble groups will automatically
+  overwrite the this.cache.query. Any custom logic (AND/NOT operators, nested brackets) will be cleared and replaced
   with the UI-generated this.cache.query.
 </div>
 <div class="alert-info">
@@ -781,12 +799,16 @@ class QueryManager {
 </div>
 
 <h3>Available Actions</h3>
+<p><strong>Header buttons:</strong></p>
 <ul>
-  <li><span class="tooltip-dummy-buttons">🔍 Filter</span> — Apply the query to filter the graph</li>
-  <li><span class="tooltip-dummy-buttons blue">🎯 Select</span> — Select all matching elements (without filtering)</li>
-  <li><span class="tooltip-dummy-buttons pink">⟳ Sync</span> — Sync query with current UI panel settings</li>
-  <li><span class="tooltip-dummy-buttons red">✗ Clear</span> — Remove all query conditions</li>
-  <li><span class="add-to-query-button show tt">📝</span> (filtering panel) — Add a single parameter to the query</li>
+  <li><span class="tooltip-dummy-buttons green">🔍 Filter</span> - Apply the query to filter the graph</li>
+  <li><span class="tooltip-dummy-buttons blue">🎯 Select</span> - Select all matching elements (without filtering)</li>
+  <li><span class="tooltip-dummy-buttons pink">⟳ Sync</span> - Sync query with current UI panel settings</li>
+  <li><span class="tooltip-dummy-buttons red">✗ Clear</span> - Remove all query conditions</li>
+</ul>
+<p><strong>Filtering panel:</strong></p>
+<ul>
+  <li><span class="add-to-query-button show tt">📝</span> - Add a single parameter to the query</li>
 </ul>
 
 <hr>
@@ -827,22 +849,22 @@ class QueryManager {
 
 <p><strong>2. Filter Instructions</strong></p>
 <ul style="margin-top: -8px;">
-  <li><span class="q-kw-between">BETWEEN</span>&nbsp;<span class="q-number">0</span>&nbsp;<span class="q-kw-between-and">AND</span>&nbsp;<span class="q-number">1.3</span> — Keep numerical values in range (inclusive)</li>
-  <li><span class="q-lower-than">LOWER THAN</span>&nbsp;<span class="q-number">0.2</span>&nbsp;<span class="q-or-greater-than">OR GREATER THAN</span>&nbsp;<span class="q-number">0.8</span> — Keep numerical values ≤ 0.2 or ≥ 0.8</li>
-  <li><span class="q-in-cat-bracket-open">IN&nbsp;[</span><span class="q-string">foo</span><span class="q-comma">,</span>&nbsp;<span class="q-string">bar</span><span class="q-cat-bracket-close">]</span> — Keep specific categorical values</li>
+  <li><span class="q-kw-between">BETWEEN</span>&nbsp;<span class="q-number">0</span>&nbsp;<span class="q-kw-between-and">AND</span>&nbsp;<span class="q-number">1.3</span> - Keep numerical values in range (inclusive)</li>
+  <li><span class="q-lower-than">LOWER THAN</span>&nbsp;<span class="q-number">0.2</span>&nbsp;<span class="q-or-greater-than">OR GREATER THAN</span>&nbsp;<span class="q-number">0.8</span> - Keep numerical values ≤ 0.2 or ≥ 0.8</li>
+  <li><span class="q-in-cat-bracket-open">IN&nbsp;[</span><span class="q-string">foo</span><span class="q-comma">,</span>&nbsp;<span class="q-string">bar</span><span class="q-cat-bracket-close">]</span> - Keep specific categorical values</li>
 </ul>
 
 <p><strong>3. Logical Operators</strong></p>
 <ul style="margin-top: -8px;">
-  <li><span class="q-connector-or">&nbsp;OR&nbsp;</span> — True if at least one condition is true</li>
-  <li><span class="q-connector-and">&nbsp;AND&nbsp;</span> — True if both conditions are true</li>
-  <li><span class="q-connector-not">&nbsp;NOT&nbsp;</span> — True if first condition is true and second is false</li>
+  <li><span class="q-connector-or">&nbsp;OR&nbsp;</span> - True if at least one condition is true</li>
+  <li><span class="q-connector-and">&nbsp;AND&nbsp;</span> - True if both conditions are true</li>
+  <li><span class="q-connector-not">&nbsp;NOT&nbsp;</span> - True if first condition is true and second is false</li>
   <li>⚡ Left-to-right precedence; use parentheses for complex logic</li>
 </ul>
 
 <p><strong>4. Grouping with Parentheses</strong></p>
 <ul style="margin-top: -8px;">
-  <li><span class="q-bracket-open-lvl-1">(</span> <span class="q-bracket-close-lvl-1">)</span> — Group multiple conditions into one logical unit</li>
+  <li><span class="q-bracket-open-lvl-1">(</span> <span class="q-bracket-close-lvl-1">)</span> - Group multiple conditions into one logical unit</li>
   <li>Nest to any depth with color coding: <span class="q-bracket-open-lvl-1">(</span><span class="q-bracket-open-lvl-2">(</span><span class="q-bracket-open-lvl-3">(</span><span class="q-bracket-open-lvl-4">(</span><span class="q-bracket-open-lvl-5">(</span><span class="q-bracket-close-lvl-5">)</span><span class="q-bracket-close-lvl-4">)</span><span class="q-bracket-close-lvl-3">)</span><span class="q-bracket-close-lvl-2">)</span><span class="q-bracket-close-lvl-1">)</span></li>
   <li>Unmatched brackets are highlighted: <span class="q-bracket-close-lvl-0 q-error-unmatched-closing-bracket">)</span></li>
 </ul>
@@ -852,7 +874,7 @@ class QueryManager {
   <li>Invalid syntax is <span class="q-error-unrecognized">highlighted like this</span></li>
 </ul>
 
-`, {width: '80vw', height: '75vh', lineHeight: '1.5em'});
+`, {title: 'Query Editor', width: '80vw', height: '75vh', lineHeight: '1.5em'});
   }
 
   decodeQueryAndBuildAST() {
@@ -885,26 +907,24 @@ class QueryManager {
     }
   }
 
-  validateAlignment() {/* read real widths of the two layers */
+  validateAlignment() {
+    // proactively sync overlay width to text element on every resize
+    this.cache.query.overlay.style.width = `${this.cache.query.text.offsetWidth}px`;
+
     const mText = StaticUtilities.getLineMetrics(this.cache.query.text);
     const mOverlay = StaticUtilities.getLineMetrics(this.cache.query.overlay);
     const linesMatch = mText.lines === mOverlay.lines;
-    const lastWidthMatch = Math.abs(mText.lastLineWidth - mOverlay.lastLineWidth) <= 1;  /* 1 pixel tolerance */
+    const lastWidthMatch = Math.abs(mText.lastLineWidth - mOverlay.lastLineWidth) <= 1;
+
     if (linesMatch && lastWidthMatch) {
-      if (this.cache.query.sizeChangeLocked) {/* let flexbox resize again */
-        this.cache.query.text.style.removeProperty('width');
-        this.cache.query.overlay.style.removeProperty('width');
-        this.cache.query.sizeChangeLocked = false;
-        this.cache.ui.info("Alignment restored, width unlocked");
-      }
       this.cache.query.lastGoodWidth = this.cache.query.text.offsetWidth;
       return;
-    }/* freeze both layers at the last known good width */
-    if (!this.cache.query.sizeChangeLocked && this.cache.query.lastGoodWidth > 0) {
-      console.warn(`Mismatch — lines: ${mText.lines}/${mOverlay.lines}, ` + `last width: ${mText.lastLineWidth}/${mOverlay.lastLineWidth}. ` + `Locking at ${this.cache.query.lastGoodWidth}px`);
+    }
+
+    // fallback: if still misaligned after proactive sync, lock at last known good width
+    if (this.cache.query.lastGoodWidth > 0) {
       this.cache.query.text.style.width = `${this.cache.query.lastGoodWidth}px`;
       this.cache.query.overlay.style.width = `${this.cache.query.lastGoodWidth}px`;
-      this.cache.query.sizeChangeLocked = true;
     }
   }
 }

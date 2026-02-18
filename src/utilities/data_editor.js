@@ -73,8 +73,14 @@ class DataTable {
       closeBtn.addEventListener('click', () => {
         if (this.warningBanner) {
           this.warningBanner.style.display = 'none';
+          localStorage.setItem('dataEditorWarningDismissed', 'true');
         }
       });
+    }
+
+    // Check if warning was previously dismissed
+    if (localStorage.getItem('dataEditorWarningDismissed') === 'true') {
+      this.warningBanner.style.display = 'none';
     }
   }
 
@@ -749,8 +755,7 @@ class DataTable {
 
     // Create a custom form popup
     const formHtml = `
-      <h2>Add Property Column</h2>
-      <div style="display: flex; flex-direction: column; gap: 15px; margin: 20px 0;">
+      <div style="display: flex; flex-direction: column; gap: 15px; margin: 10px 0;">
         <div>
           <label style="display: block; margin-bottom: 5px; font-weight: bold;">Property Type:</label>
           <div style="display: flex; gap: 20px;">
@@ -785,7 +790,7 @@ class DataTable {
     `;
 
     return new Promise((resolve) => {
-      this.cache.popup = new Popup(formHtml);
+      this.cache.popup = new Popup(formHtml, {title: 'Add Property Column', showFullscreenButton: false});
 
       // Store resolve function globally for button handlers
       window.addColumnConfirm = () => {
@@ -930,6 +935,12 @@ class DataTable {
 
       await this.cache.gcm.destroyGraphAndRollBackUI();
       this.cache.gcm.resetEventLocks();
+
+      // Reset lasso wrapper visual state to match default behavior (no lasso mode)
+      const lassoWrapper = document.getElementById("lassoWrapper");
+      if (lassoWrapper) {
+        lassoWrapper.classList.remove("active");
+      }
       this.cache.io.preProcessData(updatedFileData);
 
       // Clear any saved query to prevent filtering issues with new columns
@@ -1172,16 +1183,22 @@ class DataTable {
           break;
       }
 
+      const positions = this.cache.data.layouts[this.cache.data.selectedLayout]?.positions;
+
       if (nodesToExport.length > 0) {
         const nodesSheet = workbook.addWorksheet('nodes');
         const nodesHeader = [...EXCEL_NODE_PROPERTIES.map(p => p.column), ...this.cache.nodeExclusiveProps];
         nodesSheet.addRow(nodesHeader);
 
         for (const node of nodesToExport) {
+          const pos = positions?.get(node.id);
+          const exportNode = pos
+            ? {...node, style: {...node.style, x: pos.style.x, y: pos.style.y}}
+            : node;
           const row = [];
 
           for (const prop of EXCEL_NODE_PROPERTIES) {
-            const value = prop.get ? prop.get(node) : '';
+            const value = prop.get ? prop.get(exportNode) : '';
             row.push(value);
           }
 
@@ -1277,24 +1294,25 @@ class DataTable {
   }
 
   help() {
-    this.cache.popup = new Popup(`<h2>Data Editor</h2>
-<p>Explore and directly modify graph data through an interactive spreadsheet interface.</p>
+    this.cache.popup = new Popup(`<p>Explore and directly modify graph data through an interactive spreadsheet interface.</p>
 
 <div class="alert-warning">
   <strong>⚠️ Important:</strong> Data modifications affect ALL views globally. Changing node/edge properties here will update them across all view presets. Only view-specific settings (positions, filters, styles, queries) are preserved per view.
 </div>
 
 <div class="alert-info">
-  <strong>💡 Tip:</strong> All changes are staged until you click <span class="tooltip-dummy-buttons">✔ Apply</span>
+  <strong>💡 Tip:</strong> All changes are staged until you click <span class="tooltip-dummy-buttons blue">✔ Apply</span>
 </div>
 
 <h3>Available Actions</h3>
+<p><strong>Header buttons:</strong></p>
 <ul>
-  <li><span class="tooltip-dummy-buttons">✔ Apply</span> — Apply the changes to the graph</li>
+  <li><span class="tooltip-dummy-buttons blue">✔ Apply</span> — Apply the changes to the graph</li>
   <li><span class="tooltip-dummy-buttons pink">⟳ Reset</span> — Discard all changes and restore original data</li>
   <li><span class="tooltip-dummy-buttons blue"><strong>+</strong>&nbsp;Node</span> — Create a new node in the graph</li>
   <li><span class="tooltip-dummy-buttons blue"><strong>+</strong>&nbsp;Edge</span> — Create a new edge between existing nodes</li>
-  <li><span class="tooltip-dummy-buttons green">⤓ Export</span> — Save current view as an Excel file (disabled when no data is shown)</li>
+  <li><span class="tooltip-dummy-buttons blue"><strong>+</strong>&nbsp;Column</span> — Add a new property column to the table</li>
+  <li><span class="tooltip-dummy-buttons green">⤓ Export</span> — Save current view as an Excel file</li>
 </ul>
 
 <h3>Working with the Editor</h3>
@@ -1311,7 +1329,7 @@ class DataTable {
   </li>
   <li><strong>Tabs:</strong> Switch between different views (selected elements vs. all existing data)</li>
 </ul>
-`, {width: '50vw', height: '60vh', lineHeight: '1.5em'});
+`, {title: 'Data Editor', width: '50vw', height: '60vh', lineHeight: '1.5em'});
   }
 
 }

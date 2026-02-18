@@ -162,7 +162,24 @@ class GraphCoreManager {
           type: "tooltip",
           trigger: "click",
           enterable: true,
-          getContent: (e, items) => this.cache.toolTips.get(items[0].id),
+          getContent: (e, items) => {
+            const content = this.cache.toolTips.get(items[0].id);
+            requestAnimationFrame(() => {
+              const graphContainer = document.getElementById('innerGraphContainer');
+              if (!graphContainer) return;
+              const tooltip = graphContainer.querySelector('.tooltip');
+              if (!tooltip) return;
+              const body = tooltip.querySelector('.tooltip-content');
+              const btn = tooltip.querySelector('.tooltip-expand-btn');
+              if (!body || !btn) return;
+              tooltip.classList.remove('expanded');
+              btn.textContent = '⛶';
+              const isClipped = body.scrollHeight > body.clientHeight + 1
+                || body.scrollWidth > body.clientWidth + 1;
+              btn.style.display = isClipped ? '' : 'none';
+            });
+            return content;
+          },
         },
         {
           key: "minimap",
@@ -189,8 +206,8 @@ class GraphCoreManager {
         autoResize: true,
         padding: 10,
         data: this.createSimplifiedDataForGraphObject(),
-        node: {state: {highlight: {fill: '#C33D35', halo: true, lineWidth: 0,}, dim: {fill: '#E4E3EA',},},},
-        edge: {state: {highlight: {stroke: '#C33D35',}, selected: {stroke: '#C33D35',}},},
+        node: {state: {selected: {stroke: '#C33D35', lineWidth: 2, halo: true, haloStroke: '#C33D35',}, highlight: {fill: '#C33D35', halo: true, lineWidth: 0,}, dim: {fill: '#E4E3EA',},},},
+        edge: {state: {highlight: {stroke: '#C33D35',}, selected: {halo: true, haloStroke: '#C33D35', haloLineWidth: 6,}},},
         behaviors: behaviors,
         plugins: plugins,
       })
@@ -350,6 +367,8 @@ class GraphCoreManager {
         await this.cache.lm.persistNodePositions();
         this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE = false;
       }
+
+      await this.applyHideDisconnectedState();
     } catch (errorMsg) {
       this.cache.ui.error(`Error in initial AFTER_RENDER: ${errorMsg}`);
       this.cache.ui.error("Graph setup failed. Please check your input data.");
@@ -361,18 +380,21 @@ class GraphCoreManager {
 
   async toggleCleanUpDanglingElements(btn) {
     const shouldEnable = btn.classList.contains("red");
+    const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
 
     if (shouldEnable) {
       btn.classList.remove("red");
       btn.classList.add("green", "highlight");
       btn.title = "Show all nodes and edges, irrespectively of their connectedness.";
       btn.textContent = "👁";
+      currentLayout.hideDisconnectedNodes = true;
       await this.hideDanglingElements();
     } else {
       btn.classList.remove("green", "highlight");
       btn.classList.add("red");
       btn.title = "Hide all nodes and edges that are not connected to any other node or edge.";
       btn.textContent = "🚫";
+      currentLayout.hideDisconnectedNodes = false;
       await this.showDanglingElements();
     }
   }
@@ -444,6 +466,33 @@ class GraphCoreManager {
     );
   }
 
+  updateHideDisconnectedButtonState() {
+    const btn = document.getElementById("hideDisconnectedBtn");
+    if (!btn) return;
+    const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+    if (currentLayout && currentLayout.hideDisconnectedNodes) {
+      btn.classList.remove("red");
+      btn.classList.add("green", "highlight");
+      btn.title = "Show all nodes and edges, irrespectively of their connectedness.";
+      btn.textContent = "👁";
+    } else {
+      btn.classList.remove("green", "highlight");
+      btn.classList.add("red");
+      btn.title = "Hide all nodes and edges that are not connected to any other node or edge.";
+      btn.textContent = "🚫";
+    }
+  }
+
+  async applyHideDisconnectedState() {
+    const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+    this.cache.hiddenDanglingNodeIDs.clear();
+    this.cache.hiddenDanglingEdgeIDs.clear();
+    this.updateHideDisconnectedButtonState();
+    if (currentLayout && currentLayout.hideDisconnectedNodes) {
+      await this.hideDanglingElements();
+    }
+  }
+
   async focusNodes(nodeIDs = undefined) {
     if (!nodeIDs) {
       nodeIDs = this.cache.selectedNodes;
@@ -470,6 +519,54 @@ class GraphCoreManager {
     setTimeout(async () => {
       await this.cache.sm.selectElements([], targetMap, "highlight");
     }, 2500);
+  }
+
+  async fitViewToVisibleNodes() {
+    const visibleNodeIDs = [...this.cache.nodeIDsToBeShown]
+      .filter(id => !this.cache.hiddenDanglingNodeIDs.has(id))
+
+    if (visibleNodeIDs.length === 0) {
+      await this.cache.graph.fitView()
+      return
+    }
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+
+    for (const id of visibleNodeIDs) {
+      const [x, y] = this.cache.graph.getElementPosition(id)
+      if (x < minX) minX = x
+      if (x > maxX) maxX = x
+      if (y < minY) minY = y
+      if (y > maxY) maxY = y
+    }
+
+    if (!isFinite(minX)) {
+      await this.cache.graph.fitView()
+      return
+    }
+
+    // all measurements at zoom 1 to avoid G6 translateTo bug at non-1 zoom
+    // see: https://github.com/antvis/G6/issues/6373#issuecomment-3615152579
+    await this.cache.graph.zoomTo(1)
+
+    const canvasMin = this.cache.graph.getViewportByCanvas([minX, minY])
+    const canvasMax = this.cache.graph.getViewportByCanvas([maxX, maxY])
+    const bboxWidth = Math.abs(canvasMax[0] - canvasMin[0]) || 1
+    const bboxHeight = Math.abs(canvasMax[1] - canvasMin[1]) || 1
+
+    const [viewportWidth, viewportHeight] = this.cache.graph.getSize()
+    const padding = 80
+    const zoom = Math.min(
+      (viewportWidth - padding * 2) / bboxWidth,
+      (viewportHeight - padding * 2) / bboxHeight
+    )
+
+    // translateTo at zoom 1, then restore target zoom (G6 bug workaround)
+    const viewportCenter = [viewportWidth / 2, viewportHeight / 2]
+    const bboxCenter = this.cache.graph.getViewportByCanvas([(minX + maxX) / 2, (minY + maxY) / 2])
+    const offset = [viewportCenter[0] - bboxCenter[0], viewportCenter[1] - bboxCenter[1]]
+    await this.cache.graph.translateBy(offset)
+    await this.cache.graph.zoomTo(zoom)
   }
 
   async updateEdges(overrides = {}, commands = []) {
@@ -672,8 +769,8 @@ class GraphCoreManager {
           filteredNode.states = currentGraphNode.states;
         }
 
-        // Preserve visibility from loaded data before applying styles
-        const savedVisibility = node.style?.visibility;
+        // Preserve visibility from current graph state or loaded data
+        const savedVisibility = currentGraphNode?.style?.visibility || node.style?.visibility;
 
         // load positions from the layouts position Map
         const position = this.cache.data.layouts[this.cache.data.selectedLayout].positions.get(node.id);
@@ -735,8 +832,8 @@ class GraphCoreManager {
           filteredEdge.states = currentGraphEdge.states;
         }
 
-        // Preserve visibility from loaded data before applying styles
-        const savedVisibility = edge.style?.visibility;
+        // Preserve visibility from current graph state or loaded data
+        const savedVisibility = currentGraphEdge?.style?.visibility || edge.style?.visibility;
 
         // Check if current layout has custom style for this edge
         const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
@@ -894,7 +991,7 @@ class GraphCoreManager {
           await this.cache.io.exportGraphAsJSON();
           break;
         case "f":
-          await this.cache.graph.fitView();
+          await this.fitViewToVisibleNodes();
           break;
         case "e":
           await this.cache.ui.toggleEditMode();
@@ -925,12 +1022,117 @@ class GraphCoreManager {
   registerGlobalEventListeners() {
     if (this.cache.EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED) return;
 
-    ['input', 'keydown', 'keyup', 'mousedown', 'mouseup', 'focus', 'blur', 'scroll', 'selectionchange'].forEach(evt =>
+    ['input', 'keydown', 'keyup', 'mousedown', 'mouseup', 'focus', 'blur', 'scroll'].forEach(evt =>
       this.cache.query.text.addEventListener(evt, () => this.cache.qm.moveCaret())
     );
 
+    document.addEventListener('selectionchange', () => {
+      const sel = window.getSelection();
+      if (sel.rangeCount && this.cache.query.text.contains(sel.getRangeAt(0).startContainer)) {
+        this.cache.qm.moveCaret();
+      }
+    });
+
     this.cache.ui.makeBottomBarResizable();
+    this.registerTooltipWheelHandler();
+    this.registerTooltipExpandToggle();
     this.cache.EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED = true;
+  }
+
+  registerTooltipExpandToggle() {
+    window.toggleTooltipExpand = function(button) {
+      const tooltip = button.closest('.tooltip');
+      if (!tooltip) return;
+
+      const isExpanded = tooltip.classList.contains('expanded');
+
+      if (isExpanded) {
+        tooltip.classList.remove('expanded');
+        button.textContent = '⛶';
+        button.title = 'Expand to fit content';
+      } else {
+        tooltip.classList.add('expanded');
+        button.textContent = '⤡';
+        button.title = 'Restore size';
+      }
+    };
+
+    window.closeTooltip = function(button) {
+      const tooltip = button.closest('.tooltip');
+      if (!tooltip) return;
+      tooltip.style.visibility = 'hidden';
+    };
+  }
+
+  registerTooltipWheelHandler() {
+    const graphContainer = document.getElementById('innerGraphContainer');
+    if (!graphContainer) return;
+
+    graphContainer.addEventListener('wheel', (event) => {
+      const target = event.target;
+      const tooltip = target.closest('.tooltip');
+
+      if (tooltip) {
+        event.stopPropagation();
+      }
+    }, { passive: false, capture: true });
+
+    this.makeTooltipDraggable(graphContainer);
+  }
+
+  makeTooltipDraggable(graphContainer) {
+    let isDragging = false;
+    let currentTooltip = null;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    const stopEvent = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    graphContainer.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.tooltip-expand-btn') || e.target.closest('.tooltip-close-btn')) return;
+
+      const header = e.target.closest('.tooltip-header');
+      if (!header) return;
+
+      const tooltip = header.closest('.tooltip');
+      if (!tooltip) return;
+
+      isDragging = true;
+      currentTooltip = tooltip;
+
+      const tooltipRect = tooltip.getBoundingClientRect();
+      const parentRect = graphContainer.getBoundingClientRect();
+      offsetX = e.clientX - tooltipRect.left + parentRect.left;
+      offsetY = e.clientY - tooltipRect.top + parentRect.top;
+
+      header.style.cursor = 'grabbing';
+      stopEvent(e);
+    });
+
+    document.addEventListener('pointermove', (e) => {
+      if (!isDragging || !currentTooltip) return;
+
+      currentTooltip.style.left = `${e.clientX - offsetX}px`;
+      currentTooltip.style.top = `${e.clientY - offsetY}px`;
+      stopEvent(e);
+    });
+
+    document.addEventListener('pointerup', (e) => {
+      if (!isDragging) return;
+
+      if (currentTooltip) {
+        const header = currentTooltip.querySelector('.tooltip-header');
+        if (header) header.style.cursor = 'move';
+      }
+      isDragging = false;
+      currentTooltip = null;
+      stopEvent(e);
+
+      window.addEventListener('click', stopEvent, { capture: true, once: true });
+    });
   }
 
   async registerPluginStates() {

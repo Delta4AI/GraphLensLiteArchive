@@ -1,6 +1,7 @@
+import {Popup} from './popup.js';
+
 class NumericScalePicker {
   constructor(cache) {
-    this.element = null;
     this.resolvePromise = null;
     this.minValue = 0;
     this.maxValue = 0;
@@ -12,123 +13,83 @@ class NumericScalePicker {
     this.cache = cache;
     this.metricValuePrefix = "__metric__:";
     this.activeMetricSource = null;
+    this.popup = null;
   }
 
-  createDom() {
-    const overlay = document.createElement('div');
-    overlay.className = 'picker-overlay';
-    this.dom.overlay = overlay;
-
-    const content = document.createElement('div');
-    content.className = 'picker-content numeric-scale-picker';
-    this.dom.content = content;
-
-    const title = document.createElement('h3');
-    title.textContent = 'Map Property to Numeric Scale';
-    title.style.marginBottom = '20px';
-    title.style.textAlign = 'center';
-    content.appendChild(title);
-
-    const dropdownLabel = document.createElement('div');
-    dropdownLabel.textContent = 'Select Property to Map:';
-    dropdownLabel.style.fontWeight = 'bold';
-    dropdownLabel.style.marginBottom = '8px';
-    content.appendChild(dropdownLabel);
+  buildContent() {
+    const container = document.createElement('div');
 
     const dropdown = document.createElement('select');
-    dropdown.className = 'picker-dropdown';
+    dropdown.className = 'p-prompt picker-dropdown';
     this.dom.dropdown = dropdown;
-    content.appendChild(dropdown);
+    container.appendChild(dropdown);
+
+    const infoSection = document.createElement('div');
+    infoSection.className = 'picker-info';
+    infoSection.style.display = 'none';
+    this.dom.infoSection = infoSection;
+    container.appendChild(infoSection);
 
     const rangeConfig = document.createElement('div');
-    rangeConfig.className = 'numeric-scale-config';
+    rangeConfig.className = 'picker-range-config';
     rangeConfig.style.display = 'none';
-    rangeConfig.style.marginTop = '20px';
-    rangeConfig.style.padding = '15px';
-    rangeConfig.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
-    rangeConfig.style.borderRadius = '4px';
     this.dom.rangeConfig = rangeConfig;
 
-    // Summary info
-    const summaryInfo = document.createElement('div');
-    summaryInfo.className = 'numeric-scale-summary-info';
-    this.dom.summaryInfo = summaryInfo;
-    rangeConfig.appendChild(summaryInfo);
-
-    // Separator
-    const separator = document.createElement('hr');
-    separator.style.border = 'none';
-    separator.style.borderTop = '1px solid rgba(0, 0, 0, 0.2)';
-    separator.style.margin = '12px 0';
-    rangeConfig.appendChild(separator);
-
-    // Output range row
-    const outputRow = document.createElement('div');
-    outputRow.style.display = 'flex';
-    outputRow.style.alignItems = 'center';
-    outputRow.style.gap = '10px';
-
-    const outputLabel = document.createElement('span');
-    outputLabel.innerHTML = `Set <strong>${this.propertyName || 'output'}</strong> range to:`;
-    outputLabel.style.fontSize = '14px';
+    const outputLabel = document.createElement('div');
+    outputLabel.className = 'picker-range-label';
+    outputLabel.innerHTML = `Set <strong>${this.propertyName || 'output'}</strong> range:`;
     this.dom.outputLabel = outputLabel;
-    outputRow.appendChild(outputLabel);
+    rangeConfig.appendChild(outputLabel);
+
+    const outputRow = document.createElement('div');
+    outputRow.className = 'picker-range-row';
 
     const minOutputInput = document.createElement('input');
     minOutputInput.type = 'number';
-    minOutputInput.className = 'style-input';
-    minOutputInput.style.width = '70px';
+    minOutputInput.className = 'picker-range-input';
     minOutputInput.value = this.minOutput;
     minOutputInput.step = 'any';
     minOutputInput.oninput = () => {
       this.minOutput = parseFloat(minOutputInput.value) || 0;
     };
     this.dom.minOutputInput = minOutputInput;
-    outputRow.appendChild(minOutputInput);
 
     const arrow = document.createElement('span');
+    arrow.className = 'picker-range-arrow';
     arrow.textContent = '→';
-    arrow.style.fontSize = '18px';
-    arrow.style.color = '#666';
-    outputRow.appendChild(arrow);
 
     const maxOutputInput = document.createElement('input');
     maxOutputInput.type = 'number';
-    maxOutputInput.className = 'style-input';
-    maxOutputInput.style.width = '70px';
+    maxOutputInput.className = 'picker-range-input';
     maxOutputInput.value = this.maxOutput;
     maxOutputInput.step = 'any';
     maxOutputInput.oninput = () => {
       this.maxOutput = parseFloat(maxOutputInput.value) || 100;
     };
     this.dom.maxOutputInput = maxOutputInput;
-    outputRow.appendChild(maxOutputInput);
 
+    outputRow.append(minOutputInput, arrow, maxOutputInput);
     rangeConfig.appendChild(outputRow);
-    content.appendChild(rangeConfig);
+    container.appendChild(rangeConfig);
 
-    // Buttons
-    const buttons = document.createElement('div');
-    buttons.className = 'picker-button-container';
-    buttons.style.marginTop = '20px';
+    const footer = document.createElement('div');
+    footer.className = 'p-footer';
 
-    const cancelButton = document.createElement('button');
-    cancelButton.className = 'picker-button secondary';
-    cancelButton.textContent = 'Cancel';
-    cancelButton.onclick = () => this.cancel();
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'p-button p-button-secondary';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.onclick = () => this.cancel();
 
-    const applyButton = document.createElement('button');
-    applyButton.className = 'picker-button primary disabled';
-    applyButton.textContent = 'Apply';
-    applyButton.onclick = () => this.apply();
-    this.dom.applyButton = applyButton;
+    const applyBtn = document.createElement('button');
+    applyBtn.className = 'p-button p-button-primary disabled';
+    applyBtn.textContent = 'Apply';
+    applyBtn.onclick = () => this.apply();
+    this.dom.applyButton = applyBtn;
 
-    buttons.append(cancelButton, applyButton);
-    content.appendChild(buttons);
+    footer.append(cancelBtn, applyBtn);
+    container.appendChild(footer);
 
-    overlay.appendChild(content);
-    this.element = overlay;
-    return overlay;
+    return container;
   }
 
   async pickNumericScale(elementType = 'nodes', propertyName = null) {
@@ -137,20 +98,31 @@ class NumericScalePicker {
     this.setDefaultOutputRange();
     return new Promise(resolve => {
       this.resolvePromise = resolve;
-      document.body.appendChild(this.createDom());
-      // Update input values after setting defaults
+      const content = this.buildContent();
       if (this.dom.minOutputInput) {
         this.dom.minOutputInput.value = this.minOutput;
       }
       if (this.dom.maxOutputInput) {
         this.dom.maxOutputInput.value = this.maxOutput;
       }
+      this.popup = new Popup(content, {
+        title: 'Map Property to Numeric Scale',
+        width: '440px',
+        showFullscreenButton: false,
+        closeOnClickOutside: false,
+        onClose: () => {
+          if (this.resolvePromise) {
+            this.resolvePromise(null);
+            this.resolvePromise = null;
+          }
+          this.popup = null;
+        }
+      });
       this.initializeFilters();
     });
   }
 
   setDefaultOutputRange() {
-    // Set default output range based on property name
     if (this.elementType === 'nodes') {
       const defaults = this.cache.DEFAULTS.NODE;
       switch (this.propertyName) {
@@ -197,7 +169,7 @@ class NumericScalePicker {
   }
 
   initializeFilters() {
-    const dropdown = this.element.querySelector('.picker-dropdown');
+    const dropdown = this.dom.dropdown;
     const filters = new Map(this.cache.data.layouts[this.cache.data.selectedLayout].filters);
     const available = new Set();
 
@@ -210,7 +182,6 @@ class NumericScalePicker {
 
       element?.features.forEach(f => {
         const filterObj = filters.get(f);
-        // Only include numeric (non-category) properties
         if (filterObj && !filterObj.isCategory) {
           available.add(f);
         }
@@ -221,7 +192,7 @@ class NumericScalePicker {
       ? this.cache.metrics.getMetricScaleOptions()
       : [];
 
-    dropdown.innerHTML = '<option value="">Select property</option>';
+    dropdown.innerHTML = '<option value="">Select property...</option>';
     const propertyOptions = Array.from(available).sort();
     if (propertyOptions.length > 0) {
       const dataGroup = document.createElement('optgroup');
@@ -297,33 +268,32 @@ class NumericScalePicker {
 
     const totalElements = selectedElements.length;
     const elementTypeLabel = this.elementType === 'nodes' ? 'nodes' : 'edges';
-
-    // Extract property label after last "::"
     const propertyDisplayName = metricSource
       ? `${metricSource.label} (${metricSource.valueLabel})`
       : (property.includes('::') ? property.split('::').pop() : property);
 
-    this.dom.summaryInfo.innerHTML = `
-      <div style="font-size: 14px; margin-bottom: 8px;">
-        Scaling <strong>${this.propertyName || 'property'}</strong> for <strong>${elementsWithProperty}</strong> of <strong>${totalElements}</strong> affected ${elementTypeLabel}
+    this.dom.infoSection.innerHTML = `
+      <div class="picker-info-summary">
+        Scaling <strong>${this.propertyName || 'property'}</strong> for <strong>${elementsWithProperty}</strong> of <strong>${totalElements}</strong> ${elementTypeLabel}
       </div>
-      <div style="font-size: 13px; color: #333;">
-        <strong>${propertyDisplayName}</strong> min: ${this.minValue.toFixed(2)} &nbsp;&nbsp;&nbsp;&nbsp; <strong>${propertyDisplayName}</strong> max: ${this.maxValue.toFixed(2)}
+      <div class="picker-info-range">
+        <strong>${propertyDisplayName}</strong> min: ${this.minValue.toFixed(2)}
+        &nbsp;&nbsp;
+        <strong>${propertyDisplayName}</strong> max: ${this.maxValue.toFixed(2)}
       </div>
     `;
+    this.dom.infoSection.style.display = '';
 
-    // Update the output label with property name
     if (this.dom.outputLabel) {
-      this.dom.outputLabel.innerHTML = `Set <strong>${this.propertyName || 'output'}</strong> range to:`;
+      this.dom.outputLabel.innerHTML = `Set <strong>${this.propertyName || 'output'}</strong> range:`;
     }
 
-    this.dom.rangeConfig.style.display = 'block';
+    this.dom.rangeConfig.style.display = '';
     this.dom.applyButton.classList.remove('disabled');
   }
 
   apply() {
-    const dropdown = this.element.querySelector('.picker-dropdown');
-    const property = dropdown.value;
+    const property = this.dom.dropdown.value;
 
     if (!property) {
       this.cancel();
@@ -341,26 +311,32 @@ class NumericScalePicker {
       const value = metricSource ? metricSource.values.get(elementId) : element?.featureValues.get(property);
 
       if (value !== undefined && !isNaN(value)) {
-        // Linear interpolation from [minValue, maxValue] to [minOutput, maxOutput]
         const normalizedValue = (value - this.minValue) / (this.maxValue - this.minValue);
         const scaledValue = this.minOutput + normalizedValue * (this.maxOutput - this.minOutput);
         scaleMap.set(elementId, scaledValue);
       }
-      // If value is undefined or NaN, don't add to map - element won't be modified
     });
 
-    this.resolvePromise(scaleMap);
+    if (this.resolvePromise) {
+      this.resolvePromise(scaleMap);
+      this.resolvePromise = null;
+    }
     this.close();
   }
 
   cancel() {
-    this.resolvePromise(null);
+    if (this.resolvePromise) {
+      this.resolvePromise(null);
+      this.resolvePromise = null;
+    }
     this.close();
   }
 
   close() {
-    this.element?.remove();
-    this.element = null;
+    if (this.popup) {
+      this.popup.close();
+      this.popup = null;
+    }
   }
 
   getMetricSource(property) {
@@ -379,11 +355,9 @@ function replaceNumericScale(obj, elemID, scaleMap) {
     const value = obj[key];
 
     if (value === "set_numeric_scale") {
-      // Only replace if element has a scaled value
       if (scaleMap.has(elemID)) {
         obj[key] = scaleMap.get(elemID);
       } else {
-        // Delete the key so this property is not modified for elements without the property
         delete obj[key];
       }
     } else if (typeof value === 'object') {

@@ -12,7 +12,7 @@ const {
   register
 } = G6;
 
-import {DEFAULTS, CFG} from './config.js';
+import {VERSION, DEFAULTS, CFG} from './config.js';
 
 import {GraphCoreManager} from './graph/core.js';
 import {GraphBubbleSetManager} from './graph/bubble_sets.js';
@@ -33,6 +33,7 @@ import {DataTable, buildDataTable} from "./utilities/data_editor.js";
 import {StringDemoDataLoader} from "./utilities/demo_loader.js";
 import {Popup} from "./utilities/popup.js";
 import {StaticUtilities} from "./utilities/static.js";
+import {generateTourData, GuidedTour} from "./utilities/tour.js";
 
 
 // Stores all reference objects
@@ -59,10 +60,11 @@ class Cache {
       editorDiv: null,
       lastGoodWidth: 0,
       sizeObserver: null,
-      sizeChangeLocked: false,
+
       textCache: null,
     }
 
+    this.VERSION = VERSION;
     this.DEFAULTS = DEFAULTS;
     this.CFG = CFG;
 
@@ -323,7 +325,6 @@ let cache = new Cache();
 async function loadDemoData() {
   const formContent = document.createElement('div');
   formContent.innerHTML = `
-    <h3>Load STRING Demo Data</h3>
     <div style="margin-bottom: 10px;">
       <label for="genes-input" style="display: block; margin-bottom: 5px;">Genes (comma- or space-separated):</label>
       <input type="text" id="genes-input" value="TP53" style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
@@ -346,14 +347,15 @@ async function loadDemoData() {
       <a href="https://doi.org/10.1093/nar/gkac1000" target="_blank" style="color: #0066cc;">📄 Citation</a><br>
       <em>Szklarczyk D, Gable AL, Nastou KC, et al. The STRING database in 2023: protein-protein association networks and functional enrichment analyses for any sequenced genome of interest. Nucleic Acids Res. 2023.</em>
     </div>
-    <div style="text-align: right;">
-      <button id="load-btn" class="p-button ml-1">Load</button>
-      <button id="cancel-btn" class="p-button">Cancel</button>
+    <div class="p-footer">
+      <button id="cancel-btn" class="p-button p-button-secondary">Cancel</button>
+      <button id="load-btn" class="p-button p-button-primary">Load</button>
     </div>
   `;
 
   return new Promise((resolve) => {
     const popup = new Popup(formContent, {
+      title: 'Load STRING Demo Data',
       width: '450px',
       showFullscreenButton: false,
       closeOnClickOutside: false,
@@ -364,8 +366,8 @@ async function loadDemoData() {
     const speciesInput = formContent.querySelector('#species-input');
     const nodesInput = formContent.querySelector('#nodes-input');
     const scoreInput = formContent.querySelector('#score-input');
-    const loadBtn = formContent.querySelector('#load-btn');
-    const cancelBtn = formContent.querySelector('#cancel-btn');
+    const loadBtn = document.getElementById('load-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
 
     const handleLoad = async () => {
       const genesText = genesInput.value.trim();
@@ -428,21 +430,118 @@ async function loadDemoData() {
   });
 }
 
+async function startTour() {
+  const data = generateTourData();
+
+  await cache.gcm.destroyGraphAndRollBackUI();
+  cache.gcm.resetEventLocks();
+  cache.io.preProcessData(data);
+  cache.buildDataTable(data);
+  cache.ui.buildUI();
+
+  await cache.gcm.createGraphInstance();
+  await cache.graph.render();
+  await cache.ui.hideLoading();
+
+  // wait for layout to settle
+  await new Promise(r => setTimeout(r, 800));
+
+  const tour = new GuidedTour(cache);
+  await tour.start();
+}
+
 window.loadDemoData = loadDemoData;
+window.startTour = startTour;
 window.cache = cache;
 
 
 window.addEventListener('resize', () => {
   if (window.graph !== undefined && window.graph !== null && window.cache.initialized) {
     const editModeActive = document.getElementById("editBtn").classList.contains("active");
+    const sidebar = document.getElementById("sidebar");
     const sidebarContentContainer = document.getElementById("sidebarContentContainer");
     const status = document.getElementById("sidebarStatusContainer");
 
-    status.style.maxWidth = editModeActive ? `${sidebarContentContainer.offsetWidth}px` : "360px";
+    status.style.maxWidth = editModeActive ? `${sidebarContentContainer.offsetWidth}px` : `${sidebar.offsetWidth}px`;
   }
 })
 
 window.addEventListener("DOMContentLoaded", () => {
   cache.reset();
   // cache.initialize();
+
+  // Display version info
+  const versionInfo = document.getElementById('versionInfo');
+  if (versionInfo) {
+    versionInfo.textContent = `v${VERSION}`;
+  }
+  const landingVersion = document.getElementById('landingVersion');
+  if (landingVersion) {
+    landingVersion.textContent = `v${VERSION}`;
+  }
+
+  // Setup sidebar resize functionality
+  const sidebar = document.getElementById('sidebar');
+  const resizeHandle = document.querySelector('.sidebar-resize-handle');
+  let isResizing = false;
+  let startX = 0;
+  let startWidth = 0;
+  let shadowBar = null;
+
+  resizeHandle.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    startX = e.clientX;
+    startWidth = sidebar.offsetWidth;
+
+    // Create shadow bar
+    shadowBar = document.createElement('div');
+    shadowBar.className = 'sidebar-resize-shadow';
+    shadowBar.style.left = `${startWidth}px`;
+    shadowBar.style.width = '4px';
+    shadowBar.style.display = 'block';
+    document.body.appendChild(shadowBar);
+
+    document.body.style.cursor = 'ew-resize';
+    document.body.style.userSelect = 'none';
+
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+
+    const deltaX = e.clientX - startX;
+    const newWidth = Math.max(200, startWidth + deltaX);
+
+    if (shadowBar) {
+      shadowBar.style.left = `${newWidth}px`;
+    }
+  });
+
+  document.addEventListener('mouseup', (e) => {
+    if (!isResizing) return;
+
+    const deltaX = e.clientX - startX;
+    const newWidth = Math.max(200, startWidth + deltaX);
+
+    sidebar.style.width = `${newWidth}px`;
+
+    // Update status container max-width if needed
+    const editModeActive = document.getElementById("editBtn")?.classList.contains("active");
+    const sidebarContentContainer = document.getElementById("sidebarContentContainer");
+    const status = document.getElementById("sidebarStatusContainer");
+
+    if (status && sidebarContentContainer) {
+      status.style.maxWidth = editModeActive ? `${sidebarContentContainer.offsetWidth}px` : `${newWidth}px`;
+    }
+
+    isResizing = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+
+    if (shadowBar) {
+      shadowBar.remove();
+      shadowBar = null;
+    }
+  });
 })

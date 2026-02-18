@@ -956,6 +956,7 @@ class IOManager {
       upperThreshold: -Infinity,
       isInverted: false,
       isCategory: false,
+      hasFloatValues: false,
       categories: new Set(),
     };
     for (let group of this.cache.bs.traverseBubbleSets()) {
@@ -989,6 +990,9 @@ class IOManager {
       return
     }
 
+    if (!this.cache.data.filterDefaults.get(propHash).hasFloatValues && !StaticUtilities.isInteger(nodeOrEdgeValue)) {
+      this.cache.data.filterDefaults.get(propHash).hasFloatValues = true;
+    }
     this.cache.data.filterDefaults.get(propHash).lowerThreshold = Math.min(nodeOrEdgeValue, this.cache.data.filterDefaults.get(propHash).lowerThreshold);
     this.cache.data.filterDefaults.get(propHash).upperThreshold = Math.max(nodeOrEdgeValue, this.cache.data.filterDefaults.get(propHash).upperThreshold);
   };
@@ -1117,6 +1121,7 @@ class IOManager {
         isCustom: layout.isCustom || false,
         query: layout["query"] || undefined,
         // Per-view styles - check if already Maps
+        hideDisconnectedNodes: layout.hideDisconnectedNodes || false,
         nodeStyles: layout.nodeStyles instanceof Map ? layout.nodeStyles : new Map(Object.entries(layout.nodeStyles || {})),
         edgeStyles: layout.edgeStyles instanceof Map ? layout.edgeStyles : new Map(Object.entries(layout.edgeStyles || {})),
         bubbleSetStyle: layout.bubbleSetStyle || structuredClone(this.cache.DEFAULTS.BUBBLE_GROUP_STYLE),
@@ -1225,7 +1230,7 @@ class IOManager {
           return;
         }
         await this.cache.graph.render();
-        await this.cache.graph.fitView();
+        await this.cache.gcm.fitViewToVisibleNodes();
         this.cache.ui.debug("Initial graph rendered.");
 
         // Update UI lock state if query was applied

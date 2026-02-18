@@ -1,6 +1,6 @@
 {
   "name": "graph-lens-lite",
-  "version": "1.10.3",
+  "version": "1.11.0",
   "main": "src/package/electron_app.js",
   "description": "Visualise and explore property graphs in a lightweight desktop app.",
   "homepage": "https://github.com/Delta4AI/GraphLensLite",
@@ -9,7 +9,7 @@
     "email": "matthias.ley@delta4.ai"
   },
   "scripts": {
-    "start": "electron .",
+    "start": "npm run inject-version && electron .",
     "pack": "electron-builder --dir",
     "clean:linux": "rm -rf dist && mkdir -p dist",
     "bundle": "esbuild src/gll.js --bundle --outfile=src/gll.bundle.js",
@@ -17,15 +17,18 @@
     "bundle:watch": "esbuild src/gll.js --bundle --outfile=src/gll.bundle.js --watch --sourcemap",
     "bundle:serve": "esbuild src/gll.js --bundle --outfile=src/gll.bundle.js --watch --sourcemap --servedir=src",
     "create-inline-html": "node src/package/inline_html.mjs src/graph_lens_lite.html dist/graph-lens-lite_inline_${npm_package_version}.html",
+    "inject-version": "node src/package/inject_version.js",
     "inject-excel-template": "node src/package/inject_excel_template.mjs",
     "substitute-gll": "node src/package/substitute_gll_bundle_reference.js",
-    "dist:prep": "node -e \"require('fs').mkdirSync('dist',{recursive:true})\" && npm run bundle:prod && npm run inject-excel-template && npm run substitute-gll start && npm run create-inline-html",
+    "dist:prep": "node -e \"require('fs').mkdirSync('dist',{recursive:true})\" && npm run inject-version && npm run bundle:prod && npm run inject-excel-template && npm run substitute-gll start && npm run create-inline-html",
     "dist:prep:linux": "npm run clean:linux && npm run dist:prep",
     "dist-windows": "npm run dist:prep && electron-builder --win --publish=never && npm run substitute-gll end",
     "dist-linux": "npm run dist:prep:linux && electron-builder --linux --publish=never && npm run substitute-gll end",
     "dist-mac": "npm run dist:prep && electron-builder --mac --publish=never && npm run substitute-gll end",
     "dist": "npm run dist-linux && npm run dist-windows",
-    "serve": "npx http-server src -p 8000 --cors -o /graph_lens_lite.html "
+    "serve": "npx http-server src -p 8000 --cors -o /graph_lens_lite.html ",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "build": {
     "appId": "com.delta4ai.graphlenslite",
@@ -65,6 +68,7 @@
     "exceljs": "^4.4.0",
     "inline-source": "^8.0.3",
     "inline-source-cli": "^1.2.0",
-    "rimraf": "^6.0.1"
+    "rimraf": "^6.0.1",
+    "vitest": "^4.0.18"
   }
 }

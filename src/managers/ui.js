@@ -1,11 +1,13 @@
 import {StaticUtilities} from "../utilities/static.js";
 import {DropdownChecklist, InvertibleRangeSlider} from "./ui_components.js";
 import {createStyleDiv} from "./ui_style_div.js";
+import {Popup} from "../utilities/popup.js";
 
 class UIManager {
   constructor(cache, debugEnabled = false) {
     this.cache = cache;
     this.debugEnabled = debugEnabled;
+    this.bottomBarHeight = null;
   }
 
   async showLoading(header, text = "") {
@@ -231,6 +233,15 @@ class UIManager {
     }, 300);
   }
 
+  async reloadApp() {
+    if (!this.cache.initialized) return;
+
+    const confirmed = await Popup.confirm('Reload the application and start from scratch?');
+    if (confirmed) {
+      location.reload();
+    }
+  }
+
   showEditor(editorType) {
     const mainContent = document.getElementById("mainContent");
     const bottomBar = document.getElementById("bottomBar");
@@ -238,12 +249,18 @@ class UIManager {
     const dataEditor = document.getElementById("dataEditor");
     const queryButtons = document.querySelector(".query-buttons");
     const dataButtons = document.querySelector(".data-buttons");
-    const queryHelpIconDiv = document.getElementById("queryHelpIconDiv");
-    const dataHelpIconDiv = document.getElementById("dataHelpIconDiv");
     const queryToggleButtons = document.querySelectorAll('.add-to-query-button');
+    const headerText = document.getElementById("bottomBarHeaderText");
+    const helpBtn = document.getElementById("bottomBarHelpBtn");
 
-    mainContent.style.height = "80%";
-    bottomBar.style.height = "20%";
+    if (this.bottomBarHeight) {
+      const mainHeight = window.innerHeight - this.bottomBarHeight;
+      bottomBar.style.height = this.bottomBarHeight + 'px';
+      mainContent.style.height = mainHeight + 'px';
+    } else {
+      mainContent.style.height = "65%";
+      bottomBar.style.height = "35%";
+    }
     bottomBar.classList.add("active");
 
     if (editorType === 'query') {
@@ -251,17 +268,19 @@ class UIManager {
       dataEditor.style.display = "none";
       queryButtons.style.display = "flex";
       dataButtons.style.display = "none";
-      queryHelpIconDiv.style.display = "flex";
-      dataHelpIconDiv.style.display = "none";
       queryToggleButtons.forEach(btn => btn.classList.add("show"));
+      headerText.textContent = "Query Editor";
+      helpBtn.onclick = () => this.cache.qm.showQueryHelp();
+      helpBtn.title = "Display query editor help";
     } else if (editorType === 'data') {
       queryEditor.style.display = "none";
       dataEditor.style.display = "block";
       queryButtons.style.display = "none";
       dataButtons.style.display = "flex";
-      queryHelpIconDiv.style.display = "none";
-      dataHelpIconDiv.style.display = "flex";
       queryToggleButtons.forEach(btn => btn.classList.remove("show"));
+      headerText.textContent = "Data Editor";
+      helpBtn.onclick = () => this.cache.dataTable.help();
+      helpBtn.title = "Display data editor help";
     }
   }
 
@@ -346,6 +365,7 @@ class UIManager {
 
         bottomBar.style.height = finalHeight + 'px';
         mainContent.style.height = newMainHeight + 'px';
+        this.bottomBarHeight = finalHeight;
 
         // Resize graph canvas after manual resize (no transition, resize immediately)
         if (this.cache.graph) {
@@ -367,6 +387,7 @@ class UIManager {
 
   async toggleEditMode() {
     const editBtn = document.getElementById("editBtn");
+    if (!editBtn) return;
     let editModeActive = editBtn.classList.contains("active");
     editModeActive ? editBtn.classList.remove("active") : editBtn.classList.add("active");
 
@@ -445,6 +466,7 @@ class UIManager {
 
   handleEditModeUIChanges() {
     const editBtn = document.getElementById("editBtn");
+    if (!editBtn) return;
     const editModeActive = editBtn.classList.contains("active");
 
     editModeActive ? editBtn.classList.add("highlight") : editBtn.classList.remove("highlight");
@@ -527,7 +549,13 @@ class UIManager {
 
   buildFilterUI() {
     const div = document.getElementById("filterContainer");
+    const editBtn = document.getElementById("editBtn");
     div.innerHTML = "";
+
+    // Re-append editBtn if it exists
+    if (editBtn) {
+      div.appendChild(editBtn);
+    }
 
     // Always create lock status bar, show/hide based on lock state
     const statusBar = this.createFilterLockStatusBar();
@@ -615,6 +643,12 @@ class UIManager {
   }
 
   showUI(show) {
+    const landing = document.getElementById('landingPage');
+    if (landing) {
+      if (show) landing.classList.add('hidden');
+      else landing.classList.remove('hidden');
+    }
+
     document.querySelectorAll('.showOnLoad').forEach((element) => {
       element.style.opacity = show ? "1" : "0";
       element.style.pointerEvents = show ? "auto" : "none";
@@ -625,6 +659,19 @@ class UIManager {
       element.style.pointerEvents = show ? "none" : "auto";
       element.style.height = show ? "0" : "auto";
     });
+
+    const appHeader = document.getElementById('appHeader');
+    if (appHeader) {
+      if (show) {
+        appHeader.classList.remove('disabled-header');
+        appHeader.classList.add('compact-header');
+        appHeader.title = 'Click to reload application';
+      } else {
+        appHeader.classList.add('disabled-header');
+        appHeader.classList.remove('compact-header');
+        appHeader.title = '';
+      }
+    }
   }
 
   uncheckAllCheckboxes() {

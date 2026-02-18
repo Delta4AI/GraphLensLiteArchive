@@ -78,7 +78,7 @@ class DropdownChecklist {
       checkbox.type = "checkbox";
       checkbox.value = option;
       checkbox.checked = this.selectedCategories.has(option);
-      checkbox.style.display = "none";
+      checkbox.className = "hidden-checkbox";
       checkbox.addEventListener("change", async (ev) => await this.handleSelection(ev));
 
       const customCheckbox = document.createElement("span");
@@ -236,7 +236,8 @@ class InvertibleRangeSlider {
     this.readCurrentFilterSettings();
     this.sliderMin = defaultFilterData.lowerThreshold;
     this.sliderMax = defaultFilterData.upperThreshold;
-    this.stepSize = StaticUtilities.isInteger(this.sliderMin) && StaticUtilities.isInteger(this.sliderMax)
+    const allInteger = StaticUtilities.isInteger(this.sliderMin) && StaticUtilities.isInteger(this.sliderMax) && !defaultFilterData.hasFloatValues;
+    this.stepSize = allInteger
       ? this.cache.CFG.FILTER_STEP_SIZE_INTEGER
       : this.cache.CFG.FILTER_STEP_SIZE_FLOAT;
     this.initializeIds();
@@ -644,15 +645,24 @@ class UIComponentManager {
 
   buildToolTipText(nodeOrEdgeID, isEdge) {
     function initAndAddHeader() {
-      const idFormatted = `<span class='purple'>ID: </span>${item.id}`;
-      const label = item.label && item.label !== item.id
-        ? `${item.label}<br><small>${idFormatted}</small>`
-        : idFormatted;
+      const hasLabel = item.label && item.label !== item.id;
+      const title = hasLabel ? item.label : item.id;
+      const subtitle = hasLabel ? `<div class="tooltip-header-id">ID: ${item.id}</div>` : '';
 
-      return `<h3>
-      <span class="purple">${isEdge ? "Edge" : "Node"}</span> 
-      <span class="red">${label}</span>
-    </h3>`;
+      return `<div class="tooltip-header">
+      <div class="tooltip-header-text">
+        <span class="purple">${isEdge ? "Edge" : "Node"}</span>
+        <div class="tooltip-header-label">
+          <div class="tooltip-header-title">${title}</div>
+          ${subtitle}
+        </div>
+      </div>
+      <div class="tooltip-header-actions">
+        <button class="tooltip-expand-btn" onclick="window.toggleTooltipExpand(this)">⛶</button>
+        <button class="tooltip-close-btn" onclick="window.closeTooltip(this)">×</button>
+      </div>
+    </div>
+    <div class="tooltip-content">`;
     }
 
     function addDescription() {
@@ -807,6 +817,7 @@ class UIComponentManager {
     }
 
     buildColumns();
+    tooltip += '</div>';
     return tooltip;
   }
 
@@ -873,7 +884,7 @@ class UIComponentManager {
     input.id = `filter-${propID}-checkbox`;
     input.type = 'checkbox';
     input.checked = initialState;
-    input.style.display = 'none';
+    input.className = 'hidden-checkbox';
     return input;
   }
 
@@ -914,7 +925,7 @@ class UIComponentManager {
       }
 
       if (this.cache.data.layouts[this.cache.data.selectedLayout]["query"] === undefined) {
-        this.cache.qm.handleQueryValidationEvent();
+        this.cache.qm.handleQueryValidationEvent(true);
       }
 
       if (!this.cache.query.text.textContent.trim()) {

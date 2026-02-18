@@ -115,7 +115,7 @@ class NetworkMetrics {
 
     /* tooltip */
     document.getElementById("metricInfoBtn").onclick = () => {
-      this.cache.popup = new Popup(metricResult.popupContent);
+      this.cache.popup = new Popup(metricResult.popupContent, {title: metricResult.popupTitle, width: '400px'});
     };
     await this.cache.ui.hideLoading();
     await new Promise(resolve => requestAnimationFrame(resolve));
@@ -357,9 +357,8 @@ async function calculateDegreeCentrality(cache) {
       "Graph Density": +(sum / n).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
       "Centralization": +centralization.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
     },
+    popupTitle: 'Degree Centrality',
     popupContent: `<div>
-<h1>Degree Centrality</h1>
-<hr>
 <p>Degree centrality is a measure of the number of connections a node has in a network.
 Nodes with more connections are considered more central and receive a higher score (up to 1.0).
 <a href="https://doi.org/10.2307%2F3033543">Freeman, 1977</a>
@@ -507,9 +506,8 @@ async function calculateBetweennessCentrality(cache) {
       "Average Betweenness Centrality": +mean.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
       "Centralization": +centralization.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
     },
+    popupTitle: 'Betweenness Centrality',
     popupContent: `<div>
-<h1>Betweenness Centrality</h1>
-<hr>
 <p>Betweenness centrality measures how often a node acts as a bridge along the shortest path between two other nodes.
 Nodes with high betweenness centrality are important controllers of information flow in the network.
 <a href="https://doi.org/10.2307%2F3033543">Freeman, 1977</a>
@@ -622,9 +620,8 @@ async function calculateClosenessCentrality(cache) {
       "Average Closeness Centrality": +mean.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
       "Centralization": +((n * max - sum) / ((n - 1) * (n - 2) / (2 * n - 3))).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
     },
+    popupTitle: 'Closeness Centrality',
     popupContent: `<div>
-<h1>Closeness Centrality</h1>
-<hr>
 <p>Closeness centrality measures how near a node is to all others via shortest paths. A higher score (up to 1.0)
  indicates shorter average distance to every node.  
 <a href="https://psycnet.apa.org/doi/10.1121/1.1906679">Bavelas, 1950</a>
@@ -732,9 +729,8 @@ async function calculateEigenvectorCentrality(cache) {
       "Variance Eigenvector Centrality": +variance.toFixed(NODE_CONNECTIVITY_METRICS_PRECISION),
       "Centralization": +(scores.reduce((acc, s) => acc + (max - s.centrality), 0) / (n - 1)).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
     },
+    popupTitle: 'Eigenvector Centrality',
     popupContent: `<div>
-<h1>Eigenvector Centrality</h1>
-<hr>
 <p>Eigenvector centrality scores nodes by connecting to other high-scoring nodes: 
 links to influential neighbours matter more than links to peripheral ones.
 <a href="https://doi.org/10.1093/oso/9780198805090.003.0006">Newman, 2010</a>
@@ -861,9 +857,8 @@ async function calculatePageRank(cache) {
       "Minimum Degree": minDegree,
       "Mean Degree": +(avgDegree).toFixed(NODE_CONNECTIVITY_METRICS_PRECISION)
     },
+    popupTitle: 'PageRank',
     popupContent: `<div>
-<h1>PageRank</h1>
-<hr>
 <p>PageRank measures node importance based on the number and quality of incoming links. 
 A node is important if it receives many links from other important nodes.
 <a href="https://doi.org/10.1016/S0169-7552(98)00110-X">Brin & Page, 1998</a>
@@ -954,4 +949,11 @@ A node is important if it receives many links from other important nodes.
   };
 }
 
-export { NetworkMetrics };
+export {
+  NetworkMetrics,
+  calculateDegreeCentrality,
+  calculateBetweennessCentrality,
+  calculateClosenessCentrality,
+  calculateEigenvectorCentrality,
+  calculatePageRank,
+};
