@@ -29,6 +29,7 @@ jobs:
         with:
           name: windows-dist
           path: dist/*
+          retention-days: 1
 
   build-linux:
     runs-on: ubuntu-latest
@@ -52,6 +53,7 @@ jobs:
         with:
           name: linux-dist
           path: dist/*
+          retention-days: 1
 
   build-macos:
     runs-on: macos-latest
@@ -75,6 +77,7 @@ jobs:
         with:
           name: macos-dist
           path: dist/*
+          retention-days: 1
 
   release:
     needs: [build-windows, build-linux, build-macos]
@@ -157,6 +160,19 @@ jobs:
             dist/*.pkg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  cleanup:
+    needs: [release, deploy-demo]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete intermediate artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+            windows-dist
+            linux-dist
+            macos-dist
 
   deploy-demo:
     needs: [build-linux]
