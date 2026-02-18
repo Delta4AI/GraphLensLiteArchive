@@ -3,7 +3,7 @@ import os
 from playwright.sync_api import sync_playwright
 from datetime import datetime
 
-SCALES = [f'{i}x' for i in range(1, 11)]
+SCALES = [f'{i}x' for i in range(1, 16)]
 
 BROWSER_SIZES = {
     'normal':   1,
