@@ -1,3 +1,5 @@
+import {Popup} from './popup.js';
+
 class ColorScalePicker {
   constructor(cache) {
     this.defaultColors = {
@@ -6,7 +8,6 @@ class ColorScalePicker {
       max: '#C33D35'
     };
     this.handles = [];
-    this.element = null;
     this.resolvePromise = null;
     this.minValue = 0;
     this.maxValue = 0;
@@ -17,129 +18,128 @@ class ColorScalePicker {
     this.dom = {};
     this.metricValuePrefix = "__metric__:";
     this.activeMetricSource = null;
-
+    this.popup = null;
     this.cache = cache;
   }
 
-  createDom() {
-    const overlay = document.createElement('div');
-    overlay.className = 'picker-overlay';
-    this.dom.overlay = overlay;
-
-    const content = document.createElement('div');
-    content.className = 'picker-content';
-    this.dom.content = content;
-
-    const header = document.createElement('div');
-    header.className = 'picker-header';
-    const title = document.createElement('span');
-    title.className = 'picker-title';
-    title.textContent = 'Map Property to Color Scale';
-    header.appendChild(title);
-    content.appendChild(header);
-
-    const body = document.createElement('div');
-    body.className = 'picker-body';
-    this.dom.body = body;
-
-    const dropdownLabel = document.createElement('div');
-    dropdownLabel.textContent = 'Select Property to Map:';
-    dropdownLabel.style.fontWeight = 'bold';
-    dropdownLabel.style.marginBottom = '8px';
-    content.appendChild(dropdownLabel);
+  buildContent() {
+    const container = document.createElement('div');
 
     const dropdown = document.createElement('select');
-    dropdown.className = 'picker-dropdown';
+    dropdown.className = 'p-prompt picker-dropdown';
     this.dom.dropdown = dropdown;
-    body.appendChild(dropdown);
+    container.appendChild(dropdown);
+
+    const infoSection = document.createElement('div');
+    infoSection.className = 'picker-info';
+    infoSection.style.display = 'none';
+    this.dom.infoSection = infoSection;
+    container.appendChild(infoSection);
 
     const gradient = document.createElement('div');
-    gradient.className = 'picker-gradient disabled';
+    gradient.className = 'picker-gradient';
+    gradient.style.display = 'none';
     this.dom.gradient = gradient;
+    container.appendChild(gradient);
 
     const handleContainer = document.createElement('div');
     handleContainer.className = 'picker-handle-container';
     this.dom.handleContainer = handleContainer;
+    container.appendChild(handleContainer);
 
     const controls = document.createElement('div');
-    controls.className = 'picker-controls disabled';
+    controls.className = 'picker-controls';
+    controls.style.display = 'none';
     this.dom.controls = controls;
 
     const addButton = document.createElement('button');
-    addButton.className = 'picker-button plus-minus';
-    addButton.textContent = '+';
+    addButton.className = 'p-button picker-stop-btn';
+    addButton.textContent = '+ Add Stop';
+    addButton.title = 'Add a color stop to the gradient';
     addButton.onclick = () => this.addHandle();
     this.dom.addButton = addButton;
 
     const removeButton = document.createElement('button');
-    removeButton.className = 'picker-button plus-minus';
-    removeButton.textContent = '-';
+    removeButton.className = 'p-button picker-stop-btn';
+    removeButton.textContent = '− Remove Stop';
+    removeButton.title = 'Remove the middle color stop from the gradient';
     removeButton.onclick = () => this.removeHandle();
     this.dom.removeButton = removeButton;
+
+    controls.append(addButton, removeButton);
+    container.appendChild(controls);
 
     const categoryContainer = document.createElement('div');
     categoryContainer.className = 'picker-category-container';
     categoryContainer.style.display = 'none';
     this.dom.categoryContainer = categoryContainer;
+    container.appendChild(categoryContainer);
 
-    controls.append(addButton, removeButton);
-    const buttons = document.createElement('div');
-    buttons.className = 'picker-button-container';
-    this.dom.buttons = buttons;
+    const defaultSection = document.createElement('div');
+    defaultSection.className = 'picker-default-color-section';
+    defaultSection.style.display = 'none';
+    this.dom.defaultColorContainer = defaultSection;
 
-    const cancelButton = document.createElement('button');
-    cancelButton.className = 'picker-button secondary';
-    cancelButton.textContent = 'Cancel';
-    cancelButton.onclick = () => this.cancel();
-    this.dom.cancelButton = cancelButton;
+    const dcLabel = document.createElement('span');
+    dcLabel.textContent = 'Default color for missing values:';
 
-    const defaultColorContainer = document.createElement('div');
-    defaultColorContainer.className = 'picker-default-color-container disabled';
-    this.dom.defaultColorContainer = defaultColorContainer;
-
-    const label = document.createElement('span');
-    label.textContent = 'Default color:';
-    label.title = 'Default color for elements with missing values';
-    this.dom.label = label;
-
-    const defaultColorEl = document.createElement('input');
-    defaultColorEl.type = 'color';
-    defaultColorEl.className = 'picker-default-color';
-    defaultColorEl.value = this.defaultColorForMissing;
-    defaultColorEl.addEventListener('input', (e) => {
+    const dcInput = document.createElement('input');
+    dcInput.type = 'color';
+    dcInput.className = 'picker-color-swatch';
+    dcInput.value = this.defaultColorForMissing;
+    dcInput.addEventListener('input', (e) => {
       this.defaultColorForMissing = e.target.value;
     });
-    this.dom.defaultColorEl = defaultColorEl;
+    this.dom.defaultColorEl = dcInput;
 
-    defaultColorContainer.append(label, defaultColorEl);
+    defaultSection.append(dcLabel, dcInput);
+    container.appendChild(defaultSection);
 
-    const applyButton = document.createElement('button');
-    applyButton.className = 'picker-button primary disabled';
-    applyButton.textContent = 'Apply';
-    applyButton.onclick = () => this.apply();
-    this.dom.applyButton = applyButton;
+    const footer = document.createElement('div');
+    footer.className = 'p-footer';
 
-    buttons.append(cancelButton, defaultColorContainer, applyButton);
-    body.append(gradient, handleContainer, controls, categoryContainer);
-    content.append(body, buttons);
-    overlay.appendChild(content);
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'p-button p-button-secondary';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.onclick = () => this.cancel();
 
-    this.element = overlay;
-    return overlay;
+    const applyBtn = document.createElement('button');
+    applyBtn.className = 'p-button p-button-primary disabled';
+    applyBtn.textContent = 'Apply';
+    applyBtn.onclick = () => this.apply();
+    this.dom.applyButton = applyBtn;
+
+    footer.append(cancelBtn, applyBtn);
+    container.appendChild(footer);
+
+    return container;
   }
 
   async pickColors(elementType = 'nodes') {
     this.elementType = elementType;
     return new Promise(resolve => {
       this.resolvePromise = resolve;
-      document.body.appendChild(this.createDom());
+      const content = this.buildContent();
+      this.popup = new Popup(content, {
+        title: 'Map Property to Color Scale',
+        width: '480px',
+        showFullscreenButton: false,
+        closeOnClickOutside: false,
+        onClose: () => {
+          if (this.resolvePromise) {
+            this.resolvePromise(null);
+            this.resolvePromise = null;
+          }
+          this.popup = null;
+        }
+      });
       this.initializeFilters();
       this.setupHandleDragging();
     });
   }
 
   initializeFilters() {
-    const dropdown = this.element.querySelector('.picker-dropdown');
+    const dropdown = this.dom.dropdown;
     const filters = new Map(this.cache.data.layouts[this.cache.data.selectedLayout].filters);
     const available = new Set();
 
@@ -159,7 +159,7 @@ class ColorScalePicker {
       ? this.cache.metrics.getMetricScaleOptions()
       : [];
 
-    dropdown.innerHTML = '<option value="">Select property</option>';
+    dropdown.innerHTML = '<option value="">Select property...</option>';
     const propertyOptions = Array.from(available).sort();
     if (propertyOptions.length > 0) {
       const dataGroup = document.createElement('optgroup');
@@ -244,64 +244,37 @@ class ColorScalePicker {
       return;
     }
 
-    const existingCounter = this.element.querySelector('.picker-property-counter');
-    if (existingCounter) {
-      existingCounter.remove();
-    }
-
-    const counterEl = document.createElement('div');
-    counterEl.className = 'picker-property-counter';
-    counterEl.style.padding = '15px';
-    counterEl.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
-    counterEl.style.borderRadius = '4px';
-    counterEl.style.marginTop = '15px';
-    this.element.querySelector('.picker-body').insertBefore(
-      counterEl,
-      this.element.querySelector('.picker-gradient')
-    );
-
     const elementTypeLabel = this.elementType === 'nodes' ? 'nodes' : 'edges';
-
-    // Extract property label after last "::"
     const propertyDisplayName = metricSource
       ? `${metricSource.label} (${metricSource.valueLabel})`
       : (property.includes('::') ? property.split('::').pop() : property);
-
-    // Get the current property being styled (like "Node Fill Color")
     const targetProperty = this.currentProperty || 'color';
 
-    let summaryHTML = `
-      <div style="font-size: 14px;">
-        Coloring <strong>${targetProperty}</strong> for <strong>${elementsWithPropertyCount}</strong> of <strong>${totalElements}</strong> affected ${elementTypeLabel}
-    `;
+    let infoHTML = `<div class="picker-info-summary">
+      Coloring <strong>${targetProperty}</strong> for <strong>${elementsWithPropertyCount}</strong> of <strong>${totalElements}</strong> ${elementTypeLabel}`;
 
-    // Add property range for continuous (non-category) properties
     if (!filterObj.isCategory) {
       const minVal = Math.min(...values);
       const maxVal = Math.max(...values);
-
-      summaryHTML += `<br><div style="font-size: 13px; color: #333; margin-top: 8px;">
-          <strong>${propertyDisplayName}</strong> min: ${minVal.toFixed(2)} &nbsp;&nbsp;&nbsp;&nbsp; <strong>${propertyDisplayName}</strong> max: ${maxVal.toFixed(2)}
-        </div>`;
+      infoHTML += `</div><div class="picker-info-range">
+        <strong>${propertyDisplayName}</strong> min: ${minVal.toFixed(2)}
+        &nbsp;&nbsp;
+        <strong>${propertyDisplayName}</strong> max: ${maxVal.toFixed(2)}
+      </div>`;
+    } else {
+      infoHTML += `</div>`;
     }
 
-    summaryHTML += `
-      </div>
-    `;
+    this.dom.infoSection.innerHTML = infoHTML;
+    this.dom.infoSection.style.display = '';
 
-    counterEl.innerHTML = summaryHTML;
-
-    if (this.dom.defaultColorContainer) {
-      if (elementsWithPropertyCount === totalElements) {
-        this.dom.defaultColorContainer.classList.add('disabled');
-      } else {
-        this.dom.defaultColorContainer.classList.remove('disabled');
-      }
+    if (elementsWithPropertyCount < totalElements) {
+      this.dom.defaultColorContainer.style.display = '';
+    } else {
+      this.dom.defaultColorContainer.style.display = 'none';
     }
 
-    for (const elem of [this.dom.applyButton, this.dom.controls, this.dom.gradient]) {
-      elem.classList.remove("disabled");
-    }
+    this.dom.applyButton.classList.remove('disabled');
 
     if (filterObj.isCategory) {
       this.categories = ([...filterObj.categories] || [])
@@ -313,16 +286,11 @@ class ColorScalePicker {
   }
 
   renderCategories() {
-    const gradient = this.element.querySelector('.picker-gradient');
-    const handleContainer = this.element.querySelector('.picker-handle-container');
-    const controls = this.element.querySelector('.picker-controls');
-    const categoryContainer = this.element.querySelector('.picker-category-container');
-
-    gradient.style.display = 'none';
-    handleContainer.style.display = 'none';
-    controls.style.display = 'none';
-    categoryContainer.innerHTML = '';
-    categoryContainer.style.display = 'block';
+    this.dom.gradient.style.display = 'none';
+    this.dom.handleContainer.style.display = 'none';
+    this.dom.controls.style.display = 'none';
+    this.dom.categoryContainer.innerHTML = '';
+    this.dom.categoryContainer.style.display = '';
 
     this.categories.forEach(cat => {
       const row = document.createElement('div');
@@ -339,7 +307,7 @@ class ColorScalePicker {
       };
 
       row.append(label, colorInput);
-      categoryContainer.appendChild(row);
+      this.dom.categoryContainer.appendChild(row);
     });
   }
 
@@ -366,17 +334,17 @@ class ColorScalePicker {
       {pos: 100, color: this.defaultColors.max, value: this.maxValue, fixed: true}
     ];
 
-    this.element.querySelector('.picker-gradient').style.display = 'block';
-    this.element.querySelector('.picker-handle-container').style.display = 'block';
-    this.element.querySelector('.picker-controls').style.display = 'flex';
-    this.element.querySelector('.picker-category-container').style.display = 'none';
+    this.dom.gradient.style.display = '';
+    this.dom.handleContainer.style.display = '';
+    this.dom.controls.style.display = '';
+    this.dom.categoryContainer.style.display = 'none';
 
     this.renderHandles();
     this.updateGradient();
   }
 
   setupHandleDragging() {
-    const container = this.element.querySelector('.picker-handle-container');
+    const container = this.dom.handleContainer;
 
     container.addEventListener('mousedown', e => {
       const handleEl = e.target.closest('.picker-handle');
@@ -411,8 +379,7 @@ class ColorScalePicker {
   }
 
   renderHandles() {
-    const container = this.element.querySelector('.picker-handle-container');
-    container.innerHTML = '';
+    this.dom.handleContainer.innerHTML = '';
 
     this.handles.forEach((handle, i) => {
       const element = document.createElement('div');
@@ -431,11 +398,6 @@ class ColorScalePicker {
       colorPicker.type = 'color';
       colorPicker.value = handle.color;
       colorPicker.className = 'picker-handle-color';
-      colorPicker.style.opacity = '0';
-      colorPicker.style.position = 'absolute';
-      colorPicker.style.width = '100%';
-      colorPicker.style.height = '100%';
-      colorPicker.style.cursor = 'pointer';
 
       colorPicker.addEventListener('input', (e) => {
         handle.color = e.target.value;
@@ -449,25 +411,22 @@ class ColorScalePicker {
 
       element.appendChild(value);
       element.appendChild(colorPicker);
-      container.appendChild(element);
+      this.dom.handleContainer.appendChild(element);
     });
   }
 
   updateGradient() {
-    const gradient = this.element.querySelector('.picker-gradient');
     const stops = [...this.handles]
       .sort((a, b) => a.pos - b.pos)
       .map(h => `${h.color} ${h.pos}%`)
       .join(', ');
-    gradient.style.background = `linear-gradient(to right, ${stops})`;
+    this.dom.gradient.style.background = `linear-gradient(to right, ${stops})`;
   }
 
   addHandle() {
     if (this.handles.length >= 10) return;
 
     const newColor = this.generateRandomColor();
-
-    // Find two adjacent handles with the largest gap
     const sortedHandles = [...this.handles].sort((a, b) => a.pos - b.pos);
     let maxGap = 0;
     let insertIndex = 1;
@@ -480,7 +439,6 @@ class ColorScalePicker {
       }
     }
 
-    // Insert new handle at the midpoint of the largest gap
     const pos = (sortedHandles[insertIndex - 1].pos + sortedHandles[insertIndex].pos) / 2;
     const value = this.minValue + (pos / 100) * (this.maxValue - this.minValue);
 
@@ -499,7 +457,7 @@ class ColorScalePicker {
   }
 
   apply() {
-    const dropdown = this.element.querySelector('.picker-dropdown');
+    const dropdown = this.dom.dropdown;
     const colorMap = new Map();
 
     const selectedElements = this.elementType === 'nodes' ? this.cache.selectedNodes : this.cache.selectedEdges;
@@ -524,7 +482,6 @@ class ColorScalePicker {
         if (value !== undefined && categoryColorMap.has(value)) {
           colorMap.set(elementId, categoryColorMap.get(value));
         }
-        // Skip elements without the property - they'll keep their original color
       });
     } else {
       Array.from(selectedElements).forEach(elementId => {
@@ -538,16 +495,21 @@ class ColorScalePicker {
           const color = this.getColorForValue(normalizedValue);
           colorMap.set(elementId, color);
         }
-        // Skip elements without the property - they'll keep their original color
       });
     }
 
-    this.resolvePromise(colorMap);
+    if (this.resolvePromise) {
+      this.resolvePromise(colorMap);
+      this.resolvePromise = null;
+    }
     this.close();
   }
 
   cancel() {
-    this.resolvePromise(null);
+    if (this.resolvePromise) {
+      this.resolvePromise(null);
+      this.resolvePromise = null;
+    }
     this.close();
   }
 
@@ -556,12 +518,10 @@ class ColorScalePicker {
     let lower = sortedHandles[0];
     let upper = sortedHandles[sortedHandles.length - 1];
 
-    // Find the appropriate pair of handles, skipping overlapping ones
     for (let i = 0; i < sortedHandles.length - 1; i++) {
       const currentHandle = sortedHandles[i];
       const nextHandle = sortedHandles[i + 1];
 
-      // Skip if handles are at the same position (overlapping)
       if (currentHandle.pos === nextHandle.pos) {
         continue;
       }
@@ -573,10 +533,7 @@ class ColorScalePicker {
       }
     }
 
-    // Handle case where handles are at the same position (division by zero)
-    // This can happen if all handles overlap at the same position
     if (lower.pos === upper.pos) {
-      // Use the upper color (last in sort order at that position)
       return upper.color;
     }
 
@@ -585,7 +542,6 @@ class ColorScalePicker {
   }
 
   interpolateColor(color1, color2, t) {
-    // Clamp t to [0, 1] range to handle edge cases
     t = Math.max(0, Math.min(1, isNaN(t) ? 0 : t));
 
     const r1 = parseInt(color1.slice(1, 3), 16);
@@ -604,8 +560,10 @@ class ColorScalePicker {
   }
 
   close() {
-    this.element?.remove();
-    this.element = null;
+    if (this.popup) {
+      this.popup.close();
+      this.popup = null;
+    }
   }
 
   getMetricSource(property) {
@@ -624,11 +582,9 @@ function replaceColorScale(obj, elemID, colorMap) {
     const value = obj[key];
 
     if (value === "set_continuous_color_scale") {
-      // Only replace if element has a color in the map
       if (colorMap.has(elemID)) {
         obj[key] = colorMap.get(elemID);
       } else {
-        // Delete the key so this property is not modified for elements without the property
         delete obj[key];
       }
     } else if (typeof value === 'object') {
