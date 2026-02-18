@@ -38,5 +38,6 @@
 
 ### UI
 
+* Redesigned color scale and numeric scale picker popups to use the app's `Popup` system with consistent header, footer, buttons, and overlay styling
 * Reordered header buttons to place export functions at the end
 * Moved edit button to filter container and positioned it in top-right corner
