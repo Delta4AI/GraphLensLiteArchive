@@ -217,29 +217,45 @@ FUNCTION {format.names}
 { 's :=
   #1 'nameptr :=
   s num.names$ 'numnames :=
-  numnames 'namesleft :=
-    { namesleft #0 > }
-    { s nameptr "{f.~}{vv~}{ll}{, jj}" format.name$ 't :=
-      nameptr #1 >
-        { namesleft #1 >
+  numnames #3 >
+    { #3 'namesleft :=
+        { namesleft #0 > }
+        { s nameptr "{f.~}{vv~}{ll}{, jj}" format.name$ 't :=
+          nameptr #1 >
             { ", " * t * }
-            { numnames #2 >
-                { "," * }
-                'skip$
-              if$
-              t "others" =
-                { " et~al." * }
-                { " and " * t * }
+            't
+          if$
+          nameptr #1 + 'nameptr :=
+          namesleft #1 - 'namesleft :=
+        }
+      while$
+      " et~al." *
+    }
+    { numnames 'namesleft :=
+        { namesleft #0 > }
+        { s nameptr "{f.~}{vv~}{ll}{, jj}" format.name$ 't :=
+          nameptr #1 >
+            { namesleft #1 >
+                { ", " * t * }
+                { numnames #2 >
+                    { "," * }
+                    'skip$
+                  if$
+                  t "others" =
+                    { " et~al." * }
+                    { " and " * t * }
+                  if$
+                }
               if$
             }
+            't
           if$
+          nameptr #1 + 'nameptr :=
+          namesleft #1 - 'namesleft :=
         }
-        't
-      if$
-      nameptr #1 + 'nameptr :=
-      namesleft #1 - 'namesleft :=
+      while$
     }
-  while$
+  if$
 }
 
 FUNCTION {format.key}
