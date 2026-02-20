@@ -14,6 +14,7 @@ Multi-venue LaTeX setup for the Graph Lens Lite paper. The body content lives in
 
 ```bash
 sudo dnf install \
+  latexmk \
   texlive-scheme-basic \
   texlive-latex \
   texlive-bibtex \
@@ -32,6 +33,7 @@ sudo dnf install \
 
 ```bash
 sudo apt install \
+  latexmk \
   texlive-latex-base \
   texlive-latex-recommended \
   texlive-latex-extra \
@@ -62,10 +64,7 @@ cross-references and citations).
 
 ```bash
 cd oxford/
-pdflatex main
-bibtex   main
-pdflatex main
-pdflatex main
+latexmk -pdf main
 ```
 
 Output: `oxford/main.pdf`
@@ -74,31 +73,36 @@ Output: `oxford/main.pdf`
 
 ```bash
 cd biorxiv/
-pdflatex main
-bibtex   main
-pdflatex main
-pdflatex main
+latexmk -pdf main
 ```
 
 Output: `biorxiv/main.pdf`
 
 ### Build both at once
 
-From the repository root:
+From the manuscript directory:
 
 ```bash
 for dir in oxford biorxiv; do
-  (cd "$dir" && pdflatex main && bibtex main && pdflatex main && pdflatex main)
+  (cd "$dir" && latexmk -pdf main)
 done
+```
+
+### Clean auxiliary files
+
+```bash
+cd oxford/   # or biorxiv/
+latexmk -C
 ```
 
 ## Adding references
 
-`tools/add-reference` fetches a PubMed citation by PMID and appends it to
-`shared/reference.bib`. It requires only Python 3 (no extra packages).
+`scripts/add_reference_to_manuscript.py` (in the repo root) fetches a PubMed
+citation by PMID and appends it to `shared/reference.bib`. It requires only
+Python 3 (no extra packages).
 
 ```bash
-./tools/add-reference <PMID>
+scripts/add_reference_to_manuscript.py <PMID>
 ```
 
 The tool shows the generated BibTeX entry and asks for confirmation before
@@ -120,8 +124,8 @@ oxford/
 biorxiv/
   main.tex                 Preprint driver (article class, line numbers)
 
-tools/
-  add-reference            Fetch PubMed citation → BibTeX (Python 3)
+../scripts/
+  add_reference_to_manuscript.py   Fetch PubMed citation → BibTeX (Python 3)
 ```
 
 Edit `shared/content.tex` to change the paper body — both flavors pick up the

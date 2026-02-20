@@ -65,7 +65,7 @@ manuscript/**
 !manuscript/**/*.png
 !manuscript/**/*.jpg
 !manuscript/**/*.svg
-!manuscript/**/*.pdf   
+
 !manuscript/**/*.bst
 !manuscript/**/*.cls
 !manuscript/**/*.md
