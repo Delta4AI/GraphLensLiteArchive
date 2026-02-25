@@ -9,64 +9,67 @@ const {
   Layout,
   BaseLayout,
   ExtensionCategory,
-  register
+  register,
 } = G6;
 
-import {StaticUtilities} from "../utilities/static.js";
-import {replaceColorScale} from "../utilities/color_scale_picker.js";
-import {replaceNumericScale} from "../utilities/numeric_scale_picker.js";
+import { StaticUtilities } from "../utilities/static.js";
+import { replaceColorScale } from "../utilities/color_scale_picker.js";
+import { replaceNumericScale } from "../utilities/numeric_scale_picker.js";
 
 class GraphCoreManager {
   constructor(cache) {
     this.cache = cache;
     this.BEHAVIOURS = {
       DRAG_ELEMENT: {
-        type: 'drag-element',
-        cursor: {default: 'default', grab: 'default', grabbing: 'default'},
+        type: "drag-element",
+        cursor: { default: "default", grab: "default", grabbing: "default" },
         shadow: true,
-        shadowFill: '#C33D35',
+        shadowFill: "#C33D35",
         shadowFillOpacity: 0.5,
-        shadowStroke: '#C33D35',
+        shadowStroke: "#C33D35",
         shadowStrokeOpacity: 1.0,
       },
       DRAG_CANVAS: {
-        type: 'drag-canvas',
-        key: 'drag-canvas',
+        type: "drag-canvas",
+        key: "drag-canvas",
         animation: false,
       },
       ZOOM_CANVAS: {
-        type: 'zoom-canvas',
-        key: 'zoom-canvas',
+        type: "zoom-canvas",
+        key: "zoom-canvas",
         animation: false,
-
       },
       HOVER_ACTIVATE: {
-        type: 'hover-activate',
+        type: "hover-activate",
         enable: (event) => {
-          return event.targetType === 'node' || event.targetType === 'edge';
+          return event.targetType === "node" || event.targetType === "edge";
         },
         degree: 1,
-        state: 'highlight',
-        inactiveState: 'dim',
+        state: "highlight",
+        inactiveState: "dim",
       },
       LASSO_SELECT: {
         type: "lasso-select",
         key: "lasso-select",
         trigger: ["drag"],
         style: {
-          fill: '#C33D35',
+          fill: "#C33D35",
           fillOpacity: 0.3,
-          stroke: '#C33D35'
+          stroke: "#C33D35",
         },
         enable: (event) => {
           this.cache.ui.debug("LASSO CANVAS CLICK");
 
           if (!this.cache.CFG.APPLY_BUBBLE_SET_HOTFIX) return true;
 
-          const selected = this.cache.graph.getNodeData().filter(n => n.states?.includes("selected"));
+          const selected = this.cache.graph
+            .getNodeData()
+            .filter((n) => n.states?.includes("selected"));
 
           if (selected.length !== 0) {
-            this.cache.ui.debug("PREVENTING LASSO DESELECT EVENT BY REMOVING CANVAS CLICK EVENT");
+            this.cache.ui.debug(
+              "PREVENTING LASSO DESELECT EVENT BY REMOVING CANVAS CLICK EVENT",
+            );
             const eventHandler = this.cache.graph.getEvents()["canvas:click"];
             this.cache.graph.off("canvas:click");
             setTimeout(() => {
@@ -77,7 +80,7 @@ class GraphCoreManager {
             return false;
           }
           return true;
-        }
+        },
       },
       CLICK_SELECT: {
         type: "click-select",
@@ -88,13 +91,18 @@ class GraphCoreManager {
     };
   }
 
-  * traverseD4Data(nodeOrEdge) {
+  *traverseD4Data(nodeOrEdge) {
     if (!nodeOrEdge.D4Data) return;
 
     for (let section in nodeOrEdge.D4Data) {
       for (let subsection in nodeOrEdge.D4Data[section]) {
         for (let prop in nodeOrEdge.D4Data[section][subsection]) {
-          yield [section, subsection, prop, nodeOrEdge.D4Data[section][subsection][prop]];
+          yield [
+            section,
+            subsection,
+            prop,
+            nodeOrEdge.D4Data[section][subsection][prop],
+          ];
         }
       }
     }
@@ -102,7 +110,7 @@ class GraphCoreManager {
 
   async decideToRenderOrDraw(forceRender = false) {
     await this.cache.ui.showLoading("Loading", "Deciding to render or draw ..");
-    await new Promise(resolve => requestAnimationFrame(resolve));
+    await new Promise((resolve) => requestAnimationFrame(resolve));
 
     if (this.cache.EVENT_LOCKS.QUERY_SELECTION_EVENT) {
       this.cache.qm.storeQuery();
@@ -112,20 +120,27 @@ class GraphCoreManager {
     await this.cache.metrics.updateMetricUI();
 
     try {
-      if (this.cache.bubbleSetChanged || this.cache.styleChanged || this.cache.layoutChanged || forceRender) {
+      if (
+        this.cache.bubbleSetChanged ||
+        this.cache.styleChanged ||
+        this.cache.layoutChanged ||
+        forceRender
+      ) {
         if (this.cache.styleChanged) {
           await this.cache.ui.showLoading("Loading", "Updating graph ..");
-          await new Promise(resolve => requestAnimationFrame(resolve));
-          await this.cache.graph.updateData(this.createSimplifiedDataForGraphObject());
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+          await this.cache.graph.updateData(
+            this.createSimplifiedDataForGraphObject(),
+          );
           this.cache.styleChanged = false;
           this.cache.labelStyleChanged = false;
         }
         await this.cache.ui.showLoading("Loading", "Rendering graph ..");
-        await new Promise(resolve => requestAnimationFrame(resolve));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
         return await this.cache.graph.render();
       } else {
         await this.cache.ui.showLoading("Loading", "Redrawing graph ..");
-        await new Promise(resolve => requestAnimationFrame(resolve));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
         return await this.cache.graph.draw();
       }
 
@@ -139,17 +154,16 @@ class GraphCoreManager {
       return false;
     } finally {
       await this.cache.ui.hideLoading();
-      await new Promise(resolve => requestAnimationFrame(resolve));
+      await new Promise((resolve) => requestAnimationFrame(resolve));
     }
   }
 
   async createGraphInstance() {
     if (this.cache.graph === null) {
-
       const behaviors = [
         this.BEHAVIOURS.DRAG_CANVAS,
         this.BEHAVIOURS.ZOOM_CANVAS,
-        this.BEHAVIOURS.DRAG_ELEMENT
+        this.BEHAVIOURS.DRAG_ELEMENT,
       ];
 
       if (!this.cache.CFG.DISABLE_HOVER_EFFECT) {
@@ -165,18 +179,21 @@ class GraphCoreManager {
           getContent: (e, items) => {
             const content = this.cache.toolTips.get(items[0].id);
             requestAnimationFrame(() => {
-              const graphContainer = document.getElementById('innerGraphContainer');
+              const graphContainer = document.getElementById(
+                "innerGraphContainer",
+              );
               if (!graphContainer) return;
-              const tooltip = graphContainer.querySelector('.tooltip');
+              const tooltip = graphContainer.querySelector(".tooltip");
               if (!tooltip) return;
-              const body = tooltip.querySelector('.tooltip-content');
-              const btn = tooltip.querySelector('.tooltip-expand-btn');
+              const body = tooltip.querySelector(".tooltip-content");
+              const btn = tooltip.querySelector(".tooltip-expand-btn");
               if (!body || !btn) return;
-              tooltip.classList.remove('expanded');
-              btn.textContent = '⛶';
-              const isClipped = body.scrollHeight > body.clientHeight + 1
-                || body.scrollWidth > body.clientWidth + 1;
-              btn.style.display = isClipped ? '' : 'none';
+              tooltip.classList.remove("expanded");
+              btn.textContent = "⛶";
+              const isClipped =
+                body.scrollHeight > body.clientHeight + 1 ||
+                body.scrollWidth > body.clientWidth + 1;
+              btn.style.display = isClipped ? "" : "none";
             });
             return content;
           },
@@ -186,32 +203,60 @@ class GraphCoreManager {
           type: "minimap",
           position: "bottom-left",
         },
-        ...[...this.cache.bs.traverseBubbleSets()].map(group => ({
+        ...[...this.cache.bs.traverseBubbleSets()].map((group) => ({
           key: `bubbleSetPlugin-${group}`,
           type: "bubble-sets",
           members: [],
           avoidMembers: [this.cache.CFG.INVISIBLE_DUMMY_NODE.id],
           // avoidMembers: [...this.cache.nodeRef.keys()],
-          ...this.cache.data.layouts[this.cache.data.selectedLayout].bubbleSetStyle[group],
-          strokeOpacity: 0,  // hide bubble groups initially (1 node persists due to bug)
+          ...this.cache.data.layouts[this.cache.data.selectedLayout]
+            .bubbleSetStyle[group],
+          strokeOpacity: 0, // hide bubble groups initially (1 node persists due to bug)
           fillOpacity: 0,
           label: false,
         })),
       ];
 
       this.cache.graph = new Graph({
-        container: 'innerGraphContainer',
-        autoFit: false,  /* 'view' */
+        container: "innerGraphContainer",
+        autoFit: false /* 'view' */,
         animation: false,
         autoResize: true,
         padding: 10,
         data: this.createSimplifiedDataForGraphObject(),
-        node: {state: {selected: {stroke: '#C33D35', lineWidth: 2, halo: true, haloStroke: '#C33D35',}, highlight: {fill: '#C33D35', halo: true, lineWidth: 0,}, dim: {fill: '#E4E3EA',},},},
-        edge: {state: {highlight: {stroke: '#C33D35',}, selected: {halo: true, haloStroke: '#C33D35', haloLineWidth: 6,}},},
+        node: {
+          type: this.cache.DEFAULTS.NODE.TYPE,
+          style: {
+            size: this.cache.DEFAULTS.NODE.SIZE,
+            fill: this.cache.DEFAULTS.NODE.FILL_COLOR,
+            stroke: this.cache.DEFAULTS.NODE.STROKE_COLOR,
+            lineWidth: this.cache.DEFAULTS.NODE.LINE_WIDTH,
+          },
+          state: {
+            selected: {
+              stroke: "#C33D35",
+              lineWidth: 2,
+              halo: true,
+              haloStroke: "#C33D35",
+            },
+            highlight: { fill: "#C33D35", halo: true, lineWidth: 0 },
+            dim: { fill: "#E4E3EA" },
+          },
+        },
+        edge: {
+          type: this.cache.DEFAULTS.EDGE.TYPE,
+          style: {
+            stroke: this.cache.DEFAULTS.EDGE.COLOR,
+            lineWidth: this.cache.DEFAULTS.EDGE.LINE_WIDTH,
+          },
+          state: {
+            highlight: { stroke: "#C33D35" },
+            selected: { halo: true, haloStroke: "#C33D35", haloLineWidth: 6 },
+          },
+        },
         behaviors: behaviors,
         plugins: plugins,
-      })
-      ;
+      });
 
       this.cache.graph.on("node:dragend", async () => {
         /**
@@ -223,11 +268,11 @@ class GraphCoreManager {
         this.cache.EVENT_LOCKS.DRAG_END_RUNNING = true;
         await this.cache.lm.persistNodePositions();
         this.cache.EVENT_LOCKS.DRAG_END_RUNNING = false;
-      })
+      });
 
       this.cache.graph.on("beforelayout", async () => {
         this.cache.ui.debug("BEFORE LAYOUT");
-      })
+      });
 
       this.cache.graph.on("afterlayout", async () => {
         /**
@@ -243,10 +288,12 @@ class GraphCoreManager {
 
         if (layout.positions.size > 0) {
           // Apply stored positions
-          this.cache.graph.updateNodeData(Array.from(layout.positions, ([id, pos]) => ({
-            id,
-            style: pos.style
-          })));
+          this.cache.graph.updateNodeData(
+            Array.from(layout.positions, ([id, pos]) => ({
+              id,
+              style: pos.style,
+            })),
+          );
           await this.cache.graph.draw();
         } else if (layout.layoutType) {
           // Initial layout - persist the computed positions and clean up layoutType
@@ -256,7 +303,7 @@ class GraphCoreManager {
         }
 
         this.cache.EVENT_LOCKS.AFTER_LAYOUT_RUNNING = false;
-      })
+      });
 
       this.cache.graph.on("canvas:click", async (event) => {
         this.cache.ui.debug("CANVAS CLICK");
@@ -266,11 +313,11 @@ class GraphCoreManager {
 
       this.cache.graph.on("node:click", async (event) => {
         this.cache.ui.debug("NODE CLICK");
-      })
+      });
 
       this.cache.graph.on("edge:click", async (event) => {
         this.cache.ui.debug("EDGE CLICK");
-      })
+      });
 
       this.cache.graph.on(GraphEvent.BEFORE_DRAW, async (event) => {
         if (this.cache.EVENT_LOCKS.BEFORE_DRAW_RUNNING) return;
@@ -296,7 +343,6 @@ class GraphCoreManager {
         await this.cache.ui.hideLoading();
       });
 
-
       this.cache.graph.on(GraphEvent.AFTER_RENDER, async () => {
         this.cache.ui.debug("AFTER RENDER");
 
@@ -318,8 +364,12 @@ class GraphCoreManager {
       let layout = this.cache.data.layouts[this.cache.data.selectedLayout];
       // If layout has no positions yet but has a layoutType, apply that layout algorithm once
       if (layout.positions.size === 0 && layout.layoutType) {
-        const internals = this.cache.DEFAULTS.LAYOUT_INTERNALS[layout.layoutType] || {};
-        await this.cache.graph.setLayout({type: layout.layoutType, ...internals});
+        const internals =
+          this.cache.DEFAULTS.LAYOUT_INTERNALS[layout.layoutType] || {};
+        await this.cache.graph.setLayout({
+          type: layout.layoutType,
+          ...internals,
+        });
       }
     }
   }
@@ -330,33 +380,47 @@ class GraphCoreManager {
     try {
       this.cache.ui.debug("ONCE AFTER RENDER");
       await this.cache.ui.showLoading("Post-processing", "Post-processing ..");
-      await new Promise(resolve => requestAnimationFrame(resolve));
+      await new Promise((resolve) => requestAnimationFrame(resolve));
       this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_RUNNING = true;
 
-      await this.cache.ui.showLoading("Post-processing", "Registering event listeners ..");
-      await new Promise(resolve => requestAnimationFrame(resolve));
+      await this.cache.ui.showLoading(
+        "Post-processing",
+        "Registering event listeners ..",
+      );
+      await new Promise((resolve) => requestAnimationFrame(resolve));
       this.registerHotkeyEvents();
       this.registerGlobalEventListeners();
       await this.registerPluginStates();
 
       // to initially fill caches related to the query/filters, preRenderEvent is called without rendering afterwards
       await this.cache.ui.showLoading("Post-processing", "Pre-render event ..");
-      await new Promise(resolve => requestAnimationFrame(resolve));
+      await new Promise((resolve) => requestAnimationFrame(resolve));
       await this.preRenderEvent();
 
-      await this.cache.ui.showLoading("Post-processing", "Updating metrics UI ..");
-      await new Promise(resolve => requestAnimationFrame(resolve));
+      await this.cache.ui.showLoading(
+        "Post-processing",
+        "Updating metrics UI ..",
+      );
+      await new Promise((resolve) => requestAnimationFrame(resolve));
       await this.cache.metrics.updateMetricUI();
 
-      await this.cache.ui.showLoading("Post-processing", "Finalizing rendering ..");
-      await new Promise(resolve => requestAnimationFrame(resolve));
+      await this.cache.ui.showLoading(
+        "Post-processing",
+        "Finalizing rendering ..",
+      );
+      await new Promise((resolve) => requestAnimationFrame(resolve));
 
       if (this.cache.EVENT_LOCKS.TRIGGER_SET_LAYOUT_ONCE) {
         // suppresses the info in case of loading from a json model
         if (this.cache.nodePositionsFromExcelImport.size !== 0) {
-          this.cache.ui.info(`Created view "${this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME}". Applying ${this.cache.DEFAULTS.LAYOUT} layout to nodes without coordinates ..`);
+          this.cache.ui.info(
+            `Created view "${this.cache.DEFAULTS.CUSTOM_LAYOUT_NAME}". Applying ${this.cache.DEFAULTS.LAYOUT} layout to nodes without coordinates ..`,
+          );
         }
-        await this.cache.graph.setLayout({type: this.cache.DEFAULTS.LAYOUT, ...this.cache.DEFAULTS.LAYOUT_INTERNALS[this.cache.DEFAULTS.LAYOUT]});
+        await this.cache.graph.setLayout({
+          type: this.cache.DEFAULTS.LAYOUT,
+          ...this.cache.DEFAULTS.LAYOUT_INTERNALS[this.cache.DEFAULTS.LAYOUT],
+        });
       }
 
       this.cache.EVENT_LOCKS.ONCE_AFTER_RENDER_COMPLETED = true;
@@ -380,19 +444,22 @@ class GraphCoreManager {
 
   async toggleCleanUpDanglingElements(btn) {
     const shouldEnable = btn.classList.contains("red");
-    const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+    const currentLayout =
+      this.cache.data.layouts[this.cache.data.selectedLayout];
 
     if (shouldEnable) {
       btn.classList.remove("red");
       btn.classList.add("green", "highlight");
-      btn.title = "Show all nodes and edges, irrespectively of their connectedness.";
+      btn.title =
+        "Show all nodes and edges, irrespectively of their connectedness.";
       btn.textContent = "👁";
       currentLayout.hideDisconnectedNodes = true;
       await this.hideDanglingElements();
     } else {
       btn.classList.remove("green", "highlight");
       btn.classList.add("red");
-      btn.title = "Hide all nodes and edges that are not connected to any other node or edge.";
+      btn.title =
+        "Hide all nodes and edges that are not connected to any other node or edge.";
       btn.textContent = "🚫";
       currentLayout.hideDisconnectedNodes = false;
       await this.showDanglingElements();
@@ -401,7 +468,10 @@ class GraphCoreManager {
 
   nodeHasAVisibleEdge(nodeID) {
     for (const edgeID of this.cache.nodeIDToEdgeIDs.get(nodeID) || []) {
-      if (this.cache.edgeIDsToBeShown.has(edgeID) && !this.cache.hiddenDanglingEdgeIDs.has(edgeID)) {
+      if (
+        this.cache.edgeIDsToBeShown.has(edgeID) &&
+        !this.cache.hiddenDanglingEdgeIDs.has(edgeID)
+      ) {
         return true;
       }
     }
@@ -411,7 +481,10 @@ class GraphCoreManager {
 
   edgeIsConnectedToTwoVisibleNodes(edgeID) {
     for (const nodeID of this.cache.edgeIDToNodeIDs.get(edgeID) || []) {
-      if (!this.cache.nodeIDsToBeShown.has(nodeID) || this.cache.hiddenDanglingNodeIDs.has(nodeID)) {
+      if (
+        !this.cache.nodeIDsToBeShown.has(nodeID) ||
+        this.cache.hiddenDanglingNodeIDs.has(nodeID)
+      ) {
         return false;
       }
     }
@@ -425,19 +498,24 @@ class GraphCoreManager {
       changes = false;
 
       for (let nodeID of this.cache.nodeIDsToBeShown) {
-        if (!this.nodeHasAVisibleEdge(nodeID) && !this.cache.hiddenDanglingNodeIDs.has(nodeID)) {
+        if (
+          !this.nodeHasAVisibleEdge(nodeID) &&
+          !this.cache.hiddenDanglingNodeIDs.has(nodeID)
+        ) {
           this.cache.hiddenDanglingNodeIDs.add(nodeID);
           changes = true;
         }
       }
 
       for (let edgeID of this.cache.edgeIDsToBeShown) {
-        if (!this.edgeIsConnectedToTwoVisibleNodes(edgeID) && !this.cache.hiddenDanglingEdgeIDs.has(edgeID)) {
+        if (
+          !this.edgeIsConnectedToTwoVisibleNodes(edgeID) &&
+          !this.cache.hiddenDanglingEdgeIDs.has(edgeID)
+        ) {
           this.cache.hiddenDanglingEdgeIDs.add(edgeID);
           changes = true;
         }
       }
-
     } while (changes);
 
     // Update bubble groups to exclude hidden dangling nodes
@@ -447,7 +525,7 @@ class GraphCoreManager {
       "Hiding Elements",
       "Hiding nodes and edges that are not connected to any other node or edge.",
       null,
-      false
+      false,
     );
   }
 
@@ -462,29 +540,33 @@ class GraphCoreManager {
       "Showing Elements",
       "Showing all previously hidden nodes and edges that are not connected to any other node or edge.",
       null,
-      false
+      false,
     );
   }
 
   updateHideDisconnectedButtonState() {
     const btn = document.getElementById("hideDisconnectedBtn");
     if (!btn) return;
-    const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+    const currentLayout =
+      this.cache.data.layouts[this.cache.data.selectedLayout];
     if (currentLayout && currentLayout.hideDisconnectedNodes) {
       btn.classList.remove("red");
       btn.classList.add("green", "highlight");
-      btn.title = "Show all nodes and edges, irrespectively of their connectedness.";
+      btn.title =
+        "Show all nodes and edges, irrespectively of their connectedness.";
       btn.textContent = "👁";
     } else {
       btn.classList.remove("green", "highlight");
       btn.classList.add("red");
-      btn.title = "Hide all nodes and edges that are not connected to any other node or edge.";
+      btn.title =
+        "Hide all nodes and edges that are not connected to any other node or edge.";
       btn.textContent = "🚫";
     }
   }
 
   async applyHideDisconnectedState() {
-    const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+    const currentLayout =
+      this.cache.data.layouts[this.cache.data.selectedLayout];
     this.cache.hiddenDanglingNodeIDs.clear();
     this.cache.hiddenDanglingEdgeIDs.clear();
     this.updateHideDisconnectedButtonState();
@@ -522,51 +604,61 @@ class GraphCoreManager {
   }
 
   async fitViewToVisibleNodes() {
-    const visibleNodeIDs = [...this.cache.nodeIDsToBeShown]
-      .filter(id => !this.cache.hiddenDanglingNodeIDs.has(id))
+    const visibleNodeIDs = [...this.cache.nodeIDsToBeShown].filter(
+      (id) => !this.cache.hiddenDanglingNodeIDs.has(id),
+    );
 
     if (visibleNodeIDs.length === 0) {
-      await this.cache.graph.fitView()
-      return
+      await this.cache.graph.fitView();
+      return;
     }
 
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
 
     for (const id of visibleNodeIDs) {
-      const [x, y] = this.cache.graph.getElementPosition(id)
-      if (x < minX) minX = x
-      if (x > maxX) maxX = x
-      if (y < minY) minY = y
-      if (y > maxY) maxY = y
+      const [x, y] = this.cache.graph.getElementPosition(id);
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
     }
 
     if (!isFinite(minX)) {
-      await this.cache.graph.fitView()
-      return
+      await this.cache.graph.fitView();
+      return;
     }
 
     // all measurements at zoom 1 to avoid G6 translateTo bug at non-1 zoom
     // see: https://github.com/antvis/G6/issues/6373#issuecomment-3615152579
-    await this.cache.graph.zoomTo(1)
+    await this.cache.graph.zoomTo(1);
 
-    const canvasMin = this.cache.graph.getViewportByCanvas([minX, minY])
-    const canvasMax = this.cache.graph.getViewportByCanvas([maxX, maxY])
-    const bboxWidth = Math.abs(canvasMax[0] - canvasMin[0]) || 1
-    const bboxHeight = Math.abs(canvasMax[1] - canvasMin[1]) || 1
+    const canvasMin = this.cache.graph.getViewportByCanvas([minX, minY]);
+    const canvasMax = this.cache.graph.getViewportByCanvas([maxX, maxY]);
+    const bboxWidth = Math.abs(canvasMax[0] - canvasMin[0]) || 1;
+    const bboxHeight = Math.abs(canvasMax[1] - canvasMin[1]) || 1;
 
-    const [viewportWidth, viewportHeight] = this.cache.graph.getSize()
-    const padding = 80
+    const [viewportWidth, viewportHeight] = this.cache.graph.getSize();
+    const padding = 80;
     const zoom = Math.min(
       (viewportWidth - padding * 2) / bboxWidth,
-      (viewportHeight - padding * 2) / bboxHeight
-    )
+      (viewportHeight - padding * 2) / bboxHeight,
+    );
 
     // translateTo at zoom 1, then restore target zoom (G6 bug workaround)
-    const viewportCenter = [viewportWidth / 2, viewportHeight / 2]
-    const bboxCenter = this.cache.graph.getViewportByCanvas([(minX + maxX) / 2, (minY + maxY) / 2])
-    const offset = [viewportCenter[0] - bboxCenter[0], viewportCenter[1] - bboxCenter[1]]
-    await this.cache.graph.translateBy(offset)
-    await this.cache.graph.zoomTo(zoom)
+    const viewportCenter = [viewportWidth / 2, viewportHeight / 2];
+    const bboxCenter = this.cache.graph.getViewportByCanvas([
+      (minX + maxX) / 2,
+      (minY + maxY) / 2,
+    ]);
+    const offset = [
+      viewportCenter[0] - bboxCenter[0],
+      viewportCenter[1] - bboxCenter[1],
+    ];
+    await this.cache.graph.translateBy(offset);
+    await this.cache.graph.zoomTo(zoom);
   }
 
   async updateEdges(overrides = {}, commands = []) {
@@ -582,7 +674,10 @@ class GraphCoreManager {
     let numericScaleMap = null;
     if (commands.includes("set_numeric_scale")) {
       const propertyName = this.cache.numericPicker.currentProperty || null;
-      numericScaleMap = await this.cache.numericPicker.pickNumericScale("edges", propertyName);
+      numericScaleMap = await this.cache.numericPicker.pickNumericScale(
+        "edges",
+        propertyName,
+      );
       if (!numericScaleMap) {
         this.cache.ui.info("Aborted numeric scale picker");
         return;
@@ -615,14 +710,18 @@ class GraphCoreManager {
       this.cache.edgeRef.set(edgeID, edge);
 
       // Save to current layout's style map (including type)
-      const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+      const currentLayout =
+        this.cache.data.layouts[this.cache.data.selectedLayout];
       currentLayout.edgeStyles.set(edgeID, {
         type: edge.type,
-        style: structuredClone(edge.style)
+        style: structuredClone(edge.style),
       });
     }
 
-    await this.cache.style.handleStyleChangeLoadingEvent("Style", "Updating Edge Styles");
+    await this.cache.style.handleStyleChangeLoadingEvent(
+      "Style",
+      "Updating Edge Styles",
+    );
   }
 
   async updateNodes(overrides = {}, commands = []) {
@@ -638,7 +737,10 @@ class GraphCoreManager {
     let numericScaleMap = null;
     if (commands.includes("set_numeric_scale")) {
       const propertyName = this.cache.numericPicker.currentProperty || null;
-      numericScaleMap = await this.cache.numericPicker.pickNumericScale("nodes", propertyName);
+      numericScaleMap = await this.cache.numericPicker.pickNumericScale(
+        "nodes",
+        propertyName,
+      );
       if (!numericScaleMap) {
         this.cache.ui.info("Aborted numeric scale picker");
         return;
@@ -670,14 +772,16 @@ class GraphCoreManager {
           if (badgesToAdd) {
             node.style.badges = [
               ...node.style.badges,
-              ...(Array.isArray(badgesToAdd) ? badgesToAdd : [badgesToAdd])
+              ...(Array.isArray(badgesToAdd) ? badgesToAdd : [badgesToAdd]),
             ];
           }
 
           if (badgePaletteToAdd) {
             node.style.badgePalette = [
               ...node.style.badgePalette,
-              ...(Array.isArray(badgePaletteToAdd) ? badgePaletteToAdd : [badgePaletteToAdd])
+              ...(Array.isArray(badgePaletteToAdd)
+                ? badgePaletteToAdd
+                : [badgePaletteToAdd]),
             ];
           }
         }
@@ -704,14 +808,18 @@ class GraphCoreManager {
       this.cache.nodeRef.set(nodeID, node);
 
       // Save to current layout's style map (including type)
-      const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
+      const currentLayout =
+        this.cache.data.layouts[this.cache.data.selectedLayout];
       currentLayout.nodeStyles.set(nodeID, {
         type: node.type,
-        style: structuredClone(node.style)
+        style: structuredClone(node.style),
       });
     }
 
-    await this.cache.style.handleStyleChangeLoadingEvent("Style", `Updating Node Styles`);
+    await this.cache.style.handleStyleChangeLoadingEvent(
+      "Style",
+      `Updating Node Styles`,
+    );
   }
 
   getTargetNodes(propID) {
@@ -720,7 +828,7 @@ class GraphCoreManager {
       return [];
     }
     return [...this.cache.propToNodeIDs.get(propID)].filter((nodeID) =>
-      this.cache.nodeIDsToBeShown.has(nodeID)
+      this.cache.nodeIDsToBeShown.has(nodeID),
     );
   }
 
@@ -730,14 +838,14 @@ class GraphCoreManager {
       return [];
     }
     return [...this.cache.propToEdgeIDs.get(propID)].filter((edgeID) =>
-      this.cache.edgeIDsToBeShown.has(edgeID)
+      this.cache.edgeIDsToBeShown.has(edgeID),
     );
   }
 
   createSimplifiedDataForGraphObject() {
     const filterObject = (obj, excludedKeys) => {
       return Object.keys(obj)
-        .filter(key => !excludedKeys.includes(key)) // Exclude specified keys
+        .filter((key) => !excludedKeys.includes(key)) // Exclude specified keys
         .reduce((newObj, key) => {
           newObj[key] = obj[key];
           return newObj;
@@ -758,54 +866,69 @@ class GraphCoreManager {
     }
 
     // Process nodes and exclude their unwanted properties
-    const filteredNodes = this.cache.data.nodes
-      .map(node => {
-        const filteredNode = filterObject(node, [
-          "D4Data", "features", "featureValues", "featureWithinThreshold", "originalStyle", "originalType"]);
+    const filteredNodes = this.cache.data.nodes.map((node) => {
+      const filteredNode = filterObject(node, [
+        "D4Data",
+        "features",
+        "featureValues",
+        "featureWithinThreshold",
+        "originalStyle",
+        "originalType",
+      ]);
 
-        // Preserve states (like selection) from the current graph instance
-        const currentGraphNode = graphNodesMap.get(node.id);
-        if (currentGraphNode && currentGraphNode.states) {
-          filteredNode.states = currentGraphNode.states;
+      // Preserve states (like selection) from the current graph instance
+      const currentGraphNode = graphNodesMap.get(node.id);
+      if (currentGraphNode && currentGraphNode.states) {
+        filteredNode.states = currentGraphNode.states;
+      }
+
+      // Preserve visibility from current graph state or loaded data
+      const savedVisibility =
+        currentGraphNode?.style?.visibility || node.style?.visibility;
+
+      // load positions from the layouts position Map
+      const position = this.cache.data.layouts[
+        this.cache.data.selectedLayout
+      ].positions.get(node.id);
+
+      // Check if current layout has custom style for this node
+      const currentLayout =
+        this.cache.data.layouts[this.cache.data.selectedLayout];
+      const layoutData = currentLayout.nodeStyles.get(node.id);
+
+      if (layoutData) {
+        // Use layout-specific style and type
+        Object.assign(
+          filteredNode,
+          this.cache.style.getNodeStyleOrDefaults(node),
+        );
+        // Override with layout-specific type and style
+        if (layoutData.type !== undefined) {
+          filteredNode.type = layoutData.type;
         }
-
-        // Preserve visibility from current graph state or loaded data
-        const savedVisibility = currentGraphNode?.style?.visibility || node.style?.visibility;
-
-        // load positions from the layouts position Map
-        const position = this.cache.data.layouts[this.cache.data.selectedLayout].positions.get(node.id);
-
-        // Check if current layout has custom style for this node
-        const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
-        const layoutData = currentLayout.nodeStyles.get(node.id);
-
-        if (layoutData) {
-          // Use layout-specific style and type
-          Object.assign(filteredNode, this.cache.style.getNodeStyleOrDefaults(node));
-          // Override with layout-specific type and style
-          if (layoutData.type !== undefined) {
-            filteredNode.type = layoutData.type;
-          }
-          if (layoutData.style) {
-            filteredNode.style = structuredClone(layoutData.style);
-          }
-        } else {
-          // Use default style
-          Object.assign(filteredNode, this.cache.style.getNodeStyleOrDefaults(node));
+        if (layoutData.style) {
+          filteredNode.style = structuredClone(layoutData.style);
         }
+      } else {
+        // Use default style
+        Object.assign(
+          filteredNode,
+          this.cache.style.getNodeStyleOrDefaults(node),
+        );
+      }
 
-        // Restore visibility if it was set in the loaded data
-        if (savedVisibility) {
-          filteredNode.style.visibility = savedVisibility;
-        }
+      // Restore visibility if it was set in the loaded data
+      if (savedVisibility) {
+        filteredNode.style.visibility = savedVisibility;
+      }
 
-        if (position && position.style) {
-          filteredNode.style.x = position.style.x;
-          filteredNode.style.y = position.style.y;
-        }
+      if (position && position.style) {
+        filteredNode.style.x = position.style.x;
+        filteredNode.style.y = position.style.y;
+      }
 
-        return filteredNode;
-      });
+      return filteredNode;
+    });
 
     // Get current graph edges to preserve states
     let graphEdgesMap = new Map();
@@ -821,46 +944,59 @@ class GraphCoreManager {
     }
 
     // Process edges if provided, and exclude unwanted properties
-    const filteredEdges = this.cache.data.edges
-      .map(edge => {
-        const filteredEdge = filterObject(edge, [
-          "D4Data", "features", "featureValues", "featureWithinThreshold", "originalStyle", "originalType"]);
+    const filteredEdges = this.cache.data.edges.map((edge) => {
+      const filteredEdge = filterObject(edge, [
+        "D4Data",
+        "features",
+        "featureValues",
+        "featureWithinThreshold",
+        "originalStyle",
+        "originalType",
+      ]);
 
-        // Preserve states (like selection) from the current graph instance
-        const currentGraphEdge = graphEdgesMap.get(edge.id);
-        if (currentGraphEdge && currentGraphEdge.states) {
-          filteredEdge.states = currentGraphEdge.states;
+      // Preserve states (like selection) from the current graph instance
+      const currentGraphEdge = graphEdgesMap.get(edge.id);
+      if (currentGraphEdge && currentGraphEdge.states) {
+        filteredEdge.states = currentGraphEdge.states;
+      }
+
+      // Preserve visibility from current graph state or loaded data
+      const savedVisibility =
+        currentGraphEdge?.style?.visibility || edge.style?.visibility;
+
+      // Check if current layout has custom style for this edge
+      const currentLayout =
+        this.cache.data.layouts[this.cache.data.selectedLayout];
+      const layoutData = currentLayout.edgeStyles.get(edge.id);
+
+      if (layoutData) {
+        // Use layout-specific style and type
+        Object.assign(
+          filteredEdge,
+          this.cache.style.getEdgeStyleOrDefaults(edge),
+        );
+        // Override with layout-specific type and style
+        if (layoutData.type !== undefined) {
+          filteredEdge.type = layoutData.type;
         }
-
-        // Preserve visibility from current graph state or loaded data
-        const savedVisibility = currentGraphEdge?.style?.visibility || edge.style?.visibility;
-
-        // Check if current layout has custom style for this edge
-        const currentLayout = this.cache.data.layouts[this.cache.data.selectedLayout];
-        const layoutData = currentLayout.edgeStyles.get(edge.id);
-
-        if (layoutData) {
-          // Use layout-specific style and type
-          Object.assign(filteredEdge, this.cache.style.getEdgeStyleOrDefaults(edge));
-          // Override with layout-specific type and style
-          if (layoutData.type !== undefined) {
-            filteredEdge.type = layoutData.type;
-          }
-          if (layoutData.style) {
-            filteredEdge.style = structuredClone(layoutData.style);
-          }
-        } else {
-          // Use default style
-          Object.assign(filteredEdge, this.cache.style.getEdgeStyleOrDefaults(edge));
+        if (layoutData.style) {
+          filteredEdge.style = structuredClone(layoutData.style);
         }
+      } else {
+        // Use default style
+        Object.assign(
+          filteredEdge,
+          this.cache.style.getEdgeStyleOrDefaults(edge),
+        );
+      }
 
-        // Restore visibility if it was set in the loaded data
-        if (savedVisibility) {
-          filteredEdge.style.visibility = savedVisibility;
-        }
+      // Restore visibility if it was set in the loaded data
+      if (savedVisibility) {
+        filteredEdge.style.visibility = savedVisibility;
+      }
 
-        return filteredEdge;
-      });
+      return filteredEdge;
+    });
 
     return {
       nodes: [...filteredNodes, this.cache.CFG.INVISIBLE_DUMMY_NODE],
@@ -873,12 +1009,15 @@ class GraphCoreManager {
     if (this.cache.styleChanged) return;
 
     // Only reset query if not manually updated AND filters not locked by manual query
-    if (!this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT && !this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY) {
+    if (
+      !this.cache.EVENT_LOCKS.QUERY_UPDATE_EVENT &&
+      !this.cache.EVENT_LOCKS.FILTERS_LOCKED_BY_MANUAL_QUERY
+    ) {
       this.cache.qm.resetQuery();
     }
 
     this.cache.nodeIDsToBeShown = new Set();
-    this.cache.propIDsToNodeIDsToBeShown = new Map();  // this is used by the bubble-grouping functionality after rendering
+    this.cache.propIDsToNodeIDsToBeShown = new Map(); // this is used by the bubble-grouping functionality after rendering
     this.cache.edgeIDsToBeShown = new Set();
     this.cache.propIDsToEdgeIDsToBeShown = new Map();
     this.cache.remainingEdgeRelatedNodes = new Set();
@@ -903,10 +1042,11 @@ class GraphCoreManager {
     }
 
     for (const edge of this.cache.edgeRef.values()) {
-      const endsOk = this.cache.nodeIDsToBeShown.has(edge.source) &&
+      const endsOk =
+        this.cache.nodeIDsToBeShown.has(edge.source) &&
         this.cache.nodeIDsToBeShown.has(edge.target);
 
-      if (endsOk && (this.cache.query.ast.testEdge(edge))) {
+      if (endsOk && this.cache.query.ast.testEdge(edge)) {
         this.cache.edgeIDsToBeShown.add(edge.id);
         edge.featureIsWithinThreshold.forEach((v, k) => {
           if (v === true) {
@@ -920,19 +1060,23 @@ class GraphCoreManager {
       // else ui.debug(`Edge ${edge.id} did not fulfill filter!`);
     }
 
-    const nodeIDsToBeHidden = [...this.cache.nodeRef.keys()].filter(nodeID => !this.cache.nodeIDsToBeShown.has(nodeID));
-    const edgeIDsToBeHidden = [...this.cache.edgeRef.keys()].filter(edgeID => !this.cache.edgeIDsToBeShown.has(edgeID));
+    const nodeIDsToBeHidden = [...this.cache.nodeRef.keys()].filter(
+      (nodeID) => !this.cache.nodeIDsToBeShown.has(nodeID),
+    );
+    const edgeIDsToBeHidden = [...this.cache.edgeRef.keys()].filter(
+      (edgeID) => !this.cache.edgeIDsToBeShown.has(edgeID),
+    );
 
     const idsToShow = [
       ...this.cache.nodeIDsToBeShown,
-      ...this.cache.edgeIDsToBeShown
+      ...this.cache.edgeIDsToBeShown,
     ];
 
     const idsToHide = [
       ...nodeIDsToBeHidden,
       ...edgeIDsToBeHidden,
       ...this.cache.hiddenDanglingNodeIDs,
-      ...this.cache.hiddenDanglingEdgeIDs
+      ...this.cache.hiddenDanglingEdgeIDs,
     ];
 
     await this.cache.fm.updateElementVisibility(idsToShow, idsToHide);
@@ -966,11 +1110,10 @@ class GraphCoreManager {
     status.style.height = "0";
   }
 
-
   registerHotkeyEvents() {
     if (this.cache.EVENT_LOCKS.HOTKEY_EVENTS_REGISTERED) return;
 
-    document.addEventListener('keydown', async (event) => {
+    document.addEventListener("keydown", async (event) => {
       const activeElement = document.activeElement;
 
       // Skip hotkeys if currently focused on an input, textarea, or select element
@@ -1022,13 +1165,27 @@ class GraphCoreManager {
   registerGlobalEventListeners() {
     if (this.cache.EVENT_LOCKS.GLOBAL_EVENTS_REGISTERED) return;
 
-    ['input', 'keydown', 'keyup', 'mousedown', 'mouseup', 'focus', 'blur', 'scroll'].forEach(evt =>
-      this.cache.query.text.addEventListener(evt, () => this.cache.qm.moveCaret())
+    [
+      "input",
+      "keydown",
+      "keyup",
+      "mousedown",
+      "mouseup",
+      "focus",
+      "blur",
+      "scroll",
+    ].forEach((evt) =>
+      this.cache.query.text.addEventListener(evt, () =>
+        this.cache.qm.moveCaret(),
+      ),
     );
 
-    document.addEventListener('selectionchange', () => {
+    document.addEventListener("selectionchange", () => {
       const sel = window.getSelection();
-      if (sel.rangeCount && this.cache.query.text.contains(sel.getRangeAt(0).startContainer)) {
+      if (
+        sel.rangeCount &&
+        this.cache.query.text.contains(sel.getRangeAt(0).startContainer)
+      ) {
         this.cache.qm.moveCaret();
       }
     });
@@ -1040,42 +1197,46 @@ class GraphCoreManager {
   }
 
   registerTooltipExpandToggle() {
-    window.toggleTooltipExpand = function(button) {
-      const tooltip = button.closest('.tooltip');
+    window.toggleTooltipExpand = function (button) {
+      const tooltip = button.closest(".tooltip");
       if (!tooltip) return;
 
-      const isExpanded = tooltip.classList.contains('expanded');
+      const isExpanded = tooltip.classList.contains("expanded");
 
       if (isExpanded) {
-        tooltip.classList.remove('expanded');
-        button.textContent = '⛶';
-        button.title = 'Expand to fit content';
+        tooltip.classList.remove("expanded");
+        button.textContent = "⛶";
+        button.title = "Expand to fit content";
       } else {
-        tooltip.classList.add('expanded');
-        button.textContent = '⤡';
-        button.title = 'Restore size';
+        tooltip.classList.add("expanded");
+        button.textContent = "⤡";
+        button.title = "Restore size";
       }
     };
 
-    window.closeTooltip = function(button) {
-      const tooltip = button.closest('.tooltip');
+    window.closeTooltip = function (button) {
+      const tooltip = button.closest(".tooltip");
       if (!tooltip) return;
-      tooltip.style.visibility = 'hidden';
+      tooltip.style.visibility = "hidden";
     };
   }
 
   registerTooltipWheelHandler() {
-    const graphContainer = document.getElementById('innerGraphContainer');
+    const graphContainer = document.getElementById("innerGraphContainer");
     if (!graphContainer) return;
 
-    graphContainer.addEventListener('wheel', (event) => {
-      const target = event.target;
-      const tooltip = target.closest('.tooltip');
+    graphContainer.addEventListener(
+      "wheel",
+      (event) => {
+        const target = event.target;
+        const tooltip = target.closest(".tooltip");
 
-      if (tooltip) {
-        event.stopPropagation();
-      }
-    }, { passive: false, capture: true });
+        if (tooltip) {
+          event.stopPropagation();
+        }
+      },
+      { passive: false, capture: true },
+    );
 
     this.makeTooltipDraggable(graphContainer);
   }
@@ -1091,13 +1252,17 @@ class GraphCoreManager {
       e.stopPropagation();
     };
 
-    graphContainer.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('.tooltip-expand-btn') || e.target.closest('.tooltip-close-btn')) return;
+    graphContainer.addEventListener("pointerdown", (e) => {
+      if (
+        e.target.closest(".tooltip-expand-btn") ||
+        e.target.closest(".tooltip-close-btn")
+      )
+        return;
 
-      const header = e.target.closest('.tooltip-header');
+      const header = e.target.closest(".tooltip-header");
       if (!header) return;
 
-      const tooltip = header.closest('.tooltip');
+      const tooltip = header.closest(".tooltip");
       if (!tooltip) return;
 
       isDragging = true;
@@ -1108,11 +1273,11 @@ class GraphCoreManager {
       offsetX = e.clientX - tooltipRect.left + parentRect.left;
       offsetY = e.clientY - tooltipRect.top + parentRect.top;
 
-      header.style.cursor = 'grabbing';
+      header.style.cursor = "grabbing";
       stopEvent(e);
     });
 
-    document.addEventListener('pointermove', (e) => {
+    document.addEventListener("pointermove", (e) => {
       if (!isDragging || !currentTooltip) return;
 
       currentTooltip.style.left = `${e.clientX - offsetX}px`;
@@ -1120,28 +1285,31 @@ class GraphCoreManager {
       stopEvent(e);
     });
 
-    document.addEventListener('pointerup', (e) => {
+    document.addEventListener("pointerup", (e) => {
       if (!isDragging) return;
 
       if (currentTooltip) {
-        const header = currentTooltip.querySelector('.tooltip-header');
-        if (header) header.style.cursor = 'move';
+        const header = currentTooltip.querySelector(".tooltip-header");
+        if (header) header.style.cursor = "move";
       }
       isDragging = false;
       currentTooltip = null;
       stopEvent(e);
 
-      window.addEventListener('click', stopEvent, { capture: true, once: true });
+      window.addEventListener("click", stopEvent, {
+        capture: true,
+        once: true,
+      });
     });
   }
 
   async registerPluginStates() {
     this.cache.ui.debug("Registering bubble set plugin instances ..");
     for (const group of this.cache.bs.traverseBubbleSets()) {
-      this.cache.INSTANCES.BUBBLE_GROUPS[group] = await this.cache.graph.getPluginInstance(`bubbleSetPlugin-${group}`);
+      this.cache.INSTANCES.BUBBLE_GROUPS[group] =
+        await this.cache.graph.getPluginInstance(`bubbleSetPlugin-${group}`);
     }
   }
 }
 
-
-export {GraphCoreManager};
+export { GraphCoreManager };
