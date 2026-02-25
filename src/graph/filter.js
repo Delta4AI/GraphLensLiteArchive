@@ -5,7 +5,9 @@ class GraphFilterManager {
 
   async resetFilters(section, subSection = undefined) {
     const idPrefix = section + (subSection ? `::${subSection}` : "");
-    const affectedPropIDs = Array.from(this.cache.propIDs).filter(id => id.startsWith(idPrefix));
+    const affectedPropIDs = Array.from(this.cache.propIDs).filter((id) =>
+      id.startsWith(idPrefix),
+    );
 
     for (const propID of affectedPropIDs) {
       this.cache.ui.checkCheckbox(propID, true);
@@ -16,21 +18,34 @@ class GraphFilterManager {
       if (dropdown) await dropdown.selectAllCategories(true);
     }
 
-    await this.handleFilterEvent("Filtering", `Resetting filters for ${idPrefix} ..`);
+    await this.handleFilterEvent(
+      "Filtering",
+      `Resetting filters for ${idPrefix} ..`,
+    );
   }
 
-  async handleFilterEvent(header, text, propID = null, shouldResetQuery = true) {
+  async handleFilterEvent(
+    header,
+    text,
+    propID = null,
+    shouldResetQuery = true,
+  ) {
     if (shouldResetQuery) {
       this.cache.qm.resetQuery();
     }
 
     // skip rendering if property is not active
-    if (propID !== null && !this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(propID).active) {
+    if (
+      propID !== null &&
+      !this.cache.data.layouts[this.cache.data.selectedLayout].filters.get(
+        propID,
+      ).active
+    ) {
       return;
     }
 
     await this.cache.ui.showLoading(header, text);
-    await new Promise(resolve => requestAnimationFrame(resolve));
+    await new Promise((resolve) => requestAnimationFrame(resolve));
 
     // Clean up manual bubble groups (remove filtered-out nodes)
     this.cache.bs.cleanupManualGroupMembers();
@@ -64,11 +79,18 @@ class GraphFilterManager {
   getPropertiesNotWithinThresholds(nodeID = null, edgeID = null) {
     const keysWithFalse = [];
     const isNode = nodeID !== null;
-    const element = isNode ? this.cache.nodeRef.get(nodeID) : this.cache.edgeRef.get(edgeID);
+    const element = isNode
+      ? this.cache.nodeRef.get(nodeID)
+      : this.cache.edgeRef.get(edgeID);
+
+    // Elements with no features are not subject to property threshold checks
+    if (element.features.size === 0) return [];
 
     // we only check properties that belong to this element type (specific props for nodes and edges)
     const availableProps = new Set([
-      ...(isNode ? this.cache.nodeExclusiveProps : this.cache.edgeExclusiveProps),
+      ...(isNode
+        ? this.cache.nodeExclusiveProps
+        : this.cache.edgeExclusiveProps),
       ...this.cache.mixedProps,
     ]);
 
@@ -103,14 +125,19 @@ class GraphFilterManager {
 
   async updateElementVisibility(idsToShow, idsToHide) {
     this.cache.visibleElementsChanged = false;
-    const {nodes, edges} = await this.cache.graph.getData();
-    const {visible, hidden} = [...nodes, ...edges].reduce((acc, item) => {
-      acc[item.style.visibility === "visible" ? 'visible' : 'hidden'].push(item.id);
-      return acc;
-    }, {visible: [], hidden: []});
+    const { nodes, edges } = await this.cache.graph.getData();
+    const { visible, hidden } = [...nodes, ...edges].reduce(
+      (acc, item) => {
+        acc[item.style.visibility === "visible" ? "visible" : "hidden"].push(
+          item.id,
+        );
+        return acc;
+      },
+      { visible: [], hidden: [] },
+    );
 
-    const showElementsDiff = idsToShow.filter(id => hidden.includes(id));
-    const hideElementsDiff = idsToHide.filter(id => visible.includes(id));
+    const showElementsDiff = idsToShow.filter((id) => hidden.includes(id));
+    const hideElementsDiff = idsToHide.filter((id) => visible.includes(id));
 
     if (showElementsDiff.length > 0) {
       await this.cache.graph.showElement(showElementsDiff);
@@ -123,8 +150,7 @@ class GraphFilterManager {
     if (this.cache.visibleElementsChanged) {
       this.cache.metrics.invalidateMetricValues();
     }
-
   }
 }
 
-export {GraphFilterManager};
+export { GraphFilterManager };

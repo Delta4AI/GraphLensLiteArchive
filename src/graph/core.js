@@ -1027,6 +1027,11 @@ class GraphCoreManager {
     this.cache.qm.decodeQueryAndBuildAST();
 
     for (const node of this.cache.nodeRef.values()) {
+      // Nodes with no features are always visible (nothing to filter on)
+      if (node.features.size === 0) {
+        this.cache.nodeIDsToBeShown.add(node.id);
+        continue;
+      }
       if (this.cache.query.ast.testNode(node)) {
         this.cache.nodeIDsToBeShown.add(node.id);
         node.featureIsWithinThreshold.forEach((v, k) => {
@@ -1038,13 +1043,21 @@ class GraphCoreManager {
           }
         });
       }
-      // else ui.debug(`Node ${node.id} did not fulfill filter!`);
     }
 
     for (const edge of this.cache.edgeRef.values()) {
       const endsOk =
         this.cache.nodeIDsToBeShown.has(edge.source) &&
         this.cache.nodeIDsToBeShown.has(edge.target);
+
+      // Edges with no features are always visible (nothing to filter on),
+      // but still require both endpoints to be visible
+      if (edge.features.size === 0) {
+        if (endsOk) {
+          this.cache.edgeIDsToBeShown.add(edge.id);
+        }
+        continue;
+      }
 
       if (endsOk && this.cache.query.ast.testEdge(edge)) {
         this.cache.edgeIDsToBeShown.add(edge.id);
@@ -1057,7 +1070,6 @@ class GraphCoreManager {
           }
         });
       }
-      // else ui.debug(`Edge ${edge.id} did not fulfill filter!`);
     }
 
     const nodeIDsToBeHidden = [...this.cache.nodeRef.keys()].filter(

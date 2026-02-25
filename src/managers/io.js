@@ -1806,16 +1806,7 @@ class IOManager {
         propsAdded++;
       }
 
-      if (propsAdded === 0) {
-        this.cache.ui
-          .warning(`${descriptor} in row ${row.__rowNum__} (${nodeOrEdge.id}) has no properties. 
-      Added property 'exists' to enable display.`);
-        nodeOrEdge.D4Data[header][
-          this.cache.CFG.EXCEL_UNCATEGORIZED_SUBHEADER
-        ] = {
-          exists: true,
-        };
-      }
+      return propsAdded;
     };
 
     const nodeIDs = new Set();
@@ -1845,17 +1836,28 @@ class IOManager {
         nodeIDs.add(nodeID);
 
         addNodeOrEdgeStyle(node, row, EXCEL_NODE_PROPERTIES, descriptor);
-        addNodeOrEdgeUserData(
+        const propsAdded = addNodeOrEdgeUserData(
           node,
           row,
           EXCEL_NODE_PROPERTIES,
           this.cache.CFG.EXCEL_NODE_HEADER,
           descriptor,
         );
+        node._propsAdded = propsAdded;
 
         return node;
       })
       .filter((node) => node !== null);
+
+    const nodesWithoutProps = parsedNodes.filter((n) => n._propsAdded === 0);
+    if (nodesWithoutProps.length > 0) {
+      const ids = nodesWithoutProps.map((n) => n.id);
+      this.cache.ui.info(
+        `${nodesWithoutProps.length} node(s) have no user-defined properties and will always be visible:\n` +
+          ids.map((id) => `  - ${id}`).join("\n"),
+      );
+    }
+    parsedNodes.forEach((n) => delete n._propsAdded);
 
     const parsedEdges = edgesData
       .map((row) => {
@@ -1898,17 +1900,28 @@ class IOManager {
         edge.target = targetID;
 
         addNodeOrEdgeStyle(edge, row, EXCEL_EDGE_PROPERTIES, descriptor);
-        addNodeOrEdgeUserData(
+        const propsAdded = addNodeOrEdgeUserData(
           edge,
           row,
           EXCEL_EDGE_PROPERTIES,
           this.cache.CFG.EXCEL_EDGE_HEADER,
           descriptor,
         );
+        edge._propsAdded = propsAdded;
 
         return edge;
       })
       .filter((edge) => edge !== null);
+
+    const edgesWithoutProps = parsedEdges.filter((e) => e._propsAdded === 0);
+    if (edgesWithoutProps.length > 0) {
+      const ids = edgesWithoutProps.map((e) => e.id);
+      this.cache.ui.info(
+        `${edgesWithoutProps.length} edge(s) have no user-defined properties and will always be visible:\n` +
+          ids.map((id) => `  - ${id}`).join("\n"),
+      );
+    }
+    parsedEdges.forEach((e) => delete e._propsAdded);
 
     return {
       nodes: parsedNodes,
