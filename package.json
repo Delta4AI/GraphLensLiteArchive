@@ -27,6 +27,7 @@
     "dist-mac": "npm run dist:prep && electron-builder --mac --publish=never && npm run substitute-gll end",
     "dist": "npm run dist-linux && npm run dist-windows",
     "serve": "npx http-server src -p 8000 --cors -o /graph_lens_lite.html ",
+    "version": "npm run inject-version && git add src/config.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },

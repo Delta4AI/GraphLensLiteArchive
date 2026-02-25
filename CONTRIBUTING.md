@@ -34,14 +34,17 @@ The `inject-version` script keeps them in sync — `package.json` is the source 
 
 ### Bumping a version
 
+The `version` npm hook automatically syncs `src/config.js` and stages it,
+so a single command creates the commit + tag:
+
 ```bash
-npm version minor --no-git-tag-version   # or: major, patch
-npm run inject-version
-git add package.json src/config.js
-git commit -m "chore: bump to v$(node -p "require('./package.json').version")"
-git tag "v$(node -p "require('./package.json').version")"
-git push origin main --tags
+npm version patch   # or: minor, major
+git push --follow-tags
 ```
+
+This bumps `package.json`, injects the version into `src/config.js`,
+commits both files, creates a `vX.Y.Z` tag, and the push triggers
+the CI release workflow.
 
 ## Python Scripts (uv)
 
