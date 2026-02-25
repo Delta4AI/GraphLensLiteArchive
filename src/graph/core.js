@@ -224,31 +224,22 @@ class GraphCoreManager {
         autoResize: true,
         padding: 10,
         data: this.createSimplifiedDataForGraphObject(),
+        // NOTE: Do NOT add `type` or `style` here. In G6 v5, spec-level
+        // node/edge options override per-node data styles (Object.assign
+        // order in getComputedStyle: ...dataStyle, ...specDefault...).
+        // All per-node type/style is provided via createSimplifiedDataForGraphObject().
         node: {
-          type: this.cache.DEFAULTS.NODE.TYPE,
-          style: {
-            size: this.cache.DEFAULTS.NODE.SIZE,
-            fill: this.cache.DEFAULTS.NODE.FILL_COLOR,
-            stroke: this.cache.DEFAULTS.NODE.STROKE_COLOR,
-            lineWidth: this.cache.DEFAULTS.NODE.LINE_WIDTH,
-          },
           state: {
             selected: {
-              stroke: "#C33D35",
-              lineWidth: 2,
               halo: true,
               haloStroke: "#C33D35",
+              haloLineWidth: 12,
             },
             highlight: { fill: "#C33D35", halo: true, lineWidth: 0 },
             dim: { fill: "#E4E3EA" },
           },
         },
         edge: {
-          type: this.cache.DEFAULTS.EDGE.TYPE,
-          style: {
-            stroke: this.cache.DEFAULTS.EDGE.COLOR,
-            lineWidth: this.cache.DEFAULTS.EDGE.LINE_WIDTH,
-          },
           state: {
             highlight: { stroke: "#C33D35" },
             selected: { halo: true, haloStroke: "#C33D35", haloLineWidth: 6 },
