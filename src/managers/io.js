@@ -465,7 +465,7 @@ class IOManager {
 
       const isColumnEmpty = (col) => sheetJson.every(row => {
         const v = row[col];
-        return v === null || v.toString().trim() === "";
+        return v == null || v.toString().trim() === "";
       });
 
       const emptyRequiredColumns = allCols.filter(col =>
