@@ -1,3 +1,6 @@
+> [!WARNING]
+> **This repository has moved!** The new home for this project is [Delta4AI/GraphLensLite](https://github.com/Delta4AI/GraphLensLite).
+
 <p align="center">
   <img src="./static/logo.png" alt="Graph Lens Lite Logo" width="420">
 </p>
